@@ -34,9 +34,9 @@ public class LabelController {
         return "redirect:/labels";
     }
 
-    @PostMapping("/labels/{name}/delete")
-    public String deleteLabel(@PathVariable String name) {
-        labelService.delete(name);
+    @PostMapping("/labels/{id}/delete")
+    public String deleteLabel(@PathVariable Long id) {
+        labelService.delete(id);
         return "redirect:/labels";
     }
 

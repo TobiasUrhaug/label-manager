@@ -43,11 +43,12 @@ class LabelManagerApplicationTests {
     @Test
     void deleteLabel_RemovesItFromDatabase() {
         // Arrange: insert a row
-        repo.save(new Label("WronglyNamedLabel"));
+        var label = new Label("WronglyNamedLabel");
+        repo.save(label);
 
         // Act: call DELETE
         restClient
-                .delete().uri("/labels/WronglyNamedLabel")
+                .post().uri("/labels/" + label.getId() +"/delete")
                 .exchange()
                 .expectStatus().is3xxRedirection();
 

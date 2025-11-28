@@ -31,11 +31,12 @@ class LabelControllerTest {
 
     @Test
     void labels_showsListOfLabels() throws Exception {
-        when(labelService.getAllLabels()).thenReturn(List.of("Mock Label"));
+        var mockLabel = new Label("Mock Label");
+        when(labelService.getAllLabels()).thenReturn(List.of(mockLabel));
 
         mockMvc.perform(get("/labels"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("labels"))
-                .andExpect(model().attribute("labels", List.of("Mock Label")));
+                .andExpect(model().attribute("labels", List.of(mockLabel)));
     }
 }

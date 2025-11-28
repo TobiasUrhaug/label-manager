@@ -19,9 +19,9 @@
 <ul class="list-group">
     <li class="list-group-item d-flex justify-content-between align-items-center"
         th:each="label : ${labels}">
-        <span th:text="${label}"></span>
+        <span th:text="${label.name}"></span>
 
-        <form th:action="@{/labels/{name}/delete(name=${label})}"
+        <form th:action="@{/labels/{id}/delete(id=${label.id})}"
               method="post"
               onsubmit="return confirm('Are you sure you want to delete this label?');"
         >

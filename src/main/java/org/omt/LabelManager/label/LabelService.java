@@ -14,12 +14,9 @@ public class LabelService {
         this.repository = repository;
     }
 
-    public List<String> getAllLabels() {
-        return repository
-                .findAll()
-                .stream()
-                .map(Label::getName)
-                .toList();
+    public List<Label> getAllLabels() {
+        return repository.findAll();
+
     }
 
     public void createLabel(String labelName) {
@@ -27,7 +24,7 @@ public class LabelService {
     }
 
     @Transactional
-    public void delete(String name) {
-        repository.deleteByName(name);
+    public void delete(Long id) {
+        repository.deleteById(id);
     }
 }
