@@ -3,6 +3,7 @@ package org.omt.LabelManager.label;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
@@ -30,6 +31,12 @@ public class LabelController {
     public String createLabel(@RequestParam String label) {
         System.out.println("Creating label: " + label);
         labelService.createLabel(label);
+        return "redirect:/labels";
+    }
+
+    @PostMapping("/labels/{name}/delete")
+    public String deleteLabel(@PathVariable String name) {
+        labelService.delete(name);
         return "redirect:/labels";
     }
 

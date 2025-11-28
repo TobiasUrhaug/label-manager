@@ -17,7 +17,19 @@
 <h3 class="mb-3 mt-4">Your Labels:</h3>
 
 <ul class="list-group">
-    <li class="list-group-item" th:each="label : ${labels}" th:text="${label}"></li>
+    <li class="list-group-item d-flex justify-content-between align-items-center"
+        th:each="label : ${labels}">
+        <span th:text="${label}"></span>
+
+        <form th:action="@{/labels/{name}/delete(name=${label})}"
+              method="post"
+              onsubmit="return confirm('Are you sure you want to delete this label?');"
+        >
+            <button type="submit" class="btn btn-danger btn-sm">
+                Delete
+            </button>
+        </form>
+    </li>
 </ul>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>

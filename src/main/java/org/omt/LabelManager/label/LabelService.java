@@ -1,5 +1,6 @@
 package org.omt.LabelManager.label;
 
+import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -23,5 +24,10 @@ public class LabelService {
 
     public void createLabel(String labelName) {
         repository.save(new Label(labelName));
+    }
+
+    @Transactional
+    public void delete(String name) {
+        repository.deleteByName(name);
     }
 }
