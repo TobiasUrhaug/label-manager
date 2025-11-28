@@ -1,10 +1,19 @@
 <!DOCTYPE HTML>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>Your Labels are</title>
+    <title>Label Manager</title>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 </head>
 <body>
 <p th:text="|Hello, ${user}!|" />
+
+<h3>Your Labels:</h3>
+
+<ul>
+    <li th:each="label : ${labels}"
+        th:text="${label}">
+    </li>
+</ul>
+
 </body>
 </html>
