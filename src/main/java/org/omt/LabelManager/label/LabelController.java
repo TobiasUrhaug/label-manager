@@ -3,6 +3,8 @@ package org.omt.LabelManager.label;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 
 @Controller
@@ -22,6 +24,13 @@ public class LabelController {
         model.addAttribute("labels", labels);
 
         return "labels";
+    }
+
+    @PostMapping("/labels")
+    public String createLabel(@RequestParam String label) {
+        System.out.println("Creating label: " + label);
+        labelService.createLabel(label);
+        return "redirect:/labels";
     }
 
 }

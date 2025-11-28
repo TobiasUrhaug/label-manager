@@ -7,6 +7,11 @@
 <body>
 <p th:text="|Hello, ${user}!|" />
 
+<form th:action="@{/labels}" method="post">
+    <input type="text" name="label" placeholder="New label" required />
+    <button type="submit">Create</button>
+</form>
+
 <h3>Your Labels:</h3>
 
 <ul>
