@@ -2,10 +2,7 @@ package org.omt.LabelManager.label;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 
 
 @Controller
@@ -34,7 +31,7 @@ public class LabelController {
         return "redirect:/labels";
     }
 
-    @PostMapping("/labels/{id}/delete")
+    @DeleteMapping("/labels/{id}")
     public String deleteLabel(@PathVariable Long id) {
         labelService.delete(id);
         return "redirect:/labels";

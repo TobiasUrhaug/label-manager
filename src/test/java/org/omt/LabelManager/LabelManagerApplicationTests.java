@@ -48,7 +48,7 @@ class LabelManagerApplicationTests {
 
         // Act: call DELETE
         restClient
-                .post().uri("/labels/" + label.getId() +"/delete")
+                .delete().uri("/labels/" + label.getId())
                 .exchange()
                 .expectStatus().is3xxRedirection();
 
