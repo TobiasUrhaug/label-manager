@@ -24,6 +24,16 @@ public class LabelController {
         return "labels";
     }
 
+    @GetMapping("/labels/{id}")
+    public String labelView(@PathVariable Long id, Model model) {
+        var label = labelService.getLabelById(id);
+        var labelName = label.map(Label::getName).orElse("Unknown");
+
+        model.addAttribute("name", labelName);
+
+        return "label";
+    }
+
     @PostMapping("/labels")
     public String createLabel(@RequestParam String label) {
         System.out.println("Creating label: " + label);
