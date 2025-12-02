@@ -1,8 +1,10 @@
 package org.omt.labelmanager.label;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 
 @Controller
@@ -26,8 +28,11 @@ public class LabelController {
 
     @GetMapping("/labels/{id}")
     public String labelView(@PathVariable Long id, Model model) {
-        var label = labelService.getLabelById(id);
-        var labelName = label.map(Label::getName).orElse("Unknown");
+        var labelName =
+                labelService
+                        .getLabelById(id)
+                        .map(Label::getName)
+                        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
 
         model.addAttribute("name", labelName);
 

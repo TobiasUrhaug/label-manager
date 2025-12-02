@@ -51,5 +51,13 @@ class LabelControllerTest {
                 .andExpect(view().name("label"))
                 .andExpect(model().attribute("name", "My Label"));
     }
-    
+
+    @Test
+    void label_returns404_whenResourceNotFound() throws Exception {
+        when(labelService.getLabelById(1123L)).thenReturn(Optional.empty());
+
+        mockMvc.perform(get("/labels/1123"))
+                .andExpect(status().isNotFound());
+    }
+
 }
