@@ -1,4 +1,4 @@
-package org.omt.LabelManager;
+package org.omt.labelmanager;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

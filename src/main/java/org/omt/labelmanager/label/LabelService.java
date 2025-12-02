@@ -1,4 +1,4 @@
-package org.omt.LabelManager.label;
+package org.omt.labelmanager.label;
 
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;

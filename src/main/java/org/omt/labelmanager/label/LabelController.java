@@ -1,4 +1,4 @@
-package org.omt.LabelManager.label;
+package org.omt.labelmanager.label;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;

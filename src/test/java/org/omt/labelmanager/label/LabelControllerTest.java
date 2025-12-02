@@ -1,4 +1,4 @@
-package org.omt.LabelManager.label;
+package org.omt.labelmanager.label;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
