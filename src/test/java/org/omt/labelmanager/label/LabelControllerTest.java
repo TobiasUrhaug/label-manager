@@ -44,7 +44,7 @@ class LabelControllerTest {
     @Test
     void label_redirectsToALabel() throws Exception {
         var mockLabel = new Label( "My Label");
-        when(labelService.getLabelById(1L)).thenReturn(Optional.of(mockLabel));
+        when(labelService.findById(1L)).thenReturn(Optional.of(mockLabel));
 
         mockMvc.perform(get("/labels/1"))
                 .andExpect(status().isOk())
@@ -54,7 +54,7 @@ class LabelControllerTest {
 
     @Test
     void label_returns404_whenResourceNotFound() throws Exception {
-        when(labelService.getLabelById(1123L)).thenReturn(Optional.empty());
+        when(labelService.findById(1123L)).thenReturn(Optional.empty());
 
         mockMvc.perform(get("/labels/1123"))
                 .andExpect(status().isNotFound());

@@ -30,7 +30,7 @@ public class LabelController {
     public String labelView(@PathVariable Long id, Model model) {
         var labelName =
                 labelService
-                        .getLabelById(id)
+                        .findById(id)
                         .map(Label::getName)
                         .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
 

@@ -29,7 +29,7 @@ public class LabelService {
         repository.deleteById(id);
     }
 
-    public Optional<Label> getLabelById(long id) {
+    public Optional<Label> findById(long id) {
         return repository.findById(id);
     }
 }
