@@ -2,11 +2,11 @@ package org.omt.labelmanager.release;
 
 import org.omt.labelmanager.label.Label;
 import org.omt.labelmanager.label.LabelService;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
 
@@ -28,7 +28,6 @@ public class ReleaseController {
             @RequestParam String releaseName,
             @RequestParam String releaseDate
     ) {
-        System.out.println("CREATING NEW RELEASE");
         Label label =
                 labelService
                         .findById(labelId)
@@ -39,5 +38,18 @@ public class ReleaseController {
         releaseService.createRelease(releaseName, date, label);
 
         return "redirect:/labels/" + labelId;
+    }
+
+    @GetMapping("/{releaseId}")
+    public String releaseView(@PathVariable Long labelId, @PathVariable Long releaseId, Model model) {
+        String releaseName = releaseService.findById(releaseId)
+                .map(Release::getName)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+
+        model.addAttribute("name", releaseName);
+        model.addAttribute("labelId", labelId);
+        model.addAttribute("releaseId", releaseId);
+
+        return "/releases/release";
     }
 }

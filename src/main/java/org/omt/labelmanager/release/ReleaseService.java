@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class ReleaseService {
@@ -25,5 +26,9 @@ public class ReleaseService {
         release.setReleaseDate(releaseDate);
         release.setLabel(label);
         return repo.save(release);
+    }
+
+    public Optional<Release> findById(long id) {
+        return repo.findById(id);
     }
 }
