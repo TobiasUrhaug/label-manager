@@ -28,9 +28,10 @@ class ReleaseControllerTest {
     private ReleaseService releaseService;
 
     @Test
-    void release_showsReleaseName() throws Exception {
+    void release_returnsReleaseViewAndPopulatedModel() throws Exception {
         Label mockLabel = new Label( "My Label");
-        Release mockRelease = new Release(4L, "First Release", LocalDate.now(), mockLabel);
+        LocalDate releaseDate = LocalDate.now();
+        Release mockRelease = new Release(4L, "First Release", releaseDate, mockLabel);
         when(labelService.findById(1L)).thenReturn(Optional.of(mockLabel));
         when(releaseService.findById(4L)).thenReturn(Optional.of(mockRelease));
 
@@ -39,7 +40,8 @@ class ReleaseControllerTest {
                 .andExpect(view().name("/releases/release"))
                 .andExpect(model().attribute("name", "First Release"))
                 .andExpect(model().attribute("labelId", 1L))
-                .andExpect(model().attribute("releaseId", 4L));
+                .andExpect(model().attribute("releaseId", 4L))
+                .andExpect(model().attribute("releaseDate", releaseDate));
     }
 
     @Test

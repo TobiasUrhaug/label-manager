@@ -42,13 +42,16 @@ public class ReleaseController {
 
     @GetMapping("/{releaseId}")
     public String releaseView(@PathVariable Long labelId, @PathVariable Long releaseId, Model model) {
-        String releaseName = releaseService.findById(releaseId)
-                .map(Release::getName)
+        Release release = releaseService
+                .findById(releaseId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
 
-        model.addAttribute("name", releaseName);
+
+
+        model.addAttribute("name", release.getName());
         model.addAttribute("labelId", labelId);
         model.addAttribute("releaseId", releaseId);
+        model.addAttribute("releaseDate", release.getReleaseDate());
 
         return "/releases/release";
     }
