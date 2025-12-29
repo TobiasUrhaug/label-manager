@@ -1,19 +1,28 @@
 package org.omt.labelmanager.label;
 
+import org.omt.labelmanager.release.Release;
+import org.omt.labelmanager.release.ReleaseService;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.List;
+
 
 @Controller
 public class LabelController {
 
     private final LabelService labelService;
+    private final ReleaseService releaseService;
 
-    public LabelController(LabelService labelService) {
+    public LabelController(
+            LabelService labelService,
+            ReleaseService releaseService
+    ) {
         this.labelService = labelService;
+        this.releaseService = releaseService;
     }
 
     @GetMapping("/labels")
@@ -28,13 +37,17 @@ public class LabelController {
 
     @GetMapping("/labels/{id}")
     public String labelView(@PathVariable Long id, Model model) {
-        var labelName =
+        String labelName =
                 labelService
                         .findById(id)
                         .map(Label::getName)
                         .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
 
+        List<Release> releases = releaseService.getReleasesForLabel(id);
+
         model.addAttribute("name", labelName);
+        model.addAttribute("id", id);
+        model.addAttribute("releases", releases);
 
         return "label";
     }
