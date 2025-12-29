@@ -25,14 +25,14 @@ public class LabelController {
         this.releaseService = releaseService;
     }
 
-    @GetMapping("/labels")
-    public String labels(Model model) {
+    @GetMapping("/overview")
+    public String overview(Model model) {
         var labels = labelService.getAllLabels();
 
         model.addAttribute("user", "Alex The Manager");
         model.addAttribute("labels", labels);
 
-        return "labels";
+        return "overview";
     }
 
     @GetMapping("/labels/{id}")
@@ -49,7 +49,7 @@ public class LabelController {
         model.addAttribute("id", id);
         model.addAttribute("releases", releases);
 
-        return "label";
+        return "labels/label";
     }
 
     @PostMapping("/labels")

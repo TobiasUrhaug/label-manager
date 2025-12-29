@@ -1,6 +1,7 @@
 package org.omt.labelmanager.label;
 
 import org.junit.jupiter.api.Test;
+import org.omt.labelmanager.release.ReleaseService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -22,22 +23,25 @@ class LabelControllerTest {
     @MockitoBean
     private LabelService labelService;
 
+    @MockitoBean
+    private ReleaseService releaseService;
+
     @Test
-    void labels_showsUser() throws Exception {
-        mockMvc.perform(get("/labels"))
+    void overview_showsUser() throws Exception {
+        mockMvc.perform(get("/overview"))
                 .andExpect(status().isOk())
-                .andExpect(view().name("labels"))
+                .andExpect(view().name("overview"))
                 .andExpect(model().attribute("user", "Alex The Manager"));
     }
 
     @Test
-    void labels_showsListOfLabels() throws Exception {
+    void overview_showsListOfLabels() throws Exception {
         var mockLabel = new Label("Mock Label");
         when(labelService.getAllLabels()).thenReturn(List.of(mockLabel));
 
-        mockMvc.perform(get("/labels"))
+        mockMvc.perform(get("/overview"))
                 .andExpect(status().isOk())
-                .andExpect(view().name("labels"))
+                .andExpect(view().name("overview"))
                 .andExpect(model().attribute("labels", List.of(mockLabel)));
     }
 
@@ -48,7 +52,7 @@ class LabelControllerTest {
 
         mockMvc.perform(get("/labels/1"))
                 .andExpect(status().isOk())
-                .andExpect(view().name("label"))
+                .andExpect(view().name("labels/label"))
                 .andExpect(model().attribute("name", "My Label"));
     }
 
