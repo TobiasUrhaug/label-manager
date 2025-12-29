@@ -7,7 +7,6 @@ import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.util.List;
 import java.util.Optional;
 
 import static org.mockito.Mockito.when;
@@ -25,25 +24,6 @@ class LabelControllerTest {
 
     @MockitoBean
     private ReleaseService releaseService;
-
-    @Test
-    void overview_showsUser() throws Exception {
-        mockMvc.perform(get("/overview"))
-                .andExpect(status().isOk())
-                .andExpect(view().name("overview"))
-                .andExpect(model().attribute("user", "Alex The Manager"));
-    }
-
-    @Test
-    void overview_showsListOfLabels() throws Exception {
-        var mockLabel = new Label("Mock Label");
-        when(labelService.getAllLabels()).thenReturn(List.of(mockLabel));
-
-        mockMvc.perform(get("/overview"))
-                .andExpect(status().isOk())
-                .andExpect(view().name("overview"))
-                .andExpect(model().attribute("labels", List.of(mockLabel)));
-    }
 
     @Test
     void label_redirectsToALabel() throws Exception {

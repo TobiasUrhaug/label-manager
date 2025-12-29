@@ -12,6 +12,7 @@ import java.util.List;
 
 
 @Controller
+@RequestMapping("/labels")
 public class LabelController {
 
     private final LabelService labelService;
@@ -25,17 +26,7 @@ public class LabelController {
         this.releaseService = releaseService;
     }
 
-    @GetMapping("/overview")
-    public String overview(Model model) {
-        var labels = labelService.getAllLabels();
-
-        model.addAttribute("user", "Alex The Manager");
-        model.addAttribute("labels", labels);
-
-        return "overview";
-    }
-
-    @GetMapping("/labels/{id}")
+    @GetMapping("/{id}")
     public String labelView(@PathVariable Long id, Model model) {
         String labelName =
                 labelService
@@ -52,14 +43,14 @@ public class LabelController {
         return "labels/label";
     }
 
-    @PostMapping("/labels")
+    @PostMapping
     public String createLabel(@RequestParam String label) {
         System.out.println("Creating label: " + label);
         labelService.createLabel(label);
         return "redirect:/labels";
     }
 
-    @DeleteMapping("/labels/{id}")
+    @DeleteMapping("/{id}")
     public String deleteLabel(@PathVariable Long id) {
         labelService.delete(id);
         return "redirect:/labels";
