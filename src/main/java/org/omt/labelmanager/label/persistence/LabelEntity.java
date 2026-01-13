@@ -10,16 +10,16 @@ public class LabelEntity {
 
     private String name;
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
     protected LabelEntity() {
     }
 
     public LabelEntity(String name) {
         this.name = name;
     }
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
 
     public Long getId() {
         return id;

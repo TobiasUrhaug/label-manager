@@ -1,7 +1,6 @@
 package org.omt.labelmanager.release;
 
 import org.omt.labelmanager.label.LabelService;
-import org.omt.labelmanager.label.persistence.LabelEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -28,14 +27,9 @@ public class ReleaseController {
             @RequestParam String releaseName,
             @RequestParam String releaseDate
     ) {
-        LabelEntity labelEntity =
-                labelService
-                        .findById(labelId)
-                        .orElseThrow(() -> new RuntimeException("Label not found"));
-
         LocalDate date = LocalDate.parse(releaseDate);
 
-        releaseService.createRelease(releaseName, date, labelEntity);
+        releaseService.createRelease(releaseName, date, labelId);
 
         return "redirect:/labels/" + labelId;
     }
@@ -45,8 +39,6 @@ public class ReleaseController {
         Release release = releaseService
                 .findById(releaseId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
-
-
 
         model.addAttribute("name", release.getName());
         model.addAttribute("labelId", labelId);

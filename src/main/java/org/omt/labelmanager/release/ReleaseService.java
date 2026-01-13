@@ -1,6 +1,7 @@
 package org.omt.labelmanager.release;
 
 import org.omt.labelmanager.label.persistence.LabelEntity;
+import org.omt.labelmanager.label.persistence.LabelRepository;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -10,25 +11,28 @@ import java.util.Optional;
 @Service
 public class ReleaseService {
 
-    private final ReleaseRepository repo;
+    private final ReleaseRepository releaseRepository;
+    private final LabelRepository labelRepository;
 
-    public ReleaseService(ReleaseRepository repo) {
-        this.repo = repo;
+    public ReleaseService(ReleaseRepository releaseRepository, LabelRepository labelRepository) {
+        this.releaseRepository = releaseRepository;
+        this.labelRepository = labelRepository;
     }
 
     public List<Release> getReleasesForLabel(Long labelId) {
-        return repo.findByLabelId(labelId);
+        return releaseRepository.findByLabelId(labelId);
     }
 
-    public Release createRelease(String name, LocalDate releaseDate, LabelEntity labelEntity) {
+    public void createRelease(String name, LocalDate releaseDate, Long labelId) {
+        LabelEntity labelEntity = labelRepository.findById(labelId).orElseThrow(IllegalArgumentException::new);
         Release release = new Release();
         release.setName(name);
         release.setReleaseDate(releaseDate);
         release.setLabel(labelEntity);
-        return repo.save(release);
+        releaseRepository.save(release);
     }
 
     public Optional<Release> findById(long id) {
-        return repo.findById(id);
+        return releaseRepository.findById(id);
     }
 }

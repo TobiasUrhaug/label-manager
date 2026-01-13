@@ -17,8 +17,8 @@ public class LabelService {
         this.repository = repository;
     }
 
-    public List<LabelEntity> getAllLabels() {
-        return repository.findAll();
+    public List<Label> getAllLabels() {
+        return repository.findAll().stream().map(Label::fromEntity).toList();
 
     }
 
@@ -31,7 +31,7 @@ public class LabelService {
         repository.deleteById(id);
     }
 
-    public Optional<LabelEntity> findById(long id) {
-        return repository.findById(id);
+    public Optional<Label> findById(long id) {
+        return repository.findById(id).map(Label::fromEntity);
     }
 }

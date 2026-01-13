@@ -1,6 +1,7 @@
 package org.omt.labelmanager.release;
 
 import org.junit.jupiter.api.Test;
+import org.omt.labelmanager.label.Label;
 import org.omt.labelmanager.label.LabelService;
 import org.omt.labelmanager.label.persistence.LabelEntity;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,9 +31,10 @@ class ReleaseControllerTest {
     @Test
     void release_returnsReleaseViewAndPopulatedModel() throws Exception {
         LabelEntity mockLabelEntity = new LabelEntity( "My Label");
+        Label mockLabel = new Label(1L, "My Label");
         LocalDate releaseDate = LocalDate.now();
         Release mockRelease = new Release(4L, "First Release", releaseDate, mockLabelEntity);
-        when(labelService.findById(1L)).thenReturn(Optional.of(mockLabelEntity));
+        when(labelService.findById(1L)).thenReturn(Optional.of(mockLabel));
         when(releaseService.findById(4L)).thenReturn(Optional.of(mockRelease));
 
         mockMvc.perform(get("/labels/1/releases/4"))
