@@ -1,7 +1,7 @@
 package org.omt.labelmanager.release;
 
 import jakarta.persistence.*;
-import org.omt.labelmanager.label.Label;
+import org.omt.labelmanager.label.persistence.LabelEntity;
 
 import java.time.LocalDate;
 
@@ -19,15 +19,15 @@ public class Release {
 
     @ManyToOne
     @JoinColumn(name = "label_id")
-    private Label label;
+    private LabelEntity labelEntity;
 
     public Release() {}
 
-    public Release(Long id, String name, LocalDate releaseDate, Label label) {
+    public Release(Long id, String name, LocalDate releaseDate, LabelEntity labelEntity) {
         this.id = id;
         this.name = name;
         this.releaseDate = releaseDate;
-        this.label = label;
+        this.labelEntity = labelEntity;
     }
 
     public Long getId() {
@@ -54,11 +54,11 @@ public class Release {
         this.releaseDate = releaseDate;
     }
 
-    public Label getLabel() {
-        return label;
+    public LabelEntity getLabel() {
+        return labelEntity;
     }
 
-    public void setLabel(Label label) {
-        this.label = label;
+    public void setLabel(LabelEntity labelEntity) {
+        this.labelEntity = labelEntity;
     }
 }

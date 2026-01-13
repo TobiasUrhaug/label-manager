@@ -1,21 +1,19 @@
-package org.omt.labelmanager.label;
+package org.omt.labelmanager.label.persistence;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 
 import java.util.Objects;
 
 @Entity
-public class Label {
+@Table(name = "label")
+public class LabelEntity {
 
     private String name;
 
-    protected Label() {
+    protected LabelEntity() {
     }
 
-    public Label(String name) {
+    public LabelEntity(String name) {
         this.name = name;
     }
 
@@ -34,8 +32,8 @@ public class Label {
     @Override
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;
-        Label label = (Label) o;
-        return Objects.equals(name, label.name) && Objects.equals(id, label.id);
+        LabelEntity labelEntity = (LabelEntity) o;
+        return Objects.equals(name, labelEntity.name) && Objects.equals(id, labelEntity.id);
     }
 
     @Override

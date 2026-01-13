@@ -1,6 +1,6 @@
 package org.omt.labelmanager.release;
 
-import org.omt.labelmanager.label.Label;
+import org.omt.labelmanager.label.persistence.LabelEntity;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -20,11 +20,11 @@ public class ReleaseService {
         return repo.findByLabelId(labelId);
     }
 
-    public Release createRelease(String name, LocalDate releaseDate, Label label) {
+    public Release createRelease(String name, LocalDate releaseDate, LabelEntity labelEntity) {
         Release release = new Release();
         release.setName(name);
         release.setReleaseDate(releaseDate);
-        release.setLabel(label);
+        release.setLabel(labelEntity);
         return repo.save(release);
     }
 

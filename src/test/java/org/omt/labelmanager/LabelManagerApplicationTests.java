@@ -1,8 +1,8 @@
 package org.omt.labelmanager;
 
 import org.junit.jupiter.api.Test;
-import org.omt.labelmanager.label.Label;
-import org.omt.labelmanager.label.LabelRepository;
+import org.omt.labelmanager.label.persistence.LabelEntity;
+import org.omt.labelmanager.label.persistence.LabelRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureRestTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -63,7 +63,7 @@ class LabelManagerApplicationTests {
     @Test
     void deleteLabel_RemovesItFromDatabase() {
         // Arrange: insert a row
-        var label = new Label("WronglyNamedLabel");
+        var label = new LabelEntity("WronglyNamedLabel");
         repo.save(label);
 
         // Act: call DELETE
@@ -73,7 +73,7 @@ class LabelManagerApplicationTests {
                 .expectStatus().is3xxRedirection();
 
         // Assert: database no longer contains it
-        assertThat(repo.findAll().stream().map(Label::getName).toList())
+        assertThat(repo.findAll().stream().map(LabelEntity::getName).toList())
                 .doesNotContain("WronglyNamedLabel");
     }
 }

@@ -41,12 +41,12 @@
             <form th:action="@{/labels/{labelId}/releases(labelId=${id})}" method="post">
                 <div class="modal-header">
                     <h5 class="modal-title" id="createReleaseModalLabel">Create Release</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-labelEntity="Close"></button>
                 </div>
 
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label for="releaseName" class="form-label">Title</label>
+                        <labelEntity for="releaseName" class="form-labelEntity">Title</labelEntity>
                         <input
                                 type="text"
                                 class="form-control"
@@ -56,7 +56,7 @@
                     </div>
 
                     <div class="mb-3">
-                        <label for="releaseDate" class="form-label">Release Date</label>
+                        <labelEntity for="releaseDate" class="form-labelEntity">Release Date</labelEntity>
                         <input
                                 type="date"
                                 class="form-control"

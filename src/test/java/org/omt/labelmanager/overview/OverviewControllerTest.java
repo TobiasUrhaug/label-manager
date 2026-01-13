@@ -1,8 +1,8 @@
 package org.omt.labelmanager.overview;
 
 import org.junit.jupiter.api.Test;
-import org.omt.labelmanager.label.Label;
 import org.omt.labelmanager.label.LabelService;
+import org.omt.labelmanager.label.persistence.LabelEntity;
 import org.omt.labelmanager.release.ReleaseService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
@@ -37,7 +37,7 @@ class OverviewControllerTest {
 
     @Test
     void overview_showsListOfLabels() throws Exception {
-        var mockLabel = new Label("Mock Label");
+        var mockLabel = new LabelEntity("Mock Label");
         when(labelService.getAllLabels()).thenReturn(List.of(mockLabel));
 
         mockMvc.perform(get("/overview"))

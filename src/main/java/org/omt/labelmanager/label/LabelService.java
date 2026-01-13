@@ -1,6 +1,8 @@
 package org.omt.labelmanager.label;
 
 import jakarta.transaction.Transactional;
+import org.omt.labelmanager.label.persistence.LabelEntity;
+import org.omt.labelmanager.label.persistence.LabelRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -15,13 +17,13 @@ public class LabelService {
         this.repository = repository;
     }
 
-    public List<Label> getAllLabels() {
+    public List<LabelEntity> getAllLabels() {
         return repository.findAll();
 
     }
 
     public void createLabel(String labelName) {
-        repository.save(new Label(labelName));
+        repository.save(new LabelEntity(labelName));
     }
 
     @Transactional
@@ -29,7 +31,7 @@ public class LabelService {
         repository.deleteById(id);
     }
 
-    public Optional<Label> findById(long id) {
+    public Optional<LabelEntity> findById(long id) {
         return repository.findById(id);
     }
 }
