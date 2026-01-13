@@ -1,4 +1,4 @@
-package org.omt.labelmanager.overview;
+package org.omt.labelmanager.overview.api;
 
 import org.omt.labelmanager.label.LabelService;
 import org.springframework.stereotype.Controller;

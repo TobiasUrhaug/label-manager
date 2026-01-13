@@ -3,6 +3,7 @@ package org.omt.labelmanager.overview;
 import org.junit.jupiter.api.Test;
 import org.omt.labelmanager.label.Label;
 import org.omt.labelmanager.label.LabelService;
+import org.omt.labelmanager.overview.api.OverviewController;
 import org.omt.labelmanager.release.ReleaseService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
