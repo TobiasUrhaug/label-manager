@@ -34,7 +34,7 @@ public class ReleaseService {
         releaseRepository.save(release);
     }
 
-    public Optional<ReleaseEntity> findById(long id) {
-        return releaseRepository.findById(id);
+    public Optional<Release> findById(long id) {
+        return releaseRepository.findById(id).map(Release::fromEntity);
     }
 }
