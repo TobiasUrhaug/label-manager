@@ -3,7 +3,7 @@ package org.omt.labelmanager.label.api;
 import org.omt.labelmanager.label.Label;
 import org.omt.labelmanager.label.LabelService;
 import org.omt.labelmanager.release.ReleaseService;
-import org.omt.labelmanager.release.persistence.Release;
+import org.omt.labelmanager.release.persistence.ReleaseEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -36,7 +36,7 @@ public class LabelController {
                         .map(Label::name)
                         .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
 
-        List<Release> releases = releaseService.getReleasesForLabel(id);
+        List<ReleaseEntity> releases = releaseService.getReleasesForLabel(id);
 
         model.addAttribute("name", labelName);
         model.addAttribute("id", id);

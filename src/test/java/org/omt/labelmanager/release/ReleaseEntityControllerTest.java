@@ -5,7 +5,7 @@ import org.omt.labelmanager.label.Label;
 import org.omt.labelmanager.label.LabelService;
 import org.omt.labelmanager.label.persistence.LabelEntity;
 import org.omt.labelmanager.release.api.ReleaseController;
-import org.omt.labelmanager.release.persistence.Release;
+import org.omt.labelmanager.release.persistence.ReleaseEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -19,7 +19,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(ReleaseController.class)
-class ReleaseControllerTest {
+class ReleaseEntityControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
@@ -35,7 +35,7 @@ class ReleaseControllerTest {
         LabelEntity mockLabelEntity = new LabelEntity( "My Label");
         Label mockLabel = new Label(1L, "My Label");
         LocalDate releaseDate = LocalDate.now();
-        Release mockRelease = new Release(4L, "First Release", releaseDate, mockLabelEntity);
+        ReleaseEntity mockRelease = new ReleaseEntity(4L, "First Release", releaseDate, mockLabelEntity);
         when(labelService.findById(1L)).thenReturn(Optional.of(mockLabel));
         when(releaseService.findById(4L)).thenReturn(Optional.of(mockRelease));
 

@@ -7,7 +7,7 @@ import java.time.LocalDate;
 
 @Entity
 @Table(name = "release")
-public class Release {
+public class ReleaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -21,9 +21,9 @@ public class Release {
     @JoinColumn(name = "label_id")
     private LabelEntity label;
 
-    public Release() {}
+    public ReleaseEntity() {}
 
-    public Release(Long id, String name, LocalDate releaseDate, LabelEntity label) {
+    public ReleaseEntity(Long id, String name, LocalDate releaseDate, LabelEntity label) {
         this.id = id;
         this.name = name;
         this.releaseDate = releaseDate;

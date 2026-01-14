@@ -4,8 +4,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
 
-public interface ReleaseRepository extends JpaRepository<Release, Long> {
+public interface ReleaseRepository extends JpaRepository<ReleaseEntity, Long> {
 
-    List<Release> findByLabelId(Long labelId);
+    List<ReleaseEntity> findByLabelId(Long labelId);
 
 }

@@ -2,7 +2,7 @@ package org.omt.labelmanager.release;
 
 import org.omt.labelmanager.label.persistence.LabelEntity;
 import org.omt.labelmanager.label.persistence.LabelRepository;
-import org.omt.labelmanager.release.persistence.Release;
+import org.omt.labelmanager.release.persistence.ReleaseEntity;
 import org.omt.labelmanager.release.persistence.ReleaseRepository;
 import org.springframework.stereotype.Service;
 
@@ -21,20 +21,20 @@ public class ReleaseService {
         this.labelRepository = labelRepository;
     }
 
-    public List<Release> getReleasesForLabel(Long labelId) {
+    public List<ReleaseEntity> getReleasesForLabel(Long labelId) {
         return releaseRepository.findByLabelId(labelId);
     }
 
     public void createRelease(String name, LocalDate releaseDate, Long labelId) {
         LabelEntity labelEntity = labelRepository.findById(labelId).orElseThrow(IllegalArgumentException::new);
-        Release release = new Release();
+        ReleaseEntity release = new ReleaseEntity();
         release.setName(name);
         release.setReleaseDate(releaseDate);
         release.setLabel(labelEntity);
         releaseRepository.save(release);
     }
 
-    public Optional<Release> findById(long id) {
+    public Optional<ReleaseEntity> findById(long id) {
         return releaseRepository.findById(id);
     }
 }

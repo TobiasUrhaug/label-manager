@@ -2,7 +2,7 @@ package org.omt.labelmanager.release.api;
 
 import org.omt.labelmanager.label.LabelService;
 import org.omt.labelmanager.release.ReleaseService;
-import org.omt.labelmanager.release.persistence.Release;
+import org.omt.labelmanager.release.persistence.ReleaseEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -38,7 +38,7 @@ public class ReleaseController {
 
     @GetMapping("/{releaseId}")
     public String releaseView(@PathVariable Long labelId, @PathVariable Long releaseId, Model model) {
-        Release release = releaseService
+        ReleaseEntity release = releaseService
                 .findById(releaseId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
 
