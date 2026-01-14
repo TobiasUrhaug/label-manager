@@ -3,7 +3,7 @@ package org.omt.labelmanager.overview;
 import org.junit.jupiter.api.Test;
 import org.omt.labelmanager.dashboard.api.DashboardController;
 import org.omt.labelmanager.label.Label;
-import org.omt.labelmanager.label.LabelService;
+import org.omt.labelmanager.label.LabelCRUDHandler;
 import org.omt.labelmanager.release.ReleaseCRUDHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
@@ -23,7 +23,7 @@ class DashboardControllerTest {
     private MockMvc mockMvc;
 
     @MockitoBean
-    private LabelService labelService;
+    private LabelCRUDHandler labelCRUDHandler;
 
     @MockitoBean
     private ReleaseCRUDHandler releaseCRUDHandler;
@@ -39,7 +39,7 @@ class DashboardControllerTest {
     @Test
     void dashboard_showsListOfLabels() throws Exception {
         var mockLabel = new Label(1L,"Mock Label");
-        when(labelService.getAllLabels()).thenReturn(List.of(mockLabel));
+        when(labelCRUDHandler.getAllLabels()).thenReturn(List.of(mockLabel));
 
         mockMvc.perform(get("/dashboard"))
                 .andExpect(status().isOk())

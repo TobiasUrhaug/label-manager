@@ -1,7 +1,7 @@
 package org.omt.labelmanager.label.api;
 
 import org.omt.labelmanager.label.Label;
-import org.omt.labelmanager.label.LabelService;
+import org.omt.labelmanager.label.LabelCRUDHandler;
 import org.omt.labelmanager.release.ReleaseCRUDHandler;
 import org.omt.labelmanager.release.persistence.ReleaseEntity;
 import org.springframework.http.HttpStatus;
@@ -17,21 +17,21 @@ import java.util.List;
 @RequestMapping("/labels")
 public class LabelController {
 
-    private final LabelService labelService;
+    private final LabelCRUDHandler labelCRUDHandler;
     private final ReleaseCRUDHandler releaseCRUDHandler;
 
     public LabelController(
-            LabelService labelService,
+            LabelCRUDHandler labelCRUDHandler,
             ReleaseCRUDHandler releaseCRUDHandler
     ) {
-        this.labelService = labelService;
+        this.labelCRUDHandler = labelCRUDHandler;
         this.releaseCRUDHandler = releaseCRUDHandler;
     }
 
     @GetMapping("/{id}")
     public String labelView(@PathVariable Long id, Model model) {
         String labelName =
-                labelService
+                labelCRUDHandler
                         .findById(id)
                         .map(Label::name)
                         .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
@@ -47,13 +47,13 @@ public class LabelController {
 
     @PostMapping
     public String createLabel(@RequestParam String labelName) {
-        labelService.createLabel(labelName);
+        labelCRUDHandler.createLabel(labelName);
         return "redirect:/dashboard";
     }
 
     @DeleteMapping("/{id}")
     public String deleteLabel(@PathVariable Long id) {
-        labelService.delete(id);
+        labelCRUDHandler.delete(id);
         return "redirect:/dashboard";
     }
 

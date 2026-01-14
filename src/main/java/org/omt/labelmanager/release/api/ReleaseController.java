@@ -1,6 +1,6 @@
 package org.omt.labelmanager.release.api;
 
-import org.omt.labelmanager.label.LabelService;
+import org.omt.labelmanager.label.LabelCRUDHandler;
 import org.omt.labelmanager.release.Release;
 import org.omt.labelmanager.release.ReleaseCRUDHandler;
 import org.springframework.http.HttpStatus;
@@ -16,11 +16,11 @@ import java.time.LocalDate;
 public class ReleaseController {
 
     private final ReleaseCRUDHandler releaseCRUDHandler;
-    private final LabelService labelService;
+    private final LabelCRUDHandler labelCRUDHandler;
 
-    public ReleaseController(ReleaseCRUDHandler releaseCRUDHandler, LabelService labelService) {
+    public ReleaseController(ReleaseCRUDHandler releaseCRUDHandler, LabelCRUDHandler labelCRUDHandler) {
         this.releaseCRUDHandler = releaseCRUDHandler;
-        this.labelService = labelService;
+        this.labelCRUDHandler = labelCRUDHandler;
     }
 
     @PostMapping

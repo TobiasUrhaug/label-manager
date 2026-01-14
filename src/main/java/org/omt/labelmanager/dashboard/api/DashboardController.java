@@ -1,6 +1,6 @@
 package org.omt.labelmanager.dashboard.api;
 
-import org.omt.labelmanager.label.LabelService;
+import org.omt.labelmanager.label.LabelCRUDHandler;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -8,15 +8,15 @@ import org.springframework.web.bind.annotation.GetMapping;
 @Controller
 public class DashboardController {
 
-    private final LabelService labelService;
+    private final LabelCRUDHandler labelCRUDHandler;
 
-    public DashboardController(LabelService labelService) {
-        this.labelService = labelService;
+    public DashboardController(LabelCRUDHandler labelCRUDHandler) {
+        this.labelCRUDHandler = labelCRUDHandler;
     }
 
     @GetMapping("/dashboard")
     public String overview(Model model) {
-        var labels = labelService.getAllLabels();
+        var labels = labelCRUDHandler.getAllLabels();
 
         model.addAttribute("user", "Alex The Manager");
         model.addAttribute("labels", labels);

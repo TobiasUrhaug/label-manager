@@ -2,7 +2,7 @@ package org.omt.labelmanager.release;
 
 import org.junit.jupiter.api.Test;
 import org.omt.labelmanager.label.Label;
-import org.omt.labelmanager.label.LabelService;
+import org.omt.labelmanager.label.LabelCRUDHandler;
 import org.omt.labelmanager.label.persistence.LabelEntity;
 import org.omt.labelmanager.release.api.ReleaseController;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,7 +24,7 @@ class ReleaseEntityControllerTest {
     private MockMvc mockMvc;
 
     @MockitoBean
-    private LabelService labelService;
+    private LabelCRUDHandler labelCRUDHandler;
 
     @MockitoBean
     private ReleaseCRUDHandler releaseCRUDHandler;
@@ -35,7 +35,7 @@ class ReleaseEntityControllerTest {
         Label mockLabel = new Label(1L, "My Label");
         LocalDate releaseDate = LocalDate.now();
         Release mockRelease = new Release(4L, "First Release", releaseDate, mockLabel);
-        when(labelService.findById(1L)).thenReturn(Optional.of(mockLabel));
+        when(labelCRUDHandler.findById(1L)).thenReturn(Optional.of(mockLabel));
         when(releaseCRUDHandler.findById(4L)).thenReturn(Optional.of(mockRelease));
 
         mockMvc.perform(get("/labels/1/releases/4"))
@@ -49,7 +49,7 @@ class ReleaseEntityControllerTest {
 
     @Test
     void release_returns404_whenResourceNotFound() throws Exception {
-        when(labelService.findById(1123L)).thenReturn(Optional.empty());
+        when(labelCRUDHandler.findById(1123L)).thenReturn(Optional.empty());
 
         mockMvc.perform(get("/labels/1123"))
                 .andExpect(status().isNotFound());

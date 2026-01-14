@@ -9,11 +9,11 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
-public class LabelService {
+public class LabelCRUDHandler {
 
     private final LabelRepository repository;
 
-    public LabelService(LabelRepository repository) {
+    public LabelCRUDHandler(LabelRepository repository) {
         this.repository = repository;
     }
 
