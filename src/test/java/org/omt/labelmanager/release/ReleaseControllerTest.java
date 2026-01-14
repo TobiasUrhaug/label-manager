@@ -5,6 +5,7 @@ import org.omt.labelmanager.label.Label;
 import org.omt.labelmanager.label.LabelService;
 import org.omt.labelmanager.label.persistence.LabelEntity;
 import org.omt.labelmanager.release.api.ReleaseController;
+import org.omt.labelmanager.release.persistence.Release;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;

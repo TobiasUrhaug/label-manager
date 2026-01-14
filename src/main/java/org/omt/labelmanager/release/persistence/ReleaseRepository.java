@@ -1,4 +1,4 @@
-package org.omt.labelmanager.release;
+package org.omt.labelmanager.release.persistence;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 

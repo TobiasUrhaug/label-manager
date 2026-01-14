@@ -2,8 +2,8 @@ package org.omt.labelmanager.label.api;
 
 import org.omt.labelmanager.label.Label;
 import org.omt.labelmanager.label.LabelService;
-import org.omt.labelmanager.release.Release;
 import org.omt.labelmanager.release.ReleaseService;
+import org.omt.labelmanager.release.persistence.Release;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;

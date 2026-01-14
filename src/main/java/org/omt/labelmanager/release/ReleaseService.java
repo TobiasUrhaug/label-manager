@@ -2,6 +2,8 @@ package org.omt.labelmanager.release;
 
 import org.omt.labelmanager.label.persistence.LabelEntity;
 import org.omt.labelmanager.label.persistence.LabelRepository;
+import org.omt.labelmanager.release.persistence.Release;
+import org.omt.labelmanager.release.persistence.ReleaseRepository;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;

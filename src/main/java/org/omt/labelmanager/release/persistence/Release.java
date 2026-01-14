@@ -1,4 +1,4 @@
-package org.omt.labelmanager.release;
+package org.omt.labelmanager.release.persistence;
 
 import jakarta.persistence.*;
 import org.omt.labelmanager.label.persistence.LabelEntity;
