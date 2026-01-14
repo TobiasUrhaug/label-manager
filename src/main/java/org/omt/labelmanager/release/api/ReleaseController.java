@@ -2,7 +2,7 @@ package org.omt.labelmanager.release.api;
 
 import org.omt.labelmanager.label.LabelService;
 import org.omt.labelmanager.release.Release;
-import org.omt.labelmanager.release.ReleaseService;
+import org.omt.labelmanager.release.ReleaseCRUDHandler;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -15,11 +15,11 @@ import java.time.LocalDate;
 @RequestMapping("/labels/{labelId}/releases")
 public class ReleaseController {
 
-    private final ReleaseService releaseService;
+    private final ReleaseCRUDHandler releaseCRUDHandler;
     private final LabelService labelService;
 
-    public ReleaseController(ReleaseService releaseService, LabelService labelService) {
-        this.releaseService = releaseService;
+    public ReleaseController(ReleaseCRUDHandler releaseCRUDHandler, LabelService labelService) {
+        this.releaseCRUDHandler = releaseCRUDHandler;
         this.labelService = labelService;
     }
 
@@ -31,14 +31,14 @@ public class ReleaseController {
     ) {
         LocalDate date = LocalDate.parse(releaseDate);
 
-        releaseService.createRelease(releaseName, date, labelId);
+        releaseCRUDHandler.createRelease(releaseName, date, labelId);
 
         return "redirect:/labels/" + labelId;
     }
 
     @GetMapping("/{releaseId}")
     public String releaseView(@PathVariable Long labelId, @PathVariable Long releaseId, Model model) {
-        Release release = releaseService
+        Release release = releaseCRUDHandler
                 .findById(releaseId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
 

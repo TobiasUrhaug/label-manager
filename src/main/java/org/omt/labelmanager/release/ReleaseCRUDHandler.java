@@ -11,12 +11,12 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
-public class ReleaseService {
+public class ReleaseCRUDHandler {
 
     private final ReleaseRepository releaseRepository;
     private final LabelRepository labelRepository;
 
-    public ReleaseService(ReleaseRepository releaseRepository, LabelRepository labelRepository) {
+    public ReleaseCRUDHandler(ReleaseRepository releaseRepository, LabelRepository labelRepository) {
         this.releaseRepository = releaseRepository;
         this.labelRepository = labelRepository;
     }

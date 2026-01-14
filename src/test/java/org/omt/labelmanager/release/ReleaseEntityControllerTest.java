@@ -27,7 +27,7 @@ class ReleaseEntityControllerTest {
     private LabelService labelService;
 
     @MockitoBean
-    private ReleaseService releaseService;
+    private ReleaseCRUDHandler releaseCRUDHandler;
 
     @Test
     void release_returnsReleaseViewAndPopulatedModel() throws Exception {
@@ -36,7 +36,7 @@ class ReleaseEntityControllerTest {
         LocalDate releaseDate = LocalDate.now();
         Release mockRelease = new Release(4L, "First Release", releaseDate, mockLabel);
         when(labelService.findById(1L)).thenReturn(Optional.of(mockLabel));
-        when(releaseService.findById(4L)).thenReturn(Optional.of(mockRelease));
+        when(releaseCRUDHandler.findById(4L)).thenReturn(Optional.of(mockRelease));
 
         mockMvc.perform(get("/labels/1/releases/4"))
                 .andExpect(status().isOk())

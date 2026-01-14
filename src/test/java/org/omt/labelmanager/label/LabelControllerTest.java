@@ -2,7 +2,7 @@ package org.omt.labelmanager.label;
 
 import org.junit.jupiter.api.Test;
 import org.omt.labelmanager.label.api.LabelController;
-import org.omt.labelmanager.release.ReleaseService;
+import org.omt.labelmanager.release.ReleaseCRUDHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -24,7 +24,7 @@ class LabelControllerTest {
     private LabelService labelService;
 
     @MockitoBean
-    private ReleaseService releaseService;
+    private ReleaseCRUDHandler releaseCRUDHandler;
 
     @Test
     void label_redirectsToALabel() throws Exception {
