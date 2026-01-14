@@ -17,7 +17,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(DashboardController.class)
-class OverviewControllerTest {
+class DashboardControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
@@ -29,21 +29,21 @@ class OverviewControllerTest {
     private ReleaseService releaseService;
 
     @Test
-    void overview_showsUser() throws Exception {
-        mockMvc.perform(get("/overview"))
+    void dashboard_greetsUser() throws Exception {
+        mockMvc.perform(get("/dashboard"))
                 .andExpect(status().isOk())
-                .andExpect(view().name("overview"))
+                .andExpect(view().name("dashboard"))
                 .andExpect(model().attribute("user", "Alex The Manager"));
     }
 
     @Test
-    void overview_showsListOfLabels() throws Exception {
+    void dashboard_showsListOfLabels() throws Exception {
         var mockLabel = new Label(1L,"Mock Label");
         when(labelService.getAllLabels()).thenReturn(List.of(mockLabel));
 
-        mockMvc.perform(get("/overview"))
+        mockMvc.perform(get("/dashboard"))
                 .andExpect(status().isOk())
-                .andExpect(view().name("overview"))
+                .andExpect(view().name("dashboard"))
                 .andExpect(model().attribute("labels", List.of(mockLabel)));
     }
 

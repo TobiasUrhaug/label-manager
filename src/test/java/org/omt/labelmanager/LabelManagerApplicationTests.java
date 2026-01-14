@@ -49,9 +49,9 @@ class LabelManagerApplicationTests {
 	}
 
     @Test
-    void overviewPageLoads() {
+    void dashboardLoads() {
         restClient.get()
-                .uri("http://localhost:" + port + "/overview")
+                .uri("http://localhost:" + port + "/dashboard")
                 .exchange()
                 .expectStatus().is2xxSuccessful()
                 .expectBody(String.class)
