@@ -19,7 +19,6 @@ public class LabelService {
 
     public List<Label> getAllLabels() {
         return repository.findAll().stream().map(Label::fromEntity).toList();
-
     }
 
     public void createLabel(String labelName) {

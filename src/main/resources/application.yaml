@@ -6,6 +6,10 @@ spring:
     username: dev
     password: dev
     driver-class-name: org.postgresql.Driver
+  mvc:
+    hiddenmethod:
+      filter:
+        enabled: true
 
   jpa:
     hibernate:

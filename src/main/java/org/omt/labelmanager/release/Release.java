@@ -19,15 +19,15 @@ public class Release {
 
     @ManyToOne
     @JoinColumn(name = "label_id")
-    private LabelEntity labelEntity;
+    private LabelEntity label;
 
     public Release() {}
 
-    public Release(Long id, String name, LocalDate releaseDate, LabelEntity labelEntity) {
+    public Release(Long id, String name, LocalDate releaseDate, LabelEntity label) {
         this.id = id;
         this.name = name;
         this.releaseDate = releaseDate;
-        this.labelEntity = labelEntity;
+        this.label = label;
     }
 
     public Long getId() {
@@ -55,10 +55,10 @@ public class Release {
     }
 
     public LabelEntity getLabel() {
-        return labelEntity;
+        return label;
     }
 
-    public void setLabel(LabelEntity labelEntity) {
-        this.labelEntity = labelEntity;
+    public void setLabel(LabelEntity label) {
+        this.label = label;
     }
 }

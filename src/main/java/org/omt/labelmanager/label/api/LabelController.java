@@ -46,16 +46,15 @@ public class LabelController {
     }
 
     @PostMapping
-    public String createLabel(@RequestParam String label) {
-        System.out.println("Creating label: " + label);
-        labelService.createLabel(label);
-        return "redirect:/labels";
+    public String createLabel(@RequestParam String labelName) {
+        labelService.createLabel(labelName);
+        return "redirect:/dashboard";
     }
 
     @DeleteMapping("/{id}")
     public String deleteLabel(@PathVariable Long id) {
         labelService.delete(id);
-        return "redirect:/labels";
+        return "redirect:/dashboard";
     }
 
 }
