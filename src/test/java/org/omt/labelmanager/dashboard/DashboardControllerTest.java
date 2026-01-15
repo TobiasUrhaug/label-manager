@@ -2,8 +2,8 @@ package org.omt.labelmanager.dashboard;
 
 import org.junit.jupiter.api.Test;
 import org.omt.labelmanager.dashboard.api.DashboardController;
-import org.omt.labelmanager.label.Label;
 import org.omt.labelmanager.label.LabelCRUDHandler;
+import org.omt.labelmanager.label.LabelFactory;
 import org.omt.labelmanager.release.ReleaseCRUDHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
@@ -38,13 +38,14 @@ class DashboardControllerTest {
 
     @Test
     void dashboard_showsListOfLabels() throws Exception {
-        var mockLabel = new Label(1L,"Mock Label");
-        when(labelCRUDHandler.getAllLabels()).thenReturn(List.of(mockLabel));
+        var labelA = LabelFactory.builder().id(1L).name("My Label").build();
+        var labelB = LabelFactory.builder().id(1L).name("My Label").build();
+        when(labelCRUDHandler.getAllLabels()).thenReturn(List.of(labelA, labelB));
 
         mockMvc.perform(get("/dashboard"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("dashboard"))
-                .andExpect(model().attribute("labels", List.of(mockLabel)));
+                .andExpect(model().attribute("labels", List.of(labelA, labelB)));
     }
 
 }
