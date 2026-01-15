@@ -1,11 +1,13 @@
-package org.omt.labelmanager;
+package org.omt.labelmanager.label;
 
 import org.junit.jupiter.api.Test;
+import org.omt.labelmanager.label.persistence.LabelEntity;
 import org.omt.labelmanager.label.persistence.LabelRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureRestTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.http.MediaType;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.servlet.client.RestTestClient;
@@ -18,7 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @Testcontainers
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureRestTestClient
-class LabelManagerApplicationTests {
+public class LabelCRUDIntegrationTest {
 
     @LocalServerPort
     int port;
@@ -43,20 +45,45 @@ class LabelManagerApplicationTests {
         registry.add("spring.datasource.password", postgres::getPassword);
     }
 
-	@Test
-	void contextLoads() {
-	}
-
     @Test
-    void dashboardLoads() {
-        restClient.get()
-                .uri("http://localhost:" + port + "/dashboard")
+    void createLabel() {
+        restClient
+                .post()
+                .uri("/labels")
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                .body("labelName=My+Label")
                 .exchange()
-                .expectStatus().is2xxSuccessful()
-                .expectBody(String.class)
-                .consumeWith(response ->
-                        assertThat(response.getResponseBody()).contains("Your Labels")
-                );
+                .expectStatus()
+                .is3xxRedirection();
+
+        assertThat(repo.findByName("My Label")).isPresent();
     }
 
+    @Test
+    void deleteLabel() {
+        var label = new LabelEntity("WronglyNamedLabel");
+        repo.save(label);
+
+        assertThat(repo
+                .findAll()
+                .stream()
+                .map(LabelEntity::getName)
+                .toList()
+        )
+                .contains("WronglyNamedLabel");
+
+        restClient
+                .delete()
+                .uri("/labels/" + label.getId())
+                .exchange()
+                .expectStatus().is3xxRedirection();
+
+        assertThat(repo
+                .findAll()
+                .stream()
+                .map(LabelEntity::getName)
+                .toList()
+        )
+                .doesNotContain("WronglyNamedLabel");
+    }
 }
