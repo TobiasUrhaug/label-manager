@@ -21,8 +21,8 @@ public class ReleaseCRUDHandler {
         this.labelRepository = labelRepository;
     }
 
-    public List<ReleaseEntity> getReleasesForLabel(Long labelId) {
-        return releaseRepository.findByLabelId(labelId);
+    public List<Release> getReleasesForLabel(Long labelId) {
+        return releaseRepository.findByLabelId(labelId).stream().map(Release::fromEntity).toList();
     }
 
     public void createRelease(String name, LocalDate releaseDate, Long labelId) {

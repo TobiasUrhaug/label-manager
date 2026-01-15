@@ -2,8 +2,8 @@ package org.omt.labelmanager.label.api;
 
 import org.omt.labelmanager.label.Label;
 import org.omt.labelmanager.label.LabelCRUDHandler;
+import org.omt.labelmanager.release.Release;
 import org.omt.labelmanager.release.ReleaseCRUDHandler;
-import org.omt.labelmanager.release.persistence.ReleaseEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -36,7 +36,7 @@ public class LabelController {
                         .map(Label::name)
                         .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
 
-        List<ReleaseEntity> releases = releaseCRUDHandler.getReleasesForLabel(id);
+        List<Release> releases = releaseCRUDHandler.getReleasesForLabel(id);
 
         model.addAttribute("name", labelName);
         model.addAttribute("id", id);
