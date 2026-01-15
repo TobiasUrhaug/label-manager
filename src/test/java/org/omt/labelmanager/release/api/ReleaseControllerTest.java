@@ -1,11 +1,10 @@
 package org.omt.labelmanager.release.api;
 
 import org.junit.jupiter.api.Test;
-import org.omt.labelmanager.label.Label;
 import org.omt.labelmanager.label.LabelCRUDHandler;
-import org.omt.labelmanager.label.persistence.LabelEntity;
-import org.omt.labelmanager.release.Release;
+import org.omt.labelmanager.label.LabelFactory;
 import org.omt.labelmanager.release.ReleaseCRUDHandler;
+import org.omt.labelmanager.release.ReleaseFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -32,12 +31,18 @@ class ReleaseControllerTest {
 
     @Test
     void release_returnsReleaseViewAndPopulatedModel() throws Exception {
-        LabelEntity mockLabelEntity = new LabelEntity( "My Label");
-        Label mockLabel = new Label(1L, "My Label");
-        LocalDate releaseDate = LocalDate.now();
-        Release mockRelease = new Release(4L, "First Release", releaseDate, mockLabel);
-        when(labelCRUDHandler.findById(1L)).thenReturn(Optional.of(mockLabel));
-        when(releaseCRUDHandler.findById(4L)).thenReturn(Optional.of(mockRelease));
+        var label = LabelFactory.builder().id(1L).name("My Label").build();
+        var releaseDate = LocalDate.now();
+        var release = ReleaseFactory
+                .builder()
+                .id(4L)
+                .name("First Release")
+                .releaseDate(releaseDate)
+                .label(label)
+                .build();
+
+        when(labelCRUDHandler.findById(1L)).thenReturn(Optional.of(label));
+        when(releaseCRUDHandler.findById(4L)).thenReturn(Optional.of(release));
 
         mockMvc.perform(get("/labels/1/releases/4"))
                 .andExpect(status().isOk())
