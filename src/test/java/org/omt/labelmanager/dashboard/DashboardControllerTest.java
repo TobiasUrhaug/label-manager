@@ -1,4 +1,4 @@
-package org.omt.labelmanager.overview;
+package org.omt.labelmanager.dashboard;
 
 import org.junit.jupiter.api.Test;
 import org.omt.labelmanager.dashboard.api.DashboardController;
