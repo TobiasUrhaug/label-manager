@@ -1,10 +1,11 @@
-package org.omt.labelmanager.release;
+package org.omt.labelmanager.release.api;
 
 import org.junit.jupiter.api.Test;
 import org.omt.labelmanager.label.Label;
 import org.omt.labelmanager.label.LabelCRUDHandler;
 import org.omt.labelmanager.label.persistence.LabelEntity;
-import org.omt.labelmanager.release.api.ReleaseController;
+import org.omt.labelmanager.release.Release;
+import org.omt.labelmanager.release.ReleaseCRUDHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;

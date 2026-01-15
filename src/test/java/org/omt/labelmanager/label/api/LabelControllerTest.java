@@ -1,7 +1,8 @@
-package org.omt.labelmanager.label;
+package org.omt.labelmanager.label.api;
 
 import org.junit.jupiter.api.Test;
-import org.omt.labelmanager.label.api.LabelController;
+import org.omt.labelmanager.label.LabelCRUDHandler;
+import org.omt.labelmanager.label.LabelFactory;
 import org.omt.labelmanager.release.ReleaseCRUDHandler;
 import org.omt.labelmanager.release.ReleaseFactory;
 import org.springframework.beans.factory.annotation.Autowired;
