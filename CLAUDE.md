@@ -19,6 +19,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 # Run a single test method
 ./gradlew test --tests LabelControllerTest.label_redirectsToALabel
+
+# Run checkstyle
+./gradlew checkstyleMain checkstyleTest
 ```
 
 ## Domain
