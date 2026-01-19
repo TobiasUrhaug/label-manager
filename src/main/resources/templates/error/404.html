@@ -1,13 +1,9 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
-<head>
-    <title>Page Not Found</title>
-    <meta charset="UTF-8">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
-<body class="container py-5 text-center">
-<h1 class="display-4">404</h1>
-<p class="lead">Sorry, the resource you are looking for could not be found.</p>
-<a th:href="@{/overview}" class="btn btn-primary mt-3">Go back to Overview</a>
-</body>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: page(title='Not Found', content=~{::main})}">
+<main class="text-center py-5">
+    <h1 class="display-1">404</h1>
+    <p class="lead">The page you're looking for could not be found.</p>
+    <a th:href="@{/dashboard}" class="btn btn-primary mt-3">Back to Dashboard</a>
+</main>
 </html>
