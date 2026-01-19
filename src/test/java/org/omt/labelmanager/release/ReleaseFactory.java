@@ -1,10 +1,9 @@
 package org.omt.labelmanager.release;
 
-import org.omt.labelmanager.label.Label;
-import org.omt.labelmanager.label.LabelFactory;
-
 import java.time.LocalDate;
 import java.util.concurrent.atomic.AtomicLong;
+import org.omt.labelmanager.label.Label;
+import org.omt.labelmanager.label.LabelFactory;
 
 public final class ReleaseFactory {
 

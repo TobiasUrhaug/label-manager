@@ -1,7 +1,10 @@
 package org.omt.labelmanager.label.persistence;
 
-import jakarta.persistence.*;
-
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import java.util.Objects;
 
 @Entity
@@ -31,7 +34,9 @@ public class LabelEntity {
 
     @Override
     public boolean equals(Object o) {
-        if (o == null || getClass() != o.getClass()) return false;
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
         LabelEntity labelEntity = (LabelEntity) o;
         return Objects.equals(name, labelEntity.name) && Objects.equals(id, labelEntity.id);
     }

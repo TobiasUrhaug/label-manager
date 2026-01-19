@@ -1,14 +1,17 @@
 package org.omt.labelmanager.release.api;
 
+import java.time.LocalDate;
 import org.omt.labelmanager.release.Release;
 import org.omt.labelmanager.release.ReleaseCRUDHandler;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.server.ResponseStatusException;
-
-import java.time.LocalDate;
 
 @Controller
 @RequestMapping("/labels/{labelId}/releases")
@@ -34,7 +37,10 @@ public class ReleaseController {
     }
 
     @GetMapping("/{releaseId}")
-    public String releaseView(@PathVariable Long labelId, @PathVariable Long releaseId, Model model) {
+    public String releaseView(
+            @PathVariable Long labelId,
+            @PathVariable Long releaseId,
+            Model model) {
         Release release = releaseCRUDHandler
                 .findById(releaseId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));

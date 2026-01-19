@@ -1,14 +1,13 @@
 package org.omt.labelmanager.release;
 
+import java.time.LocalDate;
+import java.util.List;
+import java.util.Optional;
 import org.omt.labelmanager.label.persistence.LabelEntity;
 import org.omt.labelmanager.label.persistence.LabelRepository;
 import org.omt.labelmanager.release.persistence.ReleaseEntity;
 import org.omt.labelmanager.release.persistence.ReleaseRepository;
 import org.springframework.stereotype.Service;
-
-import java.time.LocalDate;
-import java.util.List;
-import java.util.Optional;
 
 @Service
 public class ReleaseCRUDHandler {
@@ -16,7 +15,9 @@ public class ReleaseCRUDHandler {
     private final ReleaseRepository releaseRepository;
     private final LabelRepository labelRepository;
 
-    public ReleaseCRUDHandler(ReleaseRepository releaseRepository, LabelRepository labelRepository) {
+    public ReleaseCRUDHandler(
+            ReleaseRepository releaseRepository,
+            LabelRepository labelRepository) {
         this.releaseRepository = releaseRepository;
         this.labelRepository = labelRepository;
     }
@@ -26,7 +27,8 @@ public class ReleaseCRUDHandler {
     }
 
     public void createRelease(String name, LocalDate releaseDate, Long labelId) {
-        LabelEntity labelEntity = labelRepository.findById(labelId).orElseThrow(IllegalArgumentException::new);
+        LabelEntity labelEntity = labelRepository.findById(labelId)
+                .orElseThrow(IllegalArgumentException::new);
         ReleaseEntity release = new ReleaseEntity();
         release.setName(name);
         release.setReleaseDate(releaseDate);

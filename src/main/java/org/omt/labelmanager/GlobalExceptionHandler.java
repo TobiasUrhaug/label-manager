@@ -11,7 +11,10 @@ import org.springframework.web.server.ResponseStatusException;
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(ResponseStatusException.class)
-    public String handleNotFound(ResponseStatusException exception, Model model, HttpServletResponse response) {
+    public String handleNotFound(
+            ResponseStatusException exception,
+            Model model,
+            HttpServletResponse response) {
         if (exception.getStatusCode() == HttpStatus.NOT_FOUND) {
             response.setStatus(HttpStatus.NOT_FOUND.value());
             model.addAttribute("message", exception.getReason());

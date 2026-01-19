@@ -1,9 +1,8 @@
 package org.omt.labelmanager.release;
 
+import java.time.LocalDate;
 import org.omt.labelmanager.label.Label;
 import org.omt.labelmanager.release.persistence.ReleaseEntity;
-
-import java.time.LocalDate;
 
 public record Release(
         Long id,

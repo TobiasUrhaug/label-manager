@@ -1,12 +1,11 @@
 package org.omt.labelmanager.label;
 
 import jakarta.transaction.Transactional;
+import java.util.List;
+import java.util.Optional;
 import org.omt.labelmanager.label.persistence.LabelEntity;
 import org.omt.labelmanager.label.persistence.LabelRepository;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
-import java.util.Optional;
 
 @Service
 public class LabelCRUDHandler {
