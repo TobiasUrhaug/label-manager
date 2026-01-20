@@ -19,6 +19,15 @@
                 <dd class="col-sm-10" th:if="${website}">
                     <a th:href="${website}" th:text="${website}" target="_blank" rel="noopener">https://example.com</a>
                 </dd>
+
+                <dt class="col-sm-2" th:if="${address}">Address</dt>
+                <dd class="col-sm-10" th:if="${address}">
+                    <span th:text="${address.street}">Street</span><br th:if="${address.street2}">
+                    <span th:if="${address.street2}" th:text="${address.street2}">Street 2</span><br>
+                    <span th:text="${address.postalCode}">Postal</span>
+                    <span th:text="${address.city}">City</span><br>
+                    <span th:text="${address.country}">Country</span>
+                </dd>
             </dl>
         </div>
     </div>
@@ -69,5 +78,6 @@
             </div>
         </div>
     </div>
+
 </main>
 </html>

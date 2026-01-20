@@ -53,6 +53,7 @@ public class LabelController {
         model.addAttribute("id", id);
         model.addAttribute("email", label.email());
         model.addAttribute("website", label.website());
+        model.addAttribute("address", label.address());
         model.addAttribute("releases", releases);
 
         return "labels/label";
@@ -62,9 +63,18 @@ public class LabelController {
     public String createLabel(
             @RequestParam String labelName,
             @RequestParam(required = false) String email,
-            @RequestParam(required = false) String website
+            @RequestParam(required = false) String website,
+            @RequestParam(required = false) String street,
+            @RequestParam(required = false) String street2,
+            @RequestParam(required = false) String city,
+            @RequestParam(required = false) String postalCode,
+            @RequestParam(required = false) String country
     ) {
-        labelCRUDHandler.createLabel(labelName, email, website);
+        Address address = null;
+        if (street != null && !street.isBlank()) {
+            address = new Address(street, street2, city, postalCode, country);
+        }
+        labelCRUDHandler.createLabel(labelName, email, website, address);
         return "redirect:/dashboard";
     }
 

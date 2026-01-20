@@ -28,9 +28,13 @@ public class LabelCRUDHandler {
         return labels;
     }
 
-    public void createLabel(String labelName, String email, String website) {
+    public void createLabel(String labelName, String email, String website, Address address) {
         log.info("Creating label '{}'", labelName);
-        repository.save(new LabelEntity(labelName, email, website));
+        var entity = new LabelEntity(labelName, email, website);
+        if (address != null) {
+            entity.setAddress(AddressEmbeddable.fromAddress(address));
+        }
+        repository.save(entity);
     }
 
     @Transactional

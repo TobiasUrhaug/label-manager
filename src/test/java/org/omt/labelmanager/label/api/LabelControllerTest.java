@@ -77,7 +77,7 @@ class LabelControllerTest {
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/dashboard"));
 
-        verify(labelCRUDHandler).createLabel("New Label", "info@newlabel.com", "https://newlabel.com");
+        verify(labelCRUDHandler).createLabel("New Label", "info@newlabel.com", "https://newlabel.com", null);
     }
 
     @Test
