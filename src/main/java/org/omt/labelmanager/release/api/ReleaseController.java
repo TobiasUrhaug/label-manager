@@ -3,6 +3,8 @@ package org.omt.labelmanager.release.api;
 import java.time.LocalDate;
 import org.omt.labelmanager.release.Release;
 import org.omt.labelmanager.release.ReleaseCRUDHandler;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -16,6 +18,8 @@ import org.springframework.web.server.ResponseStatusException;
 @Controller
 @RequestMapping("/labels/{labelId}/releases")
 public class ReleaseController {
+
+    private static final Logger log = LoggerFactory.getLogger(ReleaseController.class);
 
     private final ReleaseCRUDHandler releaseCRUDHandler;
 
@@ -43,7 +47,10 @@ public class ReleaseController {
             Model model) {
         Release release = releaseCRUDHandler
                 .findById(releaseId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+                .orElseThrow(() -> {
+                    log.warn("Release with id {} not found", releaseId);
+                    return new ResponseStatusException(HttpStatus.NOT_FOUND);
+                });
 
         model.addAttribute("name", release.name());
         model.addAttribute("labelId", labelId);
