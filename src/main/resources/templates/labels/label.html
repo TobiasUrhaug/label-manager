@@ -10,6 +10,9 @@
     <div class="card mb-4">
         <div class="card-body">
             <dl class="row mb-0">
+                <dt class="col-sm-2" th:if="${owner}">Owner</dt>
+                <dd class="col-sm-10" th:if="${owner}" th:text="${owner.name}">Owner Name</dd>
+
                 <dt class="col-sm-2" th:if="${email}">Email</dt>
                 <dd class="col-sm-10" th:if="${email}">
                     <a th:href="@{'mailto:' + ${email}}" th:text="${email}">email@example.com</a>
