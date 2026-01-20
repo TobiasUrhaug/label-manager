@@ -71,8 +71,8 @@ org.omt.labelmanager/
 - Named `*IntegrationTest.java`
 
 ### Test Factories
-- `LabelFactory` and `ReleaseFactory` provide fluent builders for test data
-- Pattern: `LabelFactory.aLabel().withName("test").build()`
+- `LabelFactory`, `ReleaseFactory`, `AddressFactory` provide fluent builders for test data
+- Pattern: `LabelFactory.aLabel().name("test").build()`
 
 ## Logging Strategy
 
@@ -117,9 +117,63 @@ public Label createLabel(String name, Long userId) {
 }
 ```
 
+## Development Workflow
+
+### TDD with Atomic Commits
+
+Use Test-Driven Development with small, atomic commits. For any feature, break it into slices where each slice is:
+
+1. **A complete, working increment** - tests pass, code compiles
+2. **Committed separately** - one commit per slice
+3. **TDD within each slice**:
+   - Write a failing test first
+   - Implement the minimum to make it pass
+   - Refactor if needed
+   - Commit
+
+### Example: Adding a new field/feature
+
+**Slice 1: Domain Model**
+- Update domain record, factory, mapping tests
+- Commit: "Add X to domain model"
+
+**Slice 2: Persistence**
+- Add to entity, create migration
+- Integration test for persistence
+- Commit: "Add X to persistence layer"
+
+**Slice 3: Service Layer**
+- Add method to handler
+- Integration test
+- Commit: "Add X to service layer"
+
+**Slice 4: Controller**
+- Add endpoint
+- Controller test with MockMvc
+- Commit: "Add X endpoint"
+
+**Slice 5: Templates**
+- Update UI
+- Commit: "Add X to templates"
+
+### Benefits
+
+- Each commit is reviewable and revertible
+- Forces clean separation of concerns
+- Progress is visible and incremental
+- Easier to catch issues early
+
+### Test Factories
+
+Use the `aClassName()` pattern for readability:
+```java
+LabelFactory.aLabel().name("Test").build()
+AddressFactory.anAddress().city("Oslo").build()
+```
+
 ## Development Setup
 
 Start PostgreSQL with Docker:
 ```bash
-docker-compose up -d
+docker compose up -d
 ```
