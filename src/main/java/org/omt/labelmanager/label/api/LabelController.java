@@ -1,6 +1,7 @@
 package org.omt.labelmanager.label.api;
 
 import java.util.List;
+import org.omt.labelmanager.common.Address;
 import org.omt.labelmanager.label.Label;
 import org.omt.labelmanager.label.LabelCRUDHandler;
 import org.omt.labelmanager.release.Release;
@@ -71,6 +72,20 @@ public class LabelController {
     public String deleteLabel(@PathVariable Long id) {
         labelCRUDHandler.delete(id);
         return "redirect:/dashboard";
+    }
+
+    @PostMapping("/{id}/address")
+    public String updateAddress(
+            @PathVariable Long id,
+            @RequestParam String street,
+            @RequestParam(required = false) String street2,
+            @RequestParam String city,
+            @RequestParam(required = false) String postalCode,
+            @RequestParam String country
+    ) {
+        var address = new Address(street, street2, city, postalCode, country);
+        labelCRUDHandler.updateAddress(id, address);
+        return "redirect:/labels/" + id;
     }
 
 }

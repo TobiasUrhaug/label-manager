@@ -13,6 +13,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
+import org.omt.labelmanager.common.Address;
 import org.omt.labelmanager.label.LabelCRUDHandler;
 import org.omt.labelmanager.label.LabelFactory;
 import org.omt.labelmanager.release.ReleaseCRUDHandler;
@@ -77,6 +78,24 @@ class LabelControllerTest {
                 .andExpect(redirectedUrl("/dashboard"));
 
         verify(labelCRUDHandler).createLabel("New Label", "info@newlabel.com", "https://newlabel.com");
+    }
+
+    @Test
+    void updateAddress_callsHandlerAndRedirects() throws Exception {
+        mockMvc
+                .perform(post("/labels/1/address")
+                        .param("street", "123 Main St")
+                        .param("street2", "Apt 4B")
+                        .param("city", "Oslo")
+                        .param("postalCode", "0123")
+                        .param("country", "Norway"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/labels/1"));
+
+        verify(labelCRUDHandler).updateAddress(
+                1L,
+                new Address("123 Main St", "Apt 4B", "Oslo", "0123", "Norway")
+        );
     }
 
 }
