@@ -10,12 +10,12 @@ public final class LabelFactory {
         // utility class
     }
 
-    public static Builder builder() {
+    public static Builder aLabel() {
         return new Builder();
     }
 
     public static Label createDefault() {
-        return builder().build();
+        return aLabel().build();
     }
 
     // ----------------------------------------------------------------------

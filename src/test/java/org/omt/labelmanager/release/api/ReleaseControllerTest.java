@@ -32,10 +32,10 @@ class ReleaseControllerTest {
 
     @Test
     void release_returnsReleaseViewAndPopulatedModel() throws Exception {
-        var label = LabelFactory.builder().id(1L).name("My Label").build();
+        var label = LabelFactory.aLabel().id(1L).name("My Label").build();
         var releaseDate = LocalDate.now();
         var release = ReleaseFactory
-                .builder()
+                .aRelease()
                 .id(4L)
                 .name("First Release")
                 .releaseDate(releaseDate)

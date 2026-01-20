@@ -36,7 +36,7 @@ class LabelControllerTest {
 
     @Test
     void label_redirectsToALabel() throws Exception {
-        var label = LabelFactory.builder()
+        var label = LabelFactory.aLabel()
                 .id(1L)
                 .name("My Label")
                 .email("contact@mylabel.com")
@@ -44,7 +44,7 @@ class LabelControllerTest {
                 .build();
         when(labelCRUDHandler.findById(1L)).thenReturn(Optional.of(label));
 
-        var release = ReleaseFactory.builder().id(1L).name("My Release").build();
+        var release = ReleaseFactory.aRelease().id(1L).name("My Release").build();
         when(releaseCRUDHandler.getReleasesForLabel(1L)).thenReturn(List.of(release));
 
         mockMvc

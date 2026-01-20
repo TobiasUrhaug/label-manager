@@ -39,8 +39,8 @@ class DashboardControllerTest {
 
     @Test
     void dashboard_showsListOfLabels() throws Exception {
-        var labelA = LabelFactory.builder().id(1L).name("My Label").build();
-        var labelB = LabelFactory.builder().id(1L).name("My Label").build();
+        var labelA = LabelFactory.aLabel().id(1L).name("My Label").build();
+        var labelB = LabelFactory.aLabel().id(1L).name("My Label").build();
         when(labelCRUDHandler.getAllLabels()).thenReturn(List.of(labelA, labelB));
 
         mockMvc.perform(get("/dashboard"))

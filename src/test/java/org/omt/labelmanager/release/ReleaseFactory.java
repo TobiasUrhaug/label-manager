@@ -13,12 +13,12 @@ public final class ReleaseFactory {
         // utility class
     }
 
-    public static Builder builder() {
+    public static Builder aRelease() {
         return new Builder();
     }
 
     public static Release createDefault() {
-        return builder().build();
+        return aRelease().build();
     }
 
     public static final class Builder {
