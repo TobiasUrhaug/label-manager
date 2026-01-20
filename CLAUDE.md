@@ -74,6 +74,49 @@ org.omt.labelmanager/
 - `LabelFactory` and `ReleaseFactory` provide fluent builders for test data
 - Pattern: `LabelFactory.aLabel().withName("test").build()`
 
+## Logging Strategy
+
+Use SLF4J with Logback. Configuration is in `logback-spring.xml` (simple pattern locally, JSON in production).
+
+### Log Levels
+
+| Level | Use For |
+|-------|---------|
+| **ERROR** | Failed operations needing attention (unhandled exceptions, failed external calls) |
+| **WARN** | Unexpected but recoverable situations (retry succeeded, fallback used) |
+| **INFO** | Business-significant events (entity created, job started/completed) |
+| **DEBUG** | Technical details for troubleshooting (method entry/exit, variable values) |
+
+### Guidelines
+
+- **INFO should tell the business story** - readable without drowning in detail
+- **Log at boundaries**: incoming requests (INFO), outgoing calls (DEBUG), business decisions (INFO)
+- **Include context**: IDs, user, entity being processed
+- **Avoid**: sensitive data, logging in tight loops, duplicate information
+
+### Example Pattern
+
+```java
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+private static final Logger log = LoggerFactory.getLogger(MyClass.class);
+
+public Label createLabel(String name, Long userId) {
+    log.info("Creating label '{}' for user {}", name, userId);
+
+    if (labelRepository.existsByName(name)) {
+        log.warn("Label '{}' already exists for user {}", name, userId);
+        throw new DuplicateLabelException(name);
+    }
+
+    Label label = labelRepository.save(new Label(name, userId));
+    log.debug("Label created with id {}", label.getId());
+
+    return label;
+}
+```
+
 ## Development Setup
 
 Start PostgreSQL with Docker:
