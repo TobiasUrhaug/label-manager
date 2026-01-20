@@ -46,22 +46,26 @@ public class LabelCRUDIntegrationTest {
     }
 
     @Test
-    void createLabel() {
+    void createLabel_persistsAllFields() {
         restClient
                 .post()
                 .uri("/labels")
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .body("labelName=My+Label")
+                .body("labelName=My+Label&email=contact%40mylabel.com"
+                        + "&website=https%3A%2F%2Fmylabel.com")
                 .exchange()
                 .expectStatus()
                 .is3xxRedirection();
 
-        assertThat(repo.findByName("My Label")).isPresent();
+        var savedLabel = repo.findByName("My Label");
+        assertThat(savedLabel).isPresent();
+        assertThat(savedLabel.get().getEmail()).isEqualTo("contact@mylabel.com");
+        assertThat(savedLabel.get().getWebsite()).isEqualTo("https://mylabel.com");
     }
 
     @Test
     void deleteLabel() {
-        var label = new LabelEntity("WronglyNamedLabel");
+        var label = new LabelEntity("WronglyNamedLabel", null, null);
         repo.save(label);
 
         assertThat(repo

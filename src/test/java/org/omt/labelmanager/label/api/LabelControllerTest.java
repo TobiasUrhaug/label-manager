@@ -1,9 +1,12 @@
 package org.omt.labelmanager.label.api;
 
 import static org.hamcrest.Matchers.hasSize;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
 
@@ -33,7 +36,12 @@ class LabelControllerTest {
 
     @Test
     void label_redirectsToALabel() throws Exception {
-        var label = LabelFactory.builder().id(1L).name("My Label").build();
+        var label = LabelFactory.builder()
+                .id(1L)
+                .name("My Label")
+                .email("contact@mylabel.com")
+                .website("https://mylabel.com")
+                .build();
         when(labelCRUDHandler.findById(1L)).thenReturn(Optional.of(label));
 
         var release = ReleaseFactory.builder().id(1L).name("My Release").build();
@@ -45,6 +53,8 @@ class LabelControllerTest {
                 .andExpect(view().name("labels/label"))
                 .andExpect(model().attribute("name", "My Label"))
                 .andExpect(model().attribute("id", 1L))
+                .andExpect(model().attribute("email", "contact@mylabel.com"))
+                .andExpect(model().attribute("website", "https://mylabel.com"))
                 .andExpect(model().attribute("releases", hasSize(1)));
     }
 
@@ -54,6 +64,19 @@ class LabelControllerTest {
 
         mockMvc.perform(get("/labels/1123"))
                 .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void createLabel_callsHandlerAndRedirects() throws Exception {
+        mockMvc
+                .perform(post("/labels")
+                        .param("labelName", "New Label")
+                        .param("email", "info@newlabel.com")
+                        .param("website", "https://newlabel.com"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/dashboard"));
+
+        verify(labelCRUDHandler).createLabel("New Label", "info@newlabel.com", "https://newlabel.com");
     }
 
 }

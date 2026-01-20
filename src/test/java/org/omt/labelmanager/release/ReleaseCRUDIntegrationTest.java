@@ -51,7 +51,7 @@ public class ReleaseCRUDIntegrationTest {
 
     @Test
     void createRelease() {
-        var savedEntity = labelRepository.save(new LabelEntity("The Label"));
+        var savedEntity = labelRepository.save(new LabelEntity("The Label", null, null));
         var labelId = savedEntity.getId();
 
         restClient
@@ -68,7 +68,7 @@ public class ReleaseCRUDIntegrationTest {
 
     @Test
     void deleteRelease() {
-        var label = new LabelEntity("WronglyNamedLabel");
+        var label = new LabelEntity("WronglyNamedLabel", null, null);
         labelRepository.save(label);
 
         assertThat(labelRepository

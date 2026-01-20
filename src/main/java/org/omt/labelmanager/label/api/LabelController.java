@@ -38,10 +38,9 @@ public class LabelController {
 
     @GetMapping("/{id}")
     public String labelView(@PathVariable Long id, Model model) {
-        String labelName =
+        Label label =
                 labelCRUDHandler
                         .findById(id)
-                        .map(Label::name)
                         .orElseThrow(() -> {
                             log.warn("Label with id {} not found", id);
                             return new ResponseStatusException(HttpStatus.NOT_FOUND);
@@ -49,16 +48,22 @@ public class LabelController {
 
         List<Release> releases = releaseCRUDHandler.getReleasesForLabel(id);
 
-        model.addAttribute("name", labelName);
+        model.addAttribute("name", label.name());
         model.addAttribute("id", id);
+        model.addAttribute("email", label.email());
+        model.addAttribute("website", label.website());
         model.addAttribute("releases", releases);
 
         return "labels/label";
     }
 
     @PostMapping
-    public String createLabel(@RequestParam String labelName) {
-        labelCRUDHandler.createLabel(labelName);
+    public String createLabel(
+            @RequestParam String labelName,
+            @RequestParam(required = false) String email,
+            @RequestParam(required = false) String website
+    ) {
+        labelCRUDHandler.createLabel(labelName, email, website);
         return "redirect:/dashboard";
     }
 

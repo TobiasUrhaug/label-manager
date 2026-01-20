@@ -12,6 +12,8 @@ import java.util.Objects;
 public class LabelEntity {
 
     private String name;
+    private String email;
+    private String website;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -20,8 +22,10 @@ public class LabelEntity {
     protected LabelEntity() {
     }
 
-    public LabelEntity(String name) {
+    public LabelEntity(String name, String email, String website) {
         this.name = name;
+        this.email = email;
+        this.website = website;
     }
 
     public Long getId() {
@@ -30,6 +34,14 @@ public class LabelEntity {
 
     public String getName() {
         return name;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public String getWebsite() {
+        return website;
     }
 
     @Override

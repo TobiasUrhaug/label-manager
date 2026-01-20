@@ -24,6 +24,8 @@ public final class LabelFactory {
 
         private Long id = counter.getAndIncrement();
         private String name = "Default Label";
+        private String email = "default@example.com";
+        private String website = "https://example.com";
 
         private Builder() {
         }
@@ -38,8 +40,18 @@ public final class LabelFactory {
             return this;
         }
 
+        public Builder email(String email) {
+            this.email = email;
+            return this;
+        }
+
+        public Builder website(String website) {
+            this.website = website;
+            return this;
+        }
+
         public Label build() {
-            return new Label(id, name);
+            return new Label(id, name, email, website);
         }
     }
 }

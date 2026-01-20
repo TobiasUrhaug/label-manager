@@ -26,9 +26,9 @@ public class LabelCRUDHandler {
         return labels;
     }
 
-    public void createLabel(String labelName) {
+    public void createLabel(String labelName, String email, String website) {
         log.info("Creating label '{}'", labelName);
-        repository.save(new LabelEntity(labelName));
+        repository.save(new LabelEntity(labelName, email, website));
     }
 
     @Transactional
