@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.jupiter.api.Test;
 import org.omt.labelmanager.common.Address;
 import org.omt.labelmanager.common.persistence.AddressEmbeddable;
+import org.omt.labelmanager.common.persistence.PersonEmbeddable;
 import org.omt.labelmanager.label.persistence.LabelEntity;
 import org.omt.labelmanager.label.persistence.LabelRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -102,6 +103,19 @@ public class LabelCRUDIntegrationTest {
         assertThat(updated.get().getAddress()).isNotNull();
         assertThat(updated.get().getAddress().getStreet()).isEqualTo("456 New Street");
         assertThat(updated.get().getAddress().getCity()).isEqualTo("Bergen");
+    }
+
+    @Test
+    void labelWithOwner_persistsAndRetrievesOwner() {
+        var owner = new PersonEmbeddable("John Doe");
+        var label = new LabelEntity("Label With Owner", null, null);
+        label.setOwner(owner);
+        repo.save(label);
+
+        var retrieved = repo.findByName("Label With Owner");
+        assertThat(retrieved).isPresent();
+        assertThat(retrieved.get().getOwner()).isNotNull();
+        assertThat(retrieved.get().getOwner().getName()).isEqualTo("John Doe");
     }
 
     @Test

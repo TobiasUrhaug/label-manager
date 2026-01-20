@@ -1,0 +1,1 @@
+ALTER TABLE label ADD COLUMN owner_name VARCHAR(255);
