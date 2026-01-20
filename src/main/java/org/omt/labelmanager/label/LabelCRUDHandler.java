@@ -4,7 +4,9 @@ import jakarta.transaction.Transactional;
 import java.util.List;
 import java.util.Optional;
 import org.omt.labelmanager.common.Address;
+import org.omt.labelmanager.common.Person;
 import org.omt.labelmanager.common.persistence.AddressEmbeddable;
+import org.omt.labelmanager.common.persistence.PersonEmbeddable;
 import org.omt.labelmanager.label.persistence.LabelEntity;
 import org.omt.labelmanager.label.persistence.LabelRepository;
 import org.slf4j.Logger;
@@ -28,11 +30,15 @@ public class LabelCRUDHandler {
         return labels;
     }
 
-    public void createLabel(String labelName, String email, String website, Address address) {
+    public void createLabel(String labelName, String email, String website, Address address,
+                            Person owner) {
         log.info("Creating label '{}'", labelName);
         var entity = new LabelEntity(labelName, email, website);
         if (address != null) {
             entity.setAddress(AddressEmbeddable.fromAddress(address));
+        }
+        if (owner != null) {
+            entity.setOwner(PersonEmbeddable.fromPerson(owner));
         }
         repository.save(entity);
     }

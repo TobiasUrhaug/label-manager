@@ -119,6 +119,23 @@ public class LabelCRUDIntegrationTest {
     }
 
     @Test
+    void createLabel_persistsOwnerWhenProvided() {
+        restClient
+                .post()
+                .uri("/labels")
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                .body("labelName=Label+With+Owner+Via+Form&ownerName=Jane+Smith")
+                .exchange()
+                .expectStatus()
+                .is3xxRedirection();
+
+        var savedLabel = repo.findByName("Label With Owner Via Form");
+        assertThat(savedLabel).isPresent();
+        assertThat(savedLabel.get().getOwner()).isNotNull();
+        assertThat(savedLabel.get().getOwner().getName()).isEqualTo("Jane Smith");
+    }
+
+    @Test
     void deleteLabel() {
         var label = new LabelEntity("WronglyNamedLabel", null, null);
         repo.save(label);

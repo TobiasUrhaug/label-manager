@@ -2,6 +2,7 @@ package org.omt.labelmanager.label.api;
 
 import java.util.List;
 import org.omt.labelmanager.common.Address;
+import org.omt.labelmanager.common.Person;
 import org.omt.labelmanager.label.Label;
 import org.omt.labelmanager.label.LabelCRUDHandler;
 import org.omt.labelmanager.release.Release;
@@ -54,6 +55,7 @@ public class LabelController {
         model.addAttribute("email", label.email());
         model.addAttribute("website", label.website());
         model.addAttribute("address", label.address());
+        model.addAttribute("owner", label.owner());
         model.addAttribute("releases", releases);
 
         return "labels/label";
@@ -68,13 +70,18 @@ public class LabelController {
             @RequestParam(required = false) String street2,
             @RequestParam(required = false) String city,
             @RequestParam(required = false) String postalCode,
-            @RequestParam(required = false) String country
+            @RequestParam(required = false) String country,
+            @RequestParam(required = false) String ownerName
     ) {
         Address address = null;
         if (street != null && !street.isBlank()) {
             address = new Address(street, street2, city, postalCode, country);
         }
-        labelCRUDHandler.createLabel(labelName, email, website, address);
+        Person owner = null;
+        if (ownerName != null && !ownerName.isBlank()) {
+            owner = new Person(ownerName);
+        }
+        labelCRUDHandler.createLabel(labelName, email, website, address, owner);
         return "redirect:/dashboard";
     }
 
