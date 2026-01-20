@@ -3,6 +3,7 @@ package org.omt.labelmanager.label;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
+import org.omt.labelmanager.common.Address;
 import org.omt.labelmanager.common.persistence.AddressEmbeddable;
 import org.omt.labelmanager.label.persistence.LabelEntity;
 import org.omt.labelmanager.label.persistence.LabelRepository;
@@ -31,6 +32,9 @@ public class LabelCRUDIntegrationTest {
 
     @Autowired
     LabelRepository repo;
+
+    @Autowired
+    LabelCRUDHandler labelCRUDHandler;
 
     @Container
     static PostgreSQLContainer<?> postgres =
@@ -83,6 +87,21 @@ public class LabelCRUDIntegrationTest {
         assertThat(retrieved.get().getAddress().getStreet()).isEqualTo("123 Main St");
         assertThat(retrieved.get().getAddress().getCity()).isEqualTo("Oslo");
         assertThat(retrieved.get().getAddress().getCountry()).isEqualTo("Norway");
+    }
+
+    @Test
+    void updateAddress_setsAddressOnLabel() {
+        var label = new LabelEntity("Label For Address Update", null, null);
+        repo.save(label);
+
+        var address = new Address("456 New Street", null, "Bergen", "5020", "Norway");
+        labelCRUDHandler.updateAddress(label.getId(), address);
+
+        var updated = repo.findById(label.getId());
+        assertThat(updated).isPresent();
+        assertThat(updated.get().getAddress()).isNotNull();
+        assertThat(updated.get().getAddress().getStreet()).isEqualTo("456 New Street");
+        assertThat(updated.get().getAddress().getCity()).isEqualTo("Bergen");
     }
 
     @Test

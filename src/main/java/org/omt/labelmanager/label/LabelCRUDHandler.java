@@ -3,6 +3,8 @@ package org.omt.labelmanager.label;
 import jakarta.transaction.Transactional;
 import java.util.List;
 import java.util.Optional;
+import org.omt.labelmanager.common.Address;
+import org.omt.labelmanager.common.persistence.AddressEmbeddable;
 import org.omt.labelmanager.label.persistence.LabelEntity;
 import org.omt.labelmanager.label.persistence.LabelRepository;
 import org.slf4j.Logger;
@@ -43,5 +45,14 @@ public class LabelCRUDHandler {
             log.debug("Label with id {} not found", id);
         }
         return label;
+    }
+
+    @Transactional
+    public void updateAddress(Long labelId, Address address) {
+        log.info("Updating address for label {}", labelId);
+        repository.findById(labelId).ifPresent(entity -> {
+            entity.setAddress(AddressEmbeddable.fromAddress(address));
+            repository.save(entity);
+        });
     }
 }
