@@ -1,11 +1,13 @@
 package org.omt.labelmanager.label.persistence;
 
+import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.util.Objects;
+import org.omt.labelmanager.common.persistence.AddressEmbeddable;
 
 @Entity
 @Table(name = "label")
@@ -14,6 +16,9 @@ public class LabelEntity {
     private String name;
     private String email;
     private String website;
+
+    @Embedded
+    private AddressEmbeddable address;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -42,6 +47,14 @@ public class LabelEntity {
 
     public String getWebsite() {
         return website;
+    }
+
+    public AddressEmbeddable getAddress() {
+        return address;
+    }
+
+    public void setAddress(AddressEmbeddable address) {
+        this.address = address;
     }
 
     @Override

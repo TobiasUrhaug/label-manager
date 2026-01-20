@@ -1,15 +1,17 @@
 package org.omt.labelmanager.label;
 
+import org.omt.labelmanager.common.Address;
 import org.omt.labelmanager.label.persistence.LabelEntity;
 
-public record Label(Long id, String name, String email, String website) {
+public record Label(Long id, String name, String email, String website, Address address) {
 
     public static Label fromEntity(LabelEntity entity) {
         return new Label(
                 entity.getId(),
                 entity.getName(),
                 entity.getEmail(),
-                entity.getWebsite()
+                entity.getWebsite(),
+                Address.fromEmbeddable(entity.getAddress())
         );
     }
 }

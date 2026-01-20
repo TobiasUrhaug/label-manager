@@ -3,6 +3,7 @@ package org.omt.labelmanager.label;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
+import org.omt.labelmanager.common.persistence.AddressEmbeddable;
 import org.omt.labelmanager.label.persistence.LabelEntity;
 import org.omt.labelmanager.label.persistence.LabelRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -61,6 +62,27 @@ public class LabelCRUDIntegrationTest {
         assertThat(savedLabel).isPresent();
         assertThat(savedLabel.get().getEmail()).isEqualTo("contact@mylabel.com");
         assertThat(savedLabel.get().getWebsite()).isEqualTo("https://mylabel.com");
+    }
+
+    @Test
+    void labelWithAddress_persistsAndRetrievesAddress() {
+        var address = new AddressEmbeddable(
+                "123 Main St",
+                "Suite 100",
+                "Oslo",
+                "0123",
+                "Norway"
+        );
+        var label = new LabelEntity("Label With Address", null, null);
+        label.setAddress(address);
+        repo.save(label);
+
+        var retrieved = repo.findByName("Label With Address");
+        assertThat(retrieved).isPresent();
+        assertThat(retrieved.get().getAddress()).isNotNull();
+        assertThat(retrieved.get().getAddress().getStreet()).isEqualTo("123 Main St");
+        assertThat(retrieved.get().getAddress().getCity()).isEqualTo("Oslo");
+        assertThat(retrieved.get().getAddress().getCountry()).isEqualTo("Norway");
     }
 
     @Test

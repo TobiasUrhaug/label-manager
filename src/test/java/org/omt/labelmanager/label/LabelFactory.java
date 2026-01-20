@@ -1,6 +1,7 @@
 package org.omt.labelmanager.label;
 
 import java.util.concurrent.atomic.AtomicLong;
+import org.omt.labelmanager.common.Address;
 
 public final class LabelFactory {
 
@@ -26,6 +27,7 @@ public final class LabelFactory {
         private String name = "Default Label";
         private String email = "default@example.com";
         private String website = "https://example.com";
+        private Address address = null;
 
         private Builder() {
         }
@@ -50,8 +52,13 @@ public final class LabelFactory {
             return this;
         }
 
+        public Builder address(Address address) {
+            this.address = address;
+            return this;
+        }
+
         public Label build() {
-            return new Label(id, name, email, website);
+            return new Label(id, name, email, website, address);
         }
     }
 }
