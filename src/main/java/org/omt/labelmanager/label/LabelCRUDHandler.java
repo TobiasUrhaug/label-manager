@@ -5,10 +5,14 @@ import java.util.List;
 import java.util.Optional;
 import org.omt.labelmanager.label.persistence.LabelEntity;
 import org.omt.labelmanager.label.persistence.LabelRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 @Service
 public class LabelCRUDHandler {
+
+    private static final Logger log = LoggerFactory.getLogger(LabelCRUDHandler.class);
 
     private final LabelRepository repository;
 
@@ -17,19 +21,27 @@ public class LabelCRUDHandler {
     }
 
     public List<Label> getAllLabels() {
-        return repository.findAll().stream().map(Label::fromEntity).toList();
+        List<Label> labels = repository.findAll().stream().map(Label::fromEntity).toList();
+        log.debug("Retrieved {} labels", labels.size());
+        return labels;
     }
 
     public void createLabel(String labelName) {
+        log.info("Creating label '{}'", labelName);
         repository.save(new LabelEntity(labelName));
     }
 
     @Transactional
     public void delete(Long id) {
+        log.info("Deleting label with id {}", id);
         repository.deleteById(id);
     }
 
     public Optional<Label> findById(long id) {
-        return repository.findById(id).map(Label::fromEntity);
+        Optional<Label> label = repository.findById(id).map(Label::fromEntity);
+        if (label.isEmpty()) {
+            log.debug("Label with id {} not found", id);
+        }
+        return label;
     }
 }

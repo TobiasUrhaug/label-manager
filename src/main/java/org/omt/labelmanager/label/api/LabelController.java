@@ -5,6 +5,8 @@ import org.omt.labelmanager.label.Label;
 import org.omt.labelmanager.label.LabelCRUDHandler;
 import org.omt.labelmanager.release.Release;
 import org.omt.labelmanager.release.ReleaseCRUDHandler;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -20,6 +22,8 @@ import org.springframework.web.server.ResponseStatusException;
 @Controller
 @RequestMapping("/labels")
 public class LabelController {
+
+    private static final Logger log = LoggerFactory.getLogger(LabelController.class);
 
     private final LabelCRUDHandler labelCRUDHandler;
     private final ReleaseCRUDHandler releaseCRUDHandler;
@@ -38,7 +42,10 @@ public class LabelController {
                 labelCRUDHandler
                         .findById(id)
                         .map(Label::name)
-                        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+                        .orElseThrow(() -> {
+                            log.warn("Label with id {} not found", id);
+                            return new ResponseStatusException(HttpStatus.NOT_FOUND);
+                        });
 
         List<Release> releases = releaseCRUDHandler.getReleasesForLabel(id);
 
