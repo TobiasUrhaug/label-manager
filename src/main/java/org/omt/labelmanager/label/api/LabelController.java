@@ -1,8 +1,6 @@
 package org.omt.labelmanager.label.api;
 
 import java.util.List;
-import org.omt.labelmanager.common.Address;
-import org.omt.labelmanager.common.Person;
 import org.omt.labelmanager.label.Label;
 import org.omt.labelmanager.label.LabelCRUDHandler;
 import org.omt.labelmanager.release.Release;
@@ -17,7 +15,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.server.ResponseStatusException;
 
 
@@ -62,26 +59,14 @@ public class LabelController {
     }
 
     @PostMapping
-    public String createLabel(
-            @RequestParam String labelName,
-            @RequestParam(required = false) String email,
-            @RequestParam(required = false) String website,
-            @RequestParam(required = false) String street,
-            @RequestParam(required = false) String street2,
-            @RequestParam(required = false) String city,
-            @RequestParam(required = false) String postalCode,
-            @RequestParam(required = false) String country,
-            @RequestParam(required = false) String ownerName
-    ) {
-        Address address = null;
-        if (street != null && !street.isBlank()) {
-            address = new Address(street, street2, city, postalCode, country);
-        }
-        Person owner = null;
-        if (ownerName != null && !ownerName.isBlank()) {
-            owner = new Person(ownerName);
-        }
-        labelCRUDHandler.createLabel(labelName, email, website, address, owner);
+    public String createLabel(CreateLabelForm form) {
+        labelCRUDHandler.createLabel(
+                form.getLabelName(),
+                form.getEmail(),
+                form.getWebsite(),
+                form.toAddress(),
+                form.toOwner()
+        );
         return "redirect:/dashboard";
     }
 
@@ -92,16 +77,8 @@ public class LabelController {
     }
 
     @PostMapping("/{id}/address")
-    public String updateAddress(
-            @PathVariable Long id,
-            @RequestParam String street,
-            @RequestParam(required = false) String street2,
-            @RequestParam String city,
-            @RequestParam(required = false) String postalCode,
-            @RequestParam String country
-    ) {
-        var address = new Address(street, street2, city, postalCode, country);
-        labelCRUDHandler.updateAddress(id, address);
+    public String updateAddress(@PathVariable Long id, UpdateAddressForm form) {
+        labelCRUDHandler.updateAddress(id, form.toAddress());
         return "redirect:/labels/" + id;
     }
 
