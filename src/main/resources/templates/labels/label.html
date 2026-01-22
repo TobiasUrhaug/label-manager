@@ -61,9 +61,9 @@
 
     <!-- Create Release Modal -->
     <div class="modal fade" id="createReleaseModal" tabindex="-1" aria-labelledby="createReleaseModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
+        <div class="modal-dialog modal-lg">
             <div class="modal-content">
-                <form th:action="@{/labels/{labelId}/releases(labelId=${id})}" method="post">
+                <form th:action="@{/labels/{labelId}/releases(labelId=${id})}" method="post" id="createReleaseForm">
                     <div class="modal-header">
                         <h5 class="modal-title" id="createReleaseModalLabel">Create Release</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -77,6 +77,29 @@
                             <label for="releaseDate" class="form-label">Release Date</label>
                             <input type="date" class="form-control" id="releaseDate" name="releaseDate" required>
                         </div>
+
+                        <hr>
+                        <h6>Tracks</h6>
+                        <div id="trackContainer">
+                            <div class="track-row mb-2 row g-2 align-items-end">
+                                <div class="col-md-4">
+                                    <label class="form-label">Artist</label>
+                                    <input type="text" class="form-control" name="tracks[0].artist" required>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Track Name</label>
+                                    <input type="text" class="form-control" name="tracks[0].name" required>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Duration</label>
+                                    <input type="text" class="form-control" name="tracks[0].duration" placeholder="MM:SS" pattern="[0-9]+:[0-5][0-9]" required>
+                                </div>
+                                <div class="col-md-1">
+                                    <button type="button" class="btn btn-outline-danger btn-sm remove-track" style="display: none;">X</button>
+                                </div>
+                            </div>
+                        </div>
+                        <button type="button" class="btn btn-outline-secondary btn-sm mt-2" id="addTrackBtn">+ Add Track</button>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
@@ -86,6 +109,65 @@
             </div>
         </div>
     </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const trackContainer = document.getElementById('trackContainer');
+        const addTrackBtn = document.getElementById('addTrackBtn');
+        let trackIndex = 0;
+
+        function updateRemoveButtons() {
+            const rows = trackContainer.querySelectorAll('.track-row');
+            rows.forEach(row => {
+                const removeBtn = row.querySelector('.remove-track');
+                removeBtn.style.display = rows.length > 1 ? 'block' : 'none';
+            });
+        }
+
+        function reindexTracks() {
+            const rows = trackContainer.querySelectorAll('.track-row');
+            rows.forEach((row, index) => {
+                row.querySelectorAll('input').forEach(input => {
+                    const name = input.getAttribute('name');
+                    if (name) {
+                        input.setAttribute('name', name.replace(/tracks\[\d+\]/, 'tracks[' + index + ']'));
+                    }
+                });
+            });
+            trackIndex = rows.length - 1;
+        }
+
+        addTrackBtn.addEventListener('click', function() {
+            trackIndex++;
+            const newRow = document.createElement('div');
+            newRow.className = 'track-row mb-2 row g-2 align-items-end';
+            newRow.innerHTML = `
+                <div class="col-md-4">
+                    <input type="text" class="form-control" name="tracks[${trackIndex}].artist" placeholder="Artist" required>
+                </div>
+                <div class="col-md-4">
+                    <input type="text" class="form-control" name="tracks[${trackIndex}].name" placeholder="Track Name" required>
+                </div>
+                <div class="col-md-3">
+                    <input type="text" class="form-control" name="tracks[${trackIndex}].duration" placeholder="MM:SS" pattern="[0-9]+:[0-5][0-9]" required>
+                </div>
+                <div class="col-md-1">
+                    <button type="button" class="btn btn-outline-danger btn-sm remove-track">X</button>
+                </div>
+            `;
+            trackContainer.appendChild(newRow);
+            updateRemoveButtons();
+        });
+
+        trackContainer.addEventListener('click', function(e) {
+            if (e.target.classList.contains('remove-track')) {
+                e.target.closest('.track-row').remove();
+                reindexTracks();
+                updateRemoveButtons();
+            }
+        });
+    });
+    </script>
 
     <!-- Edit Label Modal -->
     <div class="modal fade" id="editLabelModal" tabindex="-1" aria-labelledby="editLabelModalLabel" aria-hidden="true">
