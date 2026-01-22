@@ -1,9 +1,13 @@
 package org.omt.labelmanager.release;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 import org.omt.labelmanager.label.Label;
 import org.omt.labelmanager.label.LabelFactory;
+import org.omt.labelmanager.track.Track;
+import org.omt.labelmanager.track.TrackFactory;
 
 public final class ReleaseFactory {
 
@@ -27,6 +31,7 @@ public final class ReleaseFactory {
         private String name = "Default Release";
         private LocalDate releaseDate = LocalDate.now();
         private Label label = LabelFactory.createDefault();
+        private List<Track> tracks = new ArrayList<>(List.of(TrackFactory.createDefault()));
 
         private Builder() {
         }
@@ -51,8 +56,18 @@ public final class ReleaseFactory {
             return this;
         }
 
+        public Builder tracks(List<Track> tracks) {
+            this.tracks = tracks;
+            return this;
+        }
+
+        public Builder tracks(Track... tracks) {
+            this.tracks = List.of(tracks);
+            return this;
+        }
+
         public Release build() {
-            return new Release(id, name, releaseDate, label);
+            return new Release(id, name, releaseDate, label, tracks);
         }
     }
 }
