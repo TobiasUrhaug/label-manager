@@ -56,6 +56,18 @@ public class LabelEntity {
         return website;
     }
 
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public void setWebsite(String website) {
+        this.website = website;
+    }
+
     public AddressEmbeddable getAddress() {
         return address;
     }
