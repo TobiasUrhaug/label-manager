@@ -23,7 +23,7 @@ public final class TrackFactory {
         private Long id = counter.getAndIncrement();
         private String artist = "Default Artist";
         private String name = "Default Track";
-        private Integer durationSeconds = 180;
+        private TrackDuration duration = TrackDuration.ofSeconds(180);
         private Integer position = 1;
 
         private Builder() {
@@ -44,8 +44,13 @@ public final class TrackFactory {
             return this;
         }
 
-        public Builder durationSeconds(Integer durationSeconds) {
-            this.durationSeconds = durationSeconds;
+        public Builder duration(TrackDuration duration) {
+            this.duration = duration;
+            return this;
+        }
+
+        public Builder durationSeconds(int seconds) {
+            this.duration = TrackDuration.ofSeconds(seconds);
             return this;
         }
 
@@ -55,7 +60,7 @@ public final class TrackFactory {
         }
 
         public Track build() {
-            return new Track(id, artist, name, durationSeconds, position);
+            return new Track(id, artist, name, duration, position);
         }
     }
 }

@@ -6,7 +6,7 @@ public record Track(
         Long id,
         String artist,
         String name,
-        Integer durationSeconds,
+        TrackDuration duration,
         Integer position
 ) {
 
@@ -15,7 +15,7 @@ public record Track(
                 entity.getId(),
                 entity.getArtist(),
                 entity.getName(),
-                entity.getDurationSeconds(),
+                TrackDuration.ofSeconds(entity.getDurationSeconds()),
                 entity.getPosition()
         );
     }

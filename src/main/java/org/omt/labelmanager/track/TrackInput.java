@@ -3,7 +3,7 @@ package org.omt.labelmanager.track;
 public record TrackInput(
         String artist,
         String name,
-        Integer durationSeconds,
+        TrackDuration duration,
         Integer position
 ) {
 }

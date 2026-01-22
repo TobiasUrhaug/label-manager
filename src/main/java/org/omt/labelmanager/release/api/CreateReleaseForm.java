@@ -2,6 +2,7 @@ package org.omt.labelmanager.release.api;
 
 import java.util.ArrayList;
 import java.util.List;
+import org.omt.labelmanager.track.TrackDuration;
 import org.omt.labelmanager.track.TrackInput;
 
 public class CreateReleaseForm {
@@ -41,24 +42,11 @@ public class CreateReleaseForm {
             inputs.add(new TrackInput(
                     track.getArtist(),
                     track.getName(),
-                    parseDuration(track.getDuration()),
+                    TrackDuration.parse(track.getDuration()),
                     i + 1
             ));
         }
         return inputs;
-    }
-
-    private Integer parseDuration(String duration) {
-        if (duration == null || duration.isBlank()) {
-            return 0;
-        }
-        String[] parts = duration.split(":");
-        if (parts.length == 2) {
-            int minutes = Integer.parseInt(parts[0]);
-            int seconds = Integer.parseInt(parts[1]);
-            return minutes * 60 + seconds;
-        }
-        return Integer.parseInt(duration);
     }
 
     public static class TrackForm {

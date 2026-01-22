@@ -56,7 +56,7 @@ public class ReleaseCRUDHandler {
             TrackEntity trackEntity = new TrackEntity();
             trackEntity.setArtist(trackInput.artist());
             trackEntity.setName(trackInput.name());
-            trackEntity.setDurationSeconds(trackInput.durationSeconds());
+            trackEntity.setDurationSeconds(trackInput.duration().totalSeconds());
             trackEntity.setPosition(trackInput.position());
             trackEntity.setRelease(release);
             release.getTracks().add(trackEntity);
