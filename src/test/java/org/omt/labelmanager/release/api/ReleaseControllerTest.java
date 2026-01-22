@@ -7,12 +7,15 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.omt.labelmanager.label.LabelCRUDHandler;
 import org.omt.labelmanager.label.LabelFactory;
 import org.omt.labelmanager.release.ReleaseCRUDHandler;
 import org.omt.labelmanager.release.ReleaseFactory;
+import org.omt.labelmanager.track.Track;
+import org.omt.labelmanager.track.TrackFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -34,12 +37,19 @@ class ReleaseControllerTest {
     void release_returnsReleaseViewAndPopulatedModel() throws Exception {
         var label = LabelFactory.aLabel().id(1L).name("My Label").build();
         var releaseDate = LocalDate.now();
+        var track = TrackFactory.aTrack()
+                .artist("Test Artist")
+                .name("Test Track")
+                .durationSeconds(210)
+                .position(1)
+                .build();
         var release = ReleaseFactory
                 .aRelease()
                 .id(4L)
                 .name("First Release")
                 .releaseDate(releaseDate)
                 .label(label)
+                .tracks(List.of(track))
                 .build();
 
         when(labelCRUDHandler.findById(1L)).thenReturn(Optional.of(label));
@@ -51,7 +61,8 @@ class ReleaseControllerTest {
                 .andExpect(model().attribute("name", "First Release"))
                 .andExpect(model().attribute("labelId", 1L))
                 .andExpect(model().attribute("releaseId", 4L))
-                .andExpect(model().attribute("releaseDate", releaseDate));
+                .andExpect(model().attribute("releaseDate", releaseDate))
+                .andExpect(model().attribute("tracks", List.of(track)));
     }
 
     @Test

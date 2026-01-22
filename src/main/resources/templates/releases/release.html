@@ -7,12 +7,36 @@
         <a th:href="@{/labels/{labelId}(labelId=${labelId})}" class="btn btn-outline-secondary">Back to Label</a>
     </div>
 
-    <div class="card">
+    <div class="card mb-4">
         <div class="card-body">
             <dl class="row mb-0">
                 <dt class="col-sm-3">Release Date</dt>
                 <dd class="col-sm-9" th:text="${releaseDate}">2024-01-01</dd>
             </dl>
+        </div>
+    </div>
+
+    <h2 class="h4 mb-3">Tracks</h2>
+    <div class="card">
+        <div class="card-body p-0">
+            <table class="table table-striped mb-0">
+                <thead>
+                    <tr>
+                        <th scope="col" style="width: 50px">#</th>
+                        <th scope="col">Artist</th>
+                        <th scope="col">Title</th>
+                        <th scope="col" style="width: 80px">Duration</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="track : ${tracks}">
+                        <td th:text="${track.position()}">1</td>
+                        <td th:text="${track.artist()}">Artist Name</td>
+                        <td th:text="${track.name()}">Track Name</td>
+                        <td th:text="${T(java.lang.String).format('%d:%02d', track.durationSeconds() / 60, track.durationSeconds() % 60)}">3:30</td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
     </div>
 </main>

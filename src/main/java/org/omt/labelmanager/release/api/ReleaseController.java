@@ -60,6 +60,7 @@ public class ReleaseController {
         model.addAttribute("labelId", labelId);
         model.addAttribute("releaseId", releaseId);
         model.addAttribute("releaseDate", release.releaseDate());
+        model.addAttribute("tracks", release.tracks());
 
         return "/releases/release";
     }
