@@ -3,7 +3,12 @@
       th:replace="~{fragments/layout :: page(title=${name}, content=~{::main})}">
 <main>
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 th:text="${name}">Label Name</h1>
+        <div class="d-flex align-items-center gap-2">
+            <h1 th:text="${name}" class="mb-0">Label Name</h1>
+            <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#editLabelModal">
+                Edit
+            </button>
+        </div>
         <a th:href="@{/dashboard}" class="btn btn-outline-secondary">Back to Dashboard</a>
     </div>
 
@@ -76,6 +81,67 @@
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                         <button type="submit" class="btn btn-primary">Create</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Label Modal -->
+    <div class="modal fade" id="editLabelModal" tabindex="-1" aria-labelledby="editLabelModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <form th:action="@{/labels/{labelId}(labelId=${id})}" method="post">
+                    <input type="hidden" name="_method" value="put">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="editLabelModalLabel">Edit Label</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="labelName" class="form-label">Label Name</label>
+                            <input type="text" class="form-control" id="labelName" name="labelName" th:value="${name}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="ownerName" class="form-label">Owner</label>
+                            <input type="text" class="form-control" id="ownerName" name="ownerName" th:value="${owner?.name}">
+                        </div>
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="email" name="email" th:value="${email}">
+                        </div>
+                        <div class="mb-3">
+                            <label for="website" class="form-label">Website</label>
+                            <input type="url" class="form-control" id="website" name="website" th:value="${website}">
+                        </div>
+                        <hr>
+                        <h6>Address</h6>
+                        <div class="mb-3">
+                            <label for="street" class="form-label">Street</label>
+                            <input type="text" class="form-control" id="street" name="street" th:value="${address?.street}">
+                        </div>
+                        <div class="mb-3">
+                            <label for="street2" class="form-label">Street 2</label>
+                            <input type="text" class="form-control" id="street2" name="street2" th:value="${address?.street2}">
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="city" class="form-label">City</label>
+                                <input type="text" class="form-control" id="city" name="city" th:value="${address?.city}">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="postalCode" class="form-label">Postal Code</label>
+                                <input type="text" class="form-control" id="postalCode" name="postalCode" th:value="${address?.postalCode}">
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="country" class="form-label">Country</label>
+                            <input type="text" class="form-control" id="country" name="country" th:value="${address?.country}">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Save Changes</button>
                     </div>
                 </form>
             </div>
