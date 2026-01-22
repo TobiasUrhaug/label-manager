@@ -5,6 +5,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -14,6 +15,7 @@ import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.omt.labelmanager.common.Address;
+import org.omt.labelmanager.common.Person;
 import org.omt.labelmanager.label.LabelCRUDHandler;
 import org.omt.labelmanager.label.LabelFactory;
 import org.omt.labelmanager.release.ReleaseCRUDHandler;
@@ -96,6 +98,32 @@ class LabelControllerTest {
         verify(labelCRUDHandler).updateAddress(
                 1L,
                 new Address("123 Main St", "Apt 4B", "Oslo", "0123", "Norway")
+        );
+    }
+
+    @Test
+    void updateLabel_callsHandlerAndRedirects() throws Exception {
+        mockMvc
+                .perform(put("/labels/1")
+                        .param("labelName", "Updated Label")
+                        .param("email", "updated@label.com")
+                        .param("website", "https://updated.com")
+                        .param("ownerName", "New Owner")
+                        .param("street", "456 New St")
+                        .param("street2", "Suite 100")
+                        .param("city", "Bergen")
+                        .param("postalCode", "5020")
+                        .param("country", "Norway"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/labels/1"));
+
+        verify(labelCRUDHandler).updateLabel(
+                1L,
+                "Updated Label",
+                "updated@label.com",
+                "https://updated.com",
+                new Address("456 New St", "Suite 100", "Bergen", "5020", "Norway"),
+                new Person("New Owner")
         );
     }
 

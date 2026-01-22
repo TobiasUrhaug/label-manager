@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -79,6 +80,19 @@ public class LabelController {
     @PostMapping("/{id}/address")
     public String updateAddress(@PathVariable Long id, UpdateAddressForm form) {
         labelCRUDHandler.updateAddress(id, form.toAddress());
+        return "redirect:/labels/" + id;
+    }
+
+    @PutMapping("/{id}")
+    public String updateLabel(@PathVariable Long id, UpdateLabelForm form) {
+        labelCRUDHandler.updateLabel(
+                id,
+                form.getLabelName(),
+                form.getEmail(),
+                form.getWebsite(),
+                form.toAddress(),
+                form.toOwner()
+        );
         return "redirect:/labels/" + id;
     }
 
