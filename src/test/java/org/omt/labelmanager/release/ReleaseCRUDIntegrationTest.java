@@ -58,7 +58,10 @@ public class ReleaseCRUDIntegrationTest {
                 .post()
                 .uri("/labels/" + labelId + "/releases")
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .body("releaseName=My+Release&releaseDate=2026-01-15")
+                .body("releaseName=My+Release&releaseDate=2026-01-15"
+                        + "&tracks[0].artist=Test+Artist"
+                        + "&tracks[0].name=Test+Track"
+                        + "&tracks[0].duration=3:30")
                 .exchange()
                 .expectStatus()
                 .is3xxRedirection();

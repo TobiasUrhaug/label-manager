@@ -9,10 +9,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.server.ResponseStatusException;
 
 @Controller
@@ -30,12 +30,16 @@ public class ReleaseController {
     @PostMapping
     public String createRelease(
             @PathVariable Long labelId,
-            @RequestParam String releaseName,
-            @RequestParam String releaseDate
+            @ModelAttribute CreateReleaseForm form
     ) {
-        LocalDate date = LocalDate.parse(releaseDate);
+        LocalDate date = LocalDate.parse(form.getReleaseDate());
 
-        releaseCRUDHandler.createRelease(releaseName, date, labelId);
+        releaseCRUDHandler.createRelease(
+                form.getReleaseName(),
+                date,
+                labelId,
+                form.toTrackInputs()
+        );
 
         return "redirect:/labels/" + labelId;
     }

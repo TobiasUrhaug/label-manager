@@ -7,6 +7,8 @@ import org.omt.labelmanager.label.persistence.LabelEntity;
 import org.omt.labelmanager.label.persistence.LabelRepository;
 import org.omt.labelmanager.release.persistence.ReleaseEntity;
 import org.omt.labelmanager.release.persistence.ReleaseRepository;
+import org.omt.labelmanager.track.TrackInput;
+import org.omt.labelmanager.track.persistence.TrackEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -33,8 +35,13 @@ public class ReleaseCRUDHandler {
         return releases;
     }
 
-    public void createRelease(String name, LocalDate releaseDate, Long labelId) {
-        log.info("Creating release '{}' for label {}", name, labelId);
+    public void createRelease(String name, LocalDate releaseDate, Long labelId,
+                              List<TrackInput> tracks) {
+        log.info("Creating release '{}' for label {} with {} tracks", name, labelId, tracks.size());
+        if (tracks.isEmpty()) {
+            log.warn("Cannot create release '{}': at least one track is required", name);
+            throw new IllegalArgumentException("At least one track is required");
+        }
         LabelEntity labelEntity = labelRepository.findById(labelId)
                 .orElseThrow(() -> {
                     log.warn("Cannot create release: label {} not found", labelId);
@@ -44,6 +51,17 @@ public class ReleaseCRUDHandler {
         release.setName(name);
         release.setReleaseDate(releaseDate);
         release.setLabel(labelEntity);
+
+        for (TrackInput trackInput : tracks) {
+            TrackEntity trackEntity = new TrackEntity();
+            trackEntity.setArtist(trackInput.artist());
+            trackEntity.setName(trackInput.name());
+            trackEntity.setDurationSeconds(trackInput.durationSeconds());
+            trackEntity.setPosition(trackInput.position());
+            trackEntity.setRelease(release);
+            release.getTracks().add(trackEntity);
+        }
+
         releaseRepository.save(release);
     }
 
