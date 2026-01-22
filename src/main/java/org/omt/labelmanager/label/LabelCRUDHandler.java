@@ -65,4 +65,22 @@ public class LabelCRUDHandler {
             repository.save(entity);
         });
     }
+
+    @Transactional
+    public void updateLabel(Long id, String name, String email, String website,
+                            Address address, Person owner) {
+        log.info("Updating label {}", id);
+        repository.findById(id).ifPresent(entity -> {
+            entity.setName(name);
+            entity.setEmail(email);
+            entity.setWebsite(website);
+            if (address != null) {
+                entity.setAddress(AddressEmbeddable.fromAddress(address));
+            }
+            if (owner != null) {
+                entity.setOwner(PersonEmbeddable.fromPerson(owner));
+            }
+            repository.save(entity);
+        });
+    }
 }

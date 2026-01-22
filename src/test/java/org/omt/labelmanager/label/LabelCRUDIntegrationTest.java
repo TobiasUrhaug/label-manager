@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
 import org.omt.labelmanager.common.Address;
+import org.omt.labelmanager.common.Person;
 import org.omt.labelmanager.common.persistence.AddressEmbeddable;
 import org.omt.labelmanager.common.persistence.PersonEmbeddable;
 import org.omt.labelmanager.label.persistence.LabelEntity;
@@ -133,6 +134,36 @@ public class LabelCRUDIntegrationTest {
         assertThat(savedLabel).isPresent();
         assertThat(savedLabel.get().getOwner()).isNotNull();
         assertThat(savedLabel.get().getOwner().getName()).isEqualTo("Jane Smith");
+    }
+
+    @Test
+    void updateLabel_updatesAllFields() {
+        var label = new LabelEntity("Original Label", "old@email.com", "https://old.com");
+        label.setAddress(new AddressEmbeddable("Old Street", null, "Oslo", "0123", "Norway"));
+        label.setOwner(new PersonEmbeddable("Old Owner"));
+        repo.save(label);
+
+        var newAddress = new Address("New Street", "Apt 2", "Bergen", "5020", "Norway");
+        var newOwner = new Person("New Owner");
+
+        labelCRUDHandler.updateLabel(
+                label.getId(),
+                "Updated Label",
+                "new@email.com",
+                "https://new.com",
+                newAddress,
+                newOwner
+        );
+
+        var updated = repo.findById(label.getId());
+        assertThat(updated).isPresent();
+        assertThat(updated.get().getName()).isEqualTo("Updated Label");
+        assertThat(updated.get().getEmail()).isEqualTo("new@email.com");
+        assertThat(updated.get().getWebsite()).isEqualTo("https://new.com");
+        assertThat(updated.get().getAddress().getStreet()).isEqualTo("New Street");
+        assertThat(updated.get().getAddress().getStreet2()).isEqualTo("Apt 2");
+        assertThat(updated.get().getAddress().getCity()).isEqualTo("Bergen");
+        assertThat(updated.get().getOwner().getName()).isEqualTo("New Owner");
     }
 
     @Test
