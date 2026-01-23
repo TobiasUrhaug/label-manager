@@ -6,6 +6,8 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OrderBy;
@@ -13,6 +15,7 @@ import jakarta.persistence.Table;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import org.omt.labelmanager.artist.persistence.ArtistEntity;
 import org.omt.labelmanager.label.persistence.LabelEntity;
 import org.omt.labelmanager.track.persistence.TrackEntity;
 
@@ -31,6 +34,14 @@ public class ReleaseEntity {
     @ManyToOne
     @JoinColumn(name = "label_id")
     private LabelEntity label;
+
+    @ManyToMany
+    @JoinTable(
+            name = "release_artist",
+            joinColumns = @JoinColumn(name = "release_id"),
+            inverseJoinColumns = @JoinColumn(name = "artist_id")
+    )
+    private List<ArtistEntity> artists = new ArrayList<>();
 
     @OneToMany(mappedBy = "release", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("position ASC")
@@ -75,6 +86,14 @@ public class ReleaseEntity {
 
     public void setLabel(LabelEntity label) {
         this.label = label;
+    }
+
+    public List<ArtistEntity> getArtists() {
+        return artists;
+    }
+
+    public void setArtists(List<ArtistEntity> artists) {
+        this.artists = artists;
     }
 
     public List<TrackEntity> getTracks() {

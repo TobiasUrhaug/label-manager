@@ -2,6 +2,7 @@ package org.omt.labelmanager.release;
 
 import java.time.LocalDate;
 import java.util.List;
+import org.omt.labelmanager.artist.Artist;
 import org.omt.labelmanager.label.Label;
 import org.omt.labelmanager.release.persistence.ReleaseEntity;
 import org.omt.labelmanager.track.Track;
@@ -11,10 +12,14 @@ public record Release(
         String name,
         LocalDate releaseDate,
         Label label,
+        List<Artist> artists,
         List<Track> tracks
 ) {
 
     public static Release fromEntity(ReleaseEntity entity) {
+        List<Artist> artists = entity.getArtists().stream()
+                .map(Artist::fromEntity)
+                .toList();
         List<Track> tracks = entity.getTracks().stream()
                 .map(Track::fromEntity)
                 .toList();
@@ -23,6 +28,7 @@ public record Release(
                 entity.getName(),
                 entity.getReleaseDate(),
                 Label.fromEntity(entity.getLabel()),
+                artists,
                 tracks
         );
     }
