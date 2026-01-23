@@ -3,6 +3,8 @@ package org.omt.labelmanager.label.api;
 import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -22,12 +24,16 @@ import org.omt.labelmanager.label.LabelCRUDHandler;
 import org.omt.labelmanager.label.LabelFactory;
 import org.omt.labelmanager.release.ReleaseCRUDHandler;
 import org.omt.labelmanager.release.ReleaseFactory;
+import org.omt.labelmanager.test.TestSecurityConfig;
+import org.omt.labelmanager.user.AppUserDetails;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest(LabelController.class)
+@Import(TestSecurityConfig.class)
 class LabelControllerTest {
 
     @Autowired
@@ -41,6 +47,9 @@ class LabelControllerTest {
 
     @MockitoBean
     private ArtistCRUDHandler artistCRUDHandler;
+
+    private final AppUserDetails testUser =
+            new AppUserDetails(1L, "test@example.com", "password", "Test User");
 
     @Test
     void label_redirectsToALabel() throws Exception {
@@ -56,10 +65,10 @@ class LabelControllerTest {
         when(releaseCRUDHandler.getReleasesForLabel(1L)).thenReturn(List.of(release));
 
         var artist = ArtistFactory.anArtist().id(1L).artistName("Unknown").build();
-        when(artistCRUDHandler.getAllArtists()).thenReturn(List.of(artist));
+        when(artistCRUDHandler.getArtistsForUser(1L)).thenReturn(List.of(artist));
 
         mockMvc
-                .perform(get("/labels/1"))
+                .perform(get("/labels/1").with(user(testUser)))
                 .andExpect(status().isOk())
                 .andExpect(view().name("labels/label"))
                 .andExpect(model().attribute("name", "My Label"))
@@ -74,7 +83,7 @@ class LabelControllerTest {
     void label_returns404_whenResourceNotFound() throws Exception {
         when(labelCRUDHandler.findById(1123L)).thenReturn(Optional.empty());
 
-        mockMvc.perform(get("/labels/1123"))
+        mockMvc.perform(get("/labels/1123").with(user(testUser)))
                 .andExpect(status().isNotFound());
     }
 
@@ -82,6 +91,8 @@ class LabelControllerTest {
     void createLabel_callsHandlerAndRedirects() throws Exception {
         mockMvc
                 .perform(post("/labels")
+                        .with(user(testUser))
+                        .with(csrf())
                         .param("labelName", "New Label")
                         .param("email", "info@newlabel.com")
                         .param("website", "https://newlabel.com"))
@@ -89,13 +100,15 @@ class LabelControllerTest {
                 .andExpect(redirectedUrl("/dashboard"));
 
         verify(labelCRUDHandler).createLabel(
-                "New Label", "info@newlabel.com", "https://newlabel.com", null, null, null);
+                "New Label", "info@newlabel.com", "https://newlabel.com", null, null, 1L);
     }
 
     @Test
     void updateAddress_callsHandlerAndRedirects() throws Exception {
         mockMvc
                 .perform(post("/labels/1/address")
+                        .with(user(testUser))
+                        .with(csrf())
                         .param("street", "123 Main St")
                         .param("street2", "Apt 4B")
                         .param("city", "Oslo")
@@ -114,6 +127,8 @@ class LabelControllerTest {
     void updateLabel_callsHandlerAndRedirects() throws Exception {
         mockMvc
                 .perform(put("/labels/1")
+                        .with(user(testUser))
+                        .with(csrf())
                         .param("labelName", "Updated Label")
                         .param("email", "updated@label.com")
                         .param("website", "https://updated.com")

@@ -2,6 +2,8 @@ package org.omt.labelmanager.release.api;
 
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
@@ -18,14 +20,17 @@ import org.omt.labelmanager.label.LabelCRUDHandler;
 import org.omt.labelmanager.label.LabelFactory;
 import org.omt.labelmanager.release.ReleaseCRUDHandler;
 import org.omt.labelmanager.release.ReleaseFactory;
-import org.omt.labelmanager.track.Track;
+import org.omt.labelmanager.test.TestSecurityConfig;
 import org.omt.labelmanager.track.TrackFactory;
+import org.omt.labelmanager.user.AppUserDetails;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest(ReleaseController.class)
+@Import(TestSecurityConfig.class)
 class ReleaseControllerTest {
 
     @Autowired
@@ -36,6 +41,9 @@ class ReleaseControllerTest {
 
     @MockitoBean
     private ReleaseCRUDHandler releaseCRUDHandler;
+
+    private final AppUserDetails testUser =
+            new AppUserDetails(1L, "test@example.com", "password", "Test User");
 
     @Test
     void release_returnsReleaseViewAndPopulatedModel() throws Exception {
@@ -61,7 +69,7 @@ class ReleaseControllerTest {
         when(labelCRUDHandler.findById(1L)).thenReturn(Optional.of(label));
         when(releaseCRUDHandler.findById(4L)).thenReturn(Optional.of(release));
 
-        mockMvc.perform(get("/labels/1/releases/4"))
+        mockMvc.perform(get("/labels/1/releases/4").with(user(testUser)))
                 .andExpect(status().isOk())
                 .andExpect(view().name("/releases/release"))
                 .andExpect(model().attribute("name", "First Release"))
@@ -76,14 +84,16 @@ class ReleaseControllerTest {
     void release_returns404_whenResourceNotFound() throws Exception {
         when(labelCRUDHandler.findById(1123L)).thenReturn(Optional.empty());
 
-        mockMvc.perform(get("/labels/1123"))
+        mockMvc.perform(get("/labels/1123").with(user(testUser)))
                 .andExpect(status().isNotFound());
     }
 
     @Test
     void deleteRelease_callsHandlerAndRedirectsToLabel() throws Exception {
         mockMvc
-                .perform(delete("/labels/1/releases/5"))
+                .perform(delete("/labels/1/releases/5")
+                        .with(user(testUser))
+                        .with(csrf()))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/labels/1"));
 

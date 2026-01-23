@@ -48,14 +48,22 @@ class LabelManagerApplicationTests {
     }
 
     @Test
-    void dashboardLoads() {
+    void loginPageLoads() {
         restClient.get()
-                .uri("http://localhost:" + port + "/dashboard")
+                .uri("http://localhost:" + port + "/login")
                 .exchange()
                 .expectStatus().is2xxSuccessful()
                 .expectBody(String.class)
                 .consumeWith(response ->
-                        assertThat(response.getResponseBody()).contains("Your Labels"));
+                        assertThat(response.getResponseBody()).contains("Login"));
+    }
+
+    @Test
+    void dashboardRedirectsToLoginWhenUnauthenticated() {
+        restClient.get()
+                .uri("http://localhost:" + port + "/dashboard")
+                .exchange()
+                .expectStatus().is3xxRedirection();
     }
 
 }

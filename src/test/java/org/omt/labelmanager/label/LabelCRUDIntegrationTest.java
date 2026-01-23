@@ -9,34 +9,28 @@ import org.omt.labelmanager.common.persistence.AddressEmbeddable;
 import org.omt.labelmanager.common.persistence.PersonEmbeddable;
 import org.omt.labelmanager.label.persistence.LabelEntity;
 import org.omt.labelmanager.label.persistence.LabelRepository;
+import org.omt.labelmanager.user.persistence.UserEntity;
+import org.omt.labelmanager.user.persistence.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureRestTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.web.server.LocalServerPort;
-import org.springframework.http.MediaType;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
-import org.springframework.test.web.servlet.client.RestTestClient;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 @Testcontainers
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@AutoConfigureRestTestClient
 public class LabelCRUDIntegrationTest {
-
-    @LocalServerPort
-    int port;
-
-    @Autowired
-    private RestTestClient restClient;
 
     @Autowired
     LabelRepository repo;
 
     @Autowired
     LabelCRUDHandler labelCRUDHandler;
+
+    @Autowired
+    UserRepository userRepository;
 
     @Container
     static PostgreSQLContainer<?> postgres =
@@ -54,20 +48,23 @@ public class LabelCRUDIntegrationTest {
 
     @Test
     void createLabel_persistsAllFields() {
-        restClient
-                .post()
-                .uri("/labels")
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .body("labelName=My+Label&email=contact%40mylabel.com"
-                        + "&website=https%3A%2F%2Fmylabel.com")
-                .exchange()
-                .expectStatus()
-                .is3xxRedirection();
+        var user = userRepository.save(
+                new UserEntity("test1@example.com", "password", "Test User"));
+
+        labelCRUDHandler.createLabel(
+                "My Label",
+                "contact@mylabel.com",
+                "https://mylabel.com",
+                null,
+                null,
+                user.getId()
+        );
 
         var savedLabel = repo.findByName("My Label");
         assertThat(savedLabel).isPresent();
         assertThat(savedLabel.get().getEmail()).isEqualTo("contact@mylabel.com");
         assertThat(savedLabel.get().getWebsite()).isEqualTo("https://mylabel.com");
+        assertThat(savedLabel.get().getUserId()).isEqualTo(user.getId());
     }
 
     @Test
@@ -121,16 +118,19 @@ public class LabelCRUDIntegrationTest {
 
     @Test
     void createLabel_persistsOwnerWhenProvided() {
-        restClient
-                .post()
-                .uri("/labels")
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .body("labelName=Label+With+Owner+Via+Form&ownerName=Jane+Smith")
-                .exchange()
-                .expectStatus()
-                .is3xxRedirection();
+        var user = userRepository.save(
+                new UserEntity("test2@example.com", "password", "Test User 2"));
 
-        var savedLabel = repo.findByName("Label With Owner Via Form");
+        labelCRUDHandler.createLabel(
+                "Label With Owner Via Handler",
+                null,
+                null,
+                null,
+                new Person("Jane Smith"),
+                user.getId()
+        );
+
+        var savedLabel = repo.findByName("Label With Owner Via Handler");
         assertThat(savedLabel).isPresent();
         assertThat(savedLabel.get().getOwner()).isNotNull();
         assertThat(savedLabel.get().getOwner().getName()).isEqualTo("Jane Smith");
@@ -179,11 +179,7 @@ public class LabelCRUDIntegrationTest {
         )
                 .contains("WronglyNamedLabel");
 
-        restClient
-                .delete()
-                .uri("/labels/" + label.getId())
-                .exchange()
-                .expectStatus().is3xxRedirection();
+        labelCRUDHandler.delete(label.getId());
 
         assertThat(repo
                 .findAll()

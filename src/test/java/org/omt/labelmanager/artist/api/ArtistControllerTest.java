@@ -2,6 +2,8 @@ package org.omt.labelmanager.artist.api;
 
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -17,12 +19,16 @@ import org.omt.labelmanager.artist.ArtistCRUDHandler;
 import org.omt.labelmanager.artist.ArtistFactory;
 import org.omt.labelmanager.common.Address;
 import org.omt.labelmanager.common.Person;
+import org.omt.labelmanager.test.TestSecurityConfig;
+import org.omt.labelmanager.user.AppUserDetails;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest(ArtistController.class)
+@Import(TestSecurityConfig.class)
 class ArtistControllerTest {
 
     @Autowired
@@ -30,6 +36,9 @@ class ArtistControllerTest {
 
     @MockitoBean
     private ArtistCRUDHandler artistCRUDHandler;
+
+    private final AppUserDetails testUser =
+            new AppUserDetails(1L, "test@example.com", "password", "Test User");
 
     @Test
     void artist_returnsArtistView() throws Exception {
@@ -42,7 +51,7 @@ class ArtistControllerTest {
         when(artistCRUDHandler.findById(1L)).thenReturn(Optional.of(artist));
 
         mockMvc
-                .perform(get("/artists/1"))
+                .perform(get("/artists/1").with(user(testUser)))
                 .andExpect(status().isOk())
                 .andExpect(view().name("artists/artist"))
                 .andExpect(model().attribute("id", 1L))
@@ -55,7 +64,7 @@ class ArtistControllerTest {
         when(artistCRUDHandler.findById(999L)).thenReturn(Optional.empty());
 
         mockMvc
-                .perform(get("/artists/999"))
+                .perform(get("/artists/999").with(user(testUser)))
                 .andExpect(status().isNotFound());
     }
 
@@ -63,6 +72,8 @@ class ArtistControllerTest {
     void createArtist_callsHandlerAndRedirects() throws Exception {
         mockMvc
                 .perform(post("/artists")
+                        .with(user(testUser))
+                        .with(csrf())
                         .param("artistName", "New Artist")
                         .param("realName", "Real Name")
                         .param("email", "artist@email.com"))
@@ -74,7 +85,7 @@ class ArtistControllerTest {
                 new Person("Real Name"),
                 "artist@email.com",
                 null,
-                null
+                1L
         );
     }
 
@@ -82,6 +93,8 @@ class ArtistControllerTest {
     void createArtist_withAddress() throws Exception {
         mockMvc
                 .perform(post("/artists")
+                        .with(user(testUser))
+                        .with(csrf())
                         .param("artistName", "New Artist")
                         .param("street", "123 Music Lane")
                         .param("city", "Oslo")
@@ -95,7 +108,7 @@ class ArtistControllerTest {
                 null,
                 null,
                 new Address("123 Music Lane", null, "Oslo", "0123", "Norway"),
-                null
+                1L
         );
     }
 
@@ -103,6 +116,8 @@ class ArtistControllerTest {
     void updateArtist_callsHandlerAndRedirects() throws Exception {
         mockMvc
                 .perform(put("/artists/1")
+                        .with(user(testUser))
+                        .with(csrf())
                         .param("artistName", "Updated Artist")
                         .param("realName", "New Real Name")
                         .param("email", "updated@email.com")
@@ -126,7 +141,9 @@ class ArtistControllerTest {
     @Test
     void deleteArtist_callsHandlerAndRedirects() throws Exception {
         mockMvc
-                .perform(delete("/artists/1"))
+                .perform(delete("/artists/1")
+                        .with(user(testUser))
+                        .with(csrf()))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/dashboard"));
 
