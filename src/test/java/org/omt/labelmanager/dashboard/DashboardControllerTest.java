@@ -8,6 +8,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import java.util.List;
 import org.junit.jupiter.api.Test;
+import org.omt.labelmanager.artist.ArtistCRUDHandler;
+import org.omt.labelmanager.artist.ArtistFactory;
 import org.omt.labelmanager.dashboard.api.DashboardController;
 import org.omt.labelmanager.label.LabelCRUDHandler;
 import org.omt.labelmanager.label.LabelFactory;
@@ -25,6 +27,9 @@ class DashboardControllerTest {
 
     @MockitoBean
     private LabelCRUDHandler labelCRUDHandler;
+
+    @MockitoBean
+    private ArtistCRUDHandler artistCRUDHandler;
 
     @MockitoBean
     private ReleaseCRUDHandler releaseCRUDHandler;
@@ -47,6 +52,18 @@ class DashboardControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(view().name("dashboard"))
                 .andExpect(model().attribute("labels", List.of(labelA, labelB)));
+    }
+
+    @Test
+    void dashboard_showsListOfArtists() throws Exception {
+        var artistA = ArtistFactory.anArtist().id(1L).artistName("Artist A").build();
+        var artistB = ArtistFactory.anArtist().id(2L).artistName("Artist B").build();
+        when(artistCRUDHandler.getAllArtists()).thenReturn(List.of(artistA, artistB));
+
+        mockMvc.perform(get("/dashboard"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("dashboard"))
+                .andExpect(model().attribute("artists", List.of(artistA, artistB)));
     }
 
 }

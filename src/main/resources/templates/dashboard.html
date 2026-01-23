@@ -30,6 +30,34 @@
         </div>
     </div>
 
+    <hr class="my-5">
+
+    <button type="button" class="btn btn-primary mb-4" data-bs-toggle="modal" data-bs-target="#createArtistModal">
+        Create Artist
+    </button>
+
+    <h2 class="mb-3">Your Artists</h2>
+
+    <div th:if="${#lists.isEmpty(artists)}" class="alert alert-info">
+        No artists yet. Create one above!
+    </div>
+
+    <div class="list-group" th:unless="${#lists.isEmpty(artists)}">
+        <div class="list-group-item d-flex justify-content-between align-items-center"
+             th:each="artist : ${artists}">
+            <a th:href="@{/artists/{id}(id=${artist.id})}"
+               th:text="${artist.artistName}"
+               class="text-decoration-none">
+            </a>
+            <form th:action="@{/artists/{id}(id=${artist.id})}"
+                  method="post"
+                  onsubmit="return confirm('Delete this artist?');">
+                <input type="hidden" name="_method" value="delete">
+                <button type="submit" class="btn btn-outline-danger btn-sm">Delete</button>
+            </form>
+        </div>
+    </div>
+
     <!-- Create Label Modal -->
     <div class="modal fade" id="createLabelModal" tabindex="-1" aria-labelledby="createLabelModalLabel" aria-hidden="true">
         <div class="modal-dialog">
@@ -78,6 +106,61 @@
                         <div class="mb-3">
                             <label for="country" class="form-label">Country</label>
                             <input type="text" class="form-control" id="country" name="country">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Create</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Artist Modal -->
+    <div class="modal fade" id="createArtistModal" tabindex="-1" aria-labelledby="createArtistModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form th:action="@{/artists}" method="post">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="createArtistModalLabel">Create Artist</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="artistName" class="form-label">Artist Name</label>
+                            <input type="text" class="form-control" id="artistName" name="artistName" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="realName" class="form-label">Real Name</label>
+                            <input type="text" class="form-control" id="realName" name="realName">
+                        </div>
+                        <div class="mb-3">
+                            <label for="artistEmail" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="artistEmail" name="email">
+                        </div>
+
+                        <hr>
+                        <h6 class="text-muted">Address (optional)</h6>
+                        <div class="mb-3">
+                            <label for="artistStreet" class="form-label">Street</label>
+                            <input type="text" class="form-control" id="artistStreet" name="street">
+                        </div>
+                        <div class="mb-3">
+                            <label for="artistStreet2" class="form-label">Street 2</label>
+                            <input type="text" class="form-control" id="artistStreet2" name="street2">
+                        </div>
+                        <div class="mb-3">
+                            <label for="artistCity" class="form-label">City</label>
+                            <input type="text" class="form-control" id="artistCity" name="city">
+                        </div>
+                        <div class="mb-3">
+                            <label for="artistPostalCode" class="form-label">Postal Code</label>
+                            <input type="text" class="form-control" id="artistPostalCode" name="postalCode">
+                        </div>
+                        <div class="mb-3">
+                            <label for="artistCountry" class="form-label">Country</label>
+                            <input type="text" class="form-control" id="artistCountry" name="country">
                         </div>
                     </div>
                     <div class="modal-footer">
