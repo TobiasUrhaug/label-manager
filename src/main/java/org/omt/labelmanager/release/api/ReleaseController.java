@@ -38,6 +38,7 @@ public class ReleaseController {
                 form.getReleaseName(),
                 date,
                 labelId,
+                form.getArtistIds(),
                 form.toTrackInputs()
         );
 

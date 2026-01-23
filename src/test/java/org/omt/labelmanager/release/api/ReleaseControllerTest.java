@@ -10,6 +10,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
+import org.omt.labelmanager.artist.ArtistFactory;
 import org.omt.labelmanager.label.LabelCRUDHandler;
 import org.omt.labelmanager.label.LabelFactory;
 import org.omt.labelmanager.release.ReleaseCRUDHandler;
@@ -37,8 +38,9 @@ class ReleaseControllerTest {
     void release_returnsReleaseViewAndPopulatedModel() throws Exception {
         var label = LabelFactory.aLabel().id(1L).name("My Label").build();
         var releaseDate = LocalDate.now();
+        var artist = ArtistFactory.anArtist().artistName("Test Artist").build();
         var track = TrackFactory.aTrack()
-                .artist("Test Artist")
+                .artist(artist)
                 .name("Test Track")
                 .durationSeconds(210)
                 .position(1)

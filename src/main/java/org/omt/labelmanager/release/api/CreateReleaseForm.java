@@ -2,6 +2,7 @@ package org.omt.labelmanager.release.api;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.IntStream;
 import org.omt.labelmanager.track.TrackDuration;
 import org.omt.labelmanager.track.TrackInput;
 
@@ -9,6 +10,7 @@ public class CreateReleaseForm {
 
     private String releaseName;
     private String releaseDate;
+    private List<Long> artistIds = new ArrayList<>();
     private List<TrackForm> tracks = new ArrayList<>();
 
     public String getReleaseName() {
@@ -27,6 +29,14 @@ public class CreateReleaseForm {
         this.releaseDate = releaseDate;
     }
 
+    public List<Long> getArtistIds() {
+        return artistIds;
+    }
+
+    public void setArtistIds(List<Long> artistIds) {
+        this.artistIds = artistIds;
+    }
+
     public List<TrackForm> getTracks() {
         return tracks;
     }
@@ -36,30 +46,30 @@ public class CreateReleaseForm {
     }
 
     public List<TrackInput> toTrackInputs() {
-        List<TrackInput> inputs = new ArrayList<>();
-        for (int i = 0; i < tracks.size(); i++) {
-            TrackForm track = tracks.get(i);
-            inputs.add(new TrackInput(
-                    track.getArtist(),
-                    track.getName(),
-                    TrackDuration.parse(track.getDuration()),
-                    i + 1
-            ));
-        }
-        return inputs;
+        return IntStream.range(0, tracks.size())
+                .mapToObj(i -> {
+                    TrackForm track = tracks.get(i);
+                    return new TrackInput(
+                            track.getArtistIds(),
+                            track.getName(),
+                            TrackDuration.parse(track.getDuration()),
+                            i + 1
+                    );
+                })
+                .toList();
     }
 
     public static class TrackForm {
-        private String artist;
+        private List<Long> artistIds = new ArrayList<>();
         private String name;
         private String duration;
 
-        public String getArtist() {
-            return artist;
+        public List<Long> getArtistIds() {
+            return artistIds;
         }
 
-        public void setArtist(String artist) {
-            this.artist = artist;
+        public void setArtistIds(List<Long> artistIds) {
+            this.artistIds = artistIds;
         }
 
         public String getName() {

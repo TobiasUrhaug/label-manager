@@ -3,6 +3,8 @@ package org.omt.labelmanager.release;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
+import org.omt.labelmanager.artist.persistence.ArtistEntity;
+import org.omt.labelmanager.artist.persistence.ArtistRepository;
 import org.omt.labelmanager.label.persistence.LabelEntity;
 import org.omt.labelmanager.label.persistence.LabelRepository;
 import org.omt.labelmanager.release.persistence.ReleaseRepository;
@@ -35,6 +37,9 @@ public class ReleaseCRUDIntegrationTest {
     @Autowired
     ReleaseRepository releaseRepository;
 
+    @Autowired
+    ArtistRepository artistRepository;
+
     @Container
     static PostgreSQLContainer<?> postgres =
             new PostgreSQLContainer<>("postgres:16-alpine")
@@ -51,15 +56,18 @@ public class ReleaseCRUDIntegrationTest {
 
     @Test
     void createRelease() {
-        var savedEntity = labelRepository.save(new LabelEntity("The Label", null, null));
-        var labelId = savedEntity.getId();
+        var savedLabel = labelRepository.save(new LabelEntity("The Label", null, null));
+        var labelId = savedLabel.getId();
+        var savedArtist = artistRepository.save(new ArtistEntity("Test Artist"));
+        var artistId = savedArtist.getId();
 
         restClient
                 .post()
                 .uri("/labels/" + labelId + "/releases")
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                 .body("releaseName=My+Release&releaseDate=2026-01-15"
-                        + "&tracks[0].artist=Test+Artist"
+                        + "&artistIds=" + artistId
+                        + "&tracks[0].artistIds=" + artistId
                         + "&tracks[0].name=Test+Track"
                         + "&tracks[0].duration=3:30")
                 .exchange()
