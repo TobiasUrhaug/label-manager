@@ -14,6 +14,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
+import org.omt.labelmanager.artist.ArtistCRUDHandler;
+import org.omt.labelmanager.artist.ArtistFactory;
 import org.omt.labelmanager.common.Address;
 import org.omt.labelmanager.common.Person;
 import org.omt.labelmanager.label.LabelCRUDHandler;
@@ -37,6 +39,9 @@ class LabelControllerTest {
     @MockitoBean
     private ReleaseCRUDHandler releaseCRUDHandler;
 
+    @MockitoBean
+    private ArtistCRUDHandler artistCRUDHandler;
+
     @Test
     void label_redirectsToALabel() throws Exception {
         var label = LabelFactory.aLabel()
@@ -50,6 +55,9 @@ class LabelControllerTest {
         var release = ReleaseFactory.aRelease().id(1L).name("My Release").build();
         when(releaseCRUDHandler.getReleasesForLabel(1L)).thenReturn(List.of(release));
 
+        var artist = ArtistFactory.anArtist().id(1L).artistName("Unknown").build();
+        when(artistCRUDHandler.getAllArtists()).thenReturn(List.of(artist));
+
         mockMvc
                 .perform(get("/labels/1"))
                 .andExpect(status().isOk())
@@ -58,7 +66,8 @@ class LabelControllerTest {
                 .andExpect(model().attribute("id", 1L))
                 .andExpect(model().attribute("email", "contact@mylabel.com"))
                 .andExpect(model().attribute("website", "https://mylabel.com"))
-                .andExpect(model().attribute("releases", hasSize(1)));
+                .andExpect(model().attribute("releases", hasSize(1)))
+                .andExpect(model().attribute("artists", hasSize(1)));
     }
 
     @Test

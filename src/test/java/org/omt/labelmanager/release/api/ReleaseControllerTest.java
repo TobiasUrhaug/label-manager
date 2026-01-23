@@ -51,6 +51,7 @@ class ReleaseControllerTest {
                 .name("First Release")
                 .releaseDate(releaseDate)
                 .label(label)
+                .artist(artist)
                 .tracks(List.of(track))
                 .build();
 
@@ -64,6 +65,7 @@ class ReleaseControllerTest {
                 .andExpect(model().attribute("labelId", 1L))
                 .andExpect(model().attribute("releaseId", 4L))
                 .andExpect(model().attribute("releaseDate", releaseDate))
+                .andExpect(model().attribute("artists", List.of(artist)))
                 .andExpect(model().attribute("tracks", List.of(track)));
     }
 

@@ -1,6 +1,8 @@
 package org.omt.labelmanager.label.api;
 
 import java.util.List;
+import org.omt.labelmanager.artist.Artist;
+import org.omt.labelmanager.artist.ArtistCRUDHandler;
 import org.omt.labelmanager.label.Label;
 import org.omt.labelmanager.label.LabelCRUDHandler;
 import org.omt.labelmanager.release.Release;
@@ -27,13 +29,16 @@ public class LabelController {
 
     private final LabelCRUDHandler labelCRUDHandler;
     private final ReleaseCRUDHandler releaseCRUDHandler;
+    private final ArtistCRUDHandler artistCRUDHandler;
 
     public LabelController(
             LabelCRUDHandler labelCRUDHandler,
-            ReleaseCRUDHandler releaseCRUDHandler
+            ReleaseCRUDHandler releaseCRUDHandler,
+            ArtistCRUDHandler artistCRUDHandler
     ) {
         this.labelCRUDHandler = labelCRUDHandler;
         this.releaseCRUDHandler = releaseCRUDHandler;
+        this.artistCRUDHandler = artistCRUDHandler;
     }
 
     @GetMapping("/{id}")
@@ -47,6 +52,7 @@ public class LabelController {
                         });
 
         List<Release> releases = releaseCRUDHandler.getReleasesForLabel(id);
+        List<Artist> artists = artistCRUDHandler.getAllArtists();
 
         model.addAttribute("name", label.name());
         model.addAttribute("id", id);
@@ -55,6 +61,7 @@ public class LabelController {
         model.addAttribute("address", label.address());
         model.addAttribute("owner", label.owner());
         model.addAttribute("releases", releases);
+        model.addAttribute("artists", artists);
 
         return "labels/label";
     }

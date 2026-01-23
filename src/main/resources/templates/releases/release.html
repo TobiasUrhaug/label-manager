@@ -10,6 +10,9 @@
     <div class="card mb-4">
         <div class="card-body">
             <dl class="row mb-0">
+                <dt class="col-sm-3">Artists</dt>
+                <dd class="col-sm-9" th:text="${#strings.listJoin(artists.![artistName], ', ')}">Artist Names</dd>
+
                 <dt class="col-sm-3">Release Date</dt>
                 <dd class="col-sm-9" th:text="${releaseDate}">2024-01-01</dd>
             </dl>
@@ -31,7 +34,7 @@
                 <tbody>
                     <tr th:each="track : ${tracks}">
                         <td th:text="${track.position()}">1</td>
-                        <td th:text="${track.artist()}">Artist Name</td>
+                        <td th:text="${#strings.listJoin(track.artists().![artistName], ', ')}">Artist Name</td>
                         <td th:text="${track.name()}">Track Name</td>
                         <td th:text="${track.duration().formatted()}">3:30</td>
                     </tr>
