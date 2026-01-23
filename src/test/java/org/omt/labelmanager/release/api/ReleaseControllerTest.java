@@ -6,6 +6,7 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -15,6 +16,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
+import org.omt.labelmanager.artist.ArtistCRUDHandler;
 import org.omt.labelmanager.artist.ArtistFactory;
 import org.omt.labelmanager.label.LabelCRUDHandler;
 import org.omt.labelmanager.label.LabelFactory;
@@ -42,6 +44,9 @@ class ReleaseControllerTest {
     @MockitoBean
     private ReleaseCRUDHandler releaseCRUDHandler;
 
+    @MockitoBean
+    private ArtistCRUDHandler artistCRUDHandler;
+
     private final AppUserDetails testUser =
             new AppUserDetails(1L, "test@example.com", "password", "Test User");
 
@@ -49,7 +54,8 @@ class ReleaseControllerTest {
     void release_returnsReleaseViewAndPopulatedModel() throws Exception {
         var label = LabelFactory.aLabel().id(1L).name("My Label").build();
         var releaseDate = LocalDate.now();
-        var artist = ArtistFactory.anArtist().artistName("Test Artist").build();
+        var artist = ArtistFactory.anArtist().id(1L).artistName("Test Artist").build();
+        var anotherArtist = ArtistFactory.anArtist().id(2L).artistName("Another Artist").build();
         var track = TrackFactory.aTrack()
                 .artist(artist)
                 .name("Test Track")
@@ -68,6 +74,7 @@ class ReleaseControllerTest {
 
         when(labelCRUDHandler.findById(1L)).thenReturn(Optional.of(label));
         when(releaseCRUDHandler.findById(4L)).thenReturn(Optional.of(release));
+        when(artistCRUDHandler.getArtistsForUser(1L)).thenReturn(List.of(artist, anotherArtist));
 
         mockMvc.perform(get("/labels/1/releases/4").with(user(testUser)))
                 .andExpect(status().isOk())
@@ -77,7 +84,8 @@ class ReleaseControllerTest {
                 .andExpect(model().attribute("releaseId", 4L))
                 .andExpect(model().attribute("releaseDate", releaseDate))
                 .andExpect(model().attribute("artists", List.of(artist)))
-                .andExpect(model().attribute("tracks", List.of(track)));
+                .andExpect(model().attribute("tracks", List.of(track)))
+                .andExpect(model().attribute("allArtists", List.of(artist, anotherArtist)));
     }
 
     @Test
@@ -98,6 +106,30 @@ class ReleaseControllerTest {
                 .andExpect(redirectedUrl("/labels/1"));
 
         verify(releaseCRUDHandler).delete(5L);
+    }
+
+    @Test
+    void updateRelease_callsHandlerAndRedirectsToRelease() throws Exception {
+        mockMvc
+                .perform(put("/labels/1/releases/5")
+                        .with(user(testUser))
+                        .with(csrf())
+                        .param("releaseName", "Updated Release")
+                        .param("releaseDate", "2026-06-15")
+                        .param("artistIds", "1", "2")
+                        .param("tracks[0].name", "Track 1")
+                        .param("tracks[0].duration", "3:30")
+                        .param("tracks[0].artistIds", "1"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/labels/1/releases/5"));
+
+        verify(releaseCRUDHandler).updateRelease(
+                org.mockito.ArgumentMatchers.eq(5L),
+                org.mockito.ArgumentMatchers.eq("Updated Release"),
+                org.mockito.ArgumentMatchers.eq(LocalDate.of(2026, 6, 15)),
+                org.mockito.ArgumentMatchers.anyList(),
+                org.mockito.ArgumentMatchers.anyList()
+        );
     }
 
 }
