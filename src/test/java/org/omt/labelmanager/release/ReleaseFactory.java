@@ -2,7 +2,9 @@ package org.omt.labelmanager.release;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 import org.omt.labelmanager.artist.Artist;
 import org.omt.labelmanager.label.Label;
@@ -34,6 +36,7 @@ public final class ReleaseFactory {
         private Label label = LabelFactory.createDefault();
         private List<Artist> artists = new ArrayList<>();
         private List<Track> tracks = new ArrayList<>(List.of(TrackFactory.createDefault()));
+        private Set<ReleaseFormat> formats = new HashSet<>(Set.of(ReleaseFormat.DIGITAL));
 
         private Builder() {
         }
@@ -78,8 +81,18 @@ public final class ReleaseFactory {
             return this;
         }
 
+        public Builder formats(Set<ReleaseFormat> formats) {
+            this.formats = formats;
+            return this;
+        }
+
+        public Builder formats(ReleaseFormat... formats) {
+            this.formats = Set.of(formats);
+            return this;
+        }
+
         public Release build() {
-            return new Release(id, name, releaseDate, label, artists, tracks);
+            return new Release(id, name, releaseDate, label, artists, tracks, formats);
         }
     }
 }

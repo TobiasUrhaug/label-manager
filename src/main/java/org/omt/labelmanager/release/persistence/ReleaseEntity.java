@@ -14,9 +14,12 @@ import jakarta.persistence.OrderBy;
 import jakarta.persistence.Table;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import org.omt.labelmanager.artist.persistence.ArtistEntity;
 import org.omt.labelmanager.label.persistence.LabelEntity;
+import org.omt.labelmanager.release.ReleaseFormat;
 import org.omt.labelmanager.track.persistence.TrackEntity;
 
 @Entity
@@ -102,5 +105,9 @@ public class ReleaseEntity {
 
     public void setTracks(List<TrackEntity> tracks) {
         this.tracks = tracks;
+    }
+
+    public Set<ReleaseFormat> getFormats() {
+        return new HashSet<>();
     }
 }
