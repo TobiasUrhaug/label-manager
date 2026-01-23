@@ -1,8 +1,11 @@
 package org.omt.labelmanager.release.api;
 
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
 
@@ -75,6 +78,16 @@ class ReleaseControllerTest {
 
         mockMvc.perform(get("/labels/1123"))
                 .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void deleteRelease_callsHandlerAndRedirectsToLabel() throws Exception {
+        mockMvc
+                .perform(delete("/labels/1/releases/5"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/labels/1"));
+
+        verify(releaseCRUDHandler).delete(5L);
     }
 
 }
