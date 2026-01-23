@@ -29,6 +29,7 @@ public final class ArtistFactory {
         private Person realName = null;
         private String email = null;
         private Address address = null;
+        private Long userId = 1L;
 
         private Builder() {
         }
@@ -58,8 +59,13 @@ public final class ArtistFactory {
             return this;
         }
 
+        public Builder userId(Long userId) {
+            this.userId = userId;
+            return this;
+        }
+
         public Artist build() {
-            return new Artist(id, artistName, realName, email, address);
+            return new Artist(id, artistName, realName, email, address, userId);
         }
     }
 }

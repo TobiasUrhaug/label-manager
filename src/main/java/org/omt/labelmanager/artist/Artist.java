@@ -9,7 +9,8 @@ public record Artist(
         String artistName,
         Person realName,
         String email,
-        Address address) {
+        Address address,
+        Long userId) {
 
     public static Artist fromEntity(ArtistEntity entity) {
         return new Artist(
@@ -17,7 +18,8 @@ public record Artist(
                 entity.getArtistName(),
                 Person.fromEmbeddable(entity.getRealName()),
                 entity.getEmail(),
-                Address.fromEmbeddable(entity.getAddress())
+                Address.fromEmbeddable(entity.getAddress()),
+                entity.getUserId()
         );
     }
 }
