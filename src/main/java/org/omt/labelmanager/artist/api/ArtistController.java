@@ -2,9 +2,11 @@ package org.omt.labelmanager.artist.api;
 
 import org.omt.labelmanager.artist.Artist;
 import org.omt.labelmanager.artist.ArtistCRUDHandler;
+import org.omt.labelmanager.user.AppUserDetails;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -47,13 +49,16 @@ public class ArtistController {
     }
 
     @PostMapping
-    public String createArtist(CreateArtistForm form) {
+    public String createArtist(
+            @AuthenticationPrincipal AppUserDetails user,
+            CreateArtistForm form
+    ) {
         artistCRUDHandler.createArtist(
                 form.getArtistName(),
                 form.toRealName(),
                 form.getEmail(),
                 form.toAddress(),
-                null  // userId will be set from authenticated user in a future update
+                user.getId()
         );
         return "redirect:/dashboard";
     }

@@ -7,9 +7,11 @@ import org.omt.labelmanager.label.Label;
 import org.omt.labelmanager.label.LabelCRUDHandler;
 import org.omt.labelmanager.release.Release;
 import org.omt.labelmanager.release.ReleaseCRUDHandler;
+import org.omt.labelmanager.user.AppUserDetails;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -42,7 +44,11 @@ public class LabelController {
     }
 
     @GetMapping("/{id}")
-    public String labelView(@PathVariable Long id, Model model) {
+    public String labelView(
+            @AuthenticationPrincipal AppUserDetails user,
+            @PathVariable Long id,
+            Model model
+    ) {
         Label label =
                 labelCRUDHandler
                         .findById(id)
@@ -52,7 +58,7 @@ public class LabelController {
                         });
 
         List<Release> releases = releaseCRUDHandler.getReleasesForLabel(id);
-        List<Artist> artists = artistCRUDHandler.getAllArtists();
+        List<Artist> artists = artistCRUDHandler.getArtistsForUser(user.getId());
 
         model.addAttribute("name", label.name());
         model.addAttribute("id", id);
@@ -67,14 +73,17 @@ public class LabelController {
     }
 
     @PostMapping
-    public String createLabel(CreateLabelForm form) {
+    public String createLabel(
+            @AuthenticationPrincipal AppUserDetails user,
+            CreateLabelForm form
+    ) {
         labelCRUDHandler.createLabel(
                 form.getLabelName(),
                 form.getEmail(),
                 form.getWebsite(),
                 form.toAddress(),
                 form.toOwner(),
-                null  // userId will be set from authenticated user in a future update
+                user.getId()
         );
         return "redirect:/dashboard";
     }

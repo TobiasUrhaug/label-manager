@@ -9,8 +9,6 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
-import java.util.Collections;
-
 @Service
 public class CustomUserDetailsService implements UserDetailsService {
 
@@ -34,10 +32,11 @@ public class CustomUserDetailsService implements UserDetailsService {
 
         log.debug("User found with id: {}", userEntity.getId());
 
-        return new org.springframework.security.core.userdetails.User(
+        return new AppUserDetails(
+                userEntity.getId(),
                 userEntity.getEmail(),
                 userEntity.getPassword(),
-                Collections.emptyList()
+                userEntity.getDisplayName()
         );
     }
 }
