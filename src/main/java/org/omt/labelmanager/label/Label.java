@@ -5,7 +5,7 @@ import org.omt.labelmanager.common.Person;
 import org.omt.labelmanager.label.persistence.LabelEntity;
 
 public record Label(Long id, String name, String email, String website, Address address,
-                    Person owner) {
+                    Person owner, Long userId) {
 
     public static Label fromEntity(LabelEntity entity) {
         return new Label(
@@ -14,7 +14,8 @@ public record Label(Long id, String name, String email, String website, Address 
                 entity.getEmail(),
                 entity.getWebsite(),
                 Address.fromEmbeddable(entity.getAddress()),
-                Person.fromEmbeddable(entity.getOwner())
+                Person.fromEmbeddable(entity.getOwner()),
+                entity.getUserId()
         );
     }
 }

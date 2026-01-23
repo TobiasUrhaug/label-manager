@@ -30,6 +30,7 @@ public final class LabelFactory {
         private String website = "https://example.com";
         private Address address = null;
         private Person owner = null;
+        private Long userId = 1L;
 
         private Builder() {
         }
@@ -64,8 +65,13 @@ public final class LabelFactory {
             return this;
         }
 
+        public Builder userId(Long userId) {
+            this.userId = userId;
+            return this;
+        }
+
         public Label build() {
-            return new Label(id, name, email, website, address, owner);
+            return new Label(id, name, email, website, address, owner, userId);
         }
     }
 }
