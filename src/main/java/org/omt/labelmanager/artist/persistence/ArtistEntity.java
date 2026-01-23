@@ -32,6 +32,9 @@ public class ArtistEntity {
     @Embedded
     private AddressEmbeddable address;
 
+    @Column(name = "user_id")
+    private Long userId;
+
     protected ArtistEntity() {
     }
 
@@ -73,6 +76,14 @@ public class ArtistEntity {
 
     public void setAddress(AddressEmbeddable address) {
         this.address = address;
+    }
+
+    public Long getUserId() {
+        return userId;
+    }
+
+    public void setUserId(Long userId) {
+        this.userId = userId;
     }
 
     @Override
