@@ -1,0 +1,1 @@
+ALTER TABLE label ADD COLUMN user_id BIGINT REFERENCES app_user(id);
