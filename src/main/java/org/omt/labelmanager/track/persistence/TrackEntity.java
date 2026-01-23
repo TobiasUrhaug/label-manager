@@ -5,8 +5,13 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import java.util.ArrayList;
+import java.util.List;
+import org.omt.labelmanager.artist.persistence.ArtistEntity;
 import org.omt.labelmanager.release.persistence.ReleaseEntity;
 
 @Entity
@@ -17,7 +22,13 @@ public class TrackEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String artist;
+    @ManyToMany
+    @JoinTable(
+            name = "track_artist",
+            joinColumns = @JoinColumn(name = "track_id"),
+            inverseJoinColumns = @JoinColumn(name = "artist_id")
+    )
+    private List<ArtistEntity> artists = new ArrayList<>();
 
     private String name;
 
@@ -31,10 +42,16 @@ public class TrackEntity {
 
     public TrackEntity() {}
 
-    public TrackEntity(Long id, String artist, String name, Integer durationSeconds,
-                       Integer position, ReleaseEntity release) {
+    public TrackEntity(
+            Long id,
+            List<ArtistEntity> artists,
+            String name,
+            Integer durationSeconds,
+            Integer position,
+            ReleaseEntity release
+    ) {
         this.id = id;
-        this.artist = artist;
+        this.artists = artists != null ? artists : new ArrayList<>();
         this.name = name;
         this.durationSeconds = durationSeconds;
         this.position = position;
@@ -49,12 +66,12 @@ public class TrackEntity {
         this.id = id;
     }
 
-    public String getArtist() {
-        return artist;
+    public List<ArtistEntity> getArtists() {
+        return artists;
     }
 
-    public void setArtist(String artist) {
-        this.artist = artist;
+    public void setArtists(List<ArtistEntity> artists) {
+        this.artists = artists;
     }
 
     public String getName() {

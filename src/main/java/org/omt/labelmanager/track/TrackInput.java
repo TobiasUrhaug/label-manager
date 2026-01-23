@@ -1,7 +1,9 @@
 package org.omt.labelmanager.track;
 
+import java.util.List;
+
 public record TrackInput(
-        String artist,
+        List<Long> artistIds,
         String name,
         TrackDuration duration,
         Integer position
