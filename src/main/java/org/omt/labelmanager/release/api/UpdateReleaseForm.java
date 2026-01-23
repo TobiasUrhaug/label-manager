@@ -2,7 +2,10 @@ package org.omt.labelmanager.release.api;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import org.omt.labelmanager.release.ReleaseFormat;
 import org.omt.labelmanager.track.TrackDuration;
 import org.omt.labelmanager.track.TrackInput;
 
@@ -12,6 +15,7 @@ public class UpdateReleaseForm {
     private String releaseDate;
     private List<Long> artistIds = new ArrayList<>();
     private List<TrackForm> tracks = new ArrayList<>();
+    private List<String> formats = new ArrayList<>();
 
     public String getReleaseName() {
         return releaseName;
@@ -43,6 +47,20 @@ public class UpdateReleaseForm {
 
     public void setTracks(List<TrackForm> tracks) {
         this.tracks = tracks;
+    }
+
+    public List<String> getFormats() {
+        return formats;
+    }
+
+    public void setFormats(List<String> formats) {
+        this.formats = formats;
+    }
+
+    public Set<ReleaseFormat> toReleaseFormats() {
+        return formats.stream()
+                .map(ReleaseFormat::valueOf)
+                .collect(Collectors.toSet());
     }
 
     public List<TrackInput> toTrackInputs() {

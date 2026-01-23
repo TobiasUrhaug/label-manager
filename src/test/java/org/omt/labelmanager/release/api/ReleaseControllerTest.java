@@ -15,6 +15,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.omt.labelmanager.artist.ArtistCRUDHandler;
 import org.omt.labelmanager.artist.ArtistFactory;
@@ -22,6 +23,7 @@ import org.omt.labelmanager.label.LabelCRUDHandler;
 import org.omt.labelmanager.label.LabelFactory;
 import org.omt.labelmanager.release.ReleaseCRUDHandler;
 import org.omt.labelmanager.release.ReleaseFactory;
+import org.omt.labelmanager.release.ReleaseFormat;
 import org.omt.labelmanager.test.TestSecurityConfig;
 import org.omt.labelmanager.track.TrackFactory;
 import org.omt.labelmanager.user.AppUserDetails;
@@ -62,6 +64,7 @@ class ReleaseControllerTest {
                 .durationSeconds(210)
                 .position(1)
                 .build();
+        var formats = Set.of(ReleaseFormat.DIGITAL, ReleaseFormat.VINYL);
         var release = ReleaseFactory
                 .aRelease()
                 .id(4L)
@@ -70,6 +73,7 @@ class ReleaseControllerTest {
                 .label(label)
                 .artist(artist)
                 .tracks(List.of(track))
+                .formats(formats)
                 .build();
 
         when(labelCRUDHandler.findById(1L)).thenReturn(Optional.of(label));
@@ -85,7 +89,9 @@ class ReleaseControllerTest {
                 .andExpect(model().attribute("releaseDate", releaseDate))
                 .andExpect(model().attribute("artists", List.of(artist)))
                 .andExpect(model().attribute("tracks", List.of(track)))
-                .andExpect(model().attribute("allArtists", List.of(artist, anotherArtist)));
+                .andExpect(model().attribute("formats", formats))
+                .andExpect(model().attribute("allArtists", List.of(artist, anotherArtist)))
+                .andExpect(model().attribute("allFormats", ReleaseFormat.values()));
     }
 
     @Test
@@ -119,7 +125,8 @@ class ReleaseControllerTest {
                         .param("artistIds", "1", "2")
                         .param("tracks[0].name", "Track 1")
                         .param("tracks[0].duration", "3:30")
-                        .param("tracks[0].artistIds", "1"))
+                        .param("tracks[0].artistIds", "1")
+                        .param("formats", "VINYL", "CD"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/labels/1/releases/5"));
 

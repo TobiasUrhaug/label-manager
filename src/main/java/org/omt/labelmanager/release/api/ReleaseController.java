@@ -2,7 +2,6 @@ package org.omt.labelmanager.release.api;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Set;
 import org.omt.labelmanager.artist.Artist;
 import org.omt.labelmanager.artist.ArtistCRUDHandler;
 import org.omt.labelmanager.release.Release;
@@ -54,7 +53,7 @@ public class ReleaseController {
                 labelId,
                 form.getArtistIds(),
                 form.toTrackInputs(),
-                Set.of(ReleaseFormat.DIGITAL)
+                form.toReleaseFormats()
         );
 
         return "redirect:/labels/" + labelId;
@@ -82,7 +81,9 @@ public class ReleaseController {
         model.addAttribute("releaseDate", release.releaseDate());
         model.addAttribute("artists", release.artists());
         model.addAttribute("tracks", release.tracks());
+        model.addAttribute("formats", release.formats());
         model.addAttribute("allArtists", allArtists);
+        model.addAttribute("allFormats", ReleaseFormat.values());
 
         return "/releases/release";
     }
@@ -101,7 +102,7 @@ public class ReleaseController {
                 date,
                 form.getArtistIds(),
                 form.toTrackInputs(),
-                Set.of(ReleaseFormat.DIGITAL)
+                form.toReleaseFormats()
         );
 
         return "redirect:/labels/" + labelId + "/releases/" + releaseId;

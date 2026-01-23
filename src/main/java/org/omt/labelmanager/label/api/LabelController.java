@@ -7,6 +7,7 @@ import org.omt.labelmanager.label.Label;
 import org.omt.labelmanager.label.LabelCRUDHandler;
 import org.omt.labelmanager.release.Release;
 import org.omt.labelmanager.release.ReleaseCRUDHandler;
+import org.omt.labelmanager.release.ReleaseFormat;
 import org.omt.labelmanager.user.AppUserDetails;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -68,6 +69,7 @@ public class LabelController {
         model.addAttribute("owner", label.owner());
         model.addAttribute("releases", releases);
         model.addAttribute("artists", artists);
+        model.addAttribute("allFormats", ReleaseFormat.values());
 
         return "labels/label";
     }
