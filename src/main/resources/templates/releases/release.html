@@ -3,7 +3,13 @@
       th:replace="~{fragments/layout :: page(title=${name}, content=~{::main})}">
 <main>
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 th:text="${name}">Release Name</h1>
+        <div class="d-flex align-items-center gap-2">
+            <h1 th:text="${name}" class="mb-0">Release Name</h1>
+            <button type="button" class="btn btn-outline-primary btn-sm"
+                    data-bs-toggle="modal" data-bs-target="#editReleaseModal">
+                Edit
+            </button>
+        </div>
         <div>
             <a th:href="@{/labels/{labelId}(labelId=${labelId})}"
                class="btn btn-outline-secondary">Back to Label</a>
@@ -52,5 +58,274 @@
             </table>
         </div>
     </div>
+
+    <!-- Edit Release Modal -->
+    <div class="modal fade" id="editReleaseModal" tabindex="-1" aria-labelledby="editReleaseModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <form th:action="@{/labels/{labelId}/releases/{releaseId}(labelId=${labelId}, releaseId=${releaseId})}" method="post" id="editReleaseForm">
+                    <input type="hidden" name="_method" value="put">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="editReleaseModalLabel">Edit Release</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label">Artists</label>
+                            <select class="form-select mb-2" id="editReleaseArtistSelect">
+                                <option value="">Select an artist...</option>
+                                <option th:each="artist : ${allArtists}" th:value="${artist.id}" th:text="${artist.artistName}">Artist Name</option>
+                            </select>
+                            <div id="editReleaseArtistTags" class="d-flex flex-wrap gap-1"></div>
+                            <div id="editReleaseArtistInputs"></div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editReleaseName" class="form-label">Release Name</label>
+                            <input type="text" class="form-control" id="editReleaseName" name="releaseName" th:value="${name}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editReleaseDate" class="form-label">Release Date</label>
+                            <input type="date" class="form-control" id="editReleaseDate" name="releaseDate" th:value="${releaseDate}" required>
+                        </div>
+
+                        <hr>
+                        <h6>Tracks</h6>
+                        <div id="editTrackContainer"></div>
+                        <button type="button" class="btn btn-outline-secondary btn-sm mt-2" id="editAddTrackBtn">+ Add Track</button>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script th:inline="javascript">
+    document.addEventListener('DOMContentLoaded', function() {
+        const editTrackContainer = document.getElementById('editTrackContainer');
+        const editAddTrackBtn = document.getElementById('editAddTrackBtn');
+        const editReleaseArtistSelect = document.getElementById('editReleaseArtistSelect');
+        const editReleaseArtistTags = document.getElementById('editReleaseArtistTags');
+        const editReleaseArtistInputs = document.getElementById('editReleaseArtistInputs');
+        const editReleaseModal = document.getElementById('editReleaseModal');
+
+        const allArtists = /*[[${allArtists}]]*/ [];
+        const currentReleaseArtists = /*[[${artists}]]*/ [];
+        const currentTracks = /*[[${tracks}]]*/ [];
+
+        let editTrackIndex = 0;
+        let selectedEditReleaseArtists = [];
+
+        function getArtistById(id) {
+            return allArtists.find(a => String(a.id) === String(id));
+        }
+
+        function createTag(artistId, artistName, onRemove) {
+            const tag = document.createElement('span');
+            tag.className = 'badge bg-secondary d-flex align-items-center gap-1';
+            tag.innerHTML = `${artistName} <button type="button" class="btn-close btn-close-white" style="font-size: 0.6rem;" aria-label="Remove"></button>`;
+            tag.querySelector('button').addEventListener('click', onRemove);
+            tag.dataset.artistId = artistId;
+            return tag;
+        }
+
+        function addEditReleaseArtist(artistId) {
+            if (!artistId || selectedEditReleaseArtists.includes(String(artistId))) return;
+            const artist = getArtistById(artistId);
+            if (!artist) return;
+
+            selectedEditReleaseArtists.push(String(artistId));
+
+            const tag = createTag(artistId, artist.artistName, () => {
+                selectedEditReleaseArtists = selectedEditReleaseArtists.filter(id => id !== String(artistId));
+                tag.remove();
+                const input = editReleaseArtistInputs.querySelector(`input[value="${artistId}"]`);
+                if (input) input.remove();
+            });
+            editReleaseArtistTags.appendChild(tag);
+
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'artistIds';
+            input.value = artistId;
+            editReleaseArtistInputs.appendChild(input);
+
+            editReleaseArtistSelect.value = '';
+        }
+
+        editReleaseArtistSelect.addEventListener('change', () => {
+            addEditReleaseArtist(editReleaseArtistSelect.value);
+        });
+
+        function addEditTrackArtist(trackRow, artistId) {
+            const trackIdx = trackRow.dataset.trackIndex;
+            const tagsContainer = trackRow.querySelector('.track-artist-tags');
+            const inputsContainer = trackRow.querySelector('.track-artist-inputs');
+            const select = trackRow.querySelector('.track-artist-select');
+
+            if (!artistId) return;
+            if (inputsContainer.querySelector(`input[value="${artistId}"]`)) return;
+
+            const artist = getArtistById(artistId);
+            if (!artist) return;
+
+            addEditReleaseArtist(artistId);
+
+            const tag = createTag(artistId, artist.artistName, () => {
+                tag.remove();
+                inputsContainer.querySelector(`input[value="${artistId}"]`).remove();
+            });
+            tagsContainer.appendChild(tag);
+
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = `tracks[${trackIdx}].artistIds`;
+            input.value = artistId;
+            inputsContainer.appendChild(input);
+
+            select.value = '';
+        }
+
+        function updateEditRemoveButtons() {
+            const rows = editTrackContainer.querySelectorAll('.track-row');
+            rows.forEach(row => {
+                const removeBtn = row.querySelector('.remove-track');
+                removeBtn.style.display = rows.length > 1 ? 'inline-block' : 'none';
+            });
+        }
+
+        function reindexEditTracks() {
+            const rows = editTrackContainer.querySelectorAll('.track-row');
+            rows.forEach((row, index) => {
+                row.dataset.trackIndex = index;
+                row.querySelectorAll('input[name]').forEach(input => {
+                    const name = input.getAttribute('name');
+                    if (name) {
+                        input.setAttribute('name', name.replace(/tracks\[\d+\]/, 'tracks[' + index + ']'));
+                    }
+                });
+            });
+            editTrackIndex = rows.length - 1;
+        }
+
+        function buildArtistOptions() {
+            return allArtists.map(artist =>
+                `<option value="${artist.id}">${artist.artistName}</option>`
+            ).join('');
+        }
+
+        function formatDuration(totalSeconds) {
+            if (!totalSeconds) return '';
+            const minutes = Math.floor(totalSeconds / 60);
+            const seconds = totalSeconds % 60;
+            return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+        }
+
+        function createTrackRow(index, trackData) {
+            const durationValue = trackData && trackData.duration
+                ? formatDuration(trackData.duration.totalSeconds)
+                : '';
+            const nameValue = trackData ? trackData.name : '';
+
+            const row = document.createElement('div');
+            row.className = 'track-row mb-3 p-2 border rounded';
+            row.dataset.trackIndex = index;
+            row.innerHTML = `
+                <div class="row g-2 align-items-end">
+                    <div class="col-md-4">
+                        <label class="form-label">Artist</label>
+                        <div class="input-group">
+                            <select class="form-select track-artist-select">
+                                <option value="">Select...</option>
+                                ${buildArtistOptions()}
+                            </select>
+                            <button class="btn btn-outline-secondary btn-sm add-track-artist-btn" type="button">+</button>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Name</label>
+                        <input type="text" class="form-control" name="tracks[${index}].name" value="${nameValue}" required>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Duration</label>
+                        <input type="text" class="form-control" name="tracks[${index}].duration" placeholder="MM:SS" pattern="[0-9]+:[0-5][0-9]" value="${durationValue}" required>
+                    </div>
+                    <div class="col-md-1 text-end">
+                        <button type="button" class="btn btn-outline-danger btn-sm remove-track">X</button>
+                    </div>
+                </div>
+                <div class="track-artist-tags d-flex flex-wrap gap-1 mt-2"></div>
+                <div class="track-artist-inputs"></div>
+            `;
+            return row;
+        }
+
+        function initializeEditModal() {
+            selectedEditReleaseArtists = [];
+            editReleaseArtistTags.innerHTML = '';
+            editReleaseArtistInputs.innerHTML = '';
+            editTrackContainer.innerHTML = '';
+            editTrackIndex = 0;
+
+            currentReleaseArtists.forEach(artist => {
+                addEditReleaseArtist(artist.id);
+            });
+
+            currentTracks.forEach((track, index) => {
+                const row = createTrackRow(index, track);
+                editTrackContainer.appendChild(row);
+
+                track.artists.forEach(artist => {
+                    addEditTrackArtist(row, artist.id);
+                });
+
+                editTrackIndex = index;
+            });
+
+            if (currentTracks.length === 0) {
+                const row = createTrackRow(0, null);
+                editTrackContainer.appendChild(row);
+            }
+
+            updateEditRemoveButtons();
+        }
+
+        editReleaseModal.addEventListener('show.bs.modal', initializeEditModal);
+
+        editAddTrackBtn.addEventListener('click', function() {
+            editTrackIndex++;
+            const newRow = createTrackRow(editTrackIndex, null);
+            editTrackContainer.appendChild(newRow);
+
+            selectedEditReleaseArtists.forEach(artistId => {
+                addEditTrackArtist(newRow, artistId);
+            });
+
+            updateEditRemoveButtons();
+        });
+
+        editTrackContainer.addEventListener('click', function(e) {
+            if (e.target.classList.contains('remove-track')) {
+                e.target.closest('.track-row').remove();
+                reindexEditTracks();
+                updateEditRemoveButtons();
+            }
+            if (e.target.classList.contains('add-track-artist-btn')) {
+                const trackRow = e.target.closest('.track-row');
+                const select = trackRow.querySelector('.track-artist-select');
+                addEditTrackArtist(trackRow, select.value);
+            }
+        });
+
+        editTrackContainer.addEventListener('change', function(e) {
+            if (e.target.classList.contains('track-artist-select')) {
+                const trackRow = e.target.closest('.track-row');
+                addEditTrackArtist(trackRow, e.target.value);
+            }
+        });
+    });
+    </script>
 </main>
 </html>
