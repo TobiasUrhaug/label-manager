@@ -73,7 +73,8 @@ public class LabelController {
                 form.getEmail(),
                 form.getWebsite(),
                 form.toAddress(),
-                form.toOwner()
+                form.toOwner(),
+                null  // userId will be set from authenticated user in a future update
         );
         return "redirect:/dashboard";
     }

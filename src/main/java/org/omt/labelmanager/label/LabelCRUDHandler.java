@@ -30,15 +30,25 @@ public class LabelCRUDHandler {
         return labels;
     }
 
+    public List<Label> getLabelsForUser(Long userId) {
+        List<Label> labels = repository.findByUserId(userId).stream()
+                .map(Label::fromEntity)
+                .toList();
+        log.debug("Retrieved {} labels for user {}", labels.size(), userId);
+        return labels;
+    }
+
     public void createLabel(
             String labelName,
             String email,
             String website,
             Address address,
-            Person owner
+            Person owner,
+            Long userId
     ) {
-        log.info("Creating label '{}'", labelName);
+        log.info("Creating label '{}' for user {}", labelName, userId);
         var entity = new LabelEntity(labelName, email, website);
+        entity.setUserId(userId);
         if (address != null) {
             entity.setAddress(AddressEmbeddable.fromAddress(address));
         }

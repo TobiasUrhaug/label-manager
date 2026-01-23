@@ -89,7 +89,7 @@ class LabelControllerTest {
                 .andExpect(redirectedUrl("/dashboard"));
 
         verify(labelCRUDHandler).createLabel(
-                "New Label", "info@newlabel.com", "https://newlabel.com", null, null);
+                "New Label", "info@newlabel.com", "https://newlabel.com", null, null, null);
     }
 
     @Test
