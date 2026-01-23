@@ -51,12 +51,20 @@
     </div>
 
     <div class="list-group" th:unless="${#lists.isEmpty(releases)}">
-        <a th:each="release : ${releases}"
-           th:href="@{/labels/{labelId}/releases/{releaseId}(labelId=${id}, releaseId=${release.id})}"
-           class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
-            <span th:text="${release.name}">Release Name</span>
-            <span class="badge bg-secondary" th:text="${release.releaseDate}">Date</span>
-        </a>
+        <div th:each="release : ${releases}"
+             class="list-group-item d-flex justify-content-between align-items-center">
+            <a th:href="@{/labels/{labelId}/releases/{releaseId}(labelId=${id}, releaseId=${release.id})}"
+               class="text-decoration-none">
+                <span th:text="${release.name}">Release Name</span>
+                <span class="badge bg-secondary ms-2" th:text="${release.releaseDate}">Date</span>
+            </a>
+            <form th:action="@{/labels/{labelId}/releases/{releaseId}(labelId=${id}, releaseId=${release.id})}"
+                  method="post"
+                  onsubmit="return confirm('Delete this release and all its tracks?');">
+                <input type="hidden" name="_method" value="delete">
+                <button type="submit" class="btn btn-outline-danger btn-sm">Delete</button>
+            </form>
+        </div>
     </div>
 
     <!-- Create Release Modal -->
