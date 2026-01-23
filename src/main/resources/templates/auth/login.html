@@ -2,6 +2,47 @@
 <html xmlns:th="http://www.thymeleaf.org"
       th:replace="~{fragments/layout :: page(title='Login', content=~{::main})}">
 <main>
-    <h1>Login</h1>
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-4">
+            <div class="card">
+                <div class="card-body">
+                    <h1 class="card-title text-center mb-4">Login</h1>
+
+                    <div th:if="${param.error}" class="alert alert-danger">
+                        Invalid email or password.
+                    </div>
+
+                    <div th:if="${param.logout}" class="alert alert-info">
+                        You have been logged out.
+                    </div>
+
+                    <div th:if="${param.registered}" class="alert alert-success">
+                        Registration successful! Please log in.
+                    </div>
+
+                    <form th:action="@{/login}" method="post">
+                        <div class="mb-3">
+                            <label for="username" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="username" name="username"
+                                   required autofocus>
+                        </div>
+                        <div class="mb-3">
+                            <label for="password" class="form-label">Password</label>
+                            <input type="password" class="form-control" id="password" name="password"
+                                   required>
+                        </div>
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary">Login</button>
+                        </div>
+                    </form>
+
+                    <div class="text-center mt-3">
+                        <span>Don't have an account?</span>
+                        <a th:href="@{/register}">Register</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </main>
 </html>
