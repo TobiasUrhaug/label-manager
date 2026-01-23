@@ -14,6 +14,7 @@ import org.omt.labelmanager.track.persistence.TrackEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class ReleaseCRUDHandler {
@@ -88,5 +89,11 @@ public class ReleaseCRUDHandler {
             log.debug("Release with id {} not found", id);
         }
         return release;
+    }
+
+    @Transactional
+    public void delete(Long id) {
+        log.info("Deleting release with id {}", id);
+        releaseRepository.deleteById(id);
     }
 }
