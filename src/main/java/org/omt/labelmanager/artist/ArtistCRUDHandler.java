@@ -52,8 +52,13 @@ public class ArtistCRUDHandler {
     }
 
     @Transactional
-    public void updateArtist(Long id, String artistName, Person realName, String email,
-                             Address address) {
+    public void updateArtist(
+            Long id,
+            String artistName,
+            Person realName,
+            String email,
+            Address address
+    ) {
         log.info("Updating artist {}", id);
         repository.findById(id).ifPresent(entity -> {
             entity.setArtistName(artistName);

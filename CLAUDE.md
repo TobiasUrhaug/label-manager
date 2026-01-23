@@ -117,6 +117,31 @@ public Label createLabel(String name, Long userId) {
 }
 ```
 
+## Code Formatting
+
+### Line Length
+Maximum line length is 100 characters.
+
+### Long Method Signatures
+When a method signature exceeds the line limit, use this format:
+- Method name with opening parenthesis on the first line
+- Each parameter on its own line, indented with 8 spaces (double indent)
+- Closing parenthesis on its own line, aligned with the method modifier
+- Opening brace follows directly after the closing parenthesis
+
+```java
+@Transactional
+public void updateArtist(
+        Long id,
+        String artistName,
+        Person realName,
+        String email,
+        Address address
+) {
+    // method body
+}
+```
+
 ## Development Workflow
 
 ### TDD with Atomic Commits
