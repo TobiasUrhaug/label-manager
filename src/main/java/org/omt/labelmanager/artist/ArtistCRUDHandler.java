@@ -30,6 +30,14 @@ public class ArtistCRUDHandler {
         return artists;
     }
 
+    public List<Artist> getArtistsForUser(Long userId) {
+        List<Artist> artists = repository.findByUserId(userId).stream()
+                .map(Artist::fromEntity)
+                .toList();
+        log.debug("Retrieved {} artists for user {}", artists.size(), userId);
+        return artists;
+    }
+
     public Optional<Artist> findById(Long id) {
         Optional<Artist> artist = repository.findById(id).map(Artist::fromEntity);
         if (artist.isEmpty()) {
@@ -42,10 +50,12 @@ public class ArtistCRUDHandler {
             String artistName,
             Person realName,
             String email,
-            Address address
+            Address address,
+            Long userId
     ) {
-        log.info("Creating artist '{}'", artistName);
+        log.info("Creating artist '{}' for user {}", artistName, userId);
         var entity = new ArtistEntity(artistName);
+        entity.setUserId(userId);
         if (realName != null) {
             entity.setRealName(PersonEmbeddable.fromPerson(realName));
         }

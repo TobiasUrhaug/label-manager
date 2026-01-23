@@ -73,6 +73,7 @@ class ArtistControllerTest {
                 "New Artist",
                 new Person("Real Name"),
                 "artist@email.com",
+                null,
                 null
         );
     }
@@ -93,7 +94,8 @@ class ArtistControllerTest {
                 "New Artist",
                 null,
                 null,
-                new Address("123 Music Lane", null, "Oslo", "0123", "Norway")
+                new Address("123 Music Lane", null, "Oslo", "0123", "Norway"),
+                null
         );
     }
 

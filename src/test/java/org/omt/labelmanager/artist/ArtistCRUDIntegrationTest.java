@@ -46,7 +46,7 @@ public class ArtistCRUDIntegrationTest {
         var address = new Address("123 Music Lane", null, "Oslo", "0123", "Norway");
         var realName = new Person("John Smith");
 
-        artistCRUDHandler.createArtist("DJ Cool", realName, "dj@cool.com", address);
+        artistCRUDHandler.createArtist("DJ Cool", realName, "dj@cool.com", address, null);
 
         var savedArtist = repo.findByArtistName("DJ Cool");
         assertThat(savedArtist).isPresent();
@@ -58,7 +58,7 @@ public class ArtistCRUDIntegrationTest {
 
     @Test
     void createArtist_withOnlyRequiredFields() {
-        artistCRUDHandler.createArtist("Minimal Artist", null, null, null);
+        artistCRUDHandler.createArtist("Minimal Artist", null, null, null, null);
 
         var savedArtist = repo.findByArtistName("Minimal Artist");
         assertThat(savedArtist).isPresent();

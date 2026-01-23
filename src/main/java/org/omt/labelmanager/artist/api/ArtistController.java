@@ -52,7 +52,8 @@ public class ArtistController {
                 form.getArtistName(),
                 form.toRealName(),
                 form.getEmail(),
-                form.toAddress()
+                form.toAddress(),
+                null  // userId will be set from authenticated user in a future update
         );
         return "redirect:/dashboard";
     }
