@@ -92,6 +92,48 @@ public class ReleaseCRUDHandler {
     }
 
     @Transactional
+    public void updateRelease(
+            Long id,
+            String name,
+            LocalDate releaseDate,
+            List<Long> artistIds,
+            List<TrackInput> tracks
+    ) {
+        log.info("Updating release {} with {} tracks", id, tracks.size());
+        if (tracks.isEmpty()) {
+            log.warn("Cannot update release {}: at least one track is required", id);
+            throw new IllegalArgumentException("At least one track is required");
+        }
+
+        ReleaseEntity release = releaseRepository.findById(id)
+                .orElseThrow(() -> {
+                    log.warn("Cannot update release: release {} not found", id);
+                    return new IllegalArgumentException();
+                });
+
+        release.setName(name);
+        release.setReleaseDate(releaseDate);
+
+        List<ArtistEntity> releaseArtists = artistRepository.findAllById(artistIds);
+        release.setArtists(releaseArtists);
+
+        release.getTracks().clear();
+
+        for (TrackInput trackInput : tracks) {
+            List<ArtistEntity> trackArtists = artistRepository.findAllById(trackInput.artistIds());
+            TrackEntity trackEntity = new TrackEntity();
+            trackEntity.setArtists(trackArtists);
+            trackEntity.setName(trackInput.name());
+            trackEntity.setDurationSeconds(trackInput.duration().totalSeconds());
+            trackEntity.setPosition(trackInput.position());
+            trackEntity.setRelease(release);
+            release.getTracks().add(trackEntity);
+        }
+
+        releaseRepository.save(release);
+    }
+
+    @Transactional
     public void delete(Long id) {
         log.info("Deleting release with id {}", id);
         releaseRepository.deleteById(id);

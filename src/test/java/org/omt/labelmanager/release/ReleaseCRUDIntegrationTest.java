@@ -14,6 +14,7 @@ import org.omt.labelmanager.track.TrackDuration;
 import org.omt.labelmanager.track.TrackInput;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.PostgreSQLContainer;
@@ -73,6 +74,63 @@ public class ReleaseCRUDIntegrationTest {
         );
 
         assertThat(releaseRepository.findByName("My Release")).isPresent();
+    }
+
+    @Test
+    @Transactional
+    void updateRelease() {
+        var label = new LabelEntity("Label For Update", null, null);
+        labelRepository.save(label);
+
+        var artist1 = artistRepository.save(new ArtistEntity("Artist One"));
+        var artist2 = artistRepository.save(new ArtistEntity("Artist Two"));
+
+        var originalTrack = new TrackInput(
+                List.of(artist1.getId()),
+                "Original Track",
+                TrackDuration.parse("3:00"),
+                1
+        );
+
+        releaseCRUDHandler.createRelease(
+                "Original Release",
+                LocalDate.of(2026, 1, 1),
+                label.getId(),
+                List.of(artist1.getId()),
+                List.of(originalTrack)
+        );
+
+        var release = releaseRepository.findByName("Original Release").orElseThrow();
+        var releaseId = release.getId();
+
+        var newTrack1 = new TrackInput(
+                List.of(artist1.getId(), artist2.getId()),
+                "Updated Track 1",
+                TrackDuration.parse("4:00"),
+                1
+        );
+        var newTrack2 = new TrackInput(
+                List.of(artist2.getId()),
+                "Updated Track 2",
+                TrackDuration.parse("5:30"),
+                2
+        );
+
+        releaseCRUDHandler.updateRelease(
+                releaseId,
+                "Updated Release",
+                LocalDate.of(2026, 6, 15),
+                List.of(artist1.getId(), artist2.getId()),
+                List.of(newTrack1, newTrack2)
+        );
+
+        var updatedRelease = releaseRepository.findById(releaseId).orElseThrow();
+        assertThat(updatedRelease.getName()).isEqualTo("Updated Release");
+        assertThat(updatedRelease.getReleaseDate()).isEqualTo(LocalDate.of(2026, 6, 15));
+        assertThat(updatedRelease.getArtists()).hasSize(2);
+        assertThat(updatedRelease.getTracks()).hasSize(2);
+        assertThat(updatedRelease.getTracks().get(0).getName()).isEqualTo("Updated Track 1");
+        assertThat(updatedRelease.getTracks().get(1).getName()).isEqualTo("Updated Track 2");
     }
 
     @Test
