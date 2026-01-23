@@ -40,14 +40,13 @@
         </div>
     </div>
 
-    <button type="button" class="btn btn-primary mb-4" data-bs-toggle="modal" data-bs-target="#createReleaseModal">
-        Add Release
-    </button>
-
-    <h2 class="mb-3">Releases</h2>
+    <div class="d-flex align-items-center gap-2 mb-3">
+        <h2 class="mb-0">Releases</h2>
+        <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#createReleaseModal">+</button>
+    </div>
 
     <div th:if="${#lists.isEmpty(releases)}" class="alert alert-info">
-        No releases yet. Add one above!
+        No releases yet. Click + to add one.
     </div>
 
     <div class="list-group" th:unless="${#lists.isEmpty(releases)}">
@@ -67,13 +66,13 @@
         </div>
     </div>
 
-    <!-- Create Release Modal -->
+    <!-- Add Release Modal -->
     <div class="modal fade" id="createReleaseModal" tabindex="-1" aria-labelledby="createReleaseModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <form th:action="@{/labels/{labelId}/releases(labelId=${id})}" method="post" id="createReleaseForm">
                     <div class="modal-header">
-                        <h5 class="modal-title" id="createReleaseModalLabel">Create Release</h5>
+                        <h5 class="modal-title" id="createReleaseModalLabel">Add Release</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">

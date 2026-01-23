@@ -4,14 +4,13 @@
 <main>
     <h1 class="mb-4">Welcome, <span th:text="${user}">User</span>!</h1>
 
-    <button type="button" class="btn btn-primary mb-4" data-bs-toggle="modal" data-bs-target="#createLabelModal">
-        Create Label
-    </button>
-
-    <h2 class="mb-3">Your Labels</h2>
+    <div class="d-flex align-items-center gap-2 mb-3">
+        <h2 class="mb-0">Your Labels</h2>
+        <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#createLabelModal">+</button>
+    </div>
 
     <div th:if="${#lists.isEmpty(labels)}" class="alert alert-info">
-        No labels yet. Create one above!
+        No labels yet. Click + to add one.
     </div>
 
     <div class="list-group" th:unless="${#lists.isEmpty(labels)}">
@@ -32,14 +31,13 @@
 
     <hr class="my-5">
 
-    <button type="button" class="btn btn-primary mb-4" data-bs-toggle="modal" data-bs-target="#createArtistModal">
-        Create Artist
-    </button>
-
-    <h2 class="mb-3">Your Artists</h2>
+    <div class="d-flex align-items-center gap-2 mb-3">
+        <h2 class="mb-0">Your Artists</h2>
+        <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#createArtistModal">+</button>
+    </div>
 
     <div th:if="${#lists.isEmpty(artists)}" class="alert alert-info">
-        No artists yet. Create one above!
+        No artists yet. Click + to add one.
     </div>
 
     <div class="list-group" th:unless="${#lists.isEmpty(artists)}">
@@ -58,13 +56,13 @@
         </div>
     </div>
 
-    <!-- Create Label Modal -->
+    <!-- Add Label Modal -->
     <div class="modal fade" id="createLabelModal" tabindex="-1" aria-labelledby="createLabelModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
                 <form th:action="@{/labels}" method="post">
                     <div class="modal-header">
-                        <h5 class="modal-title" id="createLabelModalLabel">Create Label</h5>
+                        <h5 class="modal-title" id="createLabelModalLabel">Add Label</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
@@ -117,13 +115,13 @@
         </div>
     </div>
 
-    <!-- Create Artist Modal -->
+    <!-- Add Artist Modal -->
     <div class="modal fade" id="createArtistModal" tabindex="-1" aria-labelledby="createArtistModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
                 <form th:action="@{/artists}" method="post">
                     <div class="modal-header">
-                        <h5 class="modal-title" id="createArtistModalLabel">Create Artist</h5>
+                        <h5 class="modal-title" id="createArtistModalLabel">Add Artist</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
