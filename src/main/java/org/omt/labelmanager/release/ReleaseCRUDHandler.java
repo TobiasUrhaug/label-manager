@@ -3,6 +3,8 @@ package org.omt.labelmanager.release;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+import org.omt.labelmanager.artist.persistence.ArtistEntity;
+import org.omt.labelmanager.artist.persistence.ArtistRepository;
 import org.omt.labelmanager.label.persistence.LabelEntity;
 import org.omt.labelmanager.label.persistence.LabelRepository;
 import org.omt.labelmanager.release.persistence.ReleaseEntity;
@@ -20,12 +22,16 @@ public class ReleaseCRUDHandler {
 
     private final ReleaseRepository releaseRepository;
     private final LabelRepository labelRepository;
+    private final ArtistRepository artistRepository;
 
     public ReleaseCRUDHandler(
             ReleaseRepository releaseRepository,
-            LabelRepository labelRepository) {
+            LabelRepository labelRepository,
+            ArtistRepository artistRepository
+    ) {
         this.releaseRepository = releaseRepository;
         this.labelRepository = labelRepository;
+        this.artistRepository = artistRepository;
     }
 
     public List<Release> getReleasesForLabel(Long labelId) {
@@ -39,6 +45,7 @@ public class ReleaseCRUDHandler {
             String name,
             LocalDate releaseDate,
             Long labelId,
+            List<Long> artistIds,
             List<TrackInput> tracks
     ) {
         log.info("Creating release '{}' for label {} with {} tracks", name, labelId, tracks.size());
@@ -51,14 +58,20 @@ public class ReleaseCRUDHandler {
                     log.warn("Cannot create release: label {} not found", labelId);
                     return new IllegalArgumentException();
                 });
+
+        List<ArtistEntity> releaseArtists = artistRepository.findAllById(artistIds);
+        log.debug("Found {} artists for release", releaseArtists.size());
+
         ReleaseEntity release = new ReleaseEntity();
         release.setName(name);
         release.setReleaseDate(releaseDate);
         release.setLabel(labelEntity);
+        release.setArtists(releaseArtists);
 
         for (TrackInput trackInput : tracks) {
+            List<ArtistEntity> trackArtists = artistRepository.findAllById(trackInput.artistIds());
             TrackEntity trackEntity = new TrackEntity();
-            trackEntity.setArtist(trackInput.artist());
+            trackEntity.setArtists(trackArtists);
             trackEntity.setName(trackInput.name());
             trackEntity.setDurationSeconds(trackInput.duration().totalSeconds());
             trackEntity.setPosition(trackInput.position());
