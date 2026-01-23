@@ -38,7 +38,12 @@ public class ArtistCRUDHandler {
         return artist;
     }
 
-    public void createArtist(String artistName, Person realName, String email, Address address) {
+    public void createArtist(
+            String artistName,
+            Person realName,
+            String email,
+            Address address
+    ) {
         log.info("Creating artist '{}'", artistName);
         var entity = new ArtistEntity(artistName);
         if (realName != null) {

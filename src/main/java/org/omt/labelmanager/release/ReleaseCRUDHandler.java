@@ -35,8 +35,12 @@ public class ReleaseCRUDHandler {
         return releases;
     }
 
-    public void createRelease(String name, LocalDate releaseDate, Long labelId,
-                              List<TrackInput> tracks) {
+    public void createRelease(
+            String name,
+            LocalDate releaseDate,
+            Long labelId,
+            List<TrackInput> tracks
+    ) {
         log.info("Creating release '{}' for label {} with {} tracks", name, labelId, tracks.size());
         if (tracks.isEmpty()) {
             log.warn("Cannot create release '{}': at least one track is required", name);

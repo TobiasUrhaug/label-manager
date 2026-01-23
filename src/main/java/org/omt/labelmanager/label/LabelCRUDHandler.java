@@ -30,8 +30,13 @@ public class LabelCRUDHandler {
         return labels;
     }
 
-    public void createLabel(String labelName, String email, String website, Address address,
-                            Person owner) {
+    public void createLabel(
+            String labelName,
+            String email,
+            String website,
+            Address address,
+            Person owner
+    ) {
         log.info("Creating label '{}'", labelName);
         var entity = new LabelEntity(labelName, email, website);
         if (address != null) {
@@ -67,8 +72,14 @@ public class LabelCRUDHandler {
     }
 
     @Transactional
-    public void updateLabel(Long id, String name, String email, String website,
-                            Address address, Person owner) {
+    public void updateLabel(
+            Long id,
+            String name,
+            String email,
+            String website,
+            Address address,
+            Person owner
+    ) {
         log.info("Updating label {}", id);
         repository.findById(id).ifPresent(entity -> {
             entity.setName(name);
