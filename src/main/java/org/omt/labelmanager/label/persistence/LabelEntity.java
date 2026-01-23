@@ -27,6 +27,9 @@ public class LabelEntity {
     @AttributeOverride(name = "name", column = @Column(name = "owner_name"))
     private PersonEmbeddable owner;
 
+    @Column(name = "user_id")
+    private Long userId;
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -82,6 +85,14 @@ public class LabelEntity {
 
     public void setOwner(PersonEmbeddable owner) {
         this.owner = owner;
+    }
+
+    public Long getUserId() {
+        return userId;
+    }
+
+    public void setUserId(Long userId) {
+        this.userId = userId;
     }
 
     @Override
