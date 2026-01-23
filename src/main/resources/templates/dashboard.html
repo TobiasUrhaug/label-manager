@@ -2,8 +2,6 @@
 <html xmlns:th="http://www.thymeleaf.org"
       th:replace="~{fragments/layout :: page(title='Dashboard', content=~{::main})}">
 <main>
-    <h1 class="mb-4">Welcome, <span th:text="${user}">User</span>!</h1>
-
     <div class="d-flex align-items-center gap-2 mb-3">
         <h2 class="mb-0">Your Labels</h2>
         <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#createLabelModal">+</button>

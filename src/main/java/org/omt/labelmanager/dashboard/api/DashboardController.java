@@ -30,7 +30,6 @@ public class DashboardController {
         var labels = labelCRUDHandler.getLabelsForUser(user.getId());
         var artists = artistCRUDHandler.getArtistsForUser(user.getId());
 
-        model.addAttribute("user", user.getDisplayName());
         model.addAttribute("labels", labels);
         model.addAttribute("artists", artists);
 

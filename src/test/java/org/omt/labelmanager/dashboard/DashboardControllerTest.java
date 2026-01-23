@@ -36,16 +36,6 @@ class DashboardControllerTest {
     private ArtistCRUDHandler artistCRUDHandler;
 
     @Test
-    void dashboard_greetsUser() throws Exception {
-        var testUser = new AppUserDetails(1L, "test@example.com", "password", "Test User");
-
-        mockMvc.perform(get("/dashboard").with(user(testUser)))
-                .andExpect(status().isOk())
-                .andExpect(view().name("dashboard"))
-                .andExpect(model().attribute("user", "Test User"));
-    }
-
-    @Test
     void dashboard_showsListOfLabels() throws Exception {
         var testUser = new AppUserDetails(1L, "test@example.com", "password", "Test User");
         var labelA = LabelFactory.aLabel().id(1L).name("My Label").build();
