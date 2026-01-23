@@ -128,7 +128,8 @@ class ReleaseControllerTest {
                 org.mockito.ArgumentMatchers.eq("Updated Release"),
                 org.mockito.ArgumentMatchers.eq(LocalDate.of(2026, 6, 15)),
                 org.mockito.ArgumentMatchers.anyList(),
-                org.mockito.ArgumentMatchers.anyList()
+                org.mockito.ArgumentMatchers.anyList(),
+                org.mockito.ArgumentMatchers.anySet()
         );
     }
 

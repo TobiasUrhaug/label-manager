@@ -3,6 +3,7 @@ package org.omt.labelmanager.release;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import org.omt.labelmanager.artist.persistence.ArtistEntity;
 import org.omt.labelmanager.artist.persistence.ArtistRepository;
 import org.omt.labelmanager.label.persistence.LabelEntity;
@@ -47,7 +48,8 @@ public class ReleaseCRUDHandler {
             LocalDate releaseDate,
             Long labelId,
             List<Long> artistIds,
-            List<TrackInput> tracks
+            List<TrackInput> tracks,
+            Set<ReleaseFormat> formats
     ) {
         log.info("Creating release '{}' for label {} with {} tracks", name, labelId, tracks.size());
         if (tracks.isEmpty()) {
@@ -68,6 +70,7 @@ public class ReleaseCRUDHandler {
         release.setReleaseDate(releaseDate);
         release.setLabel(labelEntity);
         release.setArtists(releaseArtists);
+        release.setFormats(formats);
 
         for (TrackInput trackInput : tracks) {
             List<ArtistEntity> trackArtists = artistRepository.findAllById(trackInput.artistIds());
@@ -97,7 +100,8 @@ public class ReleaseCRUDHandler {
             String name,
             LocalDate releaseDate,
             List<Long> artistIds,
-            List<TrackInput> tracks
+            List<TrackInput> tracks,
+            Set<ReleaseFormat> formats
     ) {
         log.info("Updating release {} with {} tracks", id, tracks.size());
         if (tracks.isEmpty()) {
@@ -113,6 +117,7 @@ public class ReleaseCRUDHandler {
 
         release.setName(name);
         release.setReleaseDate(releaseDate);
+        release.setFormats(formats);
 
         List<ArtistEntity> releaseArtists = artistRepository.findAllById(artistIds);
         release.setArtists(releaseArtists);

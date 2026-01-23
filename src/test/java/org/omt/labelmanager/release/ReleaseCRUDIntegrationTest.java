@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.omt.labelmanager.artist.persistence.ArtistEntity;
 import org.omt.labelmanager.artist.persistence.ArtistRepository;
@@ -70,7 +71,8 @@ public class ReleaseCRUDIntegrationTest {
                 LocalDate.of(2026, 1, 15),
                 labelId,
                 List.of(artistId),
-                List.of(trackInput)
+                List.of(trackInput),
+                Set.of(ReleaseFormat.DIGITAL)
         );
 
         assertThat(releaseRepository.findByName("My Release")).isPresent();
@@ -97,7 +99,8 @@ public class ReleaseCRUDIntegrationTest {
                 LocalDate.of(2026, 1, 1),
                 label.getId(),
                 List.of(artist1.getId()),
-                List.of(originalTrack)
+                List.of(originalTrack),
+                Set.of(ReleaseFormat.DIGITAL)
         );
 
         var release = releaseRepository.findByName("Original Release").orElseThrow();
@@ -121,7 +124,8 @@ public class ReleaseCRUDIntegrationTest {
                 "Updated Release",
                 LocalDate.of(2026, 6, 15),
                 List.of(artist1.getId(), artist2.getId()),
-                List.of(newTrack1, newTrack2)
+                List.of(newTrack1, newTrack2),
+                Set.of(ReleaseFormat.VINYL, ReleaseFormat.CD)
         );
 
         var updatedRelease = releaseRepository.findById(releaseId).orElseThrow();
@@ -153,7 +157,8 @@ public class ReleaseCRUDIntegrationTest {
                 LocalDate.of(2026, 1, 15),
                 label.getId(),
                 List.of(artistId),
-                List.of(trackInput)
+                List.of(trackInput),
+                Set.of(ReleaseFormat.DIGITAL)
         );
 
         var release = releaseRepository.findByName("Release To Delete");
