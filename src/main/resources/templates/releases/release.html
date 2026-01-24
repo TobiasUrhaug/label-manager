@@ -31,6 +31,12 @@
 
                 <dt class="col-sm-3">Release Date</dt>
                 <dd class="col-sm-9" th:text="${releaseDate}">2024-01-01</dd>
+
+                <dt class="col-sm-3">Formats</dt>
+                <dd class="col-sm-9">
+                    <span th:each="format : ${formats}" class="badge bg-primary me-1" th:text="${format}">Format</span>
+                    <span th:if="${#sets.isEmpty(formats)}" class="text-muted">No formats specified</span>
+                </dd>
             </dl>
         </div>
     </div>
@@ -86,6 +92,17 @@
                         <div class="mb-3">
                             <label for="editReleaseDate" class="form-label">Release Date</label>
                             <input type="date" class="form-control" id="editReleaseDate" name="releaseDate" th:value="${releaseDate}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Formats</label>
+                            <div>
+                                <div th:each="format : ${allFormats}" class="form-check form-check-inline">
+                                    <input class="form-check-input" type="checkbox" name="formats"
+                                           th:id="'editFormat' + ${format}" th:value="${format}"
+                                           th:checked="${formats.contains(format)}">
+                                    <label class="form-check-label" th:for="'editFormat' + ${format}" th:text="${format}">Format</label>
+                                </div>
+                            </div>
                         </div>
 
                         <hr>

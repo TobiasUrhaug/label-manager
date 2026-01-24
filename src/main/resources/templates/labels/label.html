@@ -93,6 +93,17 @@
                             <label for="releaseDate" class="form-label">Release Date</label>
                             <input type="date" class="form-control" id="releaseDate" name="releaseDate" required>
                         </div>
+                        <div class="mb-3">
+                            <label class="form-label">Formats</label>
+                            <div>
+                                <div th:each="format : ${allFormats}" class="form-check form-check-inline">
+                                    <input class="form-check-input" type="checkbox" name="formats"
+                                           th:id="'format' + ${format}" th:value="${format}"
+                                           th:checked="${format.name() == 'DIGITAL'}">
+                                    <label class="form-check-label" th:for="'format' + ${format}" th:text="${format}">Format</label>
+                                </div>
+                            </div>
+                        </div>
 
                         <hr>
                         <h6>Tracks</h6>
