@@ -1,4 +1,4 @@
-package org.omt.labelmanager.catalog.label.api;
+package org.omt.labelmanager.catalog.api.label;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.Mockito.verify;

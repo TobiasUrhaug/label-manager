@@ -1,4 +1,4 @@
-package org.omt.labelmanager.catalog.label.api;
+package org.omt.labelmanager.catalog.api.label;
 
 import java.util.List;
 import org.omt.labelmanager.catalog.domain.artist.Artist;

@@ -1,26 +1,33 @@
-package org.omt.labelmanager.catalog.label.api;
+package org.omt.labelmanager.catalog.api.artist;
 
 import org.omt.labelmanager.catalog.domain.shared.Address;
 import org.omt.labelmanager.catalog.domain.shared.Person;
 
-public class UpdateLabelForm {
+public class CreateArtistForm {
 
-    private String labelName;
+    private String artistName;
+    private String realName;
     private String email;
-    private String website;
-    private String ownerName;
     private String street;
     private String street2;
     private String city;
     private String postalCode;
     private String country;
 
-    public String getLabelName() {
-        return labelName;
+    public String getArtistName() {
+        return artistName;
     }
 
-    public void setLabelName(String labelName) {
-        this.labelName = labelName;
+    public void setArtistName(String artistName) {
+        this.artistName = artistName;
+    }
+
+    public String getRealName() {
+        return realName;
+    }
+
+    public void setRealName(String realName) {
+        this.realName = realName;
     }
 
     public String getEmail() {
@@ -29,22 +36,6 @@ public class UpdateLabelForm {
 
     public void setEmail(String email) {
         this.email = email;
-    }
-
-    public String getWebsite() {
-        return website;
-    }
-
-    public void setWebsite(String website) {
-        this.website = website;
-    }
-
-    public String getOwnerName() {
-        return ownerName;
-    }
-
-    public void setOwnerName(String ownerName) {
-        this.ownerName = ownerName;
     }
 
     public String getStreet() {
@@ -94,10 +85,10 @@ public class UpdateLabelForm {
         return new Address(street, street2, city, postalCode, country);
     }
 
-    public Person toOwner() {
-        if (ownerName == null || ownerName.isBlank()) {
+    public Person toRealName() {
+        if (realName == null || realName.isBlank()) {
             return null;
         }
-        return new Person(ownerName);
+        return new Person(realName);
     }
 }

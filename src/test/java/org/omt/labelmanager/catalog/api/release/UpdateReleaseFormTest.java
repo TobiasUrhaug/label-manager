@@ -1,4 +1,4 @@
-package org.omt.labelmanager.catalog.release.api;
+package org.omt.labelmanager.catalog.api.release;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

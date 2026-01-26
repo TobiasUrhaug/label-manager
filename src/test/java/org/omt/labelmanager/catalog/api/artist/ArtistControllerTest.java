@@ -1,4 +1,4 @@
-package org.omt.labelmanager.catalog.artist.api;
+package org.omt.labelmanager.catalog.api.artist;
 
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;

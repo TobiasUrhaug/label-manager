@@ -1,4 +1,4 @@
-package org.omt.labelmanager.catalog.artist.api;
+package org.omt.labelmanager.catalog.api.artist;
 
 import org.omt.labelmanager.catalog.domain.artist.Artist;
 import org.omt.labelmanager.catalog.application.ArtistCRUDHandler;

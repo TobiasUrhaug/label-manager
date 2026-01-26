@@ -1,4 +1,4 @@
-package org.omt.labelmanager.catalog.artist.api;
+package org.omt.labelmanager.catalog.api.artist;
 
 import org.omt.labelmanager.catalog.domain.shared.Address;
 import org.omt.labelmanager.catalog.domain.shared.Person;
