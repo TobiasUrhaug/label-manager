@@ -1,4 +1,4 @@
-package org.omt.labelmanager;
+package org.omt.labelmanager.infrastructure.web;
 
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpStatus;

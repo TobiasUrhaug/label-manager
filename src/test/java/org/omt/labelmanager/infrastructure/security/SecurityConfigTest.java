@@ -1,4 +1,4 @@
-package org.omt.labelmanager.config;
+package org.omt.labelmanager.infrastructure.security;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

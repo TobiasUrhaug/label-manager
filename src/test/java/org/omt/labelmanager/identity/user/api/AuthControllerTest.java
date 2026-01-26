@@ -21,7 +21,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest(AuthController.class)
-@Import(org.omt.labelmanager.config.SecurityConfig.class)
+@Import(org.omt.labelmanager.infrastructure.security.SecurityConfig.class)
 class AuthControllerTest {
 
     @Autowired

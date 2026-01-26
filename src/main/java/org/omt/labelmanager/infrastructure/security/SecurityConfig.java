@@ -1,4 +1,4 @@
-package org.omt.labelmanager.config;
+package org.omt.labelmanager.infrastructure.security;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
