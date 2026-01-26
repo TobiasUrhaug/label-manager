@@ -1,4 +1,4 @@
-package org.omt.labelmanager.user.persistence;
+package org.omt.labelmanager.identity.user.persistence;
 
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;

@@ -10,7 +10,7 @@ import org.omt.labelmanager.finance.cost.CostType;
 import org.omt.labelmanager.catalog.release.Release;
 import org.omt.labelmanager.catalog.release.ReleaseCRUDHandler;
 import org.omt.labelmanager.catalog.release.ReleaseFormat;
-import org.omt.labelmanager.user.AppUserDetails;
+import org.omt.labelmanager.identity.user.AppUserDetails;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;

@@ -1,4 +1,4 @@
-package org.omt.labelmanager.user;
+package org.omt.labelmanager.identity.user;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -13,8 +13,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.omt.labelmanager.user.persistence.UserEntity;
-import org.omt.labelmanager.user.persistence.UserRepository;
+import org.omt.labelmanager.identity.user.persistence.UserEntity;
+import org.omt.labelmanager.identity.user.persistence.UserRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 @ExtendWith(MockitoExtension.class)

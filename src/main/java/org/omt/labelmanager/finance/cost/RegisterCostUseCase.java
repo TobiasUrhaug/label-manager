@@ -7,7 +7,7 @@ import org.omt.labelmanager.finance.cost.persistence.CostOwnerEmbeddable;
 import org.omt.labelmanager.finance.cost.persistence.CostRepository;
 import org.omt.labelmanager.catalog.label.persistence.LabelRepository;
 import org.omt.labelmanager.catalog.release.persistence.ReleaseRepository;
-import org.omt.labelmanager.user.persistence.UserRepository;
+import org.omt.labelmanager.identity.user.persistence.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;

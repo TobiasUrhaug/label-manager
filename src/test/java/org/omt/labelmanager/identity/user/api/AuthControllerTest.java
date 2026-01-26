@@ -1,4 +1,4 @@
-package org.omt.labelmanager.user.api;
+package org.omt.labelmanager.identity.user.api;
 
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doThrow;
@@ -12,8 +12,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
 
 import org.junit.jupiter.api.Test;
-import org.omt.labelmanager.user.EmailAlreadyExistsException;
-import org.omt.labelmanager.user.UserCRUDHandler;
+import org.omt.labelmanager.identity.user.EmailAlreadyExistsException;
+import org.omt.labelmanager.identity.user.UserCRUDHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;

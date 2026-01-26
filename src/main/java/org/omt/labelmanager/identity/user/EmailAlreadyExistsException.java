@@ -1,4 +1,4 @@
-package org.omt.labelmanager.user;
+package org.omt.labelmanager.identity.user;
 
 public class EmailAlreadyExistsException extends RuntimeException {
 

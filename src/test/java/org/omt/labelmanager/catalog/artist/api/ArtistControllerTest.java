@@ -20,7 +20,7 @@ import org.omt.labelmanager.catalog.artist.ArtistFactory;
 import org.omt.labelmanager.common.Address;
 import org.omt.labelmanager.common.Person;
 import org.omt.labelmanager.test.TestSecurityConfig;
-import org.omt.labelmanager.user.AppUserDetails;
+import org.omt.labelmanager.identity.user.AppUserDetails;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;

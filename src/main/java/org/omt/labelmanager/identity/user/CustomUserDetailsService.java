@@ -1,7 +1,7 @@
-package org.omt.labelmanager.user;
+package org.omt.labelmanager.identity.user;
 
-import org.omt.labelmanager.user.persistence.UserEntity;
-import org.omt.labelmanager.user.persistence.UserRepository;
+import org.omt.labelmanager.identity.user.persistence.UserEntity;
+import org.omt.labelmanager.identity.user.persistence.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.userdetails.UserDetails;

@@ -27,7 +27,7 @@ import org.omt.labelmanager.catalog.release.ReleaseFactory;
 import org.omt.labelmanager.catalog.release.ReleaseFormat;
 import org.omt.labelmanager.test.TestSecurityConfig;
 import org.omt.labelmanager.catalog.track.TrackFactory;
-import org.omt.labelmanager.user.AppUserDetails;
+import org.omt.labelmanager.identity.user.AppUserDetails;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;

@@ -1,10 +1,10 @@
-package org.omt.labelmanager.user;
+package org.omt.labelmanager.identity.user;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
-import org.omt.labelmanager.user.persistence.UserEntity;
-import org.omt.labelmanager.user.persistence.UserRepository;
+import org.omt.labelmanager.identity.user.persistence.UserEntity;
+import org.omt.labelmanager.identity.user.persistence.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.DynamicPropertyRegistry;
