@@ -150,10 +150,12 @@ Use Test-Driven Development with small, atomic commits. For any feature, break i
 
 1. **A complete, working increment** - tests pass, code compiles
 2. **Committed separately** - one commit per slice
-3. **TDD within each slice**:
-   - Write a failing test first
-   - Implement the minimum to make it pass
-   - Refactor if needed
+3. **TDD within each slice** (Red-Green-Refactor):
+   - **Red**: Write a failing test first
+   - **Green**: Implement the minimum to make it pass
+   - **Refactor**: Clean up the code while tests stay green. Extract well-named helper
+     methods that each capture a single concept. Long methods are a sign that the
+     refactor step was skipped.
    - Commit
 
 ### Example: Adding a new field/feature
