@@ -1,11 +1,11 @@
-package org.omt.labelmanager.cost.persistence;
+package org.omt.labelmanager.finance.cost.persistence;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
-import org.omt.labelmanager.cost.CostOwner;
-import org.omt.labelmanager.cost.CostOwnerType;
+import org.omt.labelmanager.finance.cost.CostOwner;
+import org.omt.labelmanager.finance.cost.CostOwnerType;
 
 @Embeddable
 public class CostOwnerEmbeddable {

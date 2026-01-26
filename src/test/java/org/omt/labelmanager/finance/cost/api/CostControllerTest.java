@@ -1,4 +1,4 @@
-package org.omt.labelmanager.cost.api;
+package org.omt.labelmanager.finance.cost.api;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -13,10 +13,10 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import org.junit.jupiter.api.Test;
 import org.omt.labelmanager.common.Money;
-import org.omt.labelmanager.cost.CostOwner;
-import org.omt.labelmanager.cost.CostType;
-import org.omt.labelmanager.cost.RegisterCostUseCase;
-import org.omt.labelmanager.cost.VatAmount;
+import org.omt.labelmanager.finance.cost.CostOwner;
+import org.omt.labelmanager.finance.cost.CostType;
+import org.omt.labelmanager.finance.cost.RegisterCostUseCase;
+import org.omt.labelmanager.finance.cost.VatAmount;
 import org.omt.labelmanager.test.TestSecurityConfig;
 import org.omt.labelmanager.user.AppUserDetails;
 import org.springframework.beans.factory.annotation.Autowired;

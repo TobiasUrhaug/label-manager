@@ -1,13 +1,13 @@
-package org.omt.labelmanager.cost;
+package org.omt.labelmanager.finance.cost;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import org.junit.jupiter.api.Test;
-import org.omt.labelmanager.cost.persistence.CostEntity;
-import org.omt.labelmanager.cost.persistence.CostOwnerEmbeddable;
-import org.omt.labelmanager.cost.persistence.CostRepository;
+import org.omt.labelmanager.finance.cost.persistence.CostEntity;
+import org.omt.labelmanager.finance.cost.persistence.CostOwnerEmbeddable;
+import org.omt.labelmanager.finance.cost.persistence.CostRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.DynamicPropertyRegistry;

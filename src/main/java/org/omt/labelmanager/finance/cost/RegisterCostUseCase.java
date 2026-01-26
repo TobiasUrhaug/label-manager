@@ -1,10 +1,10 @@
-package org.omt.labelmanager.cost;
+package org.omt.labelmanager.finance.cost;
 
 import java.time.LocalDate;
 import org.omt.labelmanager.common.Money;
-import org.omt.labelmanager.cost.persistence.CostEntity;
-import org.omt.labelmanager.cost.persistence.CostOwnerEmbeddable;
-import org.omt.labelmanager.cost.persistence.CostRepository;
+import org.omt.labelmanager.finance.cost.persistence.CostEntity;
+import org.omt.labelmanager.finance.cost.persistence.CostOwnerEmbeddable;
+import org.omt.labelmanager.finance.cost.persistence.CostRepository;
 import org.omt.labelmanager.catalog.label.persistence.LabelRepository;
 import org.omt.labelmanager.catalog.release.persistence.ReleaseRepository;
 import org.omt.labelmanager.user.persistence.UserRepository;

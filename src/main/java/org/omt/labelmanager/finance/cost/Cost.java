@@ -1,8 +1,8 @@
-package org.omt.labelmanager.cost;
+package org.omt.labelmanager.finance.cost;
 
 import java.time.LocalDate;
 import org.omt.labelmanager.common.Money;
-import org.omt.labelmanager.cost.persistence.CostEntity;
+import org.omt.labelmanager.finance.cost.persistence.CostEntity;
 
 public record Cost(
         Long id,

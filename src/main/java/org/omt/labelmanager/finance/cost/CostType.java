@@ -1,4 +1,4 @@
-package org.omt.labelmanager.cost;
+package org.omt.labelmanager.finance.cost;
 
 public enum CostType {
     MANUFACTURING,
