@@ -1,7 +1,7 @@
 package org.omt.labelmanager.finance.cost.api;
 
 import org.omt.labelmanager.finance.domain.cost.CostOwner;
-import org.omt.labelmanager.finance.cost.RegisterCostUseCase;
+import org.omt.labelmanager.finance.application.RegisterCostUseCase;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;

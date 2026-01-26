@@ -11,6 +11,7 @@ import org.omt.labelmanager.finance.domain.cost.CostOwnerType;
 import org.omt.labelmanager.finance.domain.cost.CostType;
 import org.omt.labelmanager.finance.domain.cost.VatAmount;
 import org.omt.labelmanager.finance.domain.shared.Money;
+import org.omt.labelmanager.finance.application.RegisterCostUseCase;
 import org.omt.labelmanager.finance.cost.persistence.CostRepository;
 import org.omt.labelmanager.catalog.infrastructure.persistence.label.LabelEntity;
 import org.omt.labelmanager.catalog.infrastructure.persistence.label.LabelRepository;

@@ -1,4 +1,4 @@
-package org.omt.labelmanager.finance.cost;
+package org.omt.labelmanager.finance.application;
 
 import java.util.List;
 import org.omt.labelmanager.finance.cost.persistence.CostRepository;

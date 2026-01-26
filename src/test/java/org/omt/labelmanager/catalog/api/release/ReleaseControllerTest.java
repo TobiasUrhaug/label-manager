@@ -19,7 +19,7 @@ import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.omt.labelmanager.catalog.application.ArtistCRUDHandler;
 import org.omt.labelmanager.catalog.domain.artist.ArtistFactory;
-import org.omt.labelmanager.finance.cost.CostQueryService;
+import org.omt.labelmanager.finance.application.CostQueryService;
 import org.omt.labelmanager.catalog.application.LabelCRUDHandler;
 import org.omt.labelmanager.catalog.domain.label.LabelFactory;
 import org.omt.labelmanager.catalog.application.ReleaseCRUDHandler;

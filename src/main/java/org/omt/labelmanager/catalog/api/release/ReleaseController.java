@@ -5,7 +5,7 @@ import java.util.List;
 import org.omt.labelmanager.catalog.domain.artist.Artist;
 import org.omt.labelmanager.catalog.application.ArtistCRUDHandler;
 import org.omt.labelmanager.finance.domain.cost.Cost;
-import org.omt.labelmanager.finance.cost.CostQueryService;
+import org.omt.labelmanager.finance.application.CostQueryService;
 import org.omt.labelmanager.finance.domain.cost.CostType;
 import org.omt.labelmanager.catalog.domain.release.Release;
 import org.omt.labelmanager.catalog.application.ReleaseCRUDHandler;
