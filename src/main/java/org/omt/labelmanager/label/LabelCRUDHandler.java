@@ -1,8 +1,6 @@
 package org.omt.labelmanager.label;
 
 import jakarta.transaction.Transactional;
-import java.util.List;
-import java.util.Optional;
 import org.omt.labelmanager.common.Address;
 import org.omt.labelmanager.common.Person;
 import org.omt.labelmanager.common.persistence.AddressEmbeddable;
@@ -13,6 +11,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+import java.util.Optional;
+
 @Service
 public class LabelCRUDHandler {
 
@@ -22,12 +23,6 @@ public class LabelCRUDHandler {
 
     public LabelCRUDHandler(LabelRepository repository) {
         this.repository = repository;
-    }
-
-    public List<Label> getAllLabels() {
-        List<Label> labels = repository.findAll().stream().map(Label::fromEntity).toList();
-        log.debug("Retrieved {} labels", labels.size());
-        return labels;
     }
 
     public List<Label> getLabelsForUser(Long userId) {
@@ -70,15 +65,6 @@ public class LabelCRUDHandler {
             log.debug("Label with id {} not found", id);
         }
         return label;
-    }
-
-    @Transactional
-    public void updateAddress(Long labelId, Address address) {
-        log.info("Updating address for label {}", labelId);
-        repository.findById(labelId).ifPresent(entity -> {
-            entity.setAddress(AddressEmbeddable.fromAddress(address));
-            repository.save(entity);
-        });
     }
 
     @Transactional

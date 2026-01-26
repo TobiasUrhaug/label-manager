@@ -89,21 +89,6 @@ public class LabelCRUDIntegrationTest {
     }
 
     @Test
-    void updateAddress_setsAddressOnLabel() {
-        var label = new LabelEntity("Label For Address Update", null, null);
-        repo.save(label);
-
-        var address = new Address("456 New Street", null, "Bergen", "5020", "Norway");
-        labelCRUDHandler.updateAddress(label.getId(), address);
-
-        var updated = repo.findById(label.getId());
-        assertThat(updated).isPresent();
-        assertThat(updated.get().getAddress()).isNotNull();
-        assertThat(updated.get().getAddress().getStreet()).isEqualTo("456 New Street");
-        assertThat(updated.get().getAddress().getCity()).isEqualTo("Bergen");
-    }
-
-    @Test
     void labelWithOwner_persistsAndRetrievesOwner() {
         var owner = new PersonEmbeddable("John Doe");
         var label = new LabelEntity("Label With Owner", null, null);

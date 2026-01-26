@@ -96,12 +96,6 @@ public class LabelController {
         return "redirect:/dashboard";
     }
 
-    @PostMapping("/{id}/address")
-    public String updateAddress(@PathVariable Long id, UpdateAddressForm form) {
-        labelCRUDHandler.updateAddress(id, form.toAddress());
-        return "redirect:/labels/" + id;
-    }
-
     @PutMapping("/{id}")
     public String updateLabel(@PathVariable Long id, UpdateLabelForm form) {
         labelCRUDHandler.updateLabel(
