@@ -12,7 +12,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
 
 import org.junit.jupiter.api.Test;
-import org.omt.labelmanager.identity.user.EmailAlreadyExistsException;
+import org.omt.labelmanager.identity.domain.user.EmailAlreadyExistsException;
 import org.omt.labelmanager.identity.user.UserCRUDHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;

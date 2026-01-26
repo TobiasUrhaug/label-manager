@@ -1,6 +1,6 @@
 package org.omt.labelmanager.identity.user.api;
 
-import org.omt.labelmanager.identity.user.EmailAlreadyExistsException;
+import org.omt.labelmanager.identity.domain.user.EmailAlreadyExistsException;
 import org.omt.labelmanager.identity.user.UserCRUDHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -1,6 +1,8 @@
 package org.omt.labelmanager.identity.user;
 
 import java.util.Optional;
+import org.omt.labelmanager.identity.domain.user.EmailAlreadyExistsException;
+import org.omt.labelmanager.identity.domain.user.User;
 import org.omt.labelmanager.identity.user.persistence.UserEntity;
 import org.omt.labelmanager.identity.user.persistence.UserRepository;
 import org.slf4j.Logger;

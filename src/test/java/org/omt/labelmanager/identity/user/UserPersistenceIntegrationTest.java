@@ -3,6 +3,7 @@ package org.omt.labelmanager.identity.user;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
+import org.omt.labelmanager.identity.domain.user.User;
 import org.omt.labelmanager.identity.user.persistence.UserEntity;
 import org.omt.labelmanager.identity.user.persistence.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;

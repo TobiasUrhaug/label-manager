@@ -13,6 +13,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.omt.labelmanager.identity.domain.user.EmailAlreadyExistsException;
+import org.omt.labelmanager.identity.domain.user.User;
 import org.omt.labelmanager.identity.user.persistence.UserEntity;
 import org.omt.labelmanager.identity.user.persistence.UserRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
