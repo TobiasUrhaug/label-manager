@@ -1,9 +1,9 @@
-package org.omt.labelmanager.common;
+package org.omt.labelmanager.catalog.shared;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
-import org.omt.labelmanager.common.persistence.PersonEmbeddable;
+import org.omt.labelmanager.catalog.shared.persistence.PersonEmbeddable;
 
 class PersonTest {
 

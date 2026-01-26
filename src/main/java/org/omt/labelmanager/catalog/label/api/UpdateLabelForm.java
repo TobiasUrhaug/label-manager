@@ -1,7 +1,7 @@
 package org.omt.labelmanager.catalog.label.api;
 
-import org.omt.labelmanager.common.Address;
-import org.omt.labelmanager.common.Person;
+import org.omt.labelmanager.catalog.shared.Address;
+import org.omt.labelmanager.catalog.shared.Person;
 
 public class UpdateLabelForm {
 

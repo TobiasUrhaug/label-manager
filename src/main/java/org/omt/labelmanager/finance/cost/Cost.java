@@ -1,7 +1,7 @@
 package org.omt.labelmanager.finance.cost;
 
 import java.time.LocalDate;
-import org.omt.labelmanager.common.Money;
+import org.omt.labelmanager.finance.shared.Money;
 import org.omt.labelmanager.finance.cost.persistence.CostEntity;
 
 public record Cost(

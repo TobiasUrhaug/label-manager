@@ -9,8 +9,8 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.util.Objects;
-import org.omt.labelmanager.common.persistence.AddressEmbeddable;
-import org.omt.labelmanager.common.persistence.PersonEmbeddable;
+import org.omt.labelmanager.catalog.shared.persistence.AddressEmbeddable;
+import org.omt.labelmanager.catalog.shared.persistence.PersonEmbeddable;
 
 @Entity
 @Table(name = "artist")

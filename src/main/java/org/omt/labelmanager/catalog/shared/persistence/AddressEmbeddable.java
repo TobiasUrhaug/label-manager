@@ -1,7 +1,7 @@
-package org.omt.labelmanager.common.persistence;
+package org.omt.labelmanager.catalog.shared.persistence;
 
 import jakarta.persistence.Embeddable;
-import org.omt.labelmanager.common.Address;
+import org.omt.labelmanager.catalog.shared.Address;
 
 @Embeddable
 public class AddressEmbeddable {

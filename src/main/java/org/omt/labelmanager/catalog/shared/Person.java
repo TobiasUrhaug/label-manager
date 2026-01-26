@@ -1,6 +1,6 @@
-package org.omt.labelmanager.common;
+package org.omt.labelmanager.catalog.shared;
 
-import org.omt.labelmanager.common.persistence.PersonEmbeddable;
+import org.omt.labelmanager.catalog.shared.persistence.PersonEmbeddable;
 
 public record Person(String name) {
 

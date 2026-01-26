@@ -1,7 +1,7 @@
 package org.omt.labelmanager.catalog.label;
 
-import org.omt.labelmanager.common.Address;
-import org.omt.labelmanager.common.Person;
+import org.omt.labelmanager.catalog.shared.Address;
+import org.omt.labelmanager.catalog.shared.Person;
 import org.omt.labelmanager.catalog.label.persistence.LabelEntity;
 
 public record Label(Long id, String name, String email, String website, Address address,

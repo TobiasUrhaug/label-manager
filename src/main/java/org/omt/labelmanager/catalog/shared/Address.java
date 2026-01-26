@@ -1,6 +1,6 @@
-package org.omt.labelmanager.common;
+package org.omt.labelmanager.catalog.shared;
 
-import org.omt.labelmanager.common.persistence.AddressEmbeddable;
+import org.omt.labelmanager.catalog.shared.persistence.AddressEmbeddable;
 
 public record Address(
         String street,

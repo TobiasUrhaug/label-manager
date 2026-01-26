@@ -1,4 +1,4 @@
-package org.omt.labelmanager.common;
+package org.omt.labelmanager.catalog.shared;
 
 public final class AddressFactory {
 

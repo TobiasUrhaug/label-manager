@@ -5,7 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import org.junit.jupiter.api.Test;
-import org.omt.labelmanager.common.Money;
+import org.omt.labelmanager.finance.shared.Money;
 import org.omt.labelmanager.finance.cost.persistence.CostEntity;
 import org.omt.labelmanager.finance.cost.persistence.CostOwnerEmbeddable;
 
