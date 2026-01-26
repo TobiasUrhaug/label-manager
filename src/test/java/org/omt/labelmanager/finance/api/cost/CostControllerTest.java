@@ -1,4 +1,4 @@
-package org.omt.labelmanager.finance.cost.api;
+package org.omt.labelmanager.finance.api.cost;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;

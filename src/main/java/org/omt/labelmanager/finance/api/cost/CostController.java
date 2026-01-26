@@ -1,4 +1,4 @@
-package org.omt.labelmanager.finance.cost.api;
+package org.omt.labelmanager.finance.api.cost;
 
 import org.omt.labelmanager.finance.domain.cost.CostOwner;
 import org.omt.labelmanager.finance.application.RegisterCostUseCase;
