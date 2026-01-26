@@ -1,4 +1,4 @@
-package org.omt.labelmanager.catalog.label.persistence;
+package org.omt.labelmanager.catalog.infrastructure.persistence.label;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

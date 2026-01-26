@@ -1,6 +1,6 @@
 package org.omt.labelmanager.catalog.domain.shared;
 
-import org.omt.labelmanager.catalog.shared.persistence.AddressEmbeddable;
+import org.omt.labelmanager.catalog.infrastructure.persistence.shared.AddressEmbeddable;
 
 public record Address(
         String street,

@@ -1,4 +1,4 @@
-package org.omt.labelmanager.catalog.artist.persistence;
+package org.omt.labelmanager.catalog.infrastructure.persistence.artist;
 
 import java.util.List;
 import java.util.Optional;

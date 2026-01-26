@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.Set;
 import org.omt.labelmanager.catalog.domain.artist.Artist;
 import org.omt.labelmanager.catalog.domain.label.Label;
-import org.omt.labelmanager.catalog.release.persistence.ReleaseEntity;
+import org.omt.labelmanager.catalog.infrastructure.persistence.release.ReleaseEntity;
 import org.omt.labelmanager.catalog.domain.track.Track;
 
 public record Release(

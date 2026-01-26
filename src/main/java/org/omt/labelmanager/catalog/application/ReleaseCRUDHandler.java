@@ -1,15 +1,15 @@
 package org.omt.labelmanager.catalog.application;
 
-import org.omt.labelmanager.catalog.artist.persistence.ArtistEntity;
-import org.omt.labelmanager.catalog.artist.persistence.ArtistRepository;
-import org.omt.labelmanager.catalog.label.persistence.LabelEntity;
-import org.omt.labelmanager.catalog.label.persistence.LabelRepository;
+import org.omt.labelmanager.catalog.infrastructure.persistence.artist.ArtistEntity;
+import org.omt.labelmanager.catalog.infrastructure.persistence.artist.ArtistRepository;
+import org.omt.labelmanager.catalog.infrastructure.persistence.label.LabelEntity;
+import org.omt.labelmanager.catalog.infrastructure.persistence.label.LabelRepository;
 import org.omt.labelmanager.catalog.domain.release.Release;
 import org.omt.labelmanager.catalog.domain.release.ReleaseFormat;
-import org.omt.labelmanager.catalog.release.persistence.ReleaseEntity;
-import org.omt.labelmanager.catalog.release.persistence.ReleaseRepository;
+import org.omt.labelmanager.catalog.infrastructure.persistence.release.ReleaseEntity;
+import org.omt.labelmanager.catalog.infrastructure.persistence.release.ReleaseRepository;
 import org.omt.labelmanager.catalog.domain.track.TrackInput;
-import org.omt.labelmanager.catalog.track.persistence.TrackEntity;
+import org.omt.labelmanager.catalog.infrastructure.persistence.track.TrackEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;

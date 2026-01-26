@@ -1,4 +1,4 @@
-package org.omt.labelmanager.catalog.shared.persistence;
+package org.omt.labelmanager.catalog.infrastructure.persistence.shared;
 
 import jakarta.persistence.Embeddable;
 import org.omt.labelmanager.catalog.domain.shared.Address;

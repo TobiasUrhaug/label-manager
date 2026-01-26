@@ -1,4 +1,4 @@
-package org.omt.labelmanager.catalog.track.persistence;
+package org.omt.labelmanager.catalog.infrastructure.persistence.track;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -11,8 +11,8 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import java.util.ArrayList;
 import java.util.List;
-import org.omt.labelmanager.catalog.artist.persistence.ArtistEntity;
-import org.omt.labelmanager.catalog.release.persistence.ReleaseEntity;
+import org.omt.labelmanager.catalog.infrastructure.persistence.artist.ArtistEntity;
+import org.omt.labelmanager.catalog.infrastructure.persistence.release.ReleaseEntity;
 
 @Entity
 @Table(name = "track")

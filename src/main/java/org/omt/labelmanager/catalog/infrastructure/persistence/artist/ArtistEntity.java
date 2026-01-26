@@ -1,4 +1,4 @@
-package org.omt.labelmanager.catalog.artist.persistence;
+package org.omt.labelmanager.catalog.infrastructure.persistence.artist;
 
 import jakarta.persistence.AttributeOverride;
 import jakarta.persistence.Column;
@@ -9,8 +9,8 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.util.Objects;
-import org.omt.labelmanager.catalog.shared.persistence.AddressEmbeddable;
-import org.omt.labelmanager.catalog.shared.persistence.PersonEmbeddable;
+import org.omt.labelmanager.catalog.infrastructure.persistence.shared.AddressEmbeddable;
+import org.omt.labelmanager.catalog.infrastructure.persistence.shared.PersonEmbeddable;
 
 @Entity
 @Table(name = "artist")

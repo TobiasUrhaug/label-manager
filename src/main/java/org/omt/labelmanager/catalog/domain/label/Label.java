@@ -2,7 +2,7 @@ package org.omt.labelmanager.catalog.domain.label;
 
 import org.omt.labelmanager.catalog.domain.shared.Address;
 import org.omt.labelmanager.catalog.domain.shared.Person;
-import org.omt.labelmanager.catalog.label.persistence.LabelEntity;
+import org.omt.labelmanager.catalog.infrastructure.persistence.label.LabelEntity;
 
 public record Label(Long id, String name, String email, String website, Address address,
                     Person owner, Long userId) {

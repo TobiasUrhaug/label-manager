@@ -3,7 +3,7 @@ package org.omt.labelmanager.catalog.domain.shared;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
-import org.omt.labelmanager.catalog.shared.persistence.PersonEmbeddable;
+import org.omt.labelmanager.catalog.infrastructure.persistence.shared.PersonEmbeddable;
 
 class PersonTest {
 

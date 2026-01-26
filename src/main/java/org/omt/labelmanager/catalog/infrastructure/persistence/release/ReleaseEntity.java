@@ -1,4 +1,4 @@
-package org.omt.labelmanager.catalog.release.persistence;
+package org.omt.labelmanager.catalog.infrastructure.persistence.release;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.CollectionTable;
@@ -23,10 +23,10 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import org.omt.labelmanager.catalog.artist.persistence.ArtistEntity;
-import org.omt.labelmanager.catalog.label.persistence.LabelEntity;
+import org.omt.labelmanager.catalog.infrastructure.persistence.artist.ArtistEntity;
+import org.omt.labelmanager.catalog.infrastructure.persistence.label.LabelEntity;
 import org.omt.labelmanager.catalog.domain.release.ReleaseFormat;
-import org.omt.labelmanager.catalog.track.persistence.TrackEntity;
+import org.omt.labelmanager.catalog.infrastructure.persistence.track.TrackEntity;
 
 @Entity
 @Table(name = "release")

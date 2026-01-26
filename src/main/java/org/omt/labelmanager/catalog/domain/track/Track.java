@@ -2,7 +2,7 @@ package org.omt.labelmanager.catalog.domain.track;
 
 import java.util.List;
 import org.omt.labelmanager.catalog.domain.artist.Artist;
-import org.omt.labelmanager.catalog.track.persistence.TrackEntity;
+import org.omt.labelmanager.catalog.infrastructure.persistence.track.TrackEntity;
 
 public record Track(
         Long id,
