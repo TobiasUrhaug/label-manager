@@ -6,6 +6,8 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import org.junit.jupiter.api.Test;
 import org.omt.labelmanager.common.Money;
+import org.omt.labelmanager.cost.persistence.CostEntity;
+import org.omt.labelmanager.cost.persistence.CostOwnerEmbeddable;
 
 class CostTest {
 
@@ -38,5 +40,35 @@ class CostTest {
         assertThat(cost.description()).isEqualTo("Mastering for album");
         assertThat(cost.owner()).isEqualTo(owner);
         assertThat(cost.documentReference()).isEqualTo("INV-2024-001");
+    }
+
+    @Test
+    void fromEntity_mapsAllFields() {
+        var entity = new CostEntity(
+                "EUR",
+                new BigDecimal("100.00"),
+                new BigDecimal("25.00"),
+                new BigDecimal("0.25"),
+                new BigDecimal("125.00"),
+                CostType.MANUFACTURING,
+                LocalDate.of(2024, 3, 10),
+                "Vinyl pressing",
+                new CostOwnerEmbeddable(CostOwnerType.RELEASE, 42L),
+                "INV-2024-002"
+        );
+
+        var cost = Cost.fromEntity(entity);
+
+        assertThat(cost.netAmount().amount()).isEqualTo(new BigDecimal("100.00"));
+        assertThat(cost.netAmount().currency()).isEqualTo("EUR");
+        assertThat(cost.vat().amount().amount()).isEqualTo(new BigDecimal("25.00"));
+        assertThat(cost.vat().rate()).isEqualTo(new BigDecimal("0.25"));
+        assertThat(cost.grossAmount().amount()).isEqualTo(new BigDecimal("125.00"));
+        assertThat(cost.type()).isEqualTo(CostType.MANUFACTURING);
+        assertThat(cost.incurredOn()).isEqualTo(LocalDate.of(2024, 3, 10));
+        assertThat(cost.description()).isEqualTo("Vinyl pressing");
+        assertThat(cost.owner().type()).isEqualTo(CostOwnerType.RELEASE);
+        assertThat(cost.owner().id()).isEqualTo(42L);
+        assertThat(cost.documentReference()).isEqualTo("INV-2024-002");
     }
 }

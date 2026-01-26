@@ -2,6 +2,7 @@ package org.omt.labelmanager.cost;
 
 import java.time.LocalDate;
 import org.omt.labelmanager.common.Money;
+import org.omt.labelmanager.cost.persistence.CostEntity;
 
 public record Cost(
         Long id,
@@ -14,4 +15,22 @@ public record Cost(
         CostOwner owner,
         String documentReference
 ) {
+
+    public static Cost fromEntity(CostEntity entity) {
+        String currency = entity.getCurrency();
+        return new Cost(
+                entity.getId(),
+                new Money(entity.getNetAmount(), currency),
+                new VatAmount(
+                        new Money(entity.getVatAmount(), currency),
+                        entity.getVatRate()
+                ),
+                new Money(entity.getGrossAmount(), currency),
+                entity.getCostType(),
+                entity.getIncurredOn(),
+                entity.getDescription(),
+                entity.getOwner().toCostOwner(),
+                entity.getDocumentReference()
+        );
+    }
 }
