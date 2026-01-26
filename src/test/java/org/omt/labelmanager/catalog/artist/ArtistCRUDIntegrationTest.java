@@ -3,6 +3,7 @@ package org.omt.labelmanager.catalog.artist;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
+import org.omt.labelmanager.catalog.application.ArtistCRUDHandler;
 import org.omt.labelmanager.catalog.domain.artist.Artist;
 import org.omt.labelmanager.catalog.artist.persistence.ArtistEntity;
 import org.omt.labelmanager.catalog.artist.persistence.ArtistRepository;

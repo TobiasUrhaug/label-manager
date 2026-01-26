@@ -1,4 +1,4 @@
-package org.omt.labelmanager.catalog.label;
+package org.omt.labelmanager.catalog.application;
 
 import jakarta.transaction.Transactional;
 import org.omt.labelmanager.catalog.domain.shared.Address;

@@ -9,10 +9,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import java.util.List;
 import org.junit.jupiter.api.Test;
-import org.omt.labelmanager.catalog.artist.ArtistCRUDHandler;
+import org.omt.labelmanager.catalog.application.ArtistCRUDHandler;
 import org.omt.labelmanager.catalog.domain.artist.ArtistFactory;
 import org.omt.labelmanager.infrastructure.web.dashboard.DashboardController;
-import org.omt.labelmanager.catalog.label.LabelCRUDHandler;
+import org.omt.labelmanager.catalog.application.LabelCRUDHandler;
 import org.omt.labelmanager.catalog.domain.label.LabelFactory;
 import org.omt.labelmanager.test.TestSecurityConfig;
 import org.omt.labelmanager.identity.user.AppUserDetails;

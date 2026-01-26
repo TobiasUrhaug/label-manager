@@ -1,7 +1,7 @@
 package org.omt.labelmanager.catalog.artist.api;
 
 import org.omt.labelmanager.catalog.domain.artist.Artist;
-import org.omt.labelmanager.catalog.artist.ArtistCRUDHandler;
+import org.omt.labelmanager.catalog.application.ArtistCRUDHandler;
 import org.omt.labelmanager.identity.user.AppUserDetails;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

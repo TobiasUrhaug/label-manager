@@ -1,4 +1,4 @@
-package org.omt.labelmanager.catalog.release;
+package org.omt.labelmanager.catalog.application;
 
 import org.omt.labelmanager.catalog.artist.persistence.ArtistEntity;
 import org.omt.labelmanager.catalog.artist.persistence.ArtistRepository;

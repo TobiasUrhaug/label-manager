@@ -1,4 +1,4 @@
-package org.omt.labelmanager.catalog.artist;
+package org.omt.labelmanager.catalog.application;
 
 import jakarta.transaction.Transactional;
 import java.util.List;

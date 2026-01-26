@@ -16,13 +16,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
-import org.omt.labelmanager.catalog.artist.ArtistCRUDHandler;
+import org.omt.labelmanager.catalog.application.ArtistCRUDHandler;
 import org.omt.labelmanager.catalog.domain.artist.ArtistFactory;
 import org.omt.labelmanager.catalog.domain.shared.Address;
 import org.omt.labelmanager.catalog.domain.shared.Person;
-import org.omt.labelmanager.catalog.label.LabelCRUDHandler;
+import org.omt.labelmanager.catalog.application.LabelCRUDHandler;
 import org.omt.labelmanager.catalog.domain.label.LabelFactory;
-import org.omt.labelmanager.catalog.release.ReleaseCRUDHandler;
+import org.omt.labelmanager.catalog.application.ReleaseCRUDHandler;
 import org.omt.labelmanager.catalog.domain.release.ReleaseFactory;
 import org.omt.labelmanager.test.TestSecurityConfig;
 import org.omt.labelmanager.identity.user.AppUserDetails;

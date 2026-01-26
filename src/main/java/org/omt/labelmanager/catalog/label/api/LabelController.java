@@ -2,11 +2,11 @@ package org.omt.labelmanager.catalog.label.api;
 
 import java.util.List;
 import org.omt.labelmanager.catalog.domain.artist.Artist;
-import org.omt.labelmanager.catalog.artist.ArtistCRUDHandler;
+import org.omt.labelmanager.catalog.application.ArtistCRUDHandler;
 import org.omt.labelmanager.catalog.domain.label.Label;
-import org.omt.labelmanager.catalog.label.LabelCRUDHandler;
+import org.omt.labelmanager.catalog.application.LabelCRUDHandler;
 import org.omt.labelmanager.catalog.domain.release.Release;
-import org.omt.labelmanager.catalog.release.ReleaseCRUDHandler;
+import org.omt.labelmanager.catalog.application.ReleaseCRUDHandler;
 import org.omt.labelmanager.catalog.domain.release.ReleaseFormat;
 import org.omt.labelmanager.identity.user.AppUserDetails;
 import org.slf4j.Logger;

@@ -10,6 +10,7 @@ import org.omt.labelmanager.catalog.artist.persistence.ArtistEntity;
 import org.omt.labelmanager.catalog.artist.persistence.ArtistRepository;
 import org.omt.labelmanager.catalog.label.persistence.LabelEntity;
 import org.omt.labelmanager.catalog.label.persistence.LabelRepository;
+import org.omt.labelmanager.catalog.application.ReleaseCRUDHandler;
 import org.omt.labelmanager.catalog.domain.release.Release;
 import org.omt.labelmanager.catalog.domain.release.ReleaseFormat;
 import org.omt.labelmanager.catalog.release.persistence.ReleaseRepository;

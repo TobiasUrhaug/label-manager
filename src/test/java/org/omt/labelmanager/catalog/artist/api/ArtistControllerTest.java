@@ -15,7 +15,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
-import org.omt.labelmanager.catalog.artist.ArtistCRUDHandler;
+import org.omt.labelmanager.catalog.application.ArtistCRUDHandler;
 import org.omt.labelmanager.catalog.domain.artist.ArtistFactory;
 import org.omt.labelmanager.catalog.domain.shared.Address;
 import org.omt.labelmanager.catalog.domain.shared.Person;
