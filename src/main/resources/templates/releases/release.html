@@ -65,12 +65,10 @@
         </div>
     </div>
 
-    <div class="d-flex justify-content-between align-items-center mt-4 mb-3">
+    <div class="d-flex align-items-center gap-2 mt-4 mb-3">
         <h2 class="h4 mb-0">Costs</h2>
         <button type="button" class="btn btn-outline-primary btn-sm"
-                data-bs-toggle="modal" data-bs-target="#addCostModal">
-            Add Cost
-        </button>
+                data-bs-toggle="modal" data-bs-target="#addCostModal">+</button>
     </div>
     <div class="card mb-4">
         <div class="card-body p-0">
@@ -154,10 +152,11 @@
                             <label for="documentReference" class="form-label">Document Reference (optional)</label>
                             <input type="text" class="form-control" id="documentReference" name="documentReference" placeholder="e.g., INV-2024-001">
                         </div>
+                        <div id="costValidationError" class="alert alert-danger d-none"></div>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-primary">Add Cost</button>
+                        <button type="submit" class="btn btn-primary" id="addCostSubmit">Add Cost</button>
                     </div>
                 </form>
             </div>
@@ -440,6 +439,43 @@
                 const trackRow = e.target.closest('.track-row');
                 addEditTrackArtist(trackRow, e.target.value);
             }
+        });
+
+        // Cost form validation
+        const addCostForm = document.querySelector('#addCostModal form');
+        const costValidationError = document.getElementById('costValidationError');
+
+        addCostForm.addEventListener('submit', function(e) {
+            const netAmount = parseFloat(document.getElementById('netAmount').value) || 0;
+            const vatRate = parseFloat(document.getElementById('vatRate').value) || 0;
+            const vatAmount = parseFloat(document.getElementById('vatAmount').value) || 0;
+            const grossAmount = parseFloat(document.getElementById('grossAmount').value) || 0;
+
+            const expectedVat = Math.round(netAmount * vatRate * 100) / 100;
+            const expectedGross = Math.round((netAmount + vatAmount) * 100) / 100;
+
+            const errors = [];
+
+            if (Math.abs(vatAmount - expectedVat) > 0.01) {
+                errors.push(`VAT amount (${vatAmount.toFixed(2)}) should be ${expectedVat.toFixed(2)} (net × rate)`);
+            }
+
+            if (Math.abs(grossAmount - expectedGross) > 0.01) {
+                errors.push(`Gross amount (${grossAmount.toFixed(2)}) should be ${expectedGross.toFixed(2)} (net + VAT)`);
+            }
+
+            if (errors.length > 0) {
+                e.preventDefault();
+                costValidationError.innerHTML = errors.join('<br>');
+                costValidationError.classList.remove('d-none');
+            } else {
+                costValidationError.classList.add('d-none');
+            }
+        });
+
+        // Clear validation error when modal is closed
+        document.getElementById('addCostModal').addEventListener('hidden.bs.modal', function() {
+            costValidationError.classList.add('d-none');
         });
     });
     </script>
