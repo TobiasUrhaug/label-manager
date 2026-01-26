@@ -1,7 +1,7 @@
 package org.omt.labelmanager.dashboard.api;
 
-import org.omt.labelmanager.artist.ArtistCRUDHandler;
-import org.omt.labelmanager.label.LabelCRUDHandler;
+import org.omt.labelmanager.catalog.artist.ArtistCRUDHandler;
+import org.omt.labelmanager.catalog.label.LabelCRUDHandler;
 import org.omt.labelmanager.user.AppUserDetails;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
