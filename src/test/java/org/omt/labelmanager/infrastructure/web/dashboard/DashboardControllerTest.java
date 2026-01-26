@@ -15,7 +15,7 @@ import org.omt.labelmanager.infrastructure.web.dashboard.DashboardController;
 import org.omt.labelmanager.catalog.application.LabelCRUDHandler;
 import org.omt.labelmanager.catalog.domain.label.LabelFactory;
 import org.omt.labelmanager.test.TestSecurityConfig;
-import org.omt.labelmanager.identity.user.AppUserDetails;
+import org.omt.labelmanager.identity.application.AppUserDetails;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;

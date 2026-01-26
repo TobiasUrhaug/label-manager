@@ -1,6 +1,6 @@
 package org.omt.labelmanager.test;
 
-import org.omt.labelmanager.identity.user.AppUserDetails;
+import org.omt.labelmanager.identity.application.AppUserDetails;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;

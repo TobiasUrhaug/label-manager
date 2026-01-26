@@ -1,4 +1,4 @@
-package org.omt.labelmanager.identity.user;
+package org.omt.labelmanager.identity.application;
 
 import org.omt.labelmanager.identity.user.persistence.UserEntity;
 import org.omt.labelmanager.identity.user.persistence.UserRepository;

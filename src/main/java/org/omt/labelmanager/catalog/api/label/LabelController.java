@@ -8,7 +8,7 @@ import org.omt.labelmanager.catalog.application.LabelCRUDHandler;
 import org.omt.labelmanager.catalog.domain.release.Release;
 import org.omt.labelmanager.catalog.application.ReleaseCRUDHandler;
 import org.omt.labelmanager.catalog.domain.release.ReleaseFormat;
-import org.omt.labelmanager.identity.user.AppUserDetails;
+import org.omt.labelmanager.identity.application.AppUserDetails;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;

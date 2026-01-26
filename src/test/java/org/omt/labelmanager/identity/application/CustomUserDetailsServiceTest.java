@@ -1,4 +1,4 @@
-package org.omt.labelmanager.identity.user;
+package org.omt.labelmanager.identity.application;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
