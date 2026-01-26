@@ -5,9 +5,9 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import org.omt.labelmanager.catalog.release.ReleaseFormat;
-import org.omt.labelmanager.catalog.track.TrackDuration;
-import org.omt.labelmanager.catalog.track.TrackInput;
+import org.omt.labelmanager.catalog.domain.release.ReleaseFormat;
+import org.omt.labelmanager.catalog.domain.track.TrackDuration;
+import org.omt.labelmanager.catalog.domain.track.TrackInput;
 
 public class UpdateReleaseForm {
 

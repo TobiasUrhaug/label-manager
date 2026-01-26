@@ -1,7 +1,7 @@
 package org.omt.labelmanager.catalog.shared.persistence;
 
 import jakarta.persistence.Embeddable;
-import org.omt.labelmanager.catalog.shared.Person;
+import org.omt.labelmanager.catalog.domain.shared.Person;
 
 @Embeddable
 public class PersonEmbeddable {

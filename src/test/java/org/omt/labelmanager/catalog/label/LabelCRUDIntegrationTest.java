@@ -3,8 +3,8 @@ package org.omt.labelmanager.catalog.label;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
-import org.omt.labelmanager.catalog.shared.Address;
-import org.omt.labelmanager.catalog.shared.Person;
+import org.omt.labelmanager.catalog.domain.shared.Address;
+import org.omt.labelmanager.catalog.domain.shared.Person;
 import org.omt.labelmanager.catalog.shared.persistence.AddressEmbeddable;
 import org.omt.labelmanager.catalog.shared.persistence.PersonEmbeddable;
 import org.omt.labelmanager.catalog.label.persistence.LabelEntity;

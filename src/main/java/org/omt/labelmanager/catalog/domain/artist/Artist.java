@@ -1,8 +1,8 @@
-package org.omt.labelmanager.catalog.artist;
+package org.omt.labelmanager.catalog.domain.artist;
 
 import org.omt.labelmanager.catalog.artist.persistence.ArtistEntity;
-import org.omt.labelmanager.catalog.shared.Address;
-import org.omt.labelmanager.catalog.shared.Person;
+import org.omt.labelmanager.catalog.domain.shared.Address;
+import org.omt.labelmanager.catalog.domain.shared.Person;
 
 public record Artist(
         Long id,

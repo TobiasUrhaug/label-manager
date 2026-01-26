@@ -1,4 +1,4 @@
-package org.omt.labelmanager.catalog.shared;
+package org.omt.labelmanager.catalog.domain.shared;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

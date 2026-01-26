@@ -25,7 +25,7 @@ import java.util.List;
 import java.util.Set;
 import org.omt.labelmanager.catalog.artist.persistence.ArtistEntity;
 import org.omt.labelmanager.catalog.label.persistence.LabelEntity;
-import org.omt.labelmanager.catalog.release.ReleaseFormat;
+import org.omt.labelmanager.catalog.domain.release.ReleaseFormat;
 import org.omt.labelmanager.catalog.track.persistence.TrackEntity;
 
 @Entity

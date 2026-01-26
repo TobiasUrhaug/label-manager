@@ -1,8 +1,8 @@
-package org.omt.labelmanager.catalog.artist;
+package org.omt.labelmanager.catalog.domain.artist;
 
 import java.util.concurrent.atomic.AtomicLong;
-import org.omt.labelmanager.catalog.shared.Address;
-import org.omt.labelmanager.catalog.shared.Person;
+import org.omt.labelmanager.catalog.domain.shared.Address;
+import org.omt.labelmanager.catalog.domain.shared.Person;
 
 public final class ArtistFactory {
 

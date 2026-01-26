@@ -1,4 +1,4 @@
-package org.omt.labelmanager.catalog.shared;
+package org.omt.labelmanager.catalog.domain.shared;
 
 import org.omt.labelmanager.catalog.shared.persistence.PersonEmbeddable;
 

@@ -1,9 +1,9 @@
-package org.omt.labelmanager.catalog.track;
+package org.omt.labelmanager.catalog.domain.track;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
-import org.omt.labelmanager.catalog.artist.Artist;
+import org.omt.labelmanager.catalog.domain.artist.Artist;
 
 public final class TrackFactory {
 

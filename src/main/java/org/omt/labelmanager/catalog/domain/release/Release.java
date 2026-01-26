@@ -1,12 +1,12 @@
-package org.omt.labelmanager.catalog.release;
+package org.omt.labelmanager.catalog.domain.release;
 
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Set;
-import org.omt.labelmanager.catalog.artist.Artist;
-import org.omt.labelmanager.catalog.label.Label;
+import org.omt.labelmanager.catalog.domain.artist.Artist;
+import org.omt.labelmanager.catalog.domain.label.Label;
 import org.omt.labelmanager.catalog.release.persistence.ReleaseEntity;
-import org.omt.labelmanager.catalog.track.Track;
+import org.omt.labelmanager.catalog.domain.track.Track;
 
 public record Release(
         Long id,

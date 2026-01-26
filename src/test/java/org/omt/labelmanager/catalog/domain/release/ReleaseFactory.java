@@ -1,4 +1,4 @@
-package org.omt.labelmanager.catalog.release;
+package org.omt.labelmanager.catalog.domain.release;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -6,11 +6,11 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
-import org.omt.labelmanager.catalog.artist.Artist;
-import org.omt.labelmanager.catalog.label.Label;
-import org.omt.labelmanager.catalog.label.LabelFactory;
-import org.omt.labelmanager.catalog.track.Track;
-import org.omt.labelmanager.catalog.track.TrackFactory;
+import org.omt.labelmanager.catalog.domain.artist.Artist;
+import org.omt.labelmanager.catalog.domain.label.Label;
+import org.omt.labelmanager.catalog.domain.label.LabelFactory;
+import org.omt.labelmanager.catalog.domain.track.Track;
+import org.omt.labelmanager.catalog.domain.track.TrackFactory;
 
 public final class ReleaseFactory {
 

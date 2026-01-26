@@ -2,14 +2,14 @@ package org.omt.labelmanager.catalog.release.api;
 
 import java.time.LocalDate;
 import java.util.List;
-import org.omt.labelmanager.catalog.artist.Artist;
+import org.omt.labelmanager.catalog.domain.artist.Artist;
 import org.omt.labelmanager.catalog.artist.ArtistCRUDHandler;
 import org.omt.labelmanager.finance.cost.Cost;
 import org.omt.labelmanager.finance.cost.CostQueryService;
 import org.omt.labelmanager.finance.cost.CostType;
-import org.omt.labelmanager.catalog.release.Release;
+import org.omt.labelmanager.catalog.domain.release.Release;
 import org.omt.labelmanager.catalog.release.ReleaseCRUDHandler;
-import org.omt.labelmanager.catalog.release.ReleaseFormat;
+import org.omt.labelmanager.catalog.domain.release.ReleaseFormat;
 import org.omt.labelmanager.identity.user.AppUserDetails;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
