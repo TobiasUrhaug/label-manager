@@ -6,8 +6,8 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import org.junit.jupiter.api.Test;
 import org.omt.labelmanager.finance.domain.shared.Money;
-import org.omt.labelmanager.finance.cost.persistence.CostEntity;
-import org.omt.labelmanager.finance.cost.persistence.CostOwnerEmbeddable;
+import org.omt.labelmanager.finance.infrastructure.persistence.cost.CostEntity;
+import org.omt.labelmanager.finance.infrastructure.persistence.cost.CostOwnerEmbeddable;
 
 class CostTest {
 

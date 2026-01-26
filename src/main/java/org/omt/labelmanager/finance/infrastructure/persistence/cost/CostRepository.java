@@ -1,4 +1,4 @@
-package org.omt.labelmanager.finance.cost.persistence;
+package org.omt.labelmanager.finance.infrastructure.persistence.cost;
 
 import java.util.List;
 import org.omt.labelmanager.finance.domain.cost.CostOwnerType;
