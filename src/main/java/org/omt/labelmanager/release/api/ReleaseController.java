@@ -4,6 +4,9 @@ import java.time.LocalDate;
 import java.util.List;
 import org.omt.labelmanager.artist.Artist;
 import org.omt.labelmanager.artist.ArtistCRUDHandler;
+import org.omt.labelmanager.cost.Cost;
+import org.omt.labelmanager.cost.CostQueryService;
+import org.omt.labelmanager.cost.CostType;
 import org.omt.labelmanager.release.Release;
 import org.omt.labelmanager.release.ReleaseCRUDHandler;
 import org.omt.labelmanager.release.ReleaseFormat;
@@ -31,13 +34,16 @@ public class ReleaseController {
 
     private final ReleaseCRUDHandler releaseCRUDHandler;
     private final ArtistCRUDHandler artistCRUDHandler;
+    private final CostQueryService costQueryService;
 
     public ReleaseController(
             ReleaseCRUDHandler releaseCRUDHandler,
-            ArtistCRUDHandler artistCRUDHandler
+            ArtistCRUDHandler artistCRUDHandler,
+            CostQueryService costQueryService
     ) {
         this.releaseCRUDHandler = releaseCRUDHandler;
         this.artistCRUDHandler = artistCRUDHandler;
+        this.costQueryService = costQueryService;
     }
 
     @PostMapping
@@ -74,6 +80,7 @@ public class ReleaseController {
                 });
 
         List<Artist> allArtists = artistCRUDHandler.getArtistsForUser(user.getId());
+        List<Cost> costs = costQueryService.getCostsForRelease(releaseId);
 
         model.addAttribute("name", release.name());
         model.addAttribute("labelId", labelId);
@@ -84,6 +91,8 @@ public class ReleaseController {
         model.addAttribute("formats", release.formats());
         model.addAttribute("allArtists", allArtists);
         model.addAttribute("allFormats", ReleaseFormat.values());
+        model.addAttribute("costs", costs);
+        model.addAttribute("allCostTypes", CostType.values());
 
         return "/releases/release";
     }

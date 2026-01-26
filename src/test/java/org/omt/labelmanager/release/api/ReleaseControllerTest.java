@@ -19,6 +19,7 @@ import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.omt.labelmanager.artist.ArtistCRUDHandler;
 import org.omt.labelmanager.artist.ArtistFactory;
+import org.omt.labelmanager.cost.CostQueryService;
 import org.omt.labelmanager.label.LabelCRUDHandler;
 import org.omt.labelmanager.label.LabelFactory;
 import org.omt.labelmanager.release.ReleaseCRUDHandler;
@@ -48,6 +49,9 @@ class ReleaseControllerTest {
 
     @MockitoBean
     private ArtistCRUDHandler artistCRUDHandler;
+
+    @MockitoBean
+    private CostQueryService costQueryService;
 
     private final AppUserDetails testUser =
             new AppUserDetails(1L, "test@example.com", "password", "Test User");
