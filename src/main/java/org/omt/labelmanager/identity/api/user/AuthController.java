@@ -1,4 +1,4 @@
-package org.omt.labelmanager.identity.user.api;
+package org.omt.labelmanager.identity.api.user;
 
 import org.omt.labelmanager.identity.domain.user.EmailAlreadyExistsException;
 import org.omt.labelmanager.identity.application.UserCRUDHandler;

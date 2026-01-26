@@ -1,4 +1,4 @@
-package org.omt.labelmanager.identity.user.api;
+package org.omt.labelmanager.identity.api.user;
 
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doThrow;

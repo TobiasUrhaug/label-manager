@@ -1,4 +1,4 @@
-package org.omt.labelmanager.identity.user.api;
+package org.omt.labelmanager.identity.api.user;
 
 public class RegistrationForm {
 
