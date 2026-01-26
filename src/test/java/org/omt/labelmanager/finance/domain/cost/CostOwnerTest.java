@@ -1,4 +1,4 @@
-package org.omt.labelmanager.finance.cost;
+package org.omt.labelmanager.finance.domain.cost;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

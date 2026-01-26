@@ -1,10 +1,10 @@
-package org.omt.labelmanager.finance.cost;
+package org.omt.labelmanager.finance.domain.cost;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.math.BigDecimal;
 import org.junit.jupiter.api.Test;
-import org.omt.labelmanager.finance.shared.Money;
+import org.omt.labelmanager.finance.domain.shared.Money;
 
 class VatAmountTest {
 

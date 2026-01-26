@@ -1,7 +1,10 @@
 package org.omt.labelmanager.finance.cost;
 
 import java.time.LocalDate;
-import org.omt.labelmanager.finance.shared.Money;
+import org.omt.labelmanager.finance.domain.cost.CostOwner;
+import org.omt.labelmanager.finance.domain.cost.CostType;
+import org.omt.labelmanager.finance.domain.cost.VatAmount;
+import org.omt.labelmanager.finance.domain.shared.Money;
 import org.omt.labelmanager.finance.cost.persistence.CostEntity;
 import org.omt.labelmanager.finance.cost.persistence.CostOwnerEmbeddable;
 import org.omt.labelmanager.finance.cost.persistence.CostRepository;

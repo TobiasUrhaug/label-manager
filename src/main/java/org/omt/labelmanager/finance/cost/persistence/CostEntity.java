@@ -11,7 +11,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import org.omt.labelmanager.finance.cost.CostType;
+import org.omt.labelmanager.finance.domain.cost.CostType;
 
 @Entity
 @Table(name = "cost")

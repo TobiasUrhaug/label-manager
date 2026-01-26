@@ -12,11 +12,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import org.junit.jupiter.api.Test;
-import org.omt.labelmanager.finance.shared.Money;
-import org.omt.labelmanager.finance.cost.CostOwner;
-import org.omt.labelmanager.finance.cost.CostType;
+import org.omt.labelmanager.finance.domain.shared.Money;
+import org.omt.labelmanager.finance.domain.cost.CostOwner;
+import org.omt.labelmanager.finance.domain.cost.CostType;
 import org.omt.labelmanager.finance.cost.RegisterCostUseCase;
-import org.omt.labelmanager.finance.cost.VatAmount;
+import org.omt.labelmanager.finance.domain.cost.VatAmount;
 import org.omt.labelmanager.test.TestSecurityConfig;
 import org.omt.labelmanager.identity.user.AppUserDetails;
 import org.springframework.beans.factory.annotation.Autowired;

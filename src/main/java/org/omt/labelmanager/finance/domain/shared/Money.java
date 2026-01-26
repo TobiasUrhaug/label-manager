@@ -1,4 +1,4 @@
-package org.omt.labelmanager.finance.shared;
+package org.omt.labelmanager.finance.domain.shared;
 
 import java.math.BigDecimal;
 
