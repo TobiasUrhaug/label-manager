@@ -1,9 +1,5 @@
 package org.omt.labelmanager.release;
 
-import java.time.LocalDate;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
 import org.omt.labelmanager.artist.persistence.ArtistEntity;
 import org.omt.labelmanager.artist.persistence.ArtistRepository;
 import org.omt.labelmanager.label.persistence.LabelEntity;
@@ -16,6 +12,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDate;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
 @Service
 public class ReleaseCRUDHandler {
@@ -52,10 +53,7 @@ public class ReleaseCRUDHandler {
             Set<ReleaseFormat> formats
     ) {
         log.info("Creating release '{}' for label {} with {} tracks", name, labelId, tracks.size());
-        if (tracks.isEmpty()) {
-            log.warn("Cannot create release '{}': at least one track is required", name);
-            throw new IllegalArgumentException("At least one track is required");
-        }
+        requireAtLeastOneTrack(tracks, name);
         LabelEntity labelEntity = labelRepository.findById(labelId)
                 .orElseThrow(() -> {
                     log.warn("Cannot create release: label {} not found", labelId);
@@ -65,25 +63,43 @@ public class ReleaseCRUDHandler {
         List<ArtistEntity> releaseArtists = artistRepository.findAllById(artistIds);
         log.debug("Found {} artists for release", releaseArtists.size());
 
+        ReleaseEntity release = createReleaseEntity(name, releaseDate, formats, labelEntity, releaseArtists);
+        addTracksToRelease(tracks, release);
+        releaseRepository.save(release);
+    }
+
+    private void requireAtLeastOneTrack(List<TrackInput> tracks, String releaseIdentifier) {
+        if (tracks.isEmpty()) {
+            log.warn("Release '{}' requires at least one track", releaseIdentifier);
+            throw new IllegalArgumentException("At least one track is required");
+        }
+    }
+
+    private static ReleaseEntity createReleaseEntity(String name, LocalDate releaseDate, Set<ReleaseFormat> formats, LabelEntity labelEntity, List<ArtistEntity> releaseArtists) {
         ReleaseEntity release = new ReleaseEntity();
         release.setName(name);
         release.setReleaseDate(releaseDate);
         release.setLabel(labelEntity);
         release.setArtists(releaseArtists);
         release.setFormats(formats);
+        return release;
+    }
 
-        for (TrackInput trackInput : tracks) {
-            List<ArtistEntity> trackArtists = artistRepository.findAllById(trackInput.artistIds());
-            TrackEntity trackEntity = new TrackEntity();
-            trackEntity.setArtists(trackArtists);
-            trackEntity.setName(trackInput.name());
-            trackEntity.setDurationSeconds(trackInput.duration().totalSeconds());
-            trackEntity.setPosition(trackInput.position());
-            trackEntity.setRelease(release);
-            release.getTracks().add(trackEntity);
-        }
+    private void addTracksToRelease(List<TrackInput> tracks, ReleaseEntity release) {
+        tracks.stream()
+                .map(trackInput -> createTrackEntity(trackInput, release))
+                .forEach(release.getTracks()::add);
+    }
 
-        releaseRepository.save(release);
+    private TrackEntity createTrackEntity(TrackInput trackInput, ReleaseEntity release) {
+        List<ArtistEntity> trackArtists = artistRepository.findAllById(trackInput.artistIds());
+        TrackEntity trackEntity = new TrackEntity();
+        trackEntity.setArtists(trackArtists);
+        trackEntity.setName(trackInput.name());
+        trackEntity.setDurationSeconds(trackInput.duration().totalSeconds());
+        trackEntity.setPosition(trackInput.position());
+        trackEntity.setRelease(release);
+        return trackEntity;
     }
 
     public Optional<Release> findById(long id) {
@@ -104,10 +120,7 @@ public class ReleaseCRUDHandler {
             Set<ReleaseFormat> formats
     ) {
         log.info("Updating release {} with {} tracks", id, tracks.size());
-        if (tracks.isEmpty()) {
-            log.warn("Cannot update release {}: at least one track is required", id);
-            throw new IllegalArgumentException("At least one track is required");
-        }
+        requireAtLeastOneTrack(tracks, id.toString());
 
         ReleaseEntity release = releaseRepository.findById(id)
                 .orElseThrow(() -> {
@@ -123,17 +136,7 @@ public class ReleaseCRUDHandler {
         release.setArtists(releaseArtists);
 
         release.getTracks().clear();
-
-        for (TrackInput trackInput : tracks) {
-            List<ArtistEntity> trackArtists = artistRepository.findAllById(trackInput.artistIds());
-            TrackEntity trackEntity = new TrackEntity();
-            trackEntity.setArtists(trackArtists);
-            trackEntity.setName(trackInput.name());
-            trackEntity.setDurationSeconds(trackInput.duration().totalSeconds());
-            trackEntity.setPosition(trackInput.position());
-            trackEntity.setRelease(release);
-            release.getTracks().add(trackEntity);
-        }
+        addTracksToRelease(tracks, release);
 
         releaseRepository.save(release);
     }
