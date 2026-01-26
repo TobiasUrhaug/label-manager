@@ -1,7 +1,7 @@
 package org.omt.labelmanager.identity.domain.user;
 
 import java.time.Instant;
-import org.omt.labelmanager.identity.user.persistence.UserEntity;
+import org.omt.labelmanager.identity.infrastructure.persistence.user.UserEntity;
 
 public record User(Long id, String email, String password, String displayName, Instant createdAt) {
 

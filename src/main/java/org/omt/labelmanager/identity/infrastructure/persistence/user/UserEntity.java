@@ -1,4 +1,4 @@
-package org.omt.labelmanager.identity.user.persistence;
+package org.omt.labelmanager.identity.infrastructure.persistence.user;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

@@ -10,8 +10,8 @@ import org.omt.labelmanager.catalog.infrastructure.persistence.shared.AddressEmb
 import org.omt.labelmanager.catalog.infrastructure.persistence.shared.PersonEmbeddable;
 import org.omt.labelmanager.catalog.infrastructure.persistence.label.LabelEntity;
 import org.omt.labelmanager.catalog.infrastructure.persistence.label.LabelRepository;
-import org.omt.labelmanager.identity.user.persistence.UserEntity;
-import org.omt.labelmanager.identity.user.persistence.UserRepository;
+import org.omt.labelmanager.identity.infrastructure.persistence.user.UserEntity;
+import org.omt.labelmanager.identity.infrastructure.persistence.user.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.DynamicPropertyRegistry;

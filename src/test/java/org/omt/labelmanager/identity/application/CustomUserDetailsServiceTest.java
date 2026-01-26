@@ -10,8 +10,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.omt.labelmanager.identity.user.persistence.UserEntity;
-import org.omt.labelmanager.identity.user.persistence.UserRepository;
+import org.omt.labelmanager.identity.infrastructure.persistence.user.UserEntity;
+import org.omt.labelmanager.identity.infrastructure.persistence.user.UserRepository;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
 @ExtendWith(MockitoExtension.class)

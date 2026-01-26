@@ -15,8 +15,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.omt.labelmanager.identity.domain.user.EmailAlreadyExistsException;
 import org.omt.labelmanager.identity.domain.user.User;
-import org.omt.labelmanager.identity.user.persistence.UserEntity;
-import org.omt.labelmanager.identity.user.persistence.UserRepository;
+import org.omt.labelmanager.identity.infrastructure.persistence.user.UserEntity;
+import org.omt.labelmanager.identity.infrastructure.persistence.user.UserRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 @ExtendWith(MockitoExtension.class)
