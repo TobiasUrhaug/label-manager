@@ -130,4 +130,24 @@ public class CostEntity {
     public String getDocumentStorageKey() {
         return documentStorageKey;
     }
+
+    public void update(
+            BigDecimal netAmount,
+            BigDecimal vatAmount,
+            BigDecimal vatRate,
+            BigDecimal grossAmount,
+            CostType costType,
+            LocalDate incurredOn,
+            String description,
+            String documentReference
+    ) {
+        this.netAmount = netAmount;
+        this.vatAmount = vatAmount;
+        this.vatRate = vatRate;
+        this.grossAmount = grossAmount;
+        this.costType = costType;
+        this.incurredOn = incurredOn;
+        this.description = description;
+        this.documentReference = documentReference;
+    }
 }
