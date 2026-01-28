@@ -13,7 +13,8 @@ public record Cost(
         LocalDate incurredOn,
         String description,
         CostOwner owner,
-        String documentReference
+        String documentReference,
+        String documentStorageKey
 ) {
 
     public static Cost fromEntity(CostEntity entity) {
@@ -30,7 +31,8 @@ public record Cost(
                 entity.getIncurredOn(),
                 entity.getDescription(),
                 entity.getOwner().toCostOwner(),
-                entity.getDocumentReference()
+                entity.getDocumentReference(),
+                entity.getDocumentStorageKey()
         );
     }
 }

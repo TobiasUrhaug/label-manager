@@ -51,6 +51,9 @@ public class CostEntity {
     @Column(name = "document_reference")
     private String documentReference;
 
+    @Column(name = "document_storage_key")
+    private String documentStorageKey;
+
     protected CostEntity() {
     }
 
@@ -64,7 +67,8 @@ public class CostEntity {
             LocalDate incurredOn,
             String description,
             CostOwnerEmbeddable owner,
-            String documentReference
+            String documentReference,
+            String documentStorageKey
     ) {
         this.currency = currency;
         this.netAmount = netAmount;
@@ -76,6 +80,7 @@ public class CostEntity {
         this.description = description;
         this.owner = owner;
         this.documentReference = documentReference;
+        this.documentStorageKey = documentStorageKey;
     }
 
     public Long getId() {
@@ -120,5 +125,9 @@ public class CostEntity {
 
     public String getDocumentReference() {
         return documentReference;
+    }
+
+    public String getDocumentStorageKey() {
+        return documentStorageKey;
     }
 }

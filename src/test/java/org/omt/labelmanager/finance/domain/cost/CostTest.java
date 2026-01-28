@@ -28,7 +28,8 @@ class CostTest {
                 incurredOn,
                 "Mastering for album",
                 owner,
-                "INV-2024-001"
+                "INV-2024-001",
+                "costs/uuid/invoice.pdf"
         );
 
         assertThat(cost.id()).isEqualTo(1L);
@@ -40,6 +41,7 @@ class CostTest {
         assertThat(cost.description()).isEqualTo("Mastering for album");
         assertThat(cost.owner()).isEqualTo(owner);
         assertThat(cost.documentReference()).isEqualTo("INV-2024-001");
+        assertThat(cost.documentStorageKey()).isEqualTo("costs/uuid/invoice.pdf");
     }
 
     @Test
@@ -54,7 +56,8 @@ class CostTest {
                 LocalDate.of(2024, 3, 10),
                 "Vinyl pressing",
                 new CostOwnerEmbeddable(CostOwnerType.RELEASE, 42L),
-                "INV-2024-002"
+                "INV-2024-002",
+                "costs/uuid/receipt.pdf"
         );
 
         var cost = Cost.fromEntity(entity);
@@ -70,5 +73,6 @@ class CostTest {
         assertThat(cost.owner().type()).isEqualTo(CostOwnerType.RELEASE);
         assertThat(cost.owner().id()).isEqualTo(42L);
         assertThat(cost.documentReference()).isEqualTo("INV-2024-002");
+        assertThat(cost.documentStorageKey()).isEqualTo("costs/uuid/receipt.pdf");
     }
 }

@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
+import org.testcontainers.containers.MinIOContainer;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -21,6 +22,9 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 @Testcontainers
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class CostPersistenceIntegrationTest {
+
+    private static final String MINIO_ACCESS_KEY = "minioadmin";
+    private static final String MINIO_SECRET_KEY = "minioadmin";
 
     @Autowired
     CostRepository costRepository;
@@ -32,11 +36,21 @@ public class CostPersistenceIntegrationTest {
                     .withUsername("test")
                     .withPassword("test");
 
+    @Container
+    static MinIOContainer minIO = new MinIOContainer("minio/minio:latest")
+            .withUserName(MINIO_ACCESS_KEY)
+            .withPassword(MINIO_SECRET_KEY);
+
     @DynamicPropertySource
-    static void dbProperties(DynamicPropertyRegistry registry) {
+    static void containerProperties(DynamicPropertyRegistry registry) {
         registry.add("spring.datasource.url", postgres::getJdbcUrl);
         registry.add("spring.datasource.username", postgres::getUsername);
         registry.add("spring.datasource.password", postgres::getPassword);
+        registry.add("storage.s3.endpoint", minIO::getS3URL);
+        registry.add("storage.s3.bucket", () -> "costs");
+        registry.add("storage.s3.region", () -> "us-east-1");
+        registry.add("storage.s3.access-key", () -> MINIO_ACCESS_KEY);
+        registry.add("storage.s3.secret-key", () -> MINIO_SECRET_KEY);
     }
 
     @Test
@@ -51,7 +65,8 @@ public class CostPersistenceIntegrationTest {
                 LocalDate.of(2024, 6, 15),
                 "Mastering for album",
                 new CostOwnerEmbeddable(CostOwnerType.RELEASE, 1L),
-                "INV-2024-001"
+                "INV-2024-001",
+                "costs/uuid/invoice.pdf"
         );
 
         var saved = costRepository.save(entity);
@@ -69,6 +84,7 @@ public class CostPersistenceIntegrationTest {
         assertThat(retrieved.get().getOwner().getOwnerType()).isEqualTo(CostOwnerType.RELEASE);
         assertThat(retrieved.get().getOwner().getOwnerId()).isEqualTo(1L);
         assertThat(retrieved.get().getDocumentReference()).isEqualTo("INV-2024-001");
+        assertThat(retrieved.get().getDocumentStorageKey()).isEqualTo("costs/uuid/invoice.pdf");
     }
 
     @Test
@@ -86,6 +102,7 @@ public class CostPersistenceIntegrationTest {
                 LocalDate.of(2024, 1, 1),
                 "Cost 1",
                 releaseOwner,
+                null,
                 null
         ));
 
@@ -99,6 +116,7 @@ public class CostPersistenceIntegrationTest {
                 LocalDate.of(2024, 2, 1),
                 "Cost 2",
                 releaseOwner,
+                null,
                 null
         ));
 
@@ -112,6 +130,7 @@ public class CostPersistenceIntegrationTest {
                 LocalDate.of(2024, 3, 1),
                 "Cost 3",
                 labelOwner,
+                null,
                 null
         ));
 

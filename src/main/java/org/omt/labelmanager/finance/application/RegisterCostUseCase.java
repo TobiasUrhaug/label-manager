@@ -1,6 +1,8 @@
 package org.omt.labelmanager.finance.application;
 
 import java.time.LocalDate;
+import org.omt.labelmanager.catalog.infrastructure.persistence.label.LabelRepository;
+import org.omt.labelmanager.catalog.infrastructure.persistence.release.ReleaseRepository;
 import org.omt.labelmanager.finance.domain.cost.CostOwner;
 import org.omt.labelmanager.finance.domain.cost.CostType;
 import org.omt.labelmanager.finance.domain.cost.VatAmount;
@@ -8,8 +10,6 @@ import org.omt.labelmanager.finance.domain.shared.Money;
 import org.omt.labelmanager.finance.infrastructure.persistence.cost.CostEntity;
 import org.omt.labelmanager.finance.infrastructure.persistence.cost.CostOwnerEmbeddable;
 import org.omt.labelmanager.finance.infrastructure.persistence.cost.CostRepository;
-import org.omt.labelmanager.catalog.infrastructure.persistence.label.LabelRepository;
-import org.omt.labelmanager.catalog.infrastructure.persistence.release.ReleaseRepository;
 import org.omt.labelmanager.identity.infrastructure.persistence.user.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,17 +25,20 @@ public class RegisterCostUseCase {
     private final ReleaseRepository releaseRepository;
     private final LabelRepository labelRepository;
     private final UserRepository userRepository;
+    private final DocumentStoragePort documentStorage;
 
     public RegisterCostUseCase(
             CostRepository costRepository,
             ReleaseRepository releaseRepository,
             LabelRepository labelRepository,
-            UserRepository userRepository
+            UserRepository userRepository,
+            DocumentStoragePort documentStorage
     ) {
         this.costRepository = costRepository;
         this.releaseRepository = releaseRepository;
         this.labelRepository = labelRepository;
         this.userRepository = userRepository;
+        this.documentStorage = documentStorage;
     }
 
     @Transactional
@@ -49,9 +52,27 @@ public class RegisterCostUseCase {
             CostOwner owner,
             String documentReference
     ) {
+        registerCost(netAmount, vat, grossAmount, type, incurredOn, description, owner,
+                documentReference, null);
+    }
+
+    @Transactional
+    public void registerCost(
+            Money netAmount,
+            VatAmount vat,
+            Money grossAmount,
+            CostType type,
+            LocalDate incurredOn,
+            String description,
+            CostOwner owner,
+            String documentReference,
+            DocumentUpload document
+    ) {
         log.info("Registering {} cost for {} {}", type, owner.type(), owner.id());
 
         validateOwnerExists(owner);
+
+        String documentStorageKey = storeDocument(document);
 
         var entity = new CostEntity(
                 netAmount.currency(),
@@ -63,11 +84,23 @@ public class RegisterCostUseCase {
                 incurredOn,
                 description,
                 CostOwnerEmbeddable.fromCostOwner(owner),
-                documentReference
+                documentReference,
+                documentStorageKey
         );
 
         costRepository.save(entity);
         log.debug("Cost registered successfully");
+    }
+
+    private String storeDocument(DocumentUpload document) {
+        if (document == null) {
+            return null;
+        }
+        return documentStorage.store(
+                document.filename(),
+                document.contentType(),
+                document.content()
+        );
     }
 
     private void validateOwnerExists(CostOwner owner) {
