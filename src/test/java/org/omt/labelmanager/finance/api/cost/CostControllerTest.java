@@ -8,6 +8,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -21,6 +22,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
+import org.omt.labelmanager.finance.application.DeleteCostUseCase;
 import org.omt.labelmanager.finance.application.DocumentUpload;
 import org.omt.labelmanager.finance.application.RegisterCostUseCase;
 import org.omt.labelmanager.finance.application.RetrieveCostDocumentUseCase;
@@ -50,6 +52,9 @@ class CostControllerTest {
 
     @MockitoBean
     private RetrieveCostDocumentUseCase retrieveCostDocumentUseCase;
+
+    @MockitoBean
+    private DeleteCostUseCase deleteCostUseCase;
 
     private final AppUserDetails testUser =
             new AppUserDetails(1L, "test@example.com", "password", "Test User");
@@ -268,5 +273,33 @@ class CostControllerTest {
                 .perform(get("/costs/1/document")
                         .with(user(testUser)))
                 .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void deleteCostForRelease_callsUseCaseAndRedirects() throws Exception {
+        when(deleteCostUseCase.deleteCost(99L)).thenReturn(true);
+
+        mockMvc
+                .perform(delete("/labels/1/releases/42/costs/99")
+                        .with(user(testUser))
+                        .with(csrf()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/labels/1/releases/42"));
+
+        verify(deleteCostUseCase).deleteCost(99L);
+    }
+
+    @Test
+    void deleteCostForLabel_callsUseCaseAndRedirects() throws Exception {
+        when(deleteCostUseCase.deleteCost(99L)).thenReturn(true);
+
+        mockMvc
+                .perform(delete("/labels/10/costs/99")
+                        .with(user(testUser))
+                        .with(csrf()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/labels/10"));
+
+        verify(deleteCostUseCase).deleteCost(99L);
     }
 }

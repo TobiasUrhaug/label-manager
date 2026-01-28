@@ -2,6 +2,7 @@ package org.omt.labelmanager.finance.api.cost;
 
 import java.io.IOException;
 import java.util.Set;
+import org.omt.labelmanager.finance.application.DeleteCostUseCase;
 import org.omt.labelmanager.finance.application.DocumentUpload;
 import org.omt.labelmanager.finance.application.RegisterCostUseCase;
 import org.omt.labelmanager.finance.application.RetrieveCostDocumentUseCase;
@@ -12,6 +13,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -33,13 +35,16 @@ public class CostController {
 
     private final RegisterCostUseCase registerCostUseCase;
     private final RetrieveCostDocumentUseCase retrieveCostDocumentUseCase;
+    private final DeleteCostUseCase deleteCostUseCase;
 
     public CostController(
             RegisterCostUseCase registerCostUseCase,
-            RetrieveCostDocumentUseCase retrieveCostDocumentUseCase
+            RetrieveCostDocumentUseCase retrieveCostDocumentUseCase,
+            DeleteCostUseCase deleteCostUseCase
     ) {
         this.registerCostUseCase = registerCostUseCase;
         this.retrieveCostDocumentUseCase = retrieveCostDocumentUseCase;
+        this.deleteCostUseCase = deleteCostUseCase;
     }
 
     @PostMapping("/labels/{labelId}/releases/{releaseId}/costs")
@@ -100,6 +105,25 @@ public class CostController {
                 .contentType(MediaType.parseMediaType(document.contentType()))
                 .contentLength(document.contentLength())
                 .body(new InputStreamResource(document.content()));
+    }
+
+    @DeleteMapping("/labels/{labelId}/releases/{releaseId}/costs/{costId}")
+    public String deleteCostForRelease(
+            @PathVariable Long labelId,
+            @PathVariable Long releaseId,
+            @PathVariable Long costId
+    ) {
+        deleteCostUseCase.deleteCost(costId);
+        return "redirect:/labels/" + labelId + "/releases/" + releaseId;
+    }
+
+    @DeleteMapping("/labels/{labelId}/costs/{costId}")
+    public String deleteCostForLabel(
+            @PathVariable Long labelId,
+            @PathVariable Long costId
+    ) {
+        deleteCostUseCase.deleteCost(costId);
+        return "redirect:/labels/" + labelId;
     }
 
     private DocumentUpload toDocumentUpload(MultipartFile file) throws IOException {
