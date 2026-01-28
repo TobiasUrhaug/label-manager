@@ -38,6 +38,10 @@ dependencies {
 
     implementation("org.flywaydb:flyway-database-postgresql")
     implementation("com.h2database:h2")
+
+    // AWS S3 SDK for document storage
+    implementation(platform("software.amazon.awssdk:bom:2.31.59"))
+    implementation("software.amazon.awssdk:s3")
 	developmentOnly("org.springframework.boot:spring-boot-devtools")
 	testImplementation("org.springframework.boot:spring-boot-starter-thymeleaf-test")
 	testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
@@ -48,6 +52,7 @@ dependencies {
     testImplementation("org.testcontainers:postgresql:1.20.1")
     testImplementation("org.junit.jupiter:junit-jupiter")
     testImplementation("org.testcontainers:postgresql")
+    testImplementation("org.testcontainers:minio:1.20.1")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     testRuntimeOnly("com.h2database:h2")
 }
