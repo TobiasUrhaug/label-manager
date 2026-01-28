@@ -17,4 +17,12 @@ public interface DocumentStoragePort {
      * @return a storage key that can be used to retrieve the document
      */
     String store(String filename, String contentType, InputStream content);
+
+    /**
+     * Retrieves a document from storage.
+     *
+     * @param storageKey the key returned from a previous store() call
+     * @return the retrieved document with content stream and metadata
+     */
+    RetrievedDocument retrieve(String storageKey);
 }
