@@ -3,11 +3,15 @@ package org.omt.labelmanager.infrastructure.storage;
 import java.io.InputStream;
 import java.util.UUID;
 import org.omt.labelmanager.finance.application.DocumentStoragePort;
+import org.omt.labelmanager.finance.application.RetrievedDocument;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
+import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 @Component
@@ -47,7 +51,41 @@ public class S3DocumentStorageAdapter implements DocumentStoragePort {
         }
     }
 
+    @Override
+    public RetrievedDocument retrieve(String storageKey) {
+        log.info("Retrieving document with key '{}'", storageKey);
+
+        try {
+            GetObjectRequest request = GetObjectRequest.builder()
+                    .bucket(properties.bucket())
+                    .key(storageKey)
+                    .build();
+
+            ResponseInputStream<GetObjectResponse> response = s3Client.getObject(request);
+            GetObjectResponse metadata = response.response();
+
+            String filename = extractFilename(storageKey);
+            log.debug("Document retrieved: filename='{}', contentType='{}'",
+                    filename, metadata.contentType());
+
+            return new RetrievedDocument(
+                    response,
+                    metadata.contentType(),
+                    filename,
+                    metadata.contentLength()
+            );
+        } catch (Exception e) {
+            log.error("Failed to retrieve document '{}': {}", storageKey, e.getMessage());
+            throw new DocumentStorageException("Failed to retrieve document: " + storageKey, e);
+        }
+    }
+
     private String generateKey(String filename) {
         return "costs/" + UUID.randomUUID() + "/" + filename;
+    }
+
+    private String extractFilename(String storageKey) {
+        int lastSlash = storageKey.lastIndexOf('/');
+        return lastSlash >= 0 ? storageKey.substring(lastSlash + 1) : storageKey;
     }
 }

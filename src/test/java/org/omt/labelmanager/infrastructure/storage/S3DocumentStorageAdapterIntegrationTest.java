@@ -7,6 +7,7 @@ import java.nio.charset.StandardCharsets;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.omt.labelmanager.finance.application.RetrievedDocument;
 import org.testcontainers.containers.MinIOContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -128,5 +129,36 @@ class S3DocumentStorageAdapterIntegrationTest {
         );
 
         assertThat(key1).isNotEqualTo(key2);
+    }
+
+    @Test
+    void retrieveReturnsDocumentWithCorrectContent() throws Exception {
+        String content = "invoice content";
+        String key = adapter.store(
+                "invoice.pdf",
+                "application/pdf",
+                new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8))
+        );
+
+        RetrievedDocument document = adapter.retrieve(key);
+
+        String retrievedContent = new String(document.content().readAllBytes(), StandardCharsets.UTF_8);
+        assertThat(retrievedContent).isEqualTo(content);
+    }
+
+    @Test
+    void retrieveReturnsCorrectMetadata() throws Exception {
+        String content = "invoice content";
+        String key = adapter.store(
+                "invoice.pdf",
+                "application/pdf",
+                new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8))
+        );
+
+        RetrievedDocument document = adapter.retrieve(key);
+
+        assertThat(document.filename()).isEqualTo("invoice.pdf");
+        assertThat(document.contentType()).isEqualTo("application/pdf");
+        assertThat(document.contentLength()).isEqualTo(content.getBytes(StandardCharsets.UTF_8).length);
     }
 }
