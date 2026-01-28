@@ -2,9 +2,9 @@ spring:
   application:
     name: LabelManager
   datasource:
-    url: jdbc:postgresql://localhost:5432/labelmanager
-    username: dev
-    password: dev
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/labelmanager}
+    username: ${DATABASE_USERNAME:dev}
+    password: ${DATABASE_PASSWORD:dev}
     driver-class-name: org.postgresql.Driver
   mvc:
     hiddenmethod:
