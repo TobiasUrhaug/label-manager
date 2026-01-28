@@ -12,6 +12,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
@@ -27,6 +28,7 @@ import org.omt.labelmanager.finance.application.DocumentUpload;
 import org.omt.labelmanager.finance.application.RegisterCostUseCase;
 import org.omt.labelmanager.finance.application.RetrieveCostDocumentUseCase;
 import org.omt.labelmanager.finance.application.RetrievedDocument;
+import org.omt.labelmanager.finance.application.UpdateCostUseCase;
 import org.omt.labelmanager.finance.domain.cost.CostOwner;
 import org.omt.labelmanager.finance.domain.cost.CostType;
 import org.omt.labelmanager.finance.domain.cost.VatAmount;
@@ -55,6 +57,9 @@ class CostControllerTest {
 
     @MockitoBean
     private DeleteCostUseCase deleteCostUseCase;
+
+    @MockitoBean
+    private UpdateCostUseCase updateCostUseCase;
 
     private final AppUserDetails testUser =
             new AppUserDetails(1L, "test@example.com", "password", "Test User");
@@ -301,5 +306,68 @@ class CostControllerTest {
                 .andExpect(redirectedUrl("/labels/10"));
 
         verify(deleteCostUseCase).deleteCost(99L);
+    }
+
+    @Test
+    void updateCostForRelease_callsUseCaseAndRedirects() throws Exception {
+        when(updateCostUseCase.updateCost(any(), any(), any(), any(), any(), any(), any(), any()))
+                .thenReturn(true);
+
+        mockMvc
+                .perform(put("/labels/1/releases/42/costs/99")
+                        .with(user(testUser))
+                        .with(csrf())
+                        .param("netAmount", "200.00")
+                        .param("vatAmount", "50.00")
+                        .param("vatRate", "0.25")
+                        .param("grossAmount", "250.00")
+                        .param("costType", "MIXING")
+                        .param("incurredOn", "2024-07-15")
+                        .param("description", "Mixing updated")
+                        .param("documentReference", "INV-2024-002"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/labels/1/releases/42"));
+
+        verify(updateCostUseCase).updateCost(
+                eq(99L),
+                eq(Money.of(new BigDecimal("200.00"))),
+                eq(new VatAmount(Money.of(new BigDecimal("50.00")), new BigDecimal("0.25"))),
+                eq(Money.of(new BigDecimal("250.00"))),
+                eq(CostType.MIXING),
+                eq(LocalDate.of(2024, 7, 15)),
+                eq("Mixing updated"),
+                eq("INV-2024-002")
+        );
+    }
+
+    @Test
+    void updateCostForLabel_callsUseCaseAndRedirects() throws Exception {
+        when(updateCostUseCase.updateCost(any(), any(), any(), any(), any(), any(), any(), any()))
+                .thenReturn(true);
+
+        mockMvc
+                .perform(put("/labels/10/costs/99")
+                        .with(user(testUser))
+                        .with(csrf())
+                        .param("netAmount", "75.00")
+                        .param("vatAmount", "18.75")
+                        .param("vatRate", "0.25")
+                        .param("grossAmount", "93.75")
+                        .param("costType", "MARKETING")
+                        .param("incurredOn", "2024-08-01")
+                        .param("description", "Marketing campaign"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/labels/10"));
+
+        verify(updateCostUseCase).updateCost(
+                eq(99L),
+                eq(Money.of(new BigDecimal("75.00"))),
+                eq(new VatAmount(Money.of(new BigDecimal("18.75")), new BigDecimal("0.25"))),
+                eq(Money.of(new BigDecimal("93.75"))),
+                eq(CostType.MARKETING),
+                eq(LocalDate.of(2024, 8, 1)),
+                eq("Marketing campaign"),
+                isNull()
+        );
     }
 }

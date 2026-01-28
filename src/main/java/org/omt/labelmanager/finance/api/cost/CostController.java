@@ -7,6 +7,7 @@ import org.omt.labelmanager.finance.application.DocumentUpload;
 import org.omt.labelmanager.finance.application.RegisterCostUseCase;
 import org.omt.labelmanager.finance.application.RetrieveCostDocumentUseCase;
 import org.omt.labelmanager.finance.application.RetrievedDocument;
+import org.omt.labelmanager.finance.application.UpdateCostUseCase;
 import org.omt.labelmanager.finance.domain.cost.CostOwner;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpHeaders;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -36,15 +38,18 @@ public class CostController {
     private final RegisterCostUseCase registerCostUseCase;
     private final RetrieveCostDocumentUseCase retrieveCostDocumentUseCase;
     private final DeleteCostUseCase deleteCostUseCase;
+    private final UpdateCostUseCase updateCostUseCase;
 
     public CostController(
             RegisterCostUseCase registerCostUseCase,
             RetrieveCostDocumentUseCase retrieveCostDocumentUseCase,
-            DeleteCostUseCase deleteCostUseCase
+            DeleteCostUseCase deleteCostUseCase,
+            UpdateCostUseCase updateCostUseCase
     ) {
         this.registerCostUseCase = registerCostUseCase;
         this.retrieveCostDocumentUseCase = retrieveCostDocumentUseCase;
         this.deleteCostUseCase = deleteCostUseCase;
+        this.updateCostUseCase = updateCostUseCase;
     }
 
     @PostMapping("/labels/{labelId}/releases/{releaseId}/costs")
@@ -123,6 +128,45 @@ public class CostController {
             @PathVariable Long costId
     ) {
         deleteCostUseCase.deleteCost(costId);
+        return "redirect:/labels/" + labelId;
+    }
+
+    @PutMapping("/labels/{labelId}/releases/{releaseId}/costs/{costId}")
+    public String updateCostForRelease(
+            @PathVariable Long labelId,
+            @PathVariable Long releaseId,
+            @PathVariable Long costId,
+            RegisterCostForm form
+    ) {
+        updateCostUseCase.updateCost(
+                costId,
+                form.toNetAmount(),
+                form.toVatAmount(),
+                form.toGrossAmount(),
+                form.getCostType(),
+                form.getIncurredOn(),
+                form.getDescription(),
+                form.getDocumentReference()
+        );
+        return "redirect:/labels/" + labelId + "/releases/" + releaseId;
+    }
+
+    @PutMapping("/labels/{labelId}/costs/{costId}")
+    public String updateCostForLabel(
+            @PathVariable Long labelId,
+            @PathVariable Long costId,
+            RegisterCostForm form
+    ) {
+        updateCostUseCase.updateCost(
+                costId,
+                form.toNetAmount(),
+                form.toVatAmount(),
+                form.toGrossAmount(),
+                form.getCostType(),
+                form.getIncurredOn(),
+                form.getDescription(),
+                form.getDocumentReference()
+        );
         return "redirect:/labels/" + labelId;
     }
 
