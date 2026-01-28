@@ -102,7 +102,7 @@
     <div class="modal fade" id="addCostModal" tabindex="-1" aria-labelledby="addCostModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
-                <form th:action="@{/labels/{labelId}/releases/{releaseId}/costs(labelId=${labelId}, releaseId=${releaseId})}" method="post">
+                <form th:action="@{/labels/{labelId}/releases/{releaseId}/costs(labelId=${labelId}, releaseId=${releaseId})}" method="post" enctype="multipart/form-data">
                     <div class="modal-header">
                         <h5 class="modal-title" id="addCostModalLabel">Add Cost</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -151,6 +151,12 @@
                         <div class="mb-3">
                             <label for="documentReference" class="form-label">Document Reference (optional)</label>
                             <input type="text" class="form-control" id="documentReference" name="documentReference" placeholder="e.g., INV-2024-001">
+                        </div>
+                        <div class="mb-3">
+                            <label for="document" class="form-label">Upload Document (optional)</label>
+                            <input type="file" class="form-control" id="document" name="document"
+                                   accept=".pdf,.png,.jpg,.jpeg,.doc,.docx,.xls,.xlsx">
+                            <div class="form-text">Supported: PDF, images (PNG, JPG), Word, Excel</div>
                         </div>
                         <div id="costValidationError" class="alert alert-danger d-none"></div>
                     </div>
