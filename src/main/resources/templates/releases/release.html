@@ -82,6 +82,7 @@
                         <th scope="col" class="text-end">VAT</th>
                         <th scope="col" class="text-end">Gross</th>
                         <th scope="col">Document</th>
+                        <th scope="col"></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -99,6 +100,15 @@
                                 <a th:href="@{/costs/{id}/document(id=${cost.id()}, action='download')}"
                                    class="btn btn-sm btn-outline-secondary">Download</a>
                             </th:block>
+                        </td>
+                        <td>
+                            <form th:action="@{/labels/{labelId}/releases/{releaseId}/costs/{costId}(labelId=${labelId}, releaseId=${releaseId}, costId=${cost.id()})}"
+                                  method="post"
+                                  class="d-inline"
+                                  onsubmit="return confirm('Delete this cost?');">
+                                <input type="hidden" name="_method" value="delete">
+                                <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                            </form>
                         </td>
                     </tr>
                 </tbody>
