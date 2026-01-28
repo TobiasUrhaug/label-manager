@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
@@ -77,6 +78,24 @@ public class S3DocumentStorageAdapter implements DocumentStoragePort {
         } catch (Exception e) {
             log.error("Failed to retrieve document '{}': {}", storageKey, e.getMessage());
             throw new DocumentStorageException("Failed to retrieve document: " + storageKey, e);
+        }
+    }
+
+    @Override
+    public void delete(String storageKey) {
+        log.info("Deleting document with key '{}'", storageKey);
+
+        try {
+            DeleteObjectRequest request = DeleteObjectRequest.builder()
+                    .bucket(properties.bucket())
+                    .key(storageKey)
+                    .build();
+
+            s3Client.deleteObject(request);
+            log.debug("Document deleted successfully");
+        } catch (Exception e) {
+            log.error("Failed to delete document '{}': {}", storageKey, e.getMessage());
+            throw new DocumentStorageException("Failed to delete document: " + storageKey, e);
         }
     }
 

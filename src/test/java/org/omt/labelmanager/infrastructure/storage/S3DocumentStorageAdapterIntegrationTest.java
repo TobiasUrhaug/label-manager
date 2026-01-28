@@ -20,7 +20,9 @@ import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.HeadBucketRequest;
+import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
 import software.amazon.awssdk.services.s3.model.NoSuchBucketException;
+import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 
 @Testcontainers
 class S3DocumentStorageAdapterIntegrationTest {
@@ -160,5 +162,28 @@ class S3DocumentStorageAdapterIntegrationTest {
         assertThat(document.filename()).isEqualTo("invoice.pdf");
         assertThat(document.contentType()).isEqualTo("application/pdf");
         assertThat(document.contentLength()).isEqualTo(content.getBytes(StandardCharsets.UTF_8).length);
+    }
+
+    @Test
+    void deleteRemovesDocumentFromStorage() {
+        String content = "invoice content";
+        String key = adapter.store(
+                "invoice.pdf",
+                "application/pdf",
+                new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8))
+        );
+
+        adapter.delete(key);
+
+        assertThat(objectExists(key)).isFalse();
+    }
+
+    private boolean objectExists(String key) {
+        try {
+            s3Client.headObject(HeadObjectRequest.builder().bucket(BUCKET).key(key).build());
+            return true;
+        } catch (NoSuchKeyException e) {
+            return false;
+        }
     }
 }
