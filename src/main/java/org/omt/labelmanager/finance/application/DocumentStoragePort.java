@@ -25,4 +25,11 @@ public interface DocumentStoragePort {
      * @return the retrieved document with content stream and metadata
      */
     RetrievedDocument retrieve(String storageKey);
+
+    /**
+     * Deletes a document from storage.
+     *
+     * @param storageKey the key returned from a previous store() call
+     */
+    void delete(String storageKey);
 }
