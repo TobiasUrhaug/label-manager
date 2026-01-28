@@ -4,8 +4,15 @@ import java.io.IOException;
 import java.util.Set;
 import org.omt.labelmanager.finance.application.DocumentUpload;
 import org.omt.labelmanager.finance.application.RegisterCostUseCase;
+import org.omt.labelmanager.finance.application.RetrieveCostDocumentUseCase;
+import org.omt.labelmanager.finance.application.RetrievedDocument;
 import org.omt.labelmanager.finance.domain.cost.CostOwner;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -25,9 +32,14 @@ public class CostController {
     );
 
     private final RegisterCostUseCase registerCostUseCase;
+    private final RetrieveCostDocumentUseCase retrieveCostDocumentUseCase;
 
-    public CostController(RegisterCostUseCase registerCostUseCase) {
+    public CostController(
+            RegisterCostUseCase registerCostUseCase,
+            RetrieveCostDocumentUseCase retrieveCostDocumentUseCase
+    ) {
         this.registerCostUseCase = registerCostUseCase;
+        this.retrieveCostDocumentUseCase = retrieveCostDocumentUseCase;
     }
 
     @PostMapping("/labels/{labelId}/releases/{releaseId}/costs")
@@ -69,6 +81,25 @@ public class CostController {
                 toDocumentUpload(document)
         );
         return "redirect:/labels/" + labelId;
+    }
+
+    @GetMapping("/costs/{costId}/document")
+    public ResponseEntity<InputStreamResource> getDocument(
+            @PathVariable Long costId,
+            @RequestParam(defaultValue = "view") String action
+    ) {
+        RetrievedDocument document = retrieveCostDocumentUseCase.retrieveDocument(costId)
+                .orElseThrow(() -> new DocumentNotFoundException(costId));
+
+        String disposition = "download".equals(action)
+                ? "attachment; filename=\"" + document.filename() + "\""
+                : "inline; filename=\"" + document.filename() + "\"";
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, disposition)
+                .contentType(MediaType.parseMediaType(document.contentType()))
+                .contentLength(document.contentLength())
+                .body(new InputStreamResource(document.content()));
     }
 
     private DocumentUpload toDocumentUpload(MultipartFile file) throws IOException {

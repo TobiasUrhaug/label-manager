@@ -5,18 +5,26 @@ import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.io.ByteArrayInputStream;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.omt.labelmanager.finance.application.DocumentUpload;
 import org.omt.labelmanager.finance.application.RegisterCostUseCase;
+import org.omt.labelmanager.finance.application.RetrieveCostDocumentUseCase;
+import org.omt.labelmanager.finance.application.RetrievedDocument;
 import org.omt.labelmanager.finance.domain.cost.CostOwner;
 import org.omt.labelmanager.finance.domain.cost.CostType;
 import org.omt.labelmanager.finance.domain.cost.VatAmount;
@@ -39,6 +47,9 @@ class CostControllerTest {
 
     @MockitoBean
     private RegisterCostUseCase registerCostUseCase;
+
+    @MockitoBean
+    private RetrieveCostDocumentUseCase retrieveCostDocumentUseCase;
 
     private final AppUserDetails testUser =
             new AppUserDetails(1L, "test@example.com", "password", "Test User");
@@ -197,5 +208,65 @@ class CostControllerTest {
                         && "receipt.png".equals(doc.filename())
                         && "image/png".equals(doc.contentType()))
         );
+    }
+
+    @Test
+    void getDocument_returnsDocumentInlineByDefault() throws Exception {
+        byte[] content = "PDF content".getBytes();
+        RetrievedDocument document = new RetrievedDocument(
+                new ByteArrayInputStream(content),
+                "application/pdf",
+                "invoice.pdf",
+                content.length
+        );
+        when(retrieveCostDocumentUseCase.retrieveDocument(1L)).thenReturn(Optional.of(document));
+
+        mockMvc
+                .perform(get("/costs/1/document")
+                        .with(user(testUser)))
+                .andExpect(status().isOk())
+                .andExpect(header().string("Content-Disposition", "inline; filename=\"invoice.pdf\""))
+                .andExpect(header().string("Content-Type", "application/pdf"))
+                .andExpect(content().bytes(content));
+    }
+
+    @Test
+    void getDocument_returnsDocumentAsAttachmentWhenDownload() throws Exception {
+        byte[] content = "PDF content".getBytes();
+        RetrievedDocument document = new RetrievedDocument(
+                new ByteArrayInputStream(content),
+                "application/pdf",
+                "invoice.pdf",
+                content.length
+        );
+        when(retrieveCostDocumentUseCase.retrieveDocument(1L)).thenReturn(Optional.of(document));
+
+        mockMvc
+                .perform(get("/costs/1/document")
+                        .param("action", "download")
+                        .with(user(testUser)))
+                .andExpect(status().isOk())
+                .andExpect(header().string("Content-Disposition",
+                        "attachment; filename=\"invoice.pdf\""));
+    }
+
+    @Test
+    void getDocument_returns404WhenCostNotFound() throws Exception {
+        when(retrieveCostDocumentUseCase.retrieveDocument(999L)).thenReturn(Optional.empty());
+
+        mockMvc
+                .perform(get("/costs/999/document")
+                        .with(user(testUser)))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void getDocument_returns404WhenNoDocumentAttached() throws Exception {
+        when(retrieveCostDocumentUseCase.retrieveDocument(1L)).thenReturn(Optional.empty());
+
+        mockMvc
+                .perform(get("/costs/1/document")
+                        .with(user(testUser)))
+                .andExpect(status().isNotFound());
     }
 }
