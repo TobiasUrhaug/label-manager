@@ -81,6 +81,7 @@
                         <th scope="col" class="text-end">Net</th>
                         <th scope="col" class="text-end">VAT</th>
                         <th scope="col" class="text-end">Gross</th>
+                        <th scope="col">Document</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -91,6 +92,14 @@
                         <td class="text-end" th:text="${cost.netAmount().amount()} + ' ' + ${cost.netAmount().currency()}">100.00 EUR</td>
                         <td class="text-end" th:text="${cost.vat().amount().amount()} + ' (' + ${#numbers.formatPercent(cost.vat().rate(), 1, 0)} + ')'">25.00 (25%)</td>
                         <td class="text-end" th:text="${cost.grossAmount().amount()} + ' ' + ${cost.grossAmount().currency()}">125.00 EUR</td>
+                        <td>
+                            <th:block th:if="${cost.documentStorageKey() != null}">
+                                <a th:href="@{/costs/{id}/document(id=${cost.id()}, action='view')}"
+                                   class="btn btn-sm btn-outline-primary" target="_blank">View</a>
+                                <a th:href="@{/costs/{id}/document(id=${cost.id()}, action='download')}"
+                                   class="btn btn-sm btn-outline-secondary">Download</a>
+                            </th:block>
+                        </td>
                     </tr>
                 </tbody>
             </table>
