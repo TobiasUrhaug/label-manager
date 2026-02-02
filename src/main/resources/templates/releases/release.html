@@ -111,8 +111,7 @@
                                     th:data-vat-amount="${cost.vat().amount().amount()}"
                                     th:data-vat-rate="${#numbers.formatDecimal(cost.vat().rate(), 1, 2)}"
                                     th:data-gross-amount="${cost.grossAmount().amount()}"
-                                    th:data-document-reference="${cost.documentReference()}"
-                                    th:data-has-document="${cost.documentStorageKey() != null}">Edit</button>
+                                    th:data-document-reference="${cost.documentReference()}">Edit</button>
                             <form th:action="@{/labels/{labelId}/releases/{releaseId}/costs/{costId}(labelId=${labelId}, releaseId=${releaseId}, costId=${cost.id()})}"
                                   method="post"
                                   class="d-inline"
@@ -203,7 +202,7 @@
     <div class="modal fade" id="editCostModal" tabindex="-1" aria-labelledby="editCostModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
-                <form id="editCostForm" method="post" enctype="multipart/form-data">
+                <form id="editCostForm" method="post">
                     <input type="hidden" th:if="${_csrf}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
                     <input type="hidden" name="_method" value="put">
                     <div class="modal-header">
@@ -254,13 +253,6 @@
                         <div class="mb-3">
                             <label for="editDocumentReference" class="form-label">Document Reference (optional)</label>
                             <input type="text" class="form-control" id="editDocumentReference" name="documentReference" placeholder="e.g., INV-2024-001">
-                        </div>
-                        <div class="mb-3">
-                            <label for="editDocument" class="form-label">Replace Document (optional)</label>
-                            <input type="file" class="form-control" id="editDocument" name="document"
-                                   accept=".pdf,.png,.jpg,.jpeg,.doc,.docx,.xls,.xlsx">
-                            <div class="form-text">Supported: PDF, images (PNG, JPG), Word, Excel</div>
-                            <div id="editCurrentDocument" class="form-text text-success d-none">Current document attached</div>
                         </div>
                         <div id="editCostValidationError" class="alert alert-danger d-none"></div>
                     </div>
@@ -562,7 +554,6 @@
         const editCostValidationError = document.getElementById('editCostValidationError');
         const labelId = /*[[${labelId}]]*/ 0;
         const releaseId = /*[[${releaseId}]]*/ 0;
-        const editCurrentDocument = document.getElementById('editCurrentDocument');
 
         document.querySelectorAll('.edit-cost-btn').forEach(btn => {
             btn.addEventListener('click', function() {
@@ -575,7 +566,6 @@
                 const vatRate = this.dataset.vatRate;
                 const grossAmount = this.dataset.grossAmount;
                 const documentReference = this.dataset.documentReference;
-                const hasDocument = this.dataset.hasDocument === 'true';
 
                 editCostForm.action = `/labels/${labelId}/releases/${releaseId}/costs/${costId}`;
                 document.getElementById('editCostType').value = costType;
@@ -586,13 +576,6 @@
                 document.getElementById('editVatRate').value = vatRate;
                 document.getElementById('editGrossAmount').value = grossAmount;
                 document.getElementById('editDocumentReference').value = documentReference || '';
-                document.getElementById('editDocument').value = '';
-
-                if (hasDocument) {
-                    editCurrentDocument.classList.remove('d-none');
-                } else {
-                    editCurrentDocument.classList.add('d-none');
-                }
 
                 new bootstrap.Modal(editCostModal).show();
             });
