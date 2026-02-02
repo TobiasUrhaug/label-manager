@@ -81,13 +81,14 @@ catalog/
 
 ## Testing Strategy
 
-Follow the testing pyramid. Be strict about what each layer tests.
+Follow the testing pyramid. Each layer owns specific responsibilities—avoid duplication.
 
 ```
-    /\        E2E (Playwright)        - Critical paths only
-   /  \       Integration (Spring)    - Database, external services
-  /    \      Controller (WebMvcTest) - HTTP routing, views
- /______\     Unit (JUnit/Vitest)     - Business logic
+      /\        E2E (Playwright)        - Smoke tests, deployment verification
+     /  \       System (SpringBootTest) - Full stack API flows
+    /    \      Integration             - Database, external services
+   /      \     Controller (WebMvcTest) - HTTP routing, views
+  /________\    Unit (JUnit/Vitest)     - Business logic
 ```
 
 ### Unit Tests
@@ -99,8 +100,10 @@ Follow the testing pyramid. Be strict about what each layer tests.
 | Java | Domain objects, calculations, mappers | `*Test.java` |
 | JavaScript | Utilities, formatting, validation | `*.test.js` (Vitest) |
 
+**Count**: Thousands are fine. Must be fast.
+
 ```bash
-./gradlew test --tests "*Test" -x "*IntegrationTest"
+./gradlew test --tests "*Test" -x "*IntegrationTest" -x "*SystemTest"
 npm run test
 ```
 
@@ -108,7 +111,7 @@ npm run test
 
 **Purpose**: Test HTTP routing and view rendering. Uses `@WebMvcTest` (slice).
 
-**Test**: Request mappings, redirects, view names, model attributes, form binding.
+**Test**: Request mappings, redirects, view names, model attributes, form binding, validation errors.
 **Mock**: All handlers/services via `@MockitoBean`.
 
 ```bash
@@ -117,27 +120,60 @@ npm run test
 
 ### Integration Tests
 
-**Purpose**: Test database and external services with real dependencies.
+**Purpose**: Test component wiring with real dependencies.
 
 **Uses**: `@SpringBootTest` + TestContainers (PostgreSQL).
 **Named**: `*IntegrationTest.java`
-**Test**: Repository queries, transactions, cascades, S3 storage.
+**Test**: Repository queries, transactions, cascades, service orchestration.
+
+**Count**: Dozens, not hundreds.
 
 ```bash
 ./gradlew test --tests "*IntegrationTest"
 ```
 
-### E2E Tests
+### System Tests
 
-**Purpose**: Verify critical user journeys through the real UI. Keep minimal.
+**Purpose**: Test full stack via real HTTP. High confidence, low diagnostics when failing.
 
-**Test**: Smoke tests, login flow, one test per major feature.
-**Don't test**: Edge cases, validation permutations (use lower layers).
+**Uses**: `@SpringBootTest(webEnvironment = RANDOM_PORT)` + `TestRestTemplate` + TestContainers.
+**Named**: `*SystemTest.java`
+**Test**: Critical API flows (happy path + high-risk edge cases), security, serialization.
+**Don't test**: Every validation rule, every error scenario (use controller/unit tests).
+
+**Count**: Single digits (5-15 total).
+
+```bash
+./gradlew test --tests "*SystemTest"
+```
+
+### E2E Tests (Playwright)
+
+**Purpose**: Verify the app works through a real browser. Deployment smoke tests.
+
+**Test**: App loads, login works, critical user journey.
+**Don't test**: API contracts, edge cases, validation (use system/controller tests).
+
+**Count**: Minimal (3-5 tests).
 
 ```bash
 npm run test:e2e                                  # Local
 E2E_TARGET_URL=https://app.com npm run test:e2e   # Deployed instance
 ```
+
+### Avoiding Duplication
+
+Each level owns a responsibility. If the same assertion appears at multiple levels, one is wrong.
+
+| Concern | Test Level |
+|---------|------------|
+| Business rules, calculations | Unit |
+| HTTP mapping, validation errors | Controller |
+| JSON serialization | Controller |
+| Repository queries, JPA mappings | Integration |
+| Transactions | Integration |
+| Full API flow, security | System |
+| Browser rendering, JS interactions | E2E |
 
 ### Test Factories
 
