@@ -101,7 +101,18 @@
                                    class="btn btn-sm btn-outline-secondary">Download</a>
                             </th:block>
                         </td>
-                        <td>
+                        <td class="text-nowrap">
+                            <button type="button" class="btn btn-sm btn-outline-primary edit-cost-btn"
+                                    th:data-cost-id="${cost.id()}"
+                                    th:data-cost-type="${cost.type()}"
+                                    th:data-description="${cost.description()}"
+                                    th:data-incurred-on="${cost.incurredOn()}"
+                                    th:data-net-amount="${cost.netAmount().amount()}"
+                                    th:data-vat-amount="${cost.vat().amount().amount()}"
+                                    th:data-vat-rate="${#numbers.formatDecimal(cost.vat().rate(), 1, 2)}"
+                                    th:data-gross-amount="${cost.grossAmount().amount()}"
+                                    th:data-document-reference="${cost.documentReference()}"
+                                    th:data-has-document="${cost.documentStorageKey() != null}">Edit</button>
                             <form th:action="@{/labels/{labelId}/releases/{releaseId}/costs/{costId}(labelId=${labelId}, releaseId=${releaseId}, costId=${cost.id()})}"
                                   method="post"
                                   class="d-inline"
@@ -182,6 +193,80 @@
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                         <button type="submit" class="btn btn-primary" id="addCostSubmit">Add Cost</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Cost Modal -->
+    <div class="modal fade" id="editCostModal" tabindex="-1" aria-labelledby="editCostModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form id="editCostForm" method="post" enctype="multipart/form-data">
+                    <input type="hidden" th:if="${_csrf}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                    <input type="hidden" name="_method" value="put">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="editCostModalLabel">Edit Cost</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="editCostType" class="form-label">Type</label>
+                            <select class="form-select" id="editCostType" name="costType" required>
+                                <option value="">Select type...</option>
+                                <option th:each="type : ${allCostTypes}" th:value="${type}" th:text="${type}">TYPE</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editDescription" class="form-label">Description</label>
+                            <input type="text" class="form-control" id="editDescription" name="description" placeholder="e.g., Mastering at Studio X">
+                        </div>
+                        <div class="mb-3">
+                            <label for="editIncurredOn" class="form-label">Date</label>
+                            <input type="date" class="form-control" id="editIncurredOn" name="incurredOn" required>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="editNetAmount" class="form-label">Net Amount (EUR)</label>
+                                <input type="number" step="0.01" class="form-control" id="editNetAmount" name="netAmount" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="editVatRate" class="form-label">VAT Rate</label>
+                                <select class="form-select" id="editVatRate" name="vatRate" required>
+                                    <option value="0.00">0%</option>
+                                    <option value="0.09">9%</option>
+                                    <option value="0.21">21%</option>
+                                    <option value="0.25">25%</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="editVatAmount" class="form-label">VAT Amount (EUR)</label>
+                                <input type="number" step="0.01" class="form-control" id="editVatAmount" name="vatAmount" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="editGrossAmount" class="form-label">Gross Amount (EUR)</label>
+                                <input type="number" step="0.01" class="form-control" id="editGrossAmount" name="grossAmount" required>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editDocumentReference" class="form-label">Document Reference (optional)</label>
+                            <input type="text" class="form-control" id="editDocumentReference" name="documentReference" placeholder="e.g., INV-2024-001">
+                        </div>
+                        <div class="mb-3">
+                            <label for="editDocument" class="form-label">Replace Document (optional)</label>
+                            <input type="file" class="form-control" id="editDocument" name="document"
+                                   accept=".pdf,.png,.jpg,.jpeg,.doc,.docx,.xls,.xlsx">
+                            <div class="form-text">Supported: PDF, images (PNG, JPG), Word, Excel</div>
+                            <div id="editCurrentDocument" class="form-text text-success d-none">Current document attached</div>
+                        </div>
+                        <div id="editCostValidationError" class="alert alert-danger d-none"></div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Save Changes</button>
                     </div>
                 </form>
             </div>
@@ -501,6 +586,80 @@
         // Clear validation error when modal is closed
         document.getElementById('addCostModal').addEventListener('hidden.bs.modal', function() {
             costValidationError.classList.add('d-none');
+        });
+
+        // Edit Cost Modal
+        const editCostModal = document.getElementById('editCostModal');
+        const editCostForm = document.getElementById('editCostForm');
+        const editCostValidationError = document.getElementById('editCostValidationError');
+        const labelId = /*[[${labelId}]]*/ 0;
+        const releaseId = /*[[${releaseId}]]*/ 0;
+        const editCurrentDocument = document.getElementById('editCurrentDocument');
+
+        document.querySelectorAll('.edit-cost-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const costId = this.dataset.costId;
+                const costType = this.dataset.costType;
+                const description = this.dataset.description;
+                const incurredOn = this.dataset.incurredOn;
+                const netAmount = this.dataset.netAmount;
+                const vatAmount = this.dataset.vatAmount;
+                const vatRate = this.dataset.vatRate;
+                const grossAmount = this.dataset.grossAmount;
+                const documentReference = this.dataset.documentReference;
+                const hasDocument = this.dataset.hasDocument === 'true';
+
+                editCostForm.action = `/labels/${labelId}/releases/${releaseId}/costs/${costId}`;
+                document.getElementById('editCostType').value = costType;
+                document.getElementById('editDescription').value = description || '';
+                document.getElementById('editIncurredOn').value = incurredOn;
+                document.getElementById('editNetAmount').value = netAmount;
+                document.getElementById('editVatAmount').value = vatAmount;
+                document.getElementById('editVatRate').value = vatRate;
+                document.getElementById('editGrossAmount').value = grossAmount;
+                document.getElementById('editDocumentReference').value = documentReference || '';
+                document.getElementById('editDocument').value = '';
+
+                if (hasDocument) {
+                    editCurrentDocument.classList.remove('d-none');
+                } else {
+                    editCurrentDocument.classList.add('d-none');
+                }
+
+                new bootstrap.Modal(editCostModal).show();
+            });
+        });
+
+        editCostForm.addEventListener('submit', function(e) {
+            const netAmount = parseFloat(document.getElementById('editNetAmount').value) || 0;
+            const vatRate = parseFloat(document.getElementById('editVatRate').value) || 0;
+            const vatAmount = parseFloat(document.getElementById('editVatAmount').value) || 0;
+            const grossAmount = parseFloat(document.getElementById('editGrossAmount').value) || 0;
+
+            const expectedVat = Math.round(netAmount * vatRate * 100) / 100;
+            const expectedGross = Math.round((netAmount + vatAmount) * 100) / 100;
+
+            const errors = [];
+
+            if (Math.abs(vatAmount - expectedVat) > 0.01) {
+                errors.push(`VAT amount (${vatAmount.toFixed(2)}) should be ${expectedVat.toFixed(2)} (net × rate)`);
+            }
+
+            if (Math.abs(grossAmount - expectedGross) > 0.01) {
+                errors.push(`Gross amount (${grossAmount.toFixed(2)}) should be ${expectedGross.toFixed(2)} (net + VAT)`);
+            }
+
+            if (errors.length > 0) {
+                e.preventDefault();
+                editCostValidationError.innerHTML = errors.join('<br>');
+                editCostValidationError.classList.remove('d-none');
+            } else {
+                editCostValidationError.classList.add('d-none');
+            }
+        });
+
+        editCostModal.addEventListener('hidden.bs.modal', function() {
+            editCostValidationError.classList.add('d-none');
         });
     });
     </script>

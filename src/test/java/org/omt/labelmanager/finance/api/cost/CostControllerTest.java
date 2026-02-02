@@ -310,7 +310,8 @@ class CostControllerTest {
 
     @Test
     void updateCostForRelease_callsUseCaseAndRedirects() throws Exception {
-        when(updateCostUseCase.updateCost(any(), any(), any(), any(), any(), any(), any(), any()))
+        when(updateCostUseCase.updateCost(
+                any(), any(), any(), any(), any(), any(), any(), any(), any()))
                 .thenReturn(true);
 
         mockMvc
@@ -336,13 +337,15 @@ class CostControllerTest {
                 eq(CostType.MIXING),
                 eq(LocalDate.of(2024, 7, 15)),
                 eq("Mixing updated"),
-                eq("INV-2024-002")
+                eq("INV-2024-002"),
+                isNull()
         );
     }
 
     @Test
     void updateCostForLabel_callsUseCaseAndRedirects() throws Exception {
-        when(updateCostUseCase.updateCost(any(), any(), any(), any(), any(), any(), any(), any()))
+        when(updateCostUseCase.updateCost(
+                any(), any(), any(), any(), any(), any(), any(), any(), any()))
                 .thenReturn(true);
 
         mockMvc
@@ -367,6 +370,7 @@ class CostControllerTest {
                 eq(CostType.MARKETING),
                 eq(LocalDate.of(2024, 8, 1)),
                 eq("Marketing campaign"),
+                isNull(),
                 isNull()
         );
     }

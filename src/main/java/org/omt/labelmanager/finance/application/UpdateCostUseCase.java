@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import org.omt.labelmanager.finance.domain.cost.CostType;
 import org.omt.labelmanager.finance.domain.cost.VatAmount;
 import org.omt.labelmanager.finance.domain.shared.Money;
+import org.omt.labelmanager.finance.infrastructure.persistence.cost.CostEntity;
 import org.omt.labelmanager.finance.infrastructure.persistence.cost.CostRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,9 +17,11 @@ public class UpdateCostUseCase {
     private static final Logger log = LoggerFactory.getLogger(UpdateCostUseCase.class);
 
     private final CostRepository costRepository;
+    private final DocumentStoragePort documentStorage;
 
-    public UpdateCostUseCase(CostRepository costRepository) {
+    public UpdateCostUseCase(CostRepository costRepository, DocumentStoragePort documentStorage) {
         this.costRepository = costRepository;
+        this.documentStorage = documentStorage;
     }
 
     @Transactional
@@ -31,6 +34,22 @@ public class UpdateCostUseCase {
             LocalDate incurredOn,
             String description,
             String documentReference
+    ) {
+        return updateCost(costId, netAmount, vat, grossAmount, type, incurredOn, description,
+                documentReference, null);
+    }
+
+    @Transactional
+    public boolean updateCost(
+            Long costId,
+            Money netAmount,
+            VatAmount vat,
+            Money grossAmount,
+            CostType type,
+            LocalDate incurredOn,
+            String description,
+            String documentReference,
+            DocumentUpload document
     ) {
         return costRepository.findById(costId)
                 .map(cost -> {
@@ -45,9 +64,31 @@ public class UpdateCostUseCase {
                             description,
                             documentReference
                     );
+                    replaceDocument(cost, document);
                     log.debug("Cost {} updated", costId);
                     return true;
                 })
                 .orElse(false);
+    }
+
+    private void replaceDocument(CostEntity cost, DocumentUpload newDocument) {
+        if (newDocument == null) {
+            return;
+        }
+
+        // Delete old document if exists
+        if (cost.getDocumentStorageKey() != null) {
+            log.info("Deleting old document '{}'", cost.getDocumentStorageKey());
+            documentStorage.delete(cost.getDocumentStorageKey());
+        }
+
+        // Store new document
+        String newKey = documentStorage.store(
+                newDocument.filename(),
+                newDocument.contentType(),
+                newDocument.content()
+        );
+        cost.setDocumentStorageKey(newKey);
+        log.info("New document stored with key '{}'", newKey);
     }
 }

@@ -1,26 +1,17 @@
 package org.omt.labelmanager.finance.api.cost;
 
-import java.io.IOException;
-import java.util.Set;
-import org.omt.labelmanager.finance.application.DeleteCostUseCase;
-import org.omt.labelmanager.finance.application.DocumentUpload;
-import org.omt.labelmanager.finance.application.RegisterCostUseCase;
-import org.omt.labelmanager.finance.application.RetrieveCostDocumentUseCase;
-import org.omt.labelmanager.finance.application.RetrievedDocument;
-import org.omt.labelmanager.finance.application.UpdateCostUseCase;
+import org.omt.labelmanager.finance.application.*;
 import org.omt.labelmanager.finance.domain.cost.CostOwner;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
+import java.util.Set;
 
 @Controller
 public class CostController {
@@ -136,8 +127,9 @@ public class CostController {
             @PathVariable Long labelId,
             @PathVariable Long releaseId,
             @PathVariable Long costId,
-            RegisterCostForm form
-    ) {
+            RegisterCostForm form,
+            @RequestParam(value = "document", required = false) MultipartFile document
+    ) throws IOException {
         updateCostUseCase.updateCost(
                 costId,
                 form.toNetAmount(),
@@ -146,7 +138,8 @@ public class CostController {
                 form.getCostType(),
                 form.getIncurredOn(),
                 form.getDescription(),
-                form.getDocumentReference()
+                form.getDocumentReference(),
+                toDocumentUpload(document)
         );
         return "redirect:/labels/" + labelId + "/releases/" + releaseId;
     }
@@ -155,8 +148,9 @@ public class CostController {
     public String updateCostForLabel(
             @PathVariable Long labelId,
             @PathVariable Long costId,
-            RegisterCostForm form
-    ) {
+            RegisterCostForm form,
+            @RequestParam(value = "document", required = false) MultipartFile document
+    ) throws IOException {
         updateCostUseCase.updateCost(
                 costId,
                 form.toNetAmount(),
@@ -165,7 +159,8 @@ public class CostController {
                 form.getCostType(),
                 form.getIncurredOn(),
                 form.getDescription(),
-                form.getDocumentReference()
+                form.getDocumentReference(),
+                toDocumentUpload(document)
         );
         return "redirect:/labels/" + labelId;
     }

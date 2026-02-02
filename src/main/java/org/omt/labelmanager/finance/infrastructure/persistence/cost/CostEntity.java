@@ -150,4 +150,8 @@ public class CostEntity {
         this.description = description;
         this.documentReference = documentReference;
     }
+
+    public void setDocumentStorageKey(String documentStorageKey) {
+        this.documentStorageKey = documentStorageKey;
+    }
 }
