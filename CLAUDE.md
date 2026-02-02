@@ -60,19 +60,69 @@ org.omt.labelmanager/
 - Flyway manages migrations in `src/main/resources/db/migration/`
 - One-to-Many relationship: Label → Releases (cascade delete)
 
-## Testing Patterns
+## Testing Strategy
+
+Follow the testing pyramid. Be strict about what each layer tests.
+
+```
+    /\        E2E (Playwright)        - Critical paths only
+   /  \       Integration (Spring)    - Database, external services
+  /    \      Controller (WebMvcTest) - HTTP routing, views
+ /______\     Unit (JUnit/Vitest)     - Business logic
+```
 
 ### Unit Tests
-- Use `@WebMvcTest` with MockMvc and `@MockitoBean` for controller tests
-- Located alongside production code in test packages
+
+**Purpose**: Test business logic in isolation. No Spring context, no I/O.
+
+| Type | What to test | Location |
+|------|--------------|----------|
+| Java | Domain objects, calculations, mappers | `*Test.java` |
+| JavaScript | Utilities, formatting, validation | `*.test.js` (Vitest) |
+
+```bash
+./gradlew test --tests "*Test" -x "*IntegrationTest"
+npm run test
+```
+
+### Controller Tests
+
+**Purpose**: Test HTTP routing and view rendering. Uses `@WebMvcTest` (slice).
+
+**Test**: Request mappings, redirects, view names, model attributes, form binding.
+**Mock**: All handlers/services via `@MockitoBean`.
+
+```bash
+./gradlew test --tests "*ControllerTest"
+```
 
 ### Integration Tests
-- Use `@SpringBootTest` with TestContainers (PostgreSQL container)
-- Named `*IntegrationTest.java`
+
+**Purpose**: Test database and external services with real dependencies.
+
+**Uses**: `@SpringBootTest` + TestContainers (PostgreSQL).
+**Named**: `*IntegrationTest.java`
+**Test**: Repository queries, transactions, cascades, S3 storage.
+
+```bash
+./gradlew test --tests "*IntegrationTest"
+```
+
+### E2E Tests
+
+**Purpose**: Verify critical user journeys through the real UI. Keep minimal.
+
+**Test**: Smoke tests, login flow, one test per major feature.
+**Don't test**: Edge cases, validation permutations (use lower layers).
+
+```bash
+npm run test:e2e                                  # Local
+E2E_TARGET_URL=https://app.com npm run test:e2e   # Deployed instance
+```
 
 ### Test Factories
-- `LabelFactory`, `ReleaseFactory`, `AddressFactory` provide fluent builders for test data
-- Pattern: `LabelFactory.aLabel().name("test").build()`
+
+Fluent builders for test data: `LabelFactory.aLabel().name("Test").build()`
 
 ## Logging Strategy
 
