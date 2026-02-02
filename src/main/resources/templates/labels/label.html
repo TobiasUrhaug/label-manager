@@ -147,7 +147,10 @@
         </div>
     </div>
 
-    <script th:inline="javascript">
+    <script type="module" th:inline="javascript">
+    import { getArtistById, buildArtistOptions } from '/js/artist-utils.js';
+    import { createTag } from '/js/tag-factory.js';
+
     document.addEventListener('DOMContentLoaded', function() {
         const trackContainer = document.getElementById('trackContainer');
         const addTrackBtn = document.getElementById('addTrackBtn');
@@ -175,7 +178,7 @@
                             <div class="input-group">
                                 <select class="form-select track-artist-select">
                                     <option value="">Select...</option>
-                                    ${buildArtistOptions()}
+                                    ${buildArtistOptions(artists)}
                                 </select>
                                 <button class="btn btn-outline-secondary btn-sm add-track-artist-btn" type="button">+</button>
                             </div>
@@ -199,22 +202,9 @@
             trackIndex = 0;
         });
 
-        function getArtistById(id) {
-            return artists.find(a => String(a.id) === String(id));
-        }
-
-        function createTag(artistId, artistName, onRemove) {
-            const tag = document.createElement('span');
-            tag.className = 'badge bg-secondary d-flex align-items-center gap-1';
-            tag.innerHTML = `${artistName} <button type="button" class="btn-close btn-close-white" style="font-size: 0.6rem;" aria-label="Remove"></button>`;
-            tag.querySelector('button').addEventListener('click', onRemove);
-            tag.dataset.artistId = artistId;
-            return tag;
-        }
-
         function addReleaseArtist(artistId) {
             if (!artistId || selectedReleaseArtists.includes(artistId)) return;
-            const artist = getArtistById(artistId);
+            const artist = getArtistById(artists, artistId);
             if (!artist) return;
 
             selectedReleaseArtists.push(artistId);
@@ -249,7 +239,7 @@
             if (!artistId) return;
             if (inputsContainer.querySelector(`input[value="${artistId}"]`)) return;
 
-            const artist = getArtistById(artistId);
+            const artist = getArtistById(artists, artistId);
             if (!artist) return;
 
             // Also add to release artists if not already there
@@ -292,12 +282,6 @@
             trackIndex = rows.length - 1;
         }
 
-        function buildArtistOptions() {
-            return artists.map(artist =>
-                `<option value="${artist.id}">${artist.artistName}</option>`
-            ).join('');
-        }
-
         addTrackBtn.addEventListener('click', function() {
             trackIndex++;
             const newRow = document.createElement('div');
@@ -310,7 +294,7 @@
                         <div class="input-group">
                             <select class="form-select track-artist-select">
                                 <option value="">Select...</option>
-                                ${buildArtistOptions()}
+                                ${buildArtistOptions(artists)}
                             </select>
                             <button class="btn btn-outline-secondary btn-sm add-track-artist-btn" type="button">+</button>
                         </div>

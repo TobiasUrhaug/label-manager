@@ -327,7 +327,12 @@
         </div>
     </div>
 
-    <script th:inline="javascript">
+    <script type="module" th:inline="javascript">
+    import { getArtistById, buildArtistOptions } from '/js/artist-utils.js';
+    import { createTag } from '/js/tag-factory.js';
+    import { formatDuration } from '/js/duration.js';
+    import { validateCostForm } from '/js/cost-validation.js';
+
     document.addEventListener('DOMContentLoaded', function() {
         const editTrackContainer = document.getElementById('editTrackContainer');
         const editAddTrackBtn = document.getElementById('editAddTrackBtn');
@@ -343,22 +348,9 @@
         let editTrackIndex = 0;
         let selectedEditReleaseArtists = [];
 
-        function getArtistById(id) {
-            return allArtists.find(a => String(a.id) === String(id));
-        }
-
-        function createTag(artistId, artistName, onRemove) {
-            const tag = document.createElement('span');
-            tag.className = 'badge bg-secondary d-flex align-items-center gap-1';
-            tag.innerHTML = `${artistName} <button type="button" class="btn-close btn-close-white" style="font-size: 0.6rem;" aria-label="Remove"></button>`;
-            tag.querySelector('button').addEventListener('click', onRemove);
-            tag.dataset.artistId = artistId;
-            return tag;
-        }
-
         function addEditReleaseArtist(artistId) {
             if (!artistId || selectedEditReleaseArtists.includes(String(artistId))) return;
-            const artist = getArtistById(artistId);
+            const artist = getArtistById(allArtists, artistId);
             if (!artist) return;
 
             selectedEditReleaseArtists.push(String(artistId));
@@ -393,7 +385,7 @@
             if (!artistId) return;
             if (inputsContainer.querySelector(`input[value="${artistId}"]`)) return;
 
-            const artist = getArtistById(artistId);
+            const artist = getArtistById(allArtists, artistId);
             if (!artist) return;
 
             addEditReleaseArtist(artistId);
@@ -435,19 +427,6 @@
             editTrackIndex = rows.length - 1;
         }
 
-        function buildArtistOptions() {
-            return allArtists.map(artist =>
-                `<option value="${artist.id}">${artist.artistName}</option>`
-            ).join('');
-        }
-
-        function formatDuration(totalSeconds) {
-            if (!totalSeconds) return '';
-            const minutes = Math.floor(totalSeconds / 60);
-            const seconds = totalSeconds % 60;
-            return `${minutes}:${seconds.toString().padStart(2, '0')}`;
-        }
-
         function createTrackRow(index, trackData) {
             const durationValue = trackData && trackData.duration
                 ? formatDuration(trackData.duration.totalSeconds)
@@ -464,7 +443,7 @@
                         <div class="input-group">
                             <select class="form-select track-artist-select">
                                 <option value="">Select...</option>
-                                ${buildArtistOptions()}
+                                ${buildArtistOptions(allArtists)}
                             </select>
                             <button class="btn btn-outline-secondary btn-sm add-track-artist-btn" type="button">+</button>
                         </div>
@@ -561,18 +540,7 @@
             const vatAmount = parseFloat(document.getElementById('vatAmount').value) || 0;
             const grossAmount = parseFloat(document.getElementById('grossAmount').value) || 0;
 
-            const expectedVat = Math.round(netAmount * vatRate * 100) / 100;
-            const expectedGross = Math.round((netAmount + vatAmount) * 100) / 100;
-
-            const errors = [];
-
-            if (Math.abs(vatAmount - expectedVat) > 0.01) {
-                errors.push(`VAT amount (${vatAmount.toFixed(2)}) should be ${expectedVat.toFixed(2)} (net × rate)`);
-            }
-
-            if (Math.abs(grossAmount - expectedGross) > 0.01) {
-                errors.push(`Gross amount (${grossAmount.toFixed(2)}) should be ${expectedGross.toFixed(2)} (net + VAT)`);
-            }
+            const errors = validateCostForm(netAmount, vatRate, vatAmount, grossAmount);
 
             if (errors.length > 0) {
                 e.preventDefault();
@@ -636,18 +604,7 @@
             const vatAmount = parseFloat(document.getElementById('editVatAmount').value) || 0;
             const grossAmount = parseFloat(document.getElementById('editGrossAmount').value) || 0;
 
-            const expectedVat = Math.round(netAmount * vatRate * 100) / 100;
-            const expectedGross = Math.round((netAmount + vatAmount) * 100) / 100;
-
-            const errors = [];
-
-            if (Math.abs(vatAmount - expectedVat) > 0.01) {
-                errors.push(`VAT amount (${vatAmount.toFixed(2)}) should be ${expectedVat.toFixed(2)} (net × rate)`);
-            }
-
-            if (Math.abs(grossAmount - expectedGross) > 0.01) {
-                errors.push(`Gross amount (${grossAmount.toFixed(2)}) should be ${expectedGross.toFixed(2)} (net + VAT)`);
-            }
+            const errors = validateCostForm(netAmount, vatRate, vatAmount, grossAmount);
 
             if (errors.length > 0) {
                 e.preventDefault();
