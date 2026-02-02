@@ -3,20 +3,21 @@
       th:replace="~{fragments/layout :: page(title='Dashboard', content=~{::main})}">
 <main>
     <div class="d-flex align-items-center gap-2 mb-3">
-        <h2 class="mb-0">Your Labels</h2>
-        <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#createLabelModal">+</button>
+        <h2 class="mb-0" data-testid="labels-heading">Your Labels</h2>
+        <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#createLabelModal" data-testid="create-label-button">+</button>
     </div>
 
     <div th:if="${#lists.isEmpty(labels)}" class="alert alert-info">
         No labels yet. Click + to add one.
     </div>
 
-    <div class="list-group" th:unless="${#lists.isEmpty(labels)}">
+    <div class="list-group" th:unless="${#lists.isEmpty(labels)}" data-testid="labels-list">
         <div class="list-group-item d-flex justify-content-between align-items-center"
              th:each="label : ${labels}">
             <a th:href="@{/labels/{id}(id=${label.id})}"
                th:text="${label.name}"
-               class="text-decoration-none">
+               class="text-decoration-none"
+               data-testid="label-link">
             </a>
             <form th:action="@{/labels/{id}(id=${label.id})}"
                   method="post"
@@ -31,7 +32,7 @@
 
     <div class="d-flex align-items-center gap-2 mb-3">
         <h2 class="mb-0">Your Artists</h2>
-        <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#createArtistModal">+</button>
+        <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#createArtistModal" data-testid="create-artist-button">+</button>
     </div>
 
     <div th:if="${#lists.isEmpty(artists)}" class="alert alert-info">
@@ -55,7 +56,7 @@
     </div>
 
     <!-- Add Label Modal -->
-    <div class="modal fade" id="createLabelModal" tabindex="-1" aria-labelledby="createLabelModalLabel" aria-hidden="true">
+    <div class="modal fade" id="createLabelModal" tabindex="-1" aria-labelledby="createLabelModalLabel" aria-hidden="true" data-testid="create-label-modal">
         <div class="modal-dialog">
             <div class="modal-content">
                 <form th:action="@{/labels}" method="post">
@@ -66,15 +67,15 @@
                     <div class="modal-body">
                         <div class="mb-3">
                             <label for="labelName" class="form-label">Label Name</label>
-                            <input type="text" class="form-control" id="labelName" name="labelName" required>
+                            <input type="text" class="form-control" id="labelName" name="labelName" data-testid="label-name-input" required>
                         </div>
                         <div class="mb-3">
                             <label for="email" class="form-label">Email</label>
-                            <input type="email" class="form-control" id="email" name="email">
+                            <input type="email" class="form-control" id="email" name="email" data-testid="label-email-input">
                         </div>
                         <div class="mb-3">
                             <label for="website" class="form-label">Website</label>
-                            <input type="url" class="form-control" id="website" name="website" placeholder="https://">
+                            <input type="url" class="form-control" id="website" name="website" placeholder="https://" data-testid="label-website-input">
                         </div>
                         <div class="mb-3">
                             <label for="ownerName" class="form-label">Owner Name</label>
@@ -106,7 +107,7 @@
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-primary">Create</button>
+                        <button type="submit" class="btn btn-primary" data-testid="create-label-submit">Create</button>
                     </div>
                 </form>
             </div>
@@ -114,7 +115,7 @@
     </div>
 
     <!-- Add Artist Modal -->
-    <div class="modal fade" id="createArtistModal" tabindex="-1" aria-labelledby="createArtistModalLabel" aria-hidden="true">
+    <div class="modal fade" id="createArtistModal" tabindex="-1" aria-labelledby="createArtistModalLabel" aria-hidden="true" data-testid="create-artist-modal">
         <div class="modal-dialog">
             <div class="modal-content">
                 <form th:action="@{/artists}" method="post">
@@ -125,7 +126,7 @@
                     <div class="modal-body">
                         <div class="mb-3">
                             <label for="artistName" class="form-label">Artist Name</label>
-                            <input type="text" class="form-control" id="artistName" name="artistName" required>
+                            <input type="text" class="form-control" id="artistName" name="artistName" data-testid="artist-name-input" required>
                         </div>
                         <div class="mb-3">
                             <label for="realName" class="form-label">Real Name</label>
@@ -161,7 +162,7 @@
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-primary">Create</button>
+                        <button type="submit" class="btn btn-primary" data-testid="create-artist-submit">Create</button>
                     </div>
                 </form>
             </div>

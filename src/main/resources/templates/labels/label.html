@@ -42,7 +42,7 @@
 
     <div class="d-flex align-items-center gap-2 mb-3">
         <h2 class="mb-0">Releases</h2>
-        <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#createReleaseModal">+</button>
+        <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#createReleaseModal" data-testid="create-release-button">+</button>
     </div>
 
     <div th:if="${#lists.isEmpty(releases)}" class="alert alert-info">
@@ -67,7 +67,7 @@
     </div>
 
     <!-- Add Release Modal -->
-    <div class="modal fade" id="createReleaseModal" tabindex="-1" aria-labelledby="createReleaseModalLabel" aria-hidden="true">
+    <div class="modal fade" id="createReleaseModal" tabindex="-1" aria-labelledby="createReleaseModalLabel" aria-hidden="true" data-testid="create-release-modal">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <form th:action="@{/labels/{labelId}/releases(labelId=${id})}" method="post" id="createReleaseForm">
@@ -78,7 +78,7 @@
                     <div class="modal-body">
                         <div class="mb-3">
                             <label class="form-label">Artists</label>
-                            <select class="form-select mb-2" id="releaseArtistSelect">
+                            <select class="form-select mb-2" id="releaseArtistSelect" data-testid="release-artist-select">
                                 <option value="">Select an artist...</option>
                                 <option th:each="artist : ${artists}" th:value="${artist.id}" th:text="${artist.artistName}">Artist Name</option>
                             </select>
@@ -87,11 +87,11 @@
                         </div>
                         <div class="mb-3">
                             <label for="releaseName" class="form-label">Release Name</label>
-                            <input type="text" class="form-control" id="releaseName" name="releaseName" required>
+                            <input type="text" class="form-control" id="releaseName" name="releaseName" data-testid="release-name-input" required>
                         </div>
                         <div class="mb-3">
                             <label for="releaseDate" class="form-label">Release Date</label>
-                            <input type="date" class="form-control" id="releaseDate" name="releaseDate" required>
+                            <input type="date" class="form-control" id="releaseDate" name="releaseDate" data-testid="release-date-input" required>
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Formats</label>
@@ -99,6 +99,7 @@
                                 <div th:each="format : ${allFormats}" class="form-check form-check-inline">
                                     <input class="form-check-input" type="checkbox" name="formats"
                                            th:id="'format' + ${format}" th:value="${format}"
+                                           th:data-testid="'format-' + ${format.name().toLowerCase()}"
                                            th:checked="${format.name() == 'DIGITAL'}">
                                     <label class="form-check-label" th:for="'format' + ${format}" th:text="${format}">Format</label>
                                 </div>
@@ -113,7 +114,7 @@
                                     <div class="col-md-4">
                                         <label class="form-label">Artist</label>
                                         <div class="input-group">
-                                            <select class="form-select track-artist-select">
+                                            <select class="form-select track-artist-select" data-testid="track-artist-select">
                                                 <option value="">Select...</option>
                                                 <option th:each="artist : ${artists}" th:value="${artist.id}" th:text="${artist.artistName}">Artist Name</option>
                                             </select>
@@ -122,11 +123,11 @@
                                     </div>
                                     <div class="col-md-4">
                                         <label class="form-label">Name</label>
-                                        <input type="text" class="form-control" name="tracks[0].name" required>
+                                        <input type="text" class="form-control" name="tracks[0].name" data-testid="track-name-input" required>
                                     </div>
                                     <div class="col-md-3">
                                         <label class="form-label">Duration</label>
-                                        <input type="text" class="form-control" name="tracks[0].duration" placeholder="MM:SS" pattern="[0-9]+:[0-5][0-9]" required>
+                                        <input type="text" class="form-control" name="tracks[0].duration" placeholder="MM:SS" pattern="[0-9]+:[0-5][0-9]" data-testid="track-duration-input" required>
                                     </div>
                                     <div class="col-md-1 text-end">
                                         <button type="button" class="btn btn-outline-danger btn-sm remove-track" style="display: none;">X</button>
@@ -140,7 +141,7 @@
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-primary">Create</button>
+                        <button type="submit" class="btn btn-primary" data-testid="create-release-submit">Create</button>
                     </div>
                 </form>
             </div>

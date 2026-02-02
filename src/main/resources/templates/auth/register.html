@@ -12,24 +12,24 @@
                         Error message
                     </div>
 
-                    <form th:action="@{/register}" method="post" th:object="${registrationForm}">
+                    <form th:action="@{/register}" method="post" th:object="${registrationForm}" data-testid="register-form">
                         <div class="mb-3">
                             <label for="email" class="form-label">Email</label>
                             <input type="email" class="form-control" id="email" th:field="*{email}"
-                                   required autofocus>
+                                   data-testid="register-email" required autofocus>
                         </div>
                         <div class="mb-3">
                             <label for="displayName" class="form-label">Display Name</label>
                             <input type="text" class="form-control" id="displayName" th:field="*{displayName}"
-                                   required>
+                                   data-testid="register-display-name" required>
                         </div>
                         <div class="mb-3">
                             <label for="password" class="form-label">Password</label>
                             <input type="password" class="form-control" id="password" th:field="*{password}"
-                                   required>
+                                   data-testid="register-password" required>
                         </div>
                         <div class="d-grid">
-                            <button type="submit" class="btn btn-primary">Register</button>
+                            <button type="submit" class="btn btn-primary" data-testid="register-submit">Register</button>
                         </div>
                     </form>
 
