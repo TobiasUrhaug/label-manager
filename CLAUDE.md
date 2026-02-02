@@ -11,54 +11,73 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 # Run the application
 ./gradlew bootRun
 
-# Run all tests
+# Run all Java tests
 ./gradlew test
 
 # Run a single test class
 ./gradlew test --tests LabelControllerTest
 
-# Run a single test method
-./gradlew test --tests LabelControllerTest.label_redirectsToALabel
-
 # Run checkstyle
 ./gradlew checkstyleMain checkstyleTest
+
+# Run JavaScript unit tests
+npm run test
+
+# Run E2E tests (auto-starts app)
+npm run test:e2e
+
+# Run E2E tests against deployed instance
+E2E_TARGET_URL=https://app.example.com npm run test:e2e
 ```
 
 ## Domain
 
-This application tracks music labels belonging to a user. A user can have multiple labels, and each label can have multiple releases. Releases can be in physical formats (vinyl, CD) or digital.
+A multi-tenant application for managing independent music labels.
+
+- **Users** own one or more **Labels**
+- **Labels** have **Artists** and **Releases**
+- **Releases** contain **Tracks** (with artist, duration) and can be physical (vinyl, CD) or digital
+- **Costs** track expenses (mastering, distribution) with VAT calculations and document attachments
 
 ## Architecture
 
-This is a Spring Boot 4.0.0 web application (Java 25) using Thymeleaf for server-side templating with Bootstrap 5.
+Spring Boot 4.0.0 web application (Java 25) using Thymeleaf for server-side templating with Bootstrap 5.
 
 ### Package Structure
 
-Code is organized by domain feature rather than technical layer:
+Organized by bounded context, each following clean architecture:
 
 ```
 org.omt.labelmanager/
-├── label/
-│   ├── Label.java              # Domain POJO (Java Record)
-│   ├── LabelCRUDHandler.java   # Service layer
-│   ├── api/                    # Controllers
-│   └── persistence/            # JPA entities and repositories
-├── release/                    # Same structure as label
-└── dashboard/                  # Dashboard controller
+├── catalog/           # Labels, releases, artists, tracks
+├── identity/          # Users, authentication
+├── finance/           # Costs
+└── infrastructure/    # Cross-cutting: security, storage, dashboard
+```
+
+Each bounded context has the same internal structure:
+
+```
+catalog/
+├── api/               # Controllers
+├── application/       # Use cases (CRUD handlers)
+├── domain/            # Domain models (records), factories
+└── infrastructure/    # Persistence (entities, repositories)
 ```
 
 ### Layer Separation
 
-- **Domain POJOs**: Java Records (`Label`, `Release`) - immutable domain models
-- **Entities**: JPA entities (`LabelEntity`, `ReleaseEntity`) - separate from domain to isolate persistence
-- **CRUD Handlers**: Services that manage business logic and transactions
-- **Controllers**: Handle HTTP requests, delegate to handlers
+| Layer | Contains | Example |
+|-------|----------|---------|
+| `domain/` | Immutable records, value objects | `Label.java`, `Money.java` |
+| `application/` | Use cases, orchestration | `LabelCRUDHandler.java` |
+| `api/` | Controllers, forms | `LabelController.java` |
+| `infrastructure/` | JPA entities, repositories, adapters | `LabelEntity.java`, `S3DocumentStorageAdapter.java` |
 
 ### Database
 
-- PostgreSQL in production, H2 for tests
-- Flyway manages migrations in `src/main/resources/db/migration/`
-- One-to-Many relationship: Label → Releases (cascade delete)
+- PostgreSQL (production and tests via TestContainers)
+- Flyway migrations in `src/main/resources/db/migration/`
 
 ## Testing Strategy
 
@@ -240,17 +259,15 @@ Use Test-Driven Development with small, atomic commits. For any feature, break i
 - Progress is visible and incremental
 - Easier to catch issues early
 
-### Test Factories
-
-Use the `aClassName()` pattern for readability:
-```java
-LabelFactory.aLabel().name("Test").build()
-AddressFactory.anAddress().city("Oslo").build()
-```
-
 ## Development Setup
 
-Start PostgreSQL with Docker:
 ```bash
+# Start PostgreSQL
 docker compose up -d
+
+# Install JavaScript dependencies
+npm install
+
+# Install Playwright browsers (for E2E tests)
+npx playwright install
 ```
