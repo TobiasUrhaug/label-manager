@@ -43,3 +43,7 @@ extraction:
   tesseract:
     data-path: ${TESSERACT_DATA_PATH:}
     language: ${TESSERACT_LANGUAGE:eng}
+  ollama:
+    base-url: ${OLLAMA_BASE_URL:http://localhost:11434}
+    model: ${OLLAMA_MODEL:llava}
+    default-currency: ${OLLAMA_DEFAULT_CURRENCY:EUR}
