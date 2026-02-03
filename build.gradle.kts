@@ -43,6 +43,9 @@ dependencies {
     // AWS S3 SDK for document storage
     implementation(platform("software.amazon.awssdk:bom:2.31.59"))
     implementation("software.amazon.awssdk:s3")
+
+    // Tesseract OCR for invoice text extraction
+    implementation("net.sourceforge.tess4j:tess4j:5.13.0")
 	developmentOnly("org.springframework.boot:spring-boot-devtools")
 	testImplementation("org.springframework.boot:spring-boot-starter-thymeleaf-test")
 	testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")

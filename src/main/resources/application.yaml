@@ -38,3 +38,8 @@ storage:
     region: ${S3_REGION:us-east-1}
     access-key: ${S3_ACCESS_KEY:dev}
     secret-key: ${S3_SECRET_KEY:devdevdev}
+
+extraction:
+  tesseract:
+    data-path: ${TESSERACT_DATA_PATH:}
+    language: ${TESSERACT_LANGUAGE:eng}
