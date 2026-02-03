@@ -320,287 +320,83 @@
     </div>
 
     <script type="module" th:inline="javascript">
-    import { getArtistById, buildArtistOptions } from '/js/artist-utils.js';
-    import { createTag } from '/js/tag-factory.js';
-    import { formatDuration } from '/js/duration.js';
-    import { validateCostForm } from '/js/cost-validation.js';
+    import { createArtistSelection } from '/js/artist-selection.js';
+    import { createTrackList } from '/js/track-list.js';
+    import {
+        setupCostFormValidation,
+        setupEditCostModal,
+        setupEditCostButtons,
+    } from '/js/cost-form.js';
 
     document.addEventListener('DOMContentLoaded', function() {
-        const editTrackContainer = document.getElementById('editTrackContainer');
-        const editAddTrackBtn = document.getElementById('editAddTrackBtn');
-        const editReleaseArtistSelect = document.getElementById('editReleaseArtistSelect');
-        const editReleaseArtistTags = document.getElementById('editReleaseArtistTags');
-        const editReleaseArtistInputs = document.getElementById('editReleaseArtistInputs');
-        const editReleaseModal = document.getElementById('editReleaseModal');
-
         const allArtists = /*[[${allArtists}]]*/ [];
         const currentReleaseArtists = /*[[${artists}]]*/ [];
         const currentTracks = /*[[${tracks}]]*/ [];
-
-        let editTrackIndex = 0;
-        let selectedEditReleaseArtists = [];
-
-        function addEditReleaseArtist(artistId) {
-            if (!artistId || selectedEditReleaseArtists.includes(String(artistId))) return;
-            const artist = getArtistById(allArtists, artistId);
-            if (!artist) return;
-
-            selectedEditReleaseArtists.push(String(artistId));
-
-            const tag = createTag(artistId, artist.artistName, () => {
-                selectedEditReleaseArtists = selectedEditReleaseArtists.filter(id => id !== String(artistId));
-                tag.remove();
-                const input = editReleaseArtistInputs.querySelector(`input[value="${artistId}"]`);
-                if (input) input.remove();
-            });
-            editReleaseArtistTags.appendChild(tag);
-
-            const input = document.createElement('input');
-            input.type = 'hidden';
-            input.name = 'artistIds';
-            input.value = artistId;
-            editReleaseArtistInputs.appendChild(input);
-
-            editReleaseArtistSelect.value = '';
-        }
-
-        editReleaseArtistSelect.addEventListener('change', () => {
-            addEditReleaseArtist(editReleaseArtistSelect.value);
-        });
-
-        function addEditTrackArtist(trackRow, artistId) {
-            const trackIdx = trackRow.dataset.trackIndex;
-            const tagsContainer = trackRow.querySelector('.track-artist-tags');
-            const inputsContainer = trackRow.querySelector('.track-artist-inputs');
-            const select = trackRow.querySelector('.track-artist-select');
-
-            if (!artistId) return;
-            if (inputsContainer.querySelector(`input[value="${artistId}"]`)) return;
-
-            const artist = getArtistById(allArtists, artistId);
-            if (!artist) return;
-
-            addEditReleaseArtist(artistId);
-
-            const tag = createTag(artistId, artist.artistName, () => {
-                tag.remove();
-                inputsContainer.querySelector(`input[value="${artistId}"]`).remove();
-            });
-            tagsContainer.appendChild(tag);
-
-            const input = document.createElement('input');
-            input.type = 'hidden';
-            input.name = `tracks[${trackIdx}].artistIds`;
-            input.value = artistId;
-            inputsContainer.appendChild(input);
-
-            select.value = '';
-        }
-
-        function updateEditRemoveButtons() {
-            const rows = editTrackContainer.querySelectorAll('.track-row');
-            rows.forEach(row => {
-                const removeBtn = row.querySelector('.remove-track');
-                removeBtn.style.display = rows.length > 1 ? 'inline-block' : 'none';
-            });
-        }
-
-        function reindexEditTracks() {
-            const rows = editTrackContainer.querySelectorAll('.track-row');
-            rows.forEach((row, index) => {
-                row.dataset.trackIndex = index;
-                row.querySelectorAll('input[name]').forEach(input => {
-                    const name = input.getAttribute('name');
-                    if (name) {
-                        input.setAttribute('name', name.replace(/tracks\[\d+\]/, 'tracks[' + index + ']'));
-                    }
-                });
-            });
-            editTrackIndex = rows.length - 1;
-        }
-
-        function createTrackRow(index, trackData) {
-            const durationValue = trackData && trackData.duration
-                ? formatDuration(trackData.duration.totalSeconds)
-                : '';
-            const nameValue = trackData ? trackData.name : '';
-
-            const row = document.createElement('div');
-            row.className = 'track-row mb-3 p-2 border rounded';
-            row.dataset.trackIndex = index;
-            row.innerHTML = `
-                <div class="row g-2 align-items-end">
-                    <div class="col-md-4">
-                        <label class="form-label">Artist</label>
-                        <div class="input-group">
-                            <select class="form-select track-artist-select">
-                                <option value="">Select...</option>
-                                ${buildArtistOptions(allArtists)}
-                            </select>
-                            <button class="btn btn-outline-secondary btn-sm add-track-artist-btn" type="button">+</button>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label">Name</label>
-                        <input type="text" class="form-control" name="tracks[${index}].name" value="${nameValue}" required>
-                    </div>
-                    <div class="col-md-3">
-                        <label class="form-label">Duration</label>
-                        <input type="text" class="form-control" name="tracks[${index}].duration" placeholder="MM:SS" pattern="[0-9]+:[0-5][0-9]" value="${durationValue}" required>
-                    </div>
-                    <div class="col-md-1 text-end">
-                        <button type="button" class="btn btn-outline-danger btn-sm remove-track">X</button>
-                    </div>
-                </div>
-                <div class="track-artist-tags d-flex flex-wrap gap-1 mt-2"></div>
-                <div class="track-artist-inputs"></div>
-            `;
-            return row;
-        }
-
-        function initializeEditModal() {
-            selectedEditReleaseArtists = [];
-            editReleaseArtistTags.innerHTML = '';
-            editReleaseArtistInputs.innerHTML = '';
-            editTrackContainer.innerHTML = '';
-            editTrackIndex = 0;
-
-            currentReleaseArtists.forEach(artist => {
-                addEditReleaseArtist(artist.id);
-            });
-
-            currentTracks.forEach((track, index) => {
-                const row = createTrackRow(index, track);
-                editTrackContainer.appendChild(row);
-
-                track.artists.forEach(artist => {
-                    addEditTrackArtist(row, artist.id);
-                });
-
-                editTrackIndex = index;
-            });
-
-            if (currentTracks.length === 0) {
-                const row = createTrackRow(0, null);
-                editTrackContainer.appendChild(row);
-            }
-
-            updateEditRemoveButtons();
-        }
-
-        editReleaseModal.addEventListener('show.bs.modal', initializeEditModal);
-
-        editAddTrackBtn.addEventListener('click', function() {
-            editTrackIndex++;
-            const newRow = createTrackRow(editTrackIndex, null);
-            editTrackContainer.appendChild(newRow);
-
-            selectedEditReleaseArtists.forEach(artistId => {
-                addEditTrackArtist(newRow, artistId);
-            });
-
-            updateEditRemoveButtons();
-        });
-
-        editTrackContainer.addEventListener('click', function(e) {
-            if (e.target.classList.contains('remove-track')) {
-                e.target.closest('.track-row').remove();
-                reindexEditTracks();
-                updateEditRemoveButtons();
-            }
-            if (e.target.classList.contains('add-track-artist-btn')) {
-                const trackRow = e.target.closest('.track-row');
-                const select = trackRow.querySelector('.track-artist-select');
-                addEditTrackArtist(trackRow, select.value);
-            }
-        });
-
-        editTrackContainer.addEventListener('change', function(e) {
-            if (e.target.classList.contains('track-artist-select')) {
-                const trackRow = e.target.closest('.track-row');
-                addEditTrackArtist(trackRow, e.target.value);
-            }
-        });
-
-        // Cost form validation
-        const addCostForm = document.querySelector('#addCostModal form');
-        const costValidationError = document.getElementById('costValidationError');
-
-        addCostForm.addEventListener('submit', function(e) {
-            const netAmount = parseFloat(document.getElementById('netAmount').value) || 0;
-            const vatRate = parseFloat(document.getElementById('vatRate').value) || 0;
-            const vatAmount = parseFloat(document.getElementById('vatAmount').value) || 0;
-            const grossAmount = parseFloat(document.getElementById('grossAmount').value) || 0;
-
-            const errors = validateCostForm(netAmount, vatRate, vatAmount, grossAmount);
-
-            if (errors.length > 0) {
-                e.preventDefault();
-                costValidationError.innerHTML = errors.join('<br>');
-                costValidationError.classList.remove('d-none');
-            } else {
-                costValidationError.classList.add('d-none');
-            }
-        });
-
-        // Clear validation error when modal is closed
-        document.getElementById('addCostModal').addEventListener('hidden.bs.modal', function() {
-            costValidationError.classList.add('d-none');
-        });
-
-        // Edit Cost Modal
-        const editCostModal = document.getElementById('editCostModal');
-        const editCostForm = document.getElementById('editCostForm');
-        const editCostValidationError = document.getElementById('editCostValidationError');
         const labelId = /*[[${labelId}]]*/ 0;
         const releaseId = /*[[${releaseId}]]*/ 0;
 
-        document.querySelectorAll('.edit-cost-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const costId = this.dataset.costId;
-                const costType = this.dataset.costType;
-                const description = this.dataset.description;
-                const incurredOn = this.dataset.incurredOn;
-                const netAmount = this.dataset.netAmount;
-                const vatAmount = this.dataset.vatAmount;
-                const vatRate = this.dataset.vatRate;
-                const grossAmount = this.dataset.grossAmount;
-                const documentReference = this.dataset.documentReference;
-
-                editCostForm.action = `/labels/${labelId}/releases/${releaseId}/costs/${costId}`;
-                document.getElementById('editCostType').value = costType;
-                document.getElementById('editDescription').value = description || '';
-                document.getElementById('editIncurredOn').value = incurredOn;
-                document.getElementById('editNetAmount').value = netAmount;
-                document.getElementById('editVatAmount').value = vatAmount;
-                document.getElementById('editVatRate').value = vatRate;
-                document.getElementById('editGrossAmount').value = grossAmount;
-                document.getElementById('editDocumentReference').value = documentReference || '';
-
-                new bootstrap.Modal(editCostModal).show();
-            });
+        // Edit Release Modal - Artist selection
+        const editReleaseArtistSelection = createArtistSelection({
+            artists: allArtists,
+            selectElement: document.getElementById('editReleaseArtistSelect'),
+            tagsContainer: document.getElementById('editReleaseArtistTags'),
+            inputsContainer: document.getElementById('editReleaseArtistInputs'),
+            inputName: 'artistIds',
         });
 
-        editCostForm.addEventListener('submit', function(e) {
-            const netAmount = parseFloat(document.getElementById('editNetAmount').value) || 0;
-            const vatRate = parseFloat(document.getElementById('editVatRate').value) || 0;
-            const vatAmount = parseFloat(document.getElementById('editVatAmount').value) || 0;
-            const grossAmount = parseFloat(document.getElementById('editGrossAmount').value) || 0;
-
-            const errors = validateCostForm(netAmount, vatRate, vatAmount, grossAmount);
-
-            if (errors.length > 0) {
-                e.preventDefault();
-                editCostValidationError.innerHTML = errors.join('<br>');
-                editCostValidationError.classList.remove('d-none');
-            } else {
-                editCostValidationError.classList.add('d-none');
-            }
+        // Edit Release Modal - Track list
+        const editTrackList = createTrackList({
+            container: document.getElementById('editTrackContainer'),
+            addButton: document.getElementById('editAddTrackBtn'),
+            artists: allArtists,
+            onTrackArtistAdd: (artistId) => editReleaseArtistSelection.add(artistId),
+            getSelectedReleaseArtists: () => editReleaseArtistSelection.getSelectedIds(),
         });
 
-        editCostModal.addEventListener('hidden.bs.modal', function() {
-            editCostValidationError.classList.add('d-none');
+        // Initialize edit modal when shown
+        const editReleaseModal = document.getElementById('editReleaseModal');
+        editReleaseModal.addEventListener('show.bs.modal', function() {
+            editReleaseArtistSelection.clear();
+            currentReleaseArtists.forEach(artist => editReleaseArtistSelection.add(artist.id));
+            editTrackList.initialize(currentTracks);
         });
+
+        // Add Cost Form Validation
+        setupCostFormValidation({
+            form: document.querySelector('#addCostModal form'),
+            errorContainer: document.getElementById('costValidationError'),
+            fields: {
+                netAmount: '#netAmount',
+                vatRate: '#vatRate',
+                vatAmount: '#vatAmount',
+                grossAmount: '#grossAmount',
+            },
+        });
+
+        // Clear add cost validation error when modal is closed
+        document.getElementById('addCostModal').addEventListener('hidden.bs.modal', function() {
+            document.getElementById('costValidationError').classList.add('d-none');
+        });
+
+        // Edit Cost Modal
+        const editCostModalHandler = setupEditCostModal({
+            modal: document.getElementById('editCostModal'),
+            form: document.getElementById('editCostForm'),
+            errorContainer: document.getElementById('editCostValidationError'),
+            actionUrlTemplate: `/labels/${labelId}/releases/${releaseId}/costs/{costId}`,
+            fieldIds: {
+                costType: 'editCostType',
+                description: 'editDescription',
+                incurredOn: 'editIncurredOn',
+                netAmount: 'editNetAmount',
+                vatAmount: 'editVatAmount',
+                vatRate: 'editVatRate',
+                grossAmount: 'editGrossAmount',
+                documentReference: 'editDocumentReference',
+            },
+        });
+
+        setupEditCostButtons('.edit-cost-btn', editCostModalHandler);
     });
     </script>
 </main>

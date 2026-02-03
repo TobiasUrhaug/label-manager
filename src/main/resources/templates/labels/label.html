@@ -149,200 +149,40 @@
     </div>
 
     <script type="module" th:inline="javascript">
-    import { getArtistById, buildArtistOptions } from '/js/artist-utils.js';
-    import { createTag } from '/js/tag-factory.js';
+    import { createArtistSelection } from '/js/artist-selection.js';
+    import { createTrackList } from '/js/track-list.js';
 
     document.addEventListener('DOMContentLoaded', function() {
-        const trackContainer = document.getElementById('trackContainer');
-        const addTrackBtn = document.getElementById('addTrackBtn');
-        const releaseArtistSelect = document.getElementById('releaseArtistSelect');
-        const releaseArtistTags = document.getElementById('releaseArtistTags');
-        const releaseArtistInputs = document.getElementById('releaseArtistInputs');
-        const createReleaseModal = document.getElementById('createReleaseModal');
         const artists = /*[[${artists}]]*/ [];
-        let trackIndex = 0;
-        let selectedReleaseArtists = [];
+        const trackContainer = document.getElementById('trackContainer');
+        const createReleaseModal = document.getElementById('createReleaseModal');
+
+        // Release artist selection
+        const releaseArtistSelection = createArtistSelection({
+            artists,
+            selectElement: document.getElementById('releaseArtistSelect'),
+            tagsContainer: document.getElementById('releaseArtistTags'),
+            inputsContainer: document.getElementById('releaseArtistInputs'),
+            inputName: 'artistIds',
+        });
+
+        // Track list management
+        const trackList = createTrackList({
+            container: trackContainer,
+            addButton: document.getElementById('addTrackBtn'),
+            artists,
+            onTrackArtistAdd: (artistId) => releaseArtistSelection.add(artistId),
+            getSelectedReleaseArtists: () => releaseArtistSelection.getSelectedIds(),
+        });
+
+        // Initialize track list (replaces server-rendered row with JS-managed row)
+        trackList.initialize();
 
         // Reset modal state when closed
         createReleaseModal.addEventListener('hidden.bs.modal', function() {
-            selectedReleaseArtists = [];
-            releaseArtistTags.innerHTML = '';
-            releaseArtistInputs.innerHTML = '';
-            releaseArtistSelect.value = '';
             document.getElementById('createReleaseForm').reset();
-            // Reset tracks to single empty track
-            trackContainer.innerHTML = `
-                <div class="track-row mb-3 p-2 border rounded" data-track-index="0">
-                    <div class="row g-2 align-items-end">
-                        <div class="col-md-4">
-                            <label class="form-label">Artist</label>
-                            <div class="input-group">
-                                <select class="form-select track-artist-select">
-                                    <option value="">Select...</option>
-                                    ${buildArtistOptions(artists)}
-                                </select>
-                                <button class="btn btn-outline-secondary btn-sm add-track-artist-btn" type="button">+</button>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">Name</label>
-                            <input type="text" class="form-control" name="tracks[0].name" required>
-                        </div>
-                        <div class="col-md-3">
-                            <label class="form-label">Duration</label>
-                            <input type="text" class="form-control" name="tracks[0].duration" placeholder="MM:SS" pattern="[0-9]+:[0-5][0-9]" required>
-                        </div>
-                        <div class="col-md-1 text-end">
-                            <button type="button" class="btn btn-outline-danger btn-sm remove-track" style="display: none;">X</button>
-                        </div>
-                    </div>
-                    <div class="track-artist-tags d-flex flex-wrap gap-1 mt-2"></div>
-                    <div class="track-artist-inputs"></div>
-                </div>
-            `;
-            trackIndex = 0;
-        });
-
-        function addReleaseArtist(artistId) {
-            if (!artistId || selectedReleaseArtists.includes(artistId)) return;
-            const artist = getArtistById(artists, artistId);
-            if (!artist) return;
-
-            selectedReleaseArtists.push(artistId);
-
-            const tag = createTag(artistId, artist.artistName, () => {
-                selectedReleaseArtists = selectedReleaseArtists.filter(id => id !== artistId);
-                tag.remove();
-                releaseArtistInputs.querySelector(`input[value="${artistId}"]`).remove();
-            });
-            releaseArtistTags.appendChild(tag);
-
-            const input = document.createElement('input');
-            input.type = 'hidden';
-            input.name = 'artistIds';
-            input.value = artistId;
-            releaseArtistInputs.appendChild(input);
-
-            releaseArtistSelect.value = '';
-        }
-
-        // Auto-add artist when selecting from dropdown
-        releaseArtistSelect.addEventListener('change', () => {
-            addReleaseArtist(releaseArtistSelect.value);
-        });
-
-        function addTrackArtist(trackRow, artistId) {
-            const trackIdx = trackRow.dataset.trackIndex;
-            const tagsContainer = trackRow.querySelector('.track-artist-tags');
-            const inputsContainer = trackRow.querySelector('.track-artist-inputs');
-            const select = trackRow.querySelector('.track-artist-select');
-
-            if (!artistId) return;
-            if (inputsContainer.querySelector(`input[value="${artistId}"]`)) return;
-
-            const artist = getArtistById(artists, artistId);
-            if (!artist) return;
-
-            // Also add to release artists if not already there
-            addReleaseArtist(artistId);
-
-            const tag = createTag(artistId, artist.artistName, () => {
-                tag.remove();
-                inputsContainer.querySelector(`input[value="${artistId}"]`).remove();
-            });
-            tagsContainer.appendChild(tag);
-
-            const input = document.createElement('input');
-            input.type = 'hidden';
-            input.name = `tracks[${trackIdx}].artistIds`;
-            input.value = artistId;
-            inputsContainer.appendChild(input);
-
-            select.value = '';
-        }
-
-        function updateRemoveButtons() {
-            const rows = trackContainer.querySelectorAll('.track-row');
-            rows.forEach(row => {
-                const removeBtn = row.querySelector('.remove-track');
-                removeBtn.style.display = rows.length > 1 ? 'inline-block' : 'none';
-            });
-        }
-
-        function reindexTracks() {
-            const rows = trackContainer.querySelectorAll('.track-row');
-            rows.forEach((row, index) => {
-                row.dataset.trackIndex = index;
-                row.querySelectorAll('input[name]').forEach(input => {
-                    const name = input.getAttribute('name');
-                    if (name) {
-                        input.setAttribute('name', name.replace(/tracks\[\d+\]/, 'tracks[' + index + ']'));
-                    }
-                });
-            });
-            trackIndex = rows.length - 1;
-        }
-
-        addTrackBtn.addEventListener('click', function() {
-            trackIndex++;
-            const newRow = document.createElement('div');
-            newRow.className = 'track-row mb-3 p-2 border rounded';
-            newRow.dataset.trackIndex = trackIndex;
-            newRow.innerHTML = `
-                <div class="row g-2 align-items-end">
-                    <div class="col-md-4">
-                        <label class="form-label">Artist</label>
-                        <div class="input-group">
-                            <select class="form-select track-artist-select">
-                                <option value="">Select...</option>
-                                ${buildArtistOptions(artists)}
-                            </select>
-                            <button class="btn btn-outline-secondary btn-sm add-track-artist-btn" type="button">+</button>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label">Name</label>
-                        <input type="text" class="form-control" name="tracks[${trackIndex}].name" required>
-                    </div>
-                    <div class="col-md-3">
-                        <label class="form-label">Duration</label>
-                        <input type="text" class="form-control" name="tracks[${trackIndex}].duration" placeholder="MM:SS" pattern="[0-9]+:[0-5][0-9]" required>
-                    </div>
-                    <div class="col-md-1 text-end">
-                        <button type="button" class="btn btn-outline-danger btn-sm remove-track">X</button>
-                    </div>
-                </div>
-                <div class="track-artist-tags d-flex flex-wrap gap-1 mt-2"></div>
-                <div class="track-artist-inputs"></div>
-            `;
-            trackContainer.appendChild(newRow);
-
-            selectedReleaseArtists.forEach(artistId => {
-                addTrackArtist(newRow, artistId);
-            });
-
-            updateRemoveButtons();
-        });
-
-        trackContainer.addEventListener('click', function(e) {
-            if (e.target.classList.contains('remove-track')) {
-                e.target.closest('.track-row').remove();
-                reindexTracks();
-                updateRemoveButtons();
-            }
-            if (e.target.classList.contains('add-track-artist-btn')) {
-                const trackRow = e.target.closest('.track-row');
-                const select = trackRow.querySelector('.track-artist-select');
-                addTrackArtist(trackRow, select.value);
-            }
-        });
-
-        // Auto-add track artist when selecting from dropdown
-        trackContainer.addEventListener('change', function(e) {
-            if (e.target.classList.contains('track-artist-select')) {
-                const trackRow = e.target.closest('.track-row');
-                addTrackArtist(trackRow, e.target.value);
-            }
+            releaseArtistSelection.clear();
+            trackList.initialize();
         });
     });
     </script>
