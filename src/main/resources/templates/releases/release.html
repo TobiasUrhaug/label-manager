@@ -190,10 +190,12 @@
                         <div class="mb-3">
                             <label for="document" class="form-label">Upload Document (optional)</label>
                             <input type="file" class="form-control" id="document" name="document"
-                                   accept=".pdf,.png,.jpg,.jpeg,.doc,.docx,.xls,.xlsx">
+                                   accept=".pdf,.png,.jpg,.jpeg,.doc,.docx,.xls,.xlsx"
+                                   data-testid="cost-document-input">
                             <div class="form-text">Supported: PDF, images (PNG, JPG), Word, Excel</div>
                             <button type="button" class="btn btn-outline-secondary btn-sm mt-2 d-none"
-                                    id="extractInvoiceBtn">
+                                    id="extractInvoiceBtn"
+                                    data-testid="extract-invoice-button">
                                 Extract from Document
                             </button>
                         </div>

@@ -191,4 +191,62 @@ test.describe('Critical Paths', () => {
     await expect(page).toHaveURL(/\/login/);
   });
 
+  test('invoice extract button appears when PDF uploaded in cost modal', async ({ page }) => {
+    await registerAndLogin(page);
+
+    // Create a label and release
+    await page.getByTestId('create-label-button').click();
+    await page.getByTestId('label-name-input').fill('Cost Test Label');
+    await Promise.all([
+      page.waitForURL('/dashboard'),
+      page.getByTestId('create-label-submit').click(),
+    ]);
+
+    // Create an artist
+    await page.getByTestId('create-artist-button').click();
+    await page.getByTestId('artist-name-input').fill('Cost Test Artist');
+    await Promise.all([
+      page.waitForURL('/dashboard'),
+      page.getByTestId('create-artist-submit').click(),
+    ]);
+
+    // Go to label and create release
+    await page.getByTestId('label-link').filter({ hasText: 'Cost Test Label' }).click();
+    await page.getByTestId('create-release-button').click();
+    await page.getByTestId('release-name-input').fill('Cost Test Release');
+    await page.getByTestId('release-date-input').fill('2024-01-15');
+    await page.getByTestId('release-artist-select').selectOption({ label: 'Cost Test Artist' });
+    await page.getByTestId('format-vinyl').check();
+    await page.getByTestId('track-name-input').fill('Track 1');
+    await page.getByTestId('track-duration-input').fill('3:00');
+    await page.getByTestId('track-artist-select').selectOption({ label: 'Cost Test Artist' });
+    await Promise.all([
+      page.waitForURL(/\/labels\/\d+$/),
+      page.getByTestId('create-release-submit').click(),
+    ]);
+
+    // Go to release page
+    await page.getByText('Cost Test Release').click();
+    await expect(page.locator('h1')).toContainText('Cost Test Release');
+
+    // Open Add Cost modal
+    await page.locator('[data-bs-target="#addCostModal"]').click();
+    await expect(page.locator('#addCostModal')).toBeVisible();
+
+    // Extract button should be hidden initially
+    const extractButton = page.getByTestId('extract-invoice-button');
+    await expect(extractButton).toBeHidden();
+
+    // Upload a PDF file
+    const fileInput = page.getByTestId('cost-document-input');
+    await fileInput.setInputFiles({
+      name: 'invoice.pdf',
+      mimeType: 'application/pdf',
+      buffer: Buffer.from('fake pdf content'),
+    });
+
+    // Extract button should now be visible
+    await expect(extractButton).toBeVisible();
+  });
+
 });
