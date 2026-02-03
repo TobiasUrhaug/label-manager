@@ -2,6 +2,12 @@
 <html xmlns:th="http://www.thymeleaf.org"
       th:replace="~{fragments/layout :: page(title=${name}, content=~{::main})}">
 <main>
+    <style>
+        .extracted-field {
+            background-color: #d4edda !important;
+            transition: background-color 0.5s ease;
+        }
+    </style>
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div class="d-flex align-items-center gap-2">
             <h1 th:text="${name}" class="mb-0">Release Name</h1>
@@ -186,6 +192,10 @@
                             <input type="file" class="form-control" id="document" name="document"
                                    accept=".pdf,.png,.jpg,.jpeg,.doc,.docx,.xls,.xlsx">
                             <div class="form-text">Supported: PDF, images (PNG, JPG), Word, Excel</div>
+                            <button type="button" class="btn btn-outline-secondary btn-sm mt-2 d-none"
+                                    id="extractInvoiceBtn">
+                                Extract from Document
+                            </button>
                         </div>
                         <div id="costValidationError" class="alert alert-danger d-none"></div>
                     </div>
@@ -327,6 +337,7 @@
         setupEditCostModal,
         setupEditCostButtons,
     } from '/js/cost-form.js';
+    import { setupInvoiceExtraction } from '/js/invoice-extraction.js';
 
     document.addEventListener('DOMContentLoaded', function() {
         const allArtists = /*[[${allArtists}]]*/ [];
@@ -371,6 +382,23 @@
                 vatAmount: '#vatAmount',
                 grossAmount: '#grossAmount',
             },
+        });
+
+        // Invoice extraction for add cost modal
+        const addCostForm = document.querySelector('#addCostModal form');
+        const csrfToken = addCostForm.querySelector('input[name="_csrf"]')?.value || '';
+        setupInvoiceExtraction({
+            fileInput: document.getElementById('document'),
+            extractButton: document.getElementById('extractInvoiceBtn'),
+            fieldIds: {
+                netAmount: 'netAmount',
+                vatAmount: 'vatAmount',
+                grossAmount: 'grossAmount',
+                vatRate: 'vatRate',
+                incurredOn: 'incurredOn',
+                documentReference: 'documentReference',
+            },
+            csrfToken: csrfToken,
         });
 
         // Clear add cost validation error when modal is closed
