@@ -224,8 +224,21 @@ public Label createLabel(String name, Long userId) {
 
 ## Code Formatting
 
+**IMPORTANT**: Run checkstyle before committing to catch issues early:
+```bash
+./gradlew checkstyleMain checkstyleTest --quiet
+```
+
 ### Line Length
-Maximum line length is 100 characters.
+Maximum line length is 100 characters. This applies to all code including:
+- Method chains and fluent APIs
+- String literals and text blocks
+- Test data (JSON strings, mock responses)
+
+When lines are too long:
+- Break method chains across multiple lines
+- Use multi-line text blocks for JSON test data
+- Extract long strings into variables
 
 ### Long Method Signatures
 When a method signature exceeds the line limit, use this format:
