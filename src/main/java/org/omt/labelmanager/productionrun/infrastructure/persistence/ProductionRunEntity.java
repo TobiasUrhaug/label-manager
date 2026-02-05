@@ -1,4 +1,4 @@
-package org.omt.labelmanager.inventory.infrastructure.persistence;
+package org.omt.labelmanager.productionrun.infrastructure.persistence;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -12,8 +12,8 @@ import java.time.LocalDate;
 import org.omt.labelmanager.catalog.domain.release.ReleaseFormat;
 
 @Entity
-@Table(name = "inventory")
-public class InventoryEntity {
+@Table(name = "production_run")
+public class ProductionRunEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -37,10 +37,10 @@ public class InventoryEntity {
     @Column(nullable = false)
     private int quantity;
 
-    protected InventoryEntity() {
+    protected ProductionRunEntity() {
     }
 
-    public InventoryEntity(
+    public ProductionRunEntity(
             Long releaseId,
             ReleaseFormat format,
             String description,

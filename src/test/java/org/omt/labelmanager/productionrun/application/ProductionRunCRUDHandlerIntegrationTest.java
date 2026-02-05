@@ -1,4 +1,4 @@
-package org.omt.labelmanager.inventory.application;
+package org.omt.labelmanager.productionrun.application;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -10,7 +10,7 @@ import org.omt.labelmanager.catalog.infrastructure.persistence.label.LabelEntity
 import org.omt.labelmanager.catalog.infrastructure.persistence.label.LabelRepository;
 import org.omt.labelmanager.catalog.infrastructure.persistence.release.ReleaseEntity;
 import org.omt.labelmanager.catalog.infrastructure.persistence.release.ReleaseRepository;
-import org.omt.labelmanager.inventory.infrastructure.persistence.InventoryRepository;
+import org.omt.labelmanager.productionrun.infrastructure.persistence.ProductionRunRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.DynamicPropertyRegistry;
@@ -22,7 +22,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 
 @Testcontainers
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-class InventoryCRUDHandlerIntegrationTest {
+class ProductionRunCRUDHandlerIntegrationTest {
 
     private static final String MINIO_ACCESS_KEY = "minioadmin";
     private static final String MINIO_SECRET_KEY = "minioadmin";
@@ -52,13 +52,13 @@ class InventoryCRUDHandlerIntegrationTest {
     }
 
     @Autowired
-    private InventoryCRUDHandler inventoryCRUDHandler;
+    private ProductionRunCRUDHandler productionRunCRUDHandler;
 
     @Autowired
-    private InventoryQueryService inventoryQueryService;
+    private ProductionRunQueryService productionRunQueryService;
 
     @Autowired
-    private InventoryRepository inventoryRepository;
+    private ProductionRunRepository productionRunRepository;
 
     @Autowired
     private ReleaseRepository releaseRepository;
@@ -70,7 +70,7 @@ class InventoryCRUDHandlerIntegrationTest {
 
     @BeforeEach
     void setUp() {
-        inventoryRepository.deleteAll();
+        productionRunRepository.deleteAll();
         releaseRepository.deleteAll();
         labelRepository.deleteAll();
 
@@ -87,8 +87,8 @@ class InventoryCRUDHandlerIntegrationTest {
     }
 
     @Test
-    void createsInventory() {
-        var inventory = inventoryCRUDHandler.create(
+    void createsProductionRun() {
+        var productionRun = productionRunCRUDHandler.create(
                 releaseId,
                 ReleaseFormat.VINYL,
                 "Original pressing",
@@ -97,18 +97,18 @@ class InventoryCRUDHandlerIntegrationTest {
                 500
         );
 
-        assertThat(inventory.id()).isNotNull();
-        assertThat(inventory.releaseId()).isEqualTo(releaseId);
-        assertThat(inventory.format()).isEqualTo(ReleaseFormat.VINYL);
-        assertThat(inventory.description()).isEqualTo("Original pressing");
-        assertThat(inventory.manufacturer()).isEqualTo("Record Industry");
-        assertThat(inventory.manufacturingDate()).isEqualTo(LocalDate.of(2025, 1, 1));
-        assertThat(inventory.quantity()).isEqualTo(500);
+        assertThat(productionRun.id()).isNotNull();
+        assertThat(productionRun.releaseId()).isEqualTo(releaseId);
+        assertThat(productionRun.format()).isEqualTo(ReleaseFormat.VINYL);
+        assertThat(productionRun.description()).isEqualTo("Original pressing");
+        assertThat(productionRun.manufacturer()).isEqualTo("Record Industry");
+        assertThat(productionRun.manufacturingDate()).isEqualTo(LocalDate.of(2025, 1, 1));
+        assertThat(productionRun.quantity()).isEqualTo(500);
     }
 
     @Test
-    void findsInventoryByReleaseId() {
-        inventoryCRUDHandler.create(
+    void findsProductionRunsByReleaseId() {
+        productionRunCRUDHandler.create(
                 releaseId,
                 ReleaseFormat.VINYL,
                 "Original pressing",
@@ -117,7 +117,7 @@ class InventoryCRUDHandlerIntegrationTest {
                 500
         );
 
-        inventoryCRUDHandler.create(
+        productionRunCRUDHandler.create(
                 releaseId,
                 ReleaseFormat.CD,
                 "Initial run",
@@ -126,14 +126,14 @@ class InventoryCRUDHandlerIntegrationTest {
                 200
         );
 
-        var inventoryList = inventoryCRUDHandler.findByReleaseId(releaseId);
+        var productionRuns = productionRunCRUDHandler.findByReleaseId(releaseId);
 
-        assertThat(inventoryList).hasSize(2);
+        assertThat(productionRuns).hasSize(2);
     }
 
     @Test
-    void deletesInventory() {
-        var inventory = inventoryCRUDHandler.create(
+    void deletesProductionRun() {
+        var productionRun = productionRunCRUDHandler.create(
                 releaseId,
                 ReleaseFormat.VINYL,
                 "Original pressing",
@@ -142,22 +142,22 @@ class InventoryCRUDHandlerIntegrationTest {
                 500
         );
 
-        boolean deleted = inventoryCRUDHandler.delete(inventory.id());
+        boolean deleted = productionRunCRUDHandler.delete(productionRun.id());
 
         assertThat(deleted).isTrue();
-        assertThat(inventoryCRUDHandler.findByReleaseId(releaseId)).isEmpty();
+        assertThat(productionRunCRUDHandler.findByReleaseId(releaseId)).isEmpty();
     }
 
     @Test
-    void deleteReturnsFalseForNonExistentInventory() {
-        boolean deleted = inventoryCRUDHandler.delete(999L);
+    void deleteReturnsFalseForNonExistentProductionRun() {
+        boolean deleted = productionRunCRUDHandler.delete(999L);
 
         assertThat(deleted).isFalse();
     }
 
     @Test
     void calculatesTotalsByFormat() {
-        inventoryCRUDHandler.create(
+        productionRunCRUDHandler.create(
                 releaseId,
                 ReleaseFormat.VINYL,
                 "Original pressing",
@@ -166,7 +166,7 @@ class InventoryCRUDHandlerIntegrationTest {
                 500
         );
 
-        inventoryCRUDHandler.create(
+        productionRunCRUDHandler.create(
                 releaseId,
                 ReleaseFormat.VINYL,
                 "2nd pressing",
@@ -175,7 +175,7 @@ class InventoryCRUDHandlerIntegrationTest {
                 300
         );
 
-        inventoryCRUDHandler.create(
+        productionRunCRUDHandler.create(
                 releaseId,
                 ReleaseFormat.CD,
                 "Initial run",
@@ -184,7 +184,7 @@ class InventoryCRUDHandlerIntegrationTest {
                 200
         );
 
-        var totals = inventoryQueryService.getTotalsForRelease(releaseId);
+        var totals = productionRunQueryService.getTotalsForRelease(releaseId);
 
         assertThat(totals).containsEntry(ReleaseFormat.VINYL, 800);
         assertThat(totals).containsEntry(ReleaseFormat.CD, 200);

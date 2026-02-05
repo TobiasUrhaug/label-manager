@@ -1,16 +1,20 @@
 package org.omt.labelmanager.catalog.api.release;
 
 import java.time.LocalDate;
+import java.util.Arrays;
 import java.util.List;
-import org.omt.labelmanager.catalog.domain.artist.Artist;
+import java.util.Map;
 import org.omt.labelmanager.catalog.application.ArtistCRUDHandler;
-import org.omt.labelmanager.finance.domain.cost.Cost;
-import org.omt.labelmanager.finance.application.CostQueryService;
-import org.omt.labelmanager.finance.domain.cost.CostType;
-import org.omt.labelmanager.catalog.domain.release.Release;
 import org.omt.labelmanager.catalog.application.ReleaseCRUDHandler;
+import org.omt.labelmanager.catalog.domain.artist.Artist;
+import org.omt.labelmanager.catalog.domain.release.Release;
 import org.omt.labelmanager.catalog.domain.release.ReleaseFormat;
+import org.omt.labelmanager.finance.application.CostQueryService;
+import org.omt.labelmanager.finance.domain.cost.Cost;
+import org.omt.labelmanager.finance.domain.cost.CostType;
 import org.omt.labelmanager.identity.application.AppUserDetails;
+import org.omt.labelmanager.productionrun.application.ProductionRunQueryService;
+import org.omt.labelmanager.productionrun.domain.ProductionRun;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -35,15 +39,18 @@ public class ReleaseController {
     private final ReleaseCRUDHandler releaseCRUDHandler;
     private final ArtistCRUDHandler artistCRUDHandler;
     private final CostQueryService costQueryService;
+    private final ProductionRunQueryService productionRunQueryService;
 
     public ReleaseController(
             ReleaseCRUDHandler releaseCRUDHandler,
             ArtistCRUDHandler artistCRUDHandler,
-            CostQueryService costQueryService
+            CostQueryService costQueryService,
+            ProductionRunQueryService productionRunQueryService
     ) {
         this.releaseCRUDHandler = releaseCRUDHandler;
         this.artistCRUDHandler = artistCRUDHandler;
         this.costQueryService = costQueryService;
+        this.productionRunQueryService = productionRunQueryService;
     }
 
     @PostMapping
@@ -81,6 +88,13 @@ public class ReleaseController {
 
         List<Artist> allArtists = artistCRUDHandler.getArtistsForUser(user.getId());
         List<Cost> costs = costQueryService.getCostsForRelease(releaseId);
+        List<ProductionRun> productionRuns =
+                productionRunQueryService.getProductionRunsForRelease(releaseId);
+        Map<ReleaseFormat, Integer> productionRunTotals =
+                productionRunQueryService.getTotalsForRelease(releaseId);
+        List<ReleaseFormat> physicalFormats = Arrays.stream(ReleaseFormat.values())
+                .filter(ReleaseFormat::isPhysical)
+                .toList();
 
         model.addAttribute("name", release.name());
         model.addAttribute("labelId", labelId);
@@ -93,6 +107,9 @@ public class ReleaseController {
         model.addAttribute("allFormats", ReleaseFormat.values());
         model.addAttribute("costs", costs);
         model.addAttribute("allCostTypes", CostType.values());
+        model.addAttribute("productionRuns", productionRuns);
+        model.addAttribute("productionRunTotals", productionRunTotals);
+        model.addAttribute("physicalFormats", physicalFormats);
 
         return "/releases/release";
     }

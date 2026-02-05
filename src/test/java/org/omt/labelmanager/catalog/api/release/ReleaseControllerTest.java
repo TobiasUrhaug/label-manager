@@ -18,16 +18,17 @@ import java.util.Optional;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.omt.labelmanager.catalog.application.ArtistCRUDHandler;
-import org.omt.labelmanager.catalog.domain.artist.ArtistFactory;
-import org.omt.labelmanager.finance.application.CostQueryService;
 import org.omt.labelmanager.catalog.application.LabelCRUDHandler;
-import org.omt.labelmanager.catalog.domain.label.LabelFactory;
 import org.omt.labelmanager.catalog.application.ReleaseCRUDHandler;
+import org.omt.labelmanager.catalog.domain.artist.ArtistFactory;
+import org.omt.labelmanager.catalog.domain.label.LabelFactory;
 import org.omt.labelmanager.catalog.domain.release.ReleaseFactory;
 import org.omt.labelmanager.catalog.domain.release.ReleaseFormat;
-import org.omt.labelmanager.test.TestSecurityConfig;
 import org.omt.labelmanager.catalog.domain.track.TrackFactory;
+import org.omt.labelmanager.finance.application.CostQueryService;
 import org.omt.labelmanager.identity.application.AppUserDetails;
+import org.omt.labelmanager.productionrun.application.ProductionRunQueryService;
+import org.omt.labelmanager.test.TestSecurityConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
@@ -52,6 +53,9 @@ class ReleaseControllerTest {
 
     @MockitoBean
     private CostQueryService costQueryService;
+
+    @MockitoBean
+    private ProductionRunQueryService productionRunQueryService;
 
     private final AppUserDetails testUser =
             new AppUserDetails(1L, "test@example.com", "password", "Test User");

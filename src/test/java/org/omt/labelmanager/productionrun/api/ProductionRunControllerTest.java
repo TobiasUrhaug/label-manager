@@ -1,4 +1,4 @@
-package org.omt.labelmanager.inventory.api;
+package org.omt.labelmanager.productionrun.api;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -15,7 +15,7 @@ import java.time.LocalDate;
 import org.junit.jupiter.api.Test;
 import org.omt.labelmanager.catalog.domain.release.ReleaseFormat;
 import org.omt.labelmanager.identity.application.AppUserDetails;
-import org.omt.labelmanager.inventory.application.InventoryCRUDHandler;
+import org.omt.labelmanager.productionrun.application.ProductionRunCRUDHandler;
 import org.omt.labelmanager.test.TestSecurityConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
@@ -23,23 +23,23 @@ import org.springframework.context.annotation.Import;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-@WebMvcTest(InventoryController.class)
+@WebMvcTest(ProductionRunController.class)
 @Import(TestSecurityConfig.class)
-class InventoryControllerTest {
+class ProductionRunControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
 
     @MockitoBean
-    private InventoryCRUDHandler inventoryCRUDHandler;
+    private ProductionRunCRUDHandler productionRunCRUDHandler;
 
     private final AppUserDetails testUser =
             new AppUserDetails(1L, "test@example.com", "password", "Test User");
 
     @Test
-    void addInventory_callsHandlerAndRedirects() throws Exception {
+    void addProductionRun_callsHandlerAndRedirects() throws Exception {
         mockMvc
-                .perform(post("/labels/1/releases/42/inventory")
+                .perform(post("/labels/1/releases/42/production-runs")
                         .with(user(testUser))
                         .with(csrf())
                         .param("format", "VINYL")
@@ -50,7 +50,7 @@ class InventoryControllerTest {
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/labels/1/releases/42"));
 
-        verify(inventoryCRUDHandler).create(
+        verify(productionRunCRUDHandler).create(
                 eq(42L),
                 eq(ReleaseFormat.VINYL),
                 eq("Original pressing"),
@@ -61,9 +61,9 @@ class InventoryControllerTest {
     }
 
     @Test
-    void addInventory_worksWithCDFormat() throws Exception {
+    void addProductionRun_worksWithCDFormat() throws Exception {
         mockMvc
-                .perform(post("/labels/1/releases/42/inventory")
+                .perform(post("/labels/1/releases/42/production-runs")
                         .with(user(testUser))
                         .with(csrf())
                         .param("format", "CD")
@@ -74,7 +74,7 @@ class InventoryControllerTest {
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/labels/1/releases/42"));
 
-        verify(inventoryCRUDHandler).create(
+        verify(productionRunCRUDHandler).create(
                 eq(42L),
                 eq(ReleaseFormat.CD),
                 eq("Initial run"),
@@ -85,9 +85,9 @@ class InventoryControllerTest {
     }
 
     @Test
-    void addInventory_worksWithCassetteFormat() throws Exception {
+    void addProductionRun_worksWithCassetteFormat() throws Exception {
         mockMvc
-                .perform(post("/labels/1/releases/42/inventory")
+                .perform(post("/labels/1/releases/42/production-runs")
                         .with(user(testUser))
                         .with(csrf())
                         .param("format", "CASSETTE")
@@ -98,7 +98,7 @@ class InventoryControllerTest {
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/labels/1/releases/42"));
 
-        verify(inventoryCRUDHandler).create(
+        verify(productionRunCRUDHandler).create(
                 eq(42L),
                 eq(ReleaseFormat.CASSETTE),
                 any(),
@@ -109,16 +109,16 @@ class InventoryControllerTest {
     }
 
     @Test
-    void deleteInventory_callsHandlerAndRedirects() throws Exception {
-        when(inventoryCRUDHandler.delete(99L)).thenReturn(true);
+    void deleteProductionRun_callsHandlerAndRedirects() throws Exception {
+        when(productionRunCRUDHandler.delete(99L)).thenReturn(true);
 
         mockMvc
-                .perform(delete("/labels/1/releases/42/inventory/99")
+                .perform(delete("/labels/1/releases/42/production-runs/99")
                         .with(user(testUser))
                         .with(csrf()))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/labels/1/releases/42"));
 
-        verify(inventoryCRUDHandler).delete(99L);
+        verify(productionRunCRUDHandler).delete(99L);
     }
 }

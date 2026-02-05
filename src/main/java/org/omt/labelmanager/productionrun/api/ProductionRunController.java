@@ -1,6 +1,6 @@
-package org.omt.labelmanager.inventory.api;
+package org.omt.labelmanager.productionrun.api;
 
-import org.omt.labelmanager.inventory.application.InventoryCRUDHandler;
+import org.omt.labelmanager.productionrun.application.ProductionRunCRUDHandler;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -9,22 +9,22 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 @Controller
-@RequestMapping("/labels/{labelId}/releases/{releaseId}/inventory")
-public class InventoryController {
+@RequestMapping("/labels/{labelId}/releases/{releaseId}/production-runs")
+public class ProductionRunController {
 
-    private final InventoryCRUDHandler inventoryCRUDHandler;
+    private final ProductionRunCRUDHandler productionRunCRUDHandler;
 
-    public InventoryController(InventoryCRUDHandler inventoryCRUDHandler) {
-        this.inventoryCRUDHandler = inventoryCRUDHandler;
+    public ProductionRunController(ProductionRunCRUDHandler productionRunCRUDHandler) {
+        this.productionRunCRUDHandler = productionRunCRUDHandler;
     }
 
     @PostMapping
-    public String addInventory(
+    public String addProductionRun(
             @PathVariable Long labelId,
             @PathVariable Long releaseId,
-            @ModelAttribute AddInventoryForm form
+            @ModelAttribute AddProductionRunForm form
     ) {
-        inventoryCRUDHandler.create(
+        productionRunCRUDHandler.create(
                 releaseId,
                 form.getFormat(),
                 form.getDescription(),
@@ -35,13 +35,13 @@ public class InventoryController {
         return "redirect:/labels/" + labelId + "/releases/" + releaseId;
     }
 
-    @DeleteMapping("/{inventoryId}")
-    public String deleteInventory(
+    @DeleteMapping("/{productionRunId}")
+    public String deleteProductionRun(
             @PathVariable Long labelId,
             @PathVariable Long releaseId,
-            @PathVariable Long inventoryId
+            @PathVariable Long productionRunId
     ) {
-        inventoryCRUDHandler.delete(inventoryId);
+        productionRunCRUDHandler.delete(productionRunId);
         return "redirect:/labels/" + labelId + "/releases/" + releaseId;
     }
 }

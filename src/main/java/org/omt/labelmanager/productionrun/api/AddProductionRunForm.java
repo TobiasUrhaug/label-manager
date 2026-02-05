@@ -1,9 +1,9 @@
-package org.omt.labelmanager.inventory.api;
+package org.omt.labelmanager.productionrun.api;
 
 import java.time.LocalDate;
 import org.omt.labelmanager.catalog.domain.release.ReleaseFormat;
 
-public class AddInventoryForm {
+public class AddProductionRunForm {
 
     private ReleaseFormat format;
     private String description;

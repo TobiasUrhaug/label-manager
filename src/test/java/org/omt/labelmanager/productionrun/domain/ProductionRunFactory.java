@@ -1,22 +1,22 @@
-package org.omt.labelmanager.inventory.domain;
+package org.omt.labelmanager.productionrun.domain;
 
 import java.time.LocalDate;
 import java.util.concurrent.atomic.AtomicLong;
 import org.omt.labelmanager.catalog.domain.release.ReleaseFormat;
 
-public final class InventoryFactory {
+public final class ProductionRunFactory {
 
     private static final AtomicLong counter = new AtomicLong(1);
 
-    private InventoryFactory() {
+    private ProductionRunFactory() {
     }
 
-    public static Builder anInventory() {
+    public static Builder aProductionRun() {
         return new Builder();
     }
 
-    public static Inventory createDefault() {
-        return anInventory().build();
+    public static ProductionRun createDefault() {
+        return aProductionRun().build();
     }
 
     public static final class Builder {
@@ -67,8 +67,8 @@ public final class InventoryFactory {
             return this;
         }
 
-        public Inventory build() {
-            return new Inventory(
+        public ProductionRun build() {
+            return new ProductionRun(
                     id,
                     releaseId,
                     format,

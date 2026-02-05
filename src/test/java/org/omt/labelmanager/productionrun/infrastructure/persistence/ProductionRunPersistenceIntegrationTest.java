@@ -1,4 +1,4 @@
-package org.omt.labelmanager.inventory.infrastructure.persistence;
+package org.omt.labelmanager.productionrun.infrastructure.persistence;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -21,7 +21,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 
 @Testcontainers
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-class InventoryPersistenceIntegrationTest {
+class ProductionRunPersistenceIntegrationTest {
 
     private static final String MINIO_ACCESS_KEY = "minioadmin";
     private static final String MINIO_SECRET_KEY = "minioadmin";
@@ -51,7 +51,7 @@ class InventoryPersistenceIntegrationTest {
     }
 
     @Autowired
-    private InventoryRepository inventoryRepository;
+    private ProductionRunRepository productionRunRepository;
 
     @Autowired
     private ReleaseRepository releaseRepository;
@@ -63,7 +63,7 @@ class InventoryPersistenceIntegrationTest {
 
     @BeforeEach
     void setUp() {
-        inventoryRepository.deleteAll();
+        productionRunRepository.deleteAll();
         releaseRepository.deleteAll();
         labelRepository.deleteAll();
 
@@ -80,8 +80,8 @@ class InventoryPersistenceIntegrationTest {
     }
 
     @Test
-    void savesAndRetrievesInventory() {
-        var entity = new InventoryEntity(
+    void savesAndRetrievesProductionRun() {
+        var entity = new ProductionRunEntity(
                 releaseId,
                 ReleaseFormat.VINYL,
                 "Original pressing",
@@ -90,9 +90,9 @@ class InventoryPersistenceIntegrationTest {
                 500
         );
 
-        var saved = inventoryRepository.save(entity);
+        var saved = productionRunRepository.save(entity);
 
-        var retrieved = inventoryRepository.findById(saved.getId());
+        var retrieved = productionRunRepository.findById(saved.getId());
         assertThat(retrieved).isPresent();
         assertThat(retrieved.get().getReleaseId()).isEqualTo(releaseId);
         assertThat(retrieved.get().getFormat()).isEqualTo(ReleaseFormat.VINYL);
@@ -104,7 +104,7 @@ class InventoryPersistenceIntegrationTest {
 
     @Test
     void findsByReleaseId() {
-        inventoryRepository.save(new InventoryEntity(
+        productionRunRepository.save(new ProductionRunEntity(
                 releaseId,
                 ReleaseFormat.VINYL,
                 "Original pressing",
@@ -113,7 +113,7 @@ class InventoryPersistenceIntegrationTest {
                 500
         ));
 
-        inventoryRepository.save(new InventoryEntity(
+        productionRunRepository.save(new ProductionRunEntity(
                 releaseId,
                 ReleaseFormat.CD,
                 "Initial run",
@@ -133,7 +133,7 @@ class InventoryPersistenceIntegrationTest {
         );
         otherRelease = releaseRepository.save(otherRelease);
 
-        inventoryRepository.save(new InventoryEntity(
+        productionRunRepository.save(new ProductionRunEntity(
                 otherRelease.getId(),
                 ReleaseFormat.CASSETTE,
                 "Limited edition",
@@ -142,16 +142,16 @@ class InventoryPersistenceIntegrationTest {
                 100
         ));
 
-        var inventoryForRelease = inventoryRepository.findByReleaseId(releaseId);
+        var productionRunsForRelease = productionRunRepository.findByReleaseId(releaseId);
 
-        assertThat(inventoryForRelease).hasSize(2);
-        assertThat(inventoryForRelease)
-                .allMatch(inv -> inv.getReleaseId().equals(releaseId));
+        assertThat(productionRunsForRelease).hasSize(2);
+        assertThat(productionRunsForRelease)
+                .allMatch(pr -> pr.getReleaseId().equals(releaseId));
     }
 
     @Test
-    void deletesInventoryWhenReleaseDeleted() {
-        inventoryRepository.save(new InventoryEntity(
+    void deletesProductionRunWhenReleaseDeleted() {
+        productionRunRepository.save(new ProductionRunEntity(
                 releaseId,
                 ReleaseFormat.VINYL,
                 "Original pressing",
@@ -160,10 +160,10 @@ class InventoryPersistenceIntegrationTest {
                 500
         ));
 
-        assertThat(inventoryRepository.findByReleaseId(releaseId)).hasSize(1);
+        assertThat(productionRunRepository.findByReleaseId(releaseId)).hasSize(1);
 
         releaseRepository.deleteById(releaseId);
 
-        assertThat(inventoryRepository.findByReleaseId(releaseId)).isEmpty();
+        assertThat(productionRunRepository.findByReleaseId(releaseId)).isEmpty();
     }
 }

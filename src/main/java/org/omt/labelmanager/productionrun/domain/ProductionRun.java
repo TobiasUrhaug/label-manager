@@ -1,10 +1,10 @@
-package org.omt.labelmanager.inventory.domain;
+package org.omt.labelmanager.productionrun.domain;
 
 import java.time.LocalDate;
 import org.omt.labelmanager.catalog.domain.release.ReleaseFormat;
-import org.omt.labelmanager.inventory.infrastructure.persistence.InventoryEntity;
+import org.omt.labelmanager.productionrun.infrastructure.persistence.ProductionRunEntity;
 
-public record Inventory(
+public record ProductionRun(
         Long id,
         Long releaseId,
         ReleaseFormat format,
@@ -14,8 +14,8 @@ public record Inventory(
         int quantity
 ) {
 
-    public static Inventory fromEntity(InventoryEntity entity) {
-        return new Inventory(
+    public static ProductionRun fromEntity(ProductionRunEntity entity) {
+        return new ProductionRun(
                 entity.getId(),
                 entity.getReleaseId(),
                 entity.getFormat(),

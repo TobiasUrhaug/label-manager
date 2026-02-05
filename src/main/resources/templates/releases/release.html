@@ -133,6 +133,122 @@
         </div>
     </div>
 
+    <div class="d-flex align-items-center gap-2 mt-4 mb-3">
+        <h2 class="h4 mb-0">Production Runs</h2>
+        <button type="button" class="btn btn-outline-primary btn-sm"
+                data-bs-toggle="modal" data-bs-target="#addProductionRunModal">+</button>
+    </div>
+    <div class="card mb-4">
+        <div class="card-body p-0">
+            <table class="table table-striped mb-0" th:if="${!productionRuns.isEmpty()}">
+                <thead>
+                    <tr>
+                        <th scope="col">Format</th>
+                        <th scope="col">Description</th>
+                        <th scope="col">Manufacturer</th>
+                        <th scope="col">Date</th>
+                        <th scope="col" class="text-end">Quantity</th>
+                        <th scope="col"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="run : ${productionRuns}">
+                        <td th:text="${run.format()}">VINYL</td>
+                        <td th:text="${run.description()}">Original pressing</td>
+                        <td th:text="${run.manufacturer()}">Record Industry</td>
+                        <td th:text="${run.manufacturingDate()}">2025-01-01</td>
+                        <td class="text-end" th:text="${run.quantity()}">500</td>
+                        <td class="text-nowrap">
+                            <form th:action="@{/labels/{labelId}/releases/{releaseId}/production-runs/{runId}(labelId=${labelId}, releaseId=${releaseId}, runId=${run.id()})}"
+                                  method="post"
+                                  class="d-inline"
+                                  onsubmit="return confirm('Delete this production run?');">
+                                <input type="hidden" name="_method" value="delete">
+                                <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                            </form>
+                        </td>
+                    </tr>
+                </tbody>
+                <tfoot th:if="${!productionRunTotals.isEmpty()}">
+                    <tr th:each="entry : ${productionRunTotals}" class="table-secondary">
+                        <td colspan="4" class="text-end fw-bold"
+                            th:text="'Total ' + ${entry.key}">Total VINYL</td>
+                        <td class="text-end fw-bold" th:text="${entry.value}">800</td>
+                        <td></td>
+                    </tr>
+                </tfoot>
+            </table>
+            <p th:if="${productionRuns.isEmpty()}" class="text-muted p-3 mb-0">
+                No production runs recorded yet.
+            </p>
+        </div>
+    </div>
+
+    <!-- Add Production Run Modal -->
+    <div class="modal fade" id="addProductionRunModal" tabindex="-1"
+         aria-labelledby="addProductionRunModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form th:action="@{/labels/{labelId}/releases/{releaseId}/production-runs(labelId=${labelId}, releaseId=${releaseId})}"
+                      method="post">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="addProductionRunModalLabel">
+                            Add Production Run
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="productionRunFormat" class="form-label">Format</label>
+                            <select class="form-select" id="productionRunFormat" name="format"
+                                    required>
+                                <option value="">Select format...</option>
+                                <option th:each="format : ${physicalFormats}"
+                                        th:value="${format}" th:text="${format}">VINYL</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="productionRunDescription" class="form-label">
+                                Description (optional)
+                            </label>
+                            <input type="text" class="form-control" id="productionRunDescription"
+                                   name="description"
+                                   placeholder="e.g., Original pressing, 2nd pressing">
+                        </div>
+                        <div class="mb-3">
+                            <label for="productionRunManufacturer" class="form-label">
+                                Manufacturer
+                            </label>
+                            <input type="text" class="form-control" id="productionRunManufacturer"
+                                   name="manufacturer" required
+                                   placeholder="e.g., Record Industry">
+                        </div>
+                        <div class="mb-3">
+                            <label for="productionRunManufacturingDate" class="form-label">
+                                Manufacturing Date
+                            </label>
+                            <input type="date" class="form-control"
+                                   id="productionRunManufacturingDate"
+                                   name="manufacturingDate" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="productionRunQuantity" class="form-label">Quantity</label>
+                            <input type="number" class="form-control" id="productionRunQuantity"
+                                   name="quantity" required min="1"
+                                   placeholder="e.g., 500">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary"
+                                data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Add Production Run</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <!-- Add Cost Modal -->
     <div class="modal fade" id="addCostModal" tabindex="-1" aria-labelledby="addCostModalLabel" aria-hidden="true">
         <div class="modal-dialog">
