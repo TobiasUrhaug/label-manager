@@ -1,8 +1,9 @@
-package org.omt.labelmanager.productionrun.domain;
+package org.omt.labelmanager.inventory.domain;
+
+import org.omt.labelmanager.catalog.domain.release.ReleaseFormat;
+import org.omt.labelmanager.inventory.infrastructure.persistence.ProductionRunEntity;
 
 import java.time.LocalDate;
-import org.omt.labelmanager.catalog.domain.release.ReleaseFormat;
-import org.omt.labelmanager.productionrun.infrastructure.persistence.ProductionRunEntity;
 
 public record ProductionRun(
         Long id,

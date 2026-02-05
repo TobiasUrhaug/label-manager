@@ -1,4 +1,17 @@
-package org.omt.labelmanager.productionrun.api;
+package org.omt.labelmanager.inventory.api;
+
+import org.junit.jupiter.api.Test;
+import org.omt.labelmanager.catalog.domain.release.ReleaseFormat;
+import org.omt.labelmanager.identity.application.AppUserDetails;
+import org.omt.labelmanager.inventory.application.ProductionRunCRUDHandler;
+import org.omt.labelmanager.test.TestSecurityConfig;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.context.annotation.Import;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.web.servlet.MockMvc;
+
+import java.time.LocalDate;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -10,18 +23,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
-import java.time.LocalDate;
-import org.junit.jupiter.api.Test;
-import org.omt.labelmanager.catalog.domain.release.ReleaseFormat;
-import org.omt.labelmanager.identity.application.AppUserDetails;
-import org.omt.labelmanager.productionrun.application.ProductionRunCRUDHandler;
-import org.omt.labelmanager.test.TestSecurityConfig;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
-import org.springframework.context.annotation.Import;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest(ProductionRunController.class)
 @Import(TestSecurityConfig.class)

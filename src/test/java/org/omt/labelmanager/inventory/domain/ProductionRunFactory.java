@@ -1,8 +1,9 @@
-package org.omt.labelmanager.productionrun.domain;
+package org.omt.labelmanager.inventory.domain;
+
+import org.omt.labelmanager.catalog.domain.release.ReleaseFormat;
 
 import java.time.LocalDate;
 import java.util.concurrent.atomic.AtomicLong;
-import org.omt.labelmanager.catalog.domain.release.ReleaseFormat;
 
 public final class ProductionRunFactory {
 

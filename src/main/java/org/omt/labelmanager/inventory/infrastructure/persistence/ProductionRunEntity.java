@@ -1,15 +1,9 @@
-package org.omt.labelmanager.productionrun.infrastructure.persistence;
+package org.omt.labelmanager.inventory.infrastructure.persistence;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-import java.time.LocalDate;
+import jakarta.persistence.*;
 import org.omt.labelmanager.catalog.domain.release.ReleaseFormat;
+
+import java.time.LocalDate;
 
 @Entity
 @Table(name = "production_run")

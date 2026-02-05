@@ -1,8 +1,5 @@
-package org.omt.labelmanager.productionrun.infrastructure.persistence;
+package org.omt.labelmanager.inventory.application;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.time.LocalDate;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.omt.labelmanager.catalog.domain.release.ReleaseFormat;
@@ -10,6 +7,7 @@ import org.omt.labelmanager.catalog.infrastructure.persistence.label.LabelEntity
 import org.omt.labelmanager.catalog.infrastructure.persistence.label.LabelRepository;
 import org.omt.labelmanager.catalog.infrastructure.persistence.release.ReleaseEntity;
 import org.omt.labelmanager.catalog.infrastructure.persistence.release.ReleaseRepository;
+import org.omt.labelmanager.inventory.infrastructure.persistence.ProductionRunRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.DynamicPropertyRegistry;
@@ -19,9 +17,13 @@ import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import java.time.LocalDate;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
 @Testcontainers
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-class ProductionRunPersistenceIntegrationTest {
+class ProductionRunCRUDHandlerIntegrationTest {
 
     private static final String MINIO_ACCESS_KEY = "minioadmin";
     private static final String MINIO_SECRET_KEY = "minioadmin";
@@ -49,6 +51,12 @@ class ProductionRunPersistenceIntegrationTest {
         registry.add("storage.s3.access-key", () -> MINIO_ACCESS_KEY);
         registry.add("storage.s3.secret-key", () -> MINIO_SECRET_KEY);
     }
+
+    @Autowired
+    private ProductionRunCRUDHandler productionRunCRUDHandler;
+
+    @Autowired
+    private ProductionRunQueryService productionRunQueryService;
 
     @Autowired
     private ProductionRunRepository productionRunRepository;
@@ -80,8 +88,8 @@ class ProductionRunPersistenceIntegrationTest {
     }
 
     @Test
-    void savesAndRetrievesProductionRun() {
-        var entity = new ProductionRunEntity(
+    void createsProductionRun() {
+        var productionRun = productionRunCRUDHandler.create(
                 releaseId,
                 ReleaseFormat.VINYL,
                 "Original pressing",
@@ -90,80 +98,62 @@ class ProductionRunPersistenceIntegrationTest {
                 500
         );
 
-        var saved = productionRunRepository.save(entity);
-
-        var retrieved = productionRunRepository.findById(saved.getId());
-        assertThat(retrieved).isPresent();
-        assertThat(retrieved.get().getReleaseId()).isEqualTo(releaseId);
-        assertThat(retrieved.get().getFormat()).isEqualTo(ReleaseFormat.VINYL);
-        assertThat(retrieved.get().getDescription()).isEqualTo("Original pressing");
-        assertThat(retrieved.get().getManufacturer()).isEqualTo("Record Industry");
-        assertThat(retrieved.get().getManufacturingDate()).isEqualTo(LocalDate.of(2025, 1, 1));
-        assertThat(retrieved.get().getQuantity()).isEqualTo(500);
+        assertThat(productionRun.id()).isNotNull();
+        assertThat(productionRun.releaseId()).isEqualTo(releaseId);
+        assertThat(productionRun.format()).isEqualTo(ReleaseFormat.VINYL);
+        assertThat(productionRun.description()).isEqualTo("Original pressing");
+        assertThat(productionRun.manufacturer()).isEqualTo("Record Industry");
+        assertThat(productionRun.manufacturingDate()).isEqualTo(LocalDate.of(2025, 1, 1));
+        assertThat(productionRun.quantity()).isEqualTo(500);
     }
 
     @Test
-    void findsByReleaseId() {
-        productionRunRepository.save(new ProductionRunEntity(
+    void findsProductionRunsByReleaseId() {
+        productionRunCRUDHandler.create(
                 releaseId,
                 ReleaseFormat.VINYL,
                 "Original pressing",
                 "Record Industry",
                 LocalDate.of(2025, 1, 1),
                 500
-        ));
+        );
 
-        productionRunRepository.save(new ProductionRunEntity(
+        productionRunCRUDHandler.create(
                 releaseId,
                 ReleaseFormat.CD,
                 "Initial run",
                 "CD Plant",
                 LocalDate.of(2025, 1, 15),
                 200
-        ));
-
-        LabelEntity otherLabel = labelRepository.save(
-                new LabelEntity("Other Label", null, null));
-
-        ReleaseEntity otherRelease = new ReleaseEntity(
-                null,
-                "Other Release",
-                LocalDate.of(2025, 2, 1),
-                otherLabel
         );
-        otherRelease = releaseRepository.save(otherRelease);
 
-        productionRunRepository.save(new ProductionRunEntity(
-                otherRelease.getId(),
-                ReleaseFormat.CASSETTE,
-                "Limited edition",
-                "Tape Factory",
-                LocalDate.of(2025, 2, 1),
-                100
-        ));
+        var productionRuns = productionRunCRUDHandler.findByReleaseId(releaseId);
 
-        var productionRunsForRelease = productionRunRepository.findByReleaseId(releaseId);
-
-        assertThat(productionRunsForRelease).hasSize(2);
-        assertThat(productionRunsForRelease)
-                .allMatch(pr -> pr.getReleaseId().equals(releaseId));
+        assertThat(productionRuns).hasSize(2);
     }
 
     @Test
-    void deletesProductionRunWhenReleaseDeleted() {
-        productionRunRepository.save(new ProductionRunEntity(
+    void deletesProductionRun() {
+        var productionRun = productionRunCRUDHandler.create(
                 releaseId,
                 ReleaseFormat.VINYL,
                 "Original pressing",
                 "Record Industry",
                 LocalDate.of(2025, 1, 1),
                 500
-        ));
+        );
 
-        assertThat(productionRunRepository.findByReleaseId(releaseId)).hasSize(1);
+        boolean deleted = productionRunCRUDHandler.delete(productionRun.id());
 
-        releaseRepository.deleteById(releaseId);
-
-        assertThat(productionRunRepository.findByReleaseId(releaseId)).isEmpty();
+        assertThat(deleted).isTrue();
+        assertThat(productionRunCRUDHandler.findByReleaseId(releaseId)).isEmpty();
     }
+
+    @Test
+    void deleteReturnsFalseForNonExistentProductionRun() {
+        boolean deleted = productionRunCRUDHandler.delete(999L);
+
+        assertThat(deleted).isFalse();
+    }
+
 }

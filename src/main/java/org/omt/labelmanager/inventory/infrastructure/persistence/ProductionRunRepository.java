@@ -1,7 +1,8 @@
-package org.omt.labelmanager.productionrun.infrastructure.persistence;
+package org.omt.labelmanager.inventory.infrastructure.persistence;
+
+import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
-import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface ProductionRunRepository extends JpaRepository<ProductionRunEntity, Long> {
 

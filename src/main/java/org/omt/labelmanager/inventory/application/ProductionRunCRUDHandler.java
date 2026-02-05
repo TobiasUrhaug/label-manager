@@ -1,15 +1,16 @@
-package org.omt.labelmanager.productionrun.application;
+package org.omt.labelmanager.inventory.application;
 
-import java.time.LocalDate;
-import java.util.List;
 import org.omt.labelmanager.catalog.domain.release.ReleaseFormat;
-import org.omt.labelmanager.productionrun.domain.ProductionRun;
-import org.omt.labelmanager.productionrun.infrastructure.persistence.ProductionRunEntity;
-import org.omt.labelmanager.productionrun.infrastructure.persistence.ProductionRunRepository;
+import org.omt.labelmanager.inventory.domain.ProductionRun;
+import org.omt.labelmanager.inventory.infrastructure.persistence.ProductionRunEntity;
+import org.omt.labelmanager.inventory.infrastructure.persistence.ProductionRunRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDate;
+import java.util.List;
 
 @Service
 public class ProductionRunCRUDHandler {

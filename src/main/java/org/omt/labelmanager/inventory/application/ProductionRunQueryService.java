@@ -1,7 +1,7 @@
-package org.omt.labelmanager.productionrun.application;
+package org.omt.labelmanager.inventory.application;
 
-import org.omt.labelmanager.productionrun.domain.ProductionRun;
-import org.omt.labelmanager.productionrun.infrastructure.persistence.ProductionRunRepository;
+import org.omt.labelmanager.inventory.domain.ProductionRun;
+import org.omt.labelmanager.inventory.infrastructure.persistence.ProductionRunRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;

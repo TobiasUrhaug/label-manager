@@ -1,7 +1,8 @@
-package org.omt.labelmanager.productionrun.api;
+package org.omt.labelmanager.inventory.api;
+
+import org.omt.labelmanager.catalog.domain.release.ReleaseFormat;
 
 import java.time.LocalDate;
-import org.omt.labelmanager.catalog.domain.release.ReleaseFormat;
 
 public class AddProductionRunForm {
 

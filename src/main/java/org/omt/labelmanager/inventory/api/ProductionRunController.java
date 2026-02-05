@@ -1,12 +1,8 @@
-package org.omt.labelmanager.productionrun.api;
+package org.omt.labelmanager.inventory.api;
 
-import org.omt.labelmanager.productionrun.application.ProductionRunCRUDHandler;
+import org.omt.labelmanager.inventory.application.ProductionRunCRUDHandler;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
 
 @Controller
 @RequestMapping("/labels/{labelId}/releases/{releaseId}/production-runs")
