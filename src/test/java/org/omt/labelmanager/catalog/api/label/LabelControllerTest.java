@@ -24,6 +24,8 @@ import org.omt.labelmanager.catalog.application.LabelCRUDHandler;
 import org.omt.labelmanager.catalog.domain.label.LabelFactory;
 import org.omt.labelmanager.catalog.application.ReleaseCRUDHandler;
 import org.omt.labelmanager.catalog.domain.release.ReleaseFactory;
+import org.omt.labelmanager.inventory.application.SalesChannelQueryService;
+import org.omt.labelmanager.inventory.domain.SalesChannelFactory;
 import org.omt.labelmanager.test.TestSecurityConfig;
 import org.omt.labelmanager.identity.application.AppUserDetails;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,6 +50,9 @@ class LabelControllerTest {
     @MockitoBean
     private ArtistCRUDHandler artistCRUDHandler;
 
+    @MockitoBean
+    private SalesChannelQueryService salesChannelQueryService;
+
     private final AppUserDetails testUser =
             new AppUserDetails(1L, "test@example.com", "password", "Test User");
 
@@ -67,6 +72,9 @@ class LabelControllerTest {
         var artist = ArtistFactory.anArtist().id(1L).artistName("Unknown").build();
         when(artistCRUDHandler.getArtistsForUser(1L)).thenReturn(List.of(artist));
 
+        var salesChannel = SalesChannelFactory.aSalesChannel().id(1L).name("Direct Sales").build();
+        when(salesChannelQueryService.getSalesChannelsForLabel(1L)).thenReturn(List.of(salesChannel));
+
         mockMvc
                 .perform(get("/labels/1").with(user(testUser)))
                 .andExpect(status().isOk())
@@ -76,7 +84,8 @@ class LabelControllerTest {
                 .andExpect(model().attribute("email", "contact@mylabel.com"))
                 .andExpect(model().attribute("website", "https://mylabel.com"))
                 .andExpect(model().attribute("releases", hasSize(1)))
-                .andExpect(model().attribute("artists", hasSize(1)));
+                .andExpect(model().attribute("artists", hasSize(1)))
+                .andExpect(model().attribute("salesChannels", hasSize(1)));
     }
 
     @Test
