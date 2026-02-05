@@ -1,8 +1,5 @@
 package org.omt.labelmanager.productionrun.application;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.time.LocalDate;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.omt.labelmanager.catalog.domain.release.ReleaseFormat;
@@ -19,6 +16,10 @@ import org.testcontainers.containers.MinIOContainer;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+
+import java.time.LocalDate;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 @Testcontainers
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -155,39 +156,4 @@ class ProductionRunCRUDHandlerIntegrationTest {
         assertThat(deleted).isFalse();
     }
 
-    @Test
-    void calculatesTotalsByFormat() {
-        productionRunCRUDHandler.create(
-                releaseId,
-                ReleaseFormat.VINYL,
-                "Original pressing",
-                "Record Industry",
-                LocalDate.of(2025, 1, 1),
-                500
-        );
-
-        productionRunCRUDHandler.create(
-                releaseId,
-                ReleaseFormat.VINYL,
-                "2nd pressing",
-                "Record Industry",
-                LocalDate.of(2025, 6, 1),
-                300
-        );
-
-        productionRunCRUDHandler.create(
-                releaseId,
-                ReleaseFormat.CD,
-                "Initial run",
-                "CD Plant",
-                LocalDate.of(2025, 1, 15),
-                200
-        );
-
-        var totals = productionRunQueryService.getTotalsForRelease(releaseId);
-
-        assertThat(totals).containsEntry(ReleaseFormat.VINYL, 800);
-        assertThat(totals).containsEntry(ReleaseFormat.CD, 200);
-        assertThat(totals).hasSize(2);
-    }
 }

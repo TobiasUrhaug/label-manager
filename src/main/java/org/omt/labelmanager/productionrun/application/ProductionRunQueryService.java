@@ -1,12 +1,10 @@
 package org.omt.labelmanager.productionrun.application;
 
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-import org.omt.labelmanager.catalog.domain.release.ReleaseFormat;
 import org.omt.labelmanager.productionrun.domain.ProductionRun;
 import org.omt.labelmanager.productionrun.infrastructure.persistence.ProductionRunRepository;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 public class ProductionRunQueryService {
@@ -23,12 +21,4 @@ public class ProductionRunQueryService {
                 .toList();
     }
 
-    public Map<ReleaseFormat, Integer> getTotalsForRelease(Long releaseId) {
-        return productionRunRepository.findByReleaseId(releaseId).stream()
-                .map(ProductionRun::fromEntity)
-                .collect(Collectors.groupingBy(
-                        ProductionRun::format,
-                        Collectors.summingInt(ProductionRun::quantity)
-                ));
-    }
 }

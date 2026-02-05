@@ -169,14 +169,6 @@
                         </td>
                     </tr>
                 </tbody>
-                <tfoot th:if="${!productionRunTotals.isEmpty()}">
-                    <tr th:each="entry : ${productionRunTotals}" class="table-secondary">
-                        <td colspan="4" class="text-end fw-bold"
-                            th:text="'Total ' + ${entry.key}">Total VINYL</td>
-                        <td class="text-end fw-bold" th:text="${entry.value}">800</td>
-                        <td></td>
-                    </tr>
-                </tfoot>
             </table>
             <p th:if="${productionRuns.isEmpty()}" class="text-muted p-3 mb-0">
                 No production runs recorded yet.

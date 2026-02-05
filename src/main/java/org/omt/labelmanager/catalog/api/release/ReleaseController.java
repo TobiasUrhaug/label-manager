@@ -3,7 +3,6 @@ package org.omt.labelmanager.catalog.api.release;
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import org.omt.labelmanager.catalog.application.ArtistCRUDHandler;
 import org.omt.labelmanager.catalog.application.ReleaseCRUDHandler;
 import org.omt.labelmanager.catalog.domain.artist.Artist;
@@ -90,8 +89,6 @@ public class ReleaseController {
         List<Cost> costs = costQueryService.getCostsForRelease(releaseId);
         List<ProductionRun> productionRuns =
                 productionRunQueryService.getProductionRunsForRelease(releaseId);
-        Map<ReleaseFormat, Integer> productionRunTotals =
-                productionRunQueryService.getTotalsForRelease(releaseId);
         List<ReleaseFormat> physicalFormats = Arrays.stream(ReleaseFormat.values())
                 .filter(ReleaseFormat::isPhysical)
                 .toList();
@@ -108,7 +105,6 @@ public class ReleaseController {
         model.addAttribute("costs", costs);
         model.addAttribute("allCostTypes", CostType.values());
         model.addAttribute("productionRuns", productionRuns);
-        model.addAttribute("productionRunTotals", productionRunTotals);
         model.addAttribute("physicalFormats", physicalFormats);
 
         return "/releases/release";
