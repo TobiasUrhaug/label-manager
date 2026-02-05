@@ -41,9 +41,9 @@ storage:
 
 extraction:
   tesseract:
-    data-path: ${TESSERACT_DATA_PATH:}
+    data-path: ${TESSERACT_DATA_PATH:/opt/homebrew/share/tessdata}
     language: ${TESSERACT_LANGUAGE:eng}
   ollama:
     base-url: ${OLLAMA_BASE_URL:http://localhost:11434}
-    model: ${OLLAMA_MODEL:llava}
+    model: ${OLLAMA_MODEL:llama3.2:1b}
     default-currency: ${OLLAMA_DEFAULT_CURRENCY:EUR}

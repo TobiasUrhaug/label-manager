@@ -1,8 +1,6 @@
 package org.omt.labelmanager.infrastructure.llm;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -60,6 +58,7 @@ public class OllamaInvoiceParserAdapter implements InvoiceParserPort {
 
         log.info("Parsing invoice text with Ollama (model: {})", properties.model());
         log.debug("Invoice text length: {} characters", rawText.length());
+        log.debug("Raw OCR text being sent to LLM:\n{}", rawText);
 
         try {
             String response = callOllama(rawText);
@@ -92,10 +91,11 @@ public class OllamaInvoiceParserAdapter implements InvoiceParserPort {
         }
 
         log.debug("Received response from Ollama: {} characters", response.response().length());
+        log.debug("Full LLM response:\n{}", response.response());
         return response.response();
     }
 
-    private ExtractedInvoiceData parseResponse(String response) throws JsonProcessingException {
+    private ExtractedInvoiceData parseResponse(String response) throws Exception {
         String json = extractJsonFromResponse(response);
         log.debug("Extracted JSON: {}", json);
 
@@ -152,10 +152,8 @@ public class OllamaInvoiceParserAdapter implements InvoiceParserPort {
         }
     }
 
-    @JsonIgnoreProperties(ignoreUnknown = true)
     record OllamaResponse(String response) {}
 
-    @JsonIgnoreProperties(ignoreUnknown = true)
     record ParsedInvoice(
             Object netAmount,
             Object vatAmount,

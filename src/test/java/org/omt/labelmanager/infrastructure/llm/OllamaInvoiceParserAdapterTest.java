@@ -5,7 +5,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import org.junit.jupiter.api.BeforeEach;
@@ -37,7 +37,8 @@ class OllamaInvoiceParserAdapterTest {
         when(mockBuilder.build()).thenReturn(mockRestClient);
 
         var properties = new OllamaProperties("http://localhost:11434", "llava", "EUR");
-        adapter = new OllamaInvoiceParserAdapter(mockBuilder, properties, new ObjectMapper());
+        adapter = new OllamaInvoiceParserAdapter(
+                mockBuilder, properties, JsonMapper.builder().build());
     }
 
     @Test

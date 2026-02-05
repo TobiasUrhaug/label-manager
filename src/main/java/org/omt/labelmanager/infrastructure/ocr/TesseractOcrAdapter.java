@@ -21,6 +21,17 @@ public class TesseractOcrAdapter implements OcrPort {
 
     private static final Logger log = LoggerFactory.getLogger(TesseractOcrAdapter.class);
 
+    static {
+        // Configure JNA to find native libraries on macOS (Homebrew paths)
+        String jnaPath = System.getProperty("jna.library.path", "");
+        String homebrewPaths = "/opt/homebrew/lib:/usr/local/lib";
+        if (jnaPath.isEmpty()) {
+            System.setProperty("jna.library.path", homebrewPaths);
+        } else if (!jnaPath.contains("/opt/homebrew/lib")) {
+            System.setProperty("jna.library.path", jnaPath + ":" + homebrewPaths);
+        }
+    }
+
     private static final Set<String> IMAGE_TYPES = Set.of(
             "image/png",
             "image/jpeg",
@@ -75,6 +86,7 @@ public class TesseractOcrAdapter implements OcrPort {
             log.debug("Processing PDF file for OCR");
             String result = tesseract.doOCR(pdfFile);
             log.debug("Extracted {} characters from PDF", result.length());
+            log.debug("OCR extracted text:\n{}", result);
 
             return result.trim();
         } finally {
@@ -93,6 +105,7 @@ public class TesseractOcrAdapter implements OcrPort {
         log.debug("Processing image for OCR ({}x{})", image.getWidth(), image.getHeight());
         String result = tesseract.doOCR(image);
         log.debug("Extracted {} characters from image", result.length());
+        log.debug("OCR extracted text:\n{}", result);
 
         return result.trim();
     }
