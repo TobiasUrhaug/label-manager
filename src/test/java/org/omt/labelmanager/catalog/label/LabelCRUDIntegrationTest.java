@@ -12,6 +12,8 @@ import org.omt.labelmanager.catalog.infrastructure.persistence.label.LabelEntity
 import org.omt.labelmanager.catalog.infrastructure.persistence.label.LabelRepository;
 import org.omt.labelmanager.identity.infrastructure.persistence.user.UserEntity;
 import org.omt.labelmanager.identity.infrastructure.persistence.user.UserRepository;
+import org.omt.labelmanager.inventory.application.SalesChannelQueryService;
+import org.omt.labelmanager.inventory.domain.ChannelType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.DynamicPropertyRegistry;
@@ -32,6 +34,9 @@ public class LabelCRUDIntegrationTest {
 
     @Autowired
     UserRepository userRepository;
+
+    @Autowired
+    SalesChannelQueryService salesChannelQueryService;
 
     @Container
     static PostgreSQLContainer<?> postgres =
@@ -66,6 +71,26 @@ public class LabelCRUDIntegrationTest {
         assertThat(savedLabel.get().getEmail()).isEqualTo("contact@mylabel.com");
         assertThat(savedLabel.get().getWebsite()).isEqualTo("https://mylabel.com");
         assertThat(savedLabel.get().getUserId()).isEqualTo(user.getId());
+    }
+
+    @Test
+    void createLabel_createsDefaultDirectSalesChannel() {
+        var user = userRepository.save(
+                new UserEntity("sales-channel-test@example.com", "password", "Test User"));
+
+        var label = labelCRUDHandler.createLabel(
+                "Label With Default Channel",
+                null,
+                null,
+                null,
+                null,
+                user.getId()
+        );
+
+        var salesChannels = salesChannelQueryService.getSalesChannelsForLabel(label.id());
+        assertThat(salesChannels).hasSize(1);
+        assertThat(salesChannels.getFirst().name()).isEqualTo("Direct Sales");
+        assertThat(salesChannels.getFirst().channelType()).isEqualTo(ChannelType.DIRECT);
     }
 
     @Test

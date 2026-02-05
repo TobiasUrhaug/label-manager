@@ -8,6 +8,8 @@ import org.omt.labelmanager.catalog.infrastructure.persistence.shared.PersonEmbe
 import org.omt.labelmanager.catalog.domain.label.Label;
 import org.omt.labelmanager.catalog.infrastructure.persistence.label.LabelEntity;
 import org.omt.labelmanager.catalog.infrastructure.persistence.label.LabelRepository;
+import org.omt.labelmanager.inventory.application.SalesChannelCRUDHandler;
+import org.omt.labelmanager.inventory.domain.ChannelType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -21,9 +23,14 @@ public class LabelCRUDHandler {
     private static final Logger log = LoggerFactory.getLogger(LabelCRUDHandler.class);
 
     private final LabelRepository repository;
+    private final SalesChannelCRUDHandler salesChannelCRUDHandler;
 
-    public LabelCRUDHandler(LabelRepository repository) {
+    public LabelCRUDHandler(
+            LabelRepository repository,
+            SalesChannelCRUDHandler salesChannelCRUDHandler
+    ) {
         this.repository = repository;
+        this.salesChannelCRUDHandler = salesChannelCRUDHandler;
     }
 
     public List<Label> getLabelsForUser(Long userId) {
@@ -34,7 +41,8 @@ public class LabelCRUDHandler {
         return labels;
     }
 
-    public void createLabel(
+    @Transactional
+    public Label createLabel(
             String labelName,
             String email,
             String website,
@@ -51,7 +59,11 @@ public class LabelCRUDHandler {
         if (owner != null) {
             entity.setOwner(PersonEmbeddable.fromPerson(owner));
         }
-        repository.save(entity);
+        entity = repository.save(entity);
+
+        salesChannelCRUDHandler.create(entity.getId(), "Direct Sales", ChannelType.DIRECT);
+
+        return Label.fromEntity(entity);
     }
 
     @Transactional
