@@ -158,13 +158,23 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr th:each="runWithAlloc : ${productionRuns}">
+                    <tr th:each="runWithAlloc, iterStat : ${productionRuns}">
                         <td th:text="${runWithAlloc.productionRun().format()}">VINYL</td>
                         <td th:text="${runWithAlloc.productionRun().description()}">Original pressing</td>
                         <td th:text="${runWithAlloc.productionRun().manufacturer()}">Record Industry</td>
                         <td th:text="${runWithAlloc.productionRun().manufacturingDate()}">2025-01-01</td>
                         <td class="text-end" th:text="${runWithAlloc.productionRun().quantity()}">500</td>
-                        <td class="text-end" th:text="${runWithAlloc.allocated()}">200</td>
+                        <td class="text-end">
+                            <span th:text="${runWithAlloc.allocated()}">200</span>
+                            <button th:if="${!runWithAlloc.allocations().isEmpty()}"
+                                    type="button"
+                                    class="btn btn-link btn-sm p-0 ms-1"
+                                    data-bs-toggle="collapse"
+                                    th:data-bs-target="'#allocations-' + ${iterStat.index}"
+                                    aria-expanded="false">
+                                <small>details</small>
+                            </button>
+                        </td>
                         <td class="text-end" th:text="${runWithAlloc.unallocated()}">300</td>
                         <td class="text-nowrap">
                             <button type="button" class="btn btn-sm btn-outline-primary allocate-btn"
@@ -179,6 +189,28 @@
                                 <input type="hidden" name="_method" value="delete">
                                 <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
                             </form>
+                        </td>
+                    </tr>
+                    <tr th:if="${!runWithAlloc.allocations().isEmpty()}"
+                        class="collapse"
+                        th:id="'allocations-' + ${iterStat.index}">
+                        <td colspan="8" class="bg-light p-0">
+                            <table class="table table-sm mb-0">
+                                <thead>
+                                    <tr class="table-secondary">
+                                        <th>Channel</th>
+                                        <th class="text-end">Quantity</th>
+                                        <th>Date</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr th:each="alloc : ${runWithAlloc.allocations()}">
+                                        <td th:text="${alloc.channelName()}">Direct Sales</td>
+                                        <td class="text-end" th:text="${alloc.quantity()}">100</td>
+                                        <td th:text="${#temporals.format(alloc.allocatedAt(), 'yyyy-MM-dd HH:mm')}">2025-01-15 10:00</td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </td>
                     </tr>
                 </tbody>

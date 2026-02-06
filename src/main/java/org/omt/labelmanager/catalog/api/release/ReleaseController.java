@@ -9,7 +9,9 @@ import org.omt.labelmanager.finance.application.CostQueryService;
 import org.omt.labelmanager.finance.domain.cost.Cost;
 import org.omt.labelmanager.finance.domain.cost.CostType;
 import org.omt.labelmanager.identity.application.AppUserDetails;
+import org.omt.labelmanager.inventory.api.AllocationView;
 import org.omt.labelmanager.inventory.api.ProductionRunWithAllocation;
+import org.omt.labelmanager.inventory.domain.ChannelAllocation;
 import org.omt.labelmanager.inventory.application.AllocationQueryService;
 import org.omt.labelmanager.inventory.application.ProductionRunQueryService;
 import org.omt.labelmanager.inventory.application.SalesChannelQueryService;
@@ -94,18 +96,14 @@ public class ReleaseController {
         List<Cost> costs = costQueryService.getCostsForRelease(releaseId);
         List<ProductionRun> productionRuns =
                 productionRunQueryService.getProductionRunsForRelease(releaseId);
+        List<SalesChannel> salesChannels =
+                salesChannelQueryService.getSalesChannelsForLabel(labelId);
         List<ProductionRunWithAllocation> productionRunsWithAllocation = productionRuns.stream()
-                .map(run -> new ProductionRunWithAllocation(
-                        run,
-                        allocationQueryService.getTotalAllocated(run.id()),
-                        allocationQueryService.getUnallocatedQuantity(run.id())
-                ))
+                .map(run -> buildProductionRunWithAllocation(run, salesChannels))
                 .toList();
         List<ReleaseFormat> physicalFormats = Arrays.stream(ReleaseFormat.values())
                 .filter(ReleaseFormat::isPhysical)
                 .toList();
-        List<SalesChannel> salesChannels =
-                salesChannelQueryService.getSalesChannelsForLabel(labelId);
 
         model.addAttribute("name", release.name());
         model.addAttribute("labelId", labelId);
@@ -149,5 +147,35 @@ public class ReleaseController {
     public String deleteRelease(@PathVariable Long labelId, @PathVariable Long releaseId) {
         releaseCRUDHandler.delete(releaseId);
         return "redirect:/labels/" + labelId;
+    }
+
+    private ProductionRunWithAllocation buildProductionRunWithAllocation(
+            ProductionRun run,
+            List<SalesChannel> salesChannels
+    ) {
+        List<ChannelAllocation> allocations =
+                allocationQueryService.getAllocationsForProductionRun(run.id());
+        List<AllocationView> allocationViews = allocations.stream()
+                .map(alloc -> new AllocationView(
+                        alloc.id(),
+                        findChannelName(alloc.salesChannelId(), salesChannels),
+                        alloc.quantity(),
+                        alloc.allocatedAt()
+                ))
+                .toList();
+        return new ProductionRunWithAllocation(
+                run,
+                allocationQueryService.getTotalAllocated(run.id()),
+                allocationQueryService.getUnallocatedQuantity(run.id()),
+                allocationViews
+        );
+    }
+
+    private String findChannelName(Long channelId, List<SalesChannel> channels) {
+        return channels.stream()
+                .filter(ch -> ch.id().equals(channelId))
+                .findFirst()
+                .map(SalesChannel::name)
+                .orElse("Unknown Channel");
     }
 }
