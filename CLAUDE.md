@@ -308,6 +308,20 @@ Use Test-Driven Development with small, atomic commits. For any feature, break i
 - Progress is visible and incremental
 - Easier to catch issues early
 
+### Feature Verification
+
+After completing a feature that touches UI/templates, always verify with E2E tests before
+considering it done:
+
+```bash
+./gradlew test              # Java tests (unit, controller, integration)
+npm run test:e2e            # E2E tests - catches template rendering errors
+```
+
+Controller tests (`@WebMvcTest`) do NOT render Thymeleaf templates—they only verify view names
+and model attributes. Template syntax errors and runtime rendering issues are only caught by
+E2E tests or manual testing.
+
 ## Development Setup
 
 ```bash
