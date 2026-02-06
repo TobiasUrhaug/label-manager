@@ -138,6 +138,10 @@
         <button type="button" class="btn btn-outline-primary btn-sm"
                 data-bs-toggle="modal" data-bs-target="#addProductionRunModal">+</button>
     </div>
+    <div th:if="${allocationError}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <span th:text="${allocationError}">Error message</span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
     <div class="card mb-4">
         <div class="card-body p-0">
             <table class="table table-striped mb-0" th:if="${!productionRuns.isEmpty()}">
@@ -147,19 +151,28 @@
                         <th scope="col">Description</th>
                         <th scope="col">Manufacturer</th>
                         <th scope="col">Date</th>
-                        <th scope="col" class="text-end">Quantity</th>
+                        <th scope="col" class="text-end">Manufactured</th>
+                        <th scope="col" class="text-end">Allocated</th>
+                        <th scope="col" class="text-end">Unallocated</th>
                         <th scope="col"></th>
                     </tr>
                 </thead>
                 <tbody>
-                    <tr th:each="run : ${productionRuns}">
-                        <td th:text="${run.format()}">VINYL</td>
-                        <td th:text="${run.description()}">Original pressing</td>
-                        <td th:text="${run.manufacturer()}">Record Industry</td>
-                        <td th:text="${run.manufacturingDate()}">2025-01-01</td>
-                        <td class="text-end" th:text="${run.quantity()}">500</td>
+                    <tr th:each="runWithAlloc : ${productionRuns}">
+                        <td th:text="${runWithAlloc.productionRun().format()}">VINYL</td>
+                        <td th:text="${runWithAlloc.productionRun().description()}">Original pressing</td>
+                        <td th:text="${runWithAlloc.productionRun().manufacturer()}">Record Industry</td>
+                        <td th:text="${runWithAlloc.productionRun().manufacturingDate()}">2025-01-01</td>
+                        <td class="text-end" th:text="${runWithAlloc.productionRun().quantity()}">500</td>
+                        <td class="text-end" th:text="${runWithAlloc.allocated()}">200</td>
+                        <td class="text-end" th:text="${runWithAlloc.unallocated()}">300</td>
                         <td class="text-nowrap">
-                            <form th:action="@{/labels/{labelId}/releases/{releaseId}/production-runs/{runId}(labelId=${labelId}, releaseId=${releaseId}, runId=${run.id()})}"
+                            <button type="button" class="btn btn-sm btn-outline-primary allocate-btn"
+                                    th:if="${runWithAlloc.unallocated() > 0 && !salesChannels.isEmpty()}"
+                                    th:data-run-id="${runWithAlloc.productionRun().id()}"
+                                    th:data-unallocated="${runWithAlloc.unallocated()}"
+                                    data-bs-toggle="modal" data-bs-target="#allocateModal">Allocate</button>
+                            <form th:action="@{/labels/{labelId}/releases/{releaseId}/production-runs/{runId}(labelId=${labelId}, releaseId=${releaseId}, runId=${runWithAlloc.productionRun().id()})}"
                                   method="post"
                                   class="d-inline"
                                   onsubmit="return confirm('Delete this production run?');">
@@ -235,6 +248,53 @@
                         <button type="button" class="btn btn-secondary"
                                 data-bs-dismiss="modal">Cancel</button>
                         <button type="submit" class="btn btn-primary">Add Production Run</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Allocate Inventory Modal -->
+    <div class="modal fade" id="allocateModal" tabindex="-1"
+         aria-labelledby="allocateModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form id="allocateForm" method="post">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="allocateModalLabel">
+                            Allocate Inventory
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="allocationSalesChannelId" class="form-label">
+                                Sales Channel
+                            </label>
+                            <select class="form-select" id="allocationSalesChannelId"
+                                    name="salesChannelId" required>
+                                <option value="">Select channel...</option>
+                                <option th:each="channel : ${salesChannels}"
+                                        th:value="${channel.id()}"
+                                        th:text="${channel.name()} + ' (' + ${channel.channelType()} + ')'">
+                                    Channel Name
+                                </option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="allocationQuantity" class="form-label">Quantity</label>
+                            <input type="number" class="form-control" id="allocationQuantity"
+                                   name="quantity" required min="1">
+                            <div class="form-text">
+                                Unallocated: <span id="allocationUnallocatedDisplay">0</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary"
+                                data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Allocate</button>
                     </div>
                 </form>
             </div>
@@ -535,6 +595,26 @@
         });
 
         setupEditCostButtons('.edit-cost-btn', editCostModalHandler);
+
+        // Allocate Inventory Modal
+        const allocateForm = document.getElementById('allocateForm');
+        const allocateModal = document.getElementById('allocateModal');
+        const allocationQuantity = document.getElementById('allocationQuantity');
+        const allocationUnallocatedDisplay =
+                document.getElementById('allocationUnallocatedDisplay');
+
+        document.querySelectorAll('.allocate-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const runId = this.dataset.runId;
+                const unallocated = parseInt(this.dataset.unallocated, 10);
+
+                allocateForm.action =
+                    `/labels/${labelId}/releases/${releaseId}/production-runs/${runId}/allocations`;
+                allocationQuantity.max = unallocated;
+                allocationQuantity.value = '';
+                allocationUnallocatedDisplay.textContent = unallocated;
+            });
+        });
     });
     </script>
 </main>

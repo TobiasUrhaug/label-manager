@@ -11,7 +11,9 @@ import org.omt.labelmanager.catalog.domain.release.ReleaseFormat;
 import org.omt.labelmanager.catalog.domain.track.TrackFactory;
 import org.omt.labelmanager.finance.application.CostQueryService;
 import org.omt.labelmanager.identity.application.AppUserDetails;
+import org.omt.labelmanager.inventory.application.AllocationQueryService;
 import org.omt.labelmanager.inventory.application.ProductionRunQueryService;
+import org.omt.labelmanager.inventory.application.SalesChannelQueryService;
 import org.omt.labelmanager.test.TestSecurityConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
@@ -52,6 +54,12 @@ class ReleaseControllerTest {
 
     @MockitoBean
     private ProductionRunQueryService productionRunQueryService;
+
+    @MockitoBean
+    private AllocationQueryService allocationQueryService;
+
+    @MockitoBean
+    private SalesChannelQueryService salesChannelQueryService;
 
     private final AppUserDetails testUser =
             new AppUserDetails(1L, "test@example.com", "password", "Test User");

@@ -9,8 +9,12 @@ import org.omt.labelmanager.finance.application.CostQueryService;
 import org.omt.labelmanager.finance.domain.cost.Cost;
 import org.omt.labelmanager.finance.domain.cost.CostType;
 import org.omt.labelmanager.identity.application.AppUserDetails;
+import org.omt.labelmanager.inventory.api.ProductionRunWithAllocation;
+import org.omt.labelmanager.inventory.application.AllocationQueryService;
 import org.omt.labelmanager.inventory.application.ProductionRunQueryService;
+import org.omt.labelmanager.inventory.application.SalesChannelQueryService;
 import org.omt.labelmanager.inventory.domain.ProductionRun;
+import org.omt.labelmanager.inventory.domain.SalesChannel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -34,17 +38,23 @@ public class ReleaseController {
     private final ArtistCRUDHandler artistCRUDHandler;
     private final CostQueryService costQueryService;
     private final ProductionRunQueryService productionRunQueryService;
+    private final AllocationQueryService allocationQueryService;
+    private final SalesChannelQueryService salesChannelQueryService;
 
     public ReleaseController(
             ReleaseCRUDHandler releaseCRUDHandler,
             ArtistCRUDHandler artistCRUDHandler,
             CostQueryService costQueryService,
-            ProductionRunQueryService productionRunQueryService
+            ProductionRunQueryService productionRunQueryService,
+            AllocationQueryService allocationQueryService,
+            SalesChannelQueryService salesChannelQueryService
     ) {
         this.releaseCRUDHandler = releaseCRUDHandler;
         this.artistCRUDHandler = artistCRUDHandler;
         this.costQueryService = costQueryService;
         this.productionRunQueryService = productionRunQueryService;
+        this.allocationQueryService = allocationQueryService;
+        this.salesChannelQueryService = salesChannelQueryService;
     }
 
     @PostMapping
@@ -84,9 +94,18 @@ public class ReleaseController {
         List<Cost> costs = costQueryService.getCostsForRelease(releaseId);
         List<ProductionRun> productionRuns =
                 productionRunQueryService.getProductionRunsForRelease(releaseId);
+        List<ProductionRunWithAllocation> productionRunsWithAllocation = productionRuns.stream()
+                .map(run -> new ProductionRunWithAllocation(
+                        run,
+                        allocationQueryService.getTotalAllocated(run.id()),
+                        allocationQueryService.getUnallocatedQuantity(run.id())
+                ))
+                .toList();
         List<ReleaseFormat> physicalFormats = Arrays.stream(ReleaseFormat.values())
                 .filter(ReleaseFormat::isPhysical)
                 .toList();
+        List<SalesChannel> salesChannels =
+                salesChannelQueryService.getSalesChannelsForLabel(labelId);
 
         model.addAttribute("name", release.name());
         model.addAttribute("labelId", labelId);
@@ -99,8 +118,9 @@ public class ReleaseController {
         model.addAttribute("allFormats", ReleaseFormat.values());
         model.addAttribute("costs", costs);
         model.addAttribute("allCostTypes", CostType.values());
-        model.addAttribute("productionRuns", productionRuns);
+        model.addAttribute("productionRuns", productionRunsWithAllocation);
         model.addAttribute("physicalFormats", physicalFormats);
+        model.addAttribute("salesChannels", salesChannels);
 
         return "/releases/release";
     }
