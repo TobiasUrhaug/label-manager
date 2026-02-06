@@ -294,6 +294,7 @@
         <div class="modal-dialog">
             <div class="modal-content">
                 <form id="allocateForm" method="post">
+                    <input type="hidden" th:if="${_csrf}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
                     <div class="modal-header">
                         <h5 class="modal-title" id="allocateModalLabel">
                             Allocate Inventory

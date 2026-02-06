@@ -322,6 +322,21 @@ Controller tests (`@WebMvcTest`) do NOT render Thymeleaf templates—they only v
 and model attributes. Template syntax errors and runtime rendering issues are only caught by
 E2E tests or manual testing.
 
+### CSRF Tokens in Forms
+
+All POST/PUT/DELETE forms MUST include a CSRF token. A 403 Forbidden error on form submission
+almost always means the CSRF token is missing.
+
+```html
+<form method="post" ...>
+    <input type="hidden" th:if="${_csrf}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+    <!-- form fields -->
+</form>
+```
+
+Forms using `th:action` get CSRF tokens automatically. Forms with dynamic `action` attributes
+set via JavaScript (like modals) must include the hidden input explicitly.
+
 ## Development Setup
 
 ```bash
