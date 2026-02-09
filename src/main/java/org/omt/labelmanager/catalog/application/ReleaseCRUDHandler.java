@@ -14,7 +14,6 @@ import org.omt.labelmanager.catalog.infrastructure.persistence.release.ReleaseRe
 import org.omt.labelmanager.catalog.infrastructure.persistence.track.TrackArtistRepository;
 import org.omt.labelmanager.catalog.infrastructure.persistence.track.TrackEntity;
 import org.omt.labelmanager.catalog.infrastructure.persistence.track.TrackRepository;
-import org.omt.labelmanager.catalog.label.Label;
 import org.omt.labelmanager.catalog.label.LabelQueryService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,19 +55,20 @@ public class ReleaseCRUDHandler {
     }
 
     public List<Release> getReleasesForLabel(Long labelId) {
-        Label label = labelQueryService.findById(labelId)
-                .orElseThrow(() -> new IllegalArgumentException("Label not found"));
+        if (!labelQueryService.exists(labelId)) {
+            throw new IllegalArgumentException("Label not found");
+        }
 
         List<ReleaseEntity> releaseEntities = releaseRepository.findByLabelId(labelId);
         List<Release> releases = releaseEntities.stream()
-                .map(releaseEntity -> buildRelease(releaseEntity, label))
+                .map(this::buildRelease)
                 .toList();
 
         log.debug("Retrieved {} releases for label {}", releases.size(), labelId);
         return releases;
     }
 
-    private Release buildRelease(ReleaseEntity releaseEntity, Label label) {
+    private Release buildRelease(ReleaseEntity releaseEntity) {
         List<ArtistEntity> artistEntities =
                 releaseArtistRepository.findArtistsByReleaseId(releaseEntity.getId());
         List<Artist> artists = artistEntities.stream()
@@ -85,7 +85,7 @@ public class ReleaseCRUDHandler {
                 releaseEntity.getId(),
                 releaseEntity.getName(),
                 releaseEntity.getReleaseDate(),
-                label,
+                releaseEntity.getLabelId(),
                 artists,
                 tracks,
                 releaseEntity.getFormats()
@@ -187,11 +187,7 @@ public class ReleaseCRUDHandler {
             return Optional.empty();
         }
 
-        ReleaseEntity entity = releaseEntity.get();
-        Label label = labelQueryService.findById(entity.getLabelId())
-                .orElseThrow(() -> new IllegalStateException("Label not found"));
-
-        return Optional.of(buildRelease(entity, label));
+        return Optional.of(buildRelease(releaseEntity.get()));
     }
 
     @Transactional

@@ -1,38 +1,34 @@
-package org.omt.labelmanager.catalog.api.label;
+package org.omt.labelmanager.catalog.label.api;
+
+import org.junit.jupiter.api.Test;
+import org.omt.labelmanager.catalog.application.ArtistCRUDHandler;
+import org.omt.labelmanager.catalog.application.ReleaseCRUDHandler;
+import org.omt.labelmanager.catalog.domain.artist.ArtistFactory;
+import org.omt.labelmanager.catalog.domain.release.ReleaseFactory;
+import org.omt.labelmanager.catalog.domain.shared.Address;
+import org.omt.labelmanager.catalog.domain.shared.Person;
+import org.omt.labelmanager.catalog.label.LabelCRUDHandler;
+import org.omt.labelmanager.catalog.label.LabelFactory;
+import org.omt.labelmanager.identity.application.AppUserDetails;
+import org.omt.labelmanager.inventory.application.SalesChannelQueryService;
+import org.omt.labelmanager.inventory.domain.SalesChannelFactory;
+import org.omt.labelmanager.test.TestSecurityConfig;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.context.annotation.Import;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.web.servlet.MockMvc;
+
+import java.util.List;
+import java.util.Optional;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
-
-import java.util.List;
-import java.util.Optional;
-import org.junit.jupiter.api.Test;
-import org.omt.labelmanager.catalog.application.ArtistCRUDHandler;
-import org.omt.labelmanager.catalog.domain.artist.ArtistFactory;
-import org.omt.labelmanager.catalog.domain.shared.Address;
-import org.omt.labelmanager.catalog.domain.shared.Person;
-import org.omt.labelmanager.catalog.application.LabelCRUDHandler;
-import org.omt.labelmanager.catalog.domain.label.LabelFactory;
-import org.omt.labelmanager.catalog.application.ReleaseCRUDHandler;
-import org.omt.labelmanager.catalog.domain.release.ReleaseFactory;
-import org.omt.labelmanager.inventory.application.SalesChannelQueryService;
-import org.omt.labelmanager.inventory.domain.SalesChannelFactory;
-import org.omt.labelmanager.test.TestSecurityConfig;
-import org.omt.labelmanager.identity.application.AppUserDetails;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
-import org.springframework.context.annotation.Import;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.test.web.servlet.MockMvc;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(LabelController.class)
 @Import(TestSecurityConfig.class)

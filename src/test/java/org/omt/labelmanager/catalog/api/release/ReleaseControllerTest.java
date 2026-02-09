@@ -2,13 +2,13 @@ package org.omt.labelmanager.catalog.api.release;
 
 import org.junit.jupiter.api.Test;
 import org.omt.labelmanager.catalog.application.ArtistCRUDHandler;
-import org.omt.labelmanager.catalog.application.LabelCRUDHandler;
 import org.omt.labelmanager.catalog.application.ReleaseCRUDHandler;
 import org.omt.labelmanager.catalog.domain.artist.ArtistFactory;
-import org.omt.labelmanager.catalog.domain.label.LabelFactory;
 import org.omt.labelmanager.catalog.domain.release.ReleaseFactory;
 import org.omt.labelmanager.catalog.domain.release.ReleaseFormat;
 import org.omt.labelmanager.catalog.domain.track.TrackFactory;
+import org.omt.labelmanager.catalog.label.LabelCRUDHandler;
+import org.omt.labelmanager.catalog.label.LabelFactory;
 import org.omt.labelmanager.finance.application.CostQueryService;
 import org.omt.labelmanager.identity.application.AppUserDetails;
 import org.omt.labelmanager.inventory.allocation.AllocationQueryService;
@@ -82,7 +82,7 @@ class ReleaseControllerTest {
                 .id(4L)
                 .name("First Release")
                 .releaseDate(releaseDate)
-                .label(label)
+                .labelId(label.id())
                 .artist(artist)
                 .tracks(List.of(track))
                 .formats(formats)

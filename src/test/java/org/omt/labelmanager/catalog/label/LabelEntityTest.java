@@ -1,8 +1,8 @@
-package org.omt.labelmanager.catalog.infrastructure.persistence.label;
-
-import static org.assertj.core.api.Assertions.assertThat;
+package org.omt.labelmanager.catalog.label;
 
 import org.junit.jupiter.api.Test;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 class LabelEntityTest {
 

@@ -1,16 +1,15 @@
 package org.omt.labelmanager.catalog.domain.release;
 
+import org.omt.labelmanager.catalog.domain.artist.Artist;
+import org.omt.labelmanager.catalog.domain.track.Track;
+import org.omt.labelmanager.catalog.domain.track.TrackFactory;
+
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
-import org.omt.labelmanager.catalog.domain.artist.Artist;
-import org.omt.labelmanager.catalog.domain.label.Label;
-import org.omt.labelmanager.catalog.domain.label.LabelFactory;
-import org.omt.labelmanager.catalog.domain.track.Track;
-import org.omt.labelmanager.catalog.domain.track.TrackFactory;
 
 public final class ReleaseFactory {
 
@@ -33,7 +32,7 @@ public final class ReleaseFactory {
         private Long id = counter.getAndIncrement();
         private String name = "Default Release";
         private LocalDate releaseDate = LocalDate.now();
-        private Label label = LabelFactory.createDefault();
+        private Long labelId = 1L;
         private List<Artist> artists = new ArrayList<>();
         private List<Track> tracks = new ArrayList<>(List.of(TrackFactory.createDefault()));
         private Set<ReleaseFormat> formats = new HashSet<>(Set.of(ReleaseFormat.DIGITAL));
@@ -56,8 +55,8 @@ public final class ReleaseFactory {
             return this;
         }
 
-        public Builder label(Label label) {
-            this.label = label;
+        public Builder labelId(Long labelId) {
+            this.labelId = labelId;
             return this;
         }
 
@@ -92,7 +91,7 @@ public final class ReleaseFactory {
         }
 
         public Release build() {
-            return new Release(id, name, releaseDate, label, artists, tracks, formats);
+            return new Release(id, name, releaseDate, labelId, artists, tracks, formats);
         }
     }
 }

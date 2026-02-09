@@ -1,15 +1,10 @@
 package org.omt.labelmanager.catalog.label;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import org.junit.jupiter.api.Test;
-import org.omt.labelmanager.catalog.application.LabelCRUDHandler;
 import org.omt.labelmanager.catalog.domain.shared.Address;
 import org.omt.labelmanager.catalog.domain.shared.Person;
 import org.omt.labelmanager.catalog.infrastructure.persistence.shared.AddressEmbeddable;
 import org.omt.labelmanager.catalog.infrastructure.persistence.shared.PersonEmbeddable;
-import org.omt.labelmanager.catalog.infrastructure.persistence.label.LabelEntity;
-import org.omt.labelmanager.catalog.infrastructure.persistence.label.LabelRepository;
 import org.omt.labelmanager.identity.infrastructure.persistence.user.UserEntity;
 import org.omt.labelmanager.identity.infrastructure.persistence.user.UserRepository;
 import org.omt.labelmanager.inventory.application.SalesChannelQueryService;
@@ -21,6 +16,8 @@ import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 @Testcontainers
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)

@@ -1,8 +1,8 @@
-package org.omt.labelmanager.catalog.api.label;
-
-import static org.assertj.core.api.Assertions.assertThat;
+package org.omt.labelmanager.catalog.label.api;
 
 import org.junit.jupiter.api.Test;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 class UpdateLabelFormTest {
 

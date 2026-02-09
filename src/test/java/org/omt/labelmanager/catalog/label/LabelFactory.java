@@ -1,8 +1,9 @@
-package org.omt.labelmanager.catalog.domain.label;
+package org.omt.labelmanager.catalog.label;
 
-import java.util.concurrent.atomic.AtomicLong;
 import org.omt.labelmanager.catalog.domain.shared.Address;
 import org.omt.labelmanager.catalog.domain.shared.Person;
+
+import java.util.concurrent.atomic.AtomicLong;
 
 public final class LabelFactory {
 

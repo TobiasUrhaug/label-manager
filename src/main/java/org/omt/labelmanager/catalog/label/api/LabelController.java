@@ -1,13 +1,12 @@
-package org.omt.labelmanager.catalog.api.label;
+package org.omt.labelmanager.catalog.label.api;
 
-import java.util.List;
-import org.omt.labelmanager.catalog.domain.artist.Artist;
 import org.omt.labelmanager.catalog.application.ArtistCRUDHandler;
-import org.omt.labelmanager.catalog.domain.label.Label;
-import org.omt.labelmanager.catalog.application.LabelCRUDHandler;
-import org.omt.labelmanager.catalog.domain.release.Release;
 import org.omt.labelmanager.catalog.application.ReleaseCRUDHandler;
+import org.omt.labelmanager.catalog.domain.artist.Artist;
+import org.omt.labelmanager.catalog.domain.release.Release;
 import org.omt.labelmanager.catalog.domain.release.ReleaseFormat;
+import org.omt.labelmanager.catalog.label.Label;
+import org.omt.labelmanager.catalog.label.LabelCRUDHandler;
 import org.omt.labelmanager.identity.application.AppUserDetails;
 import org.omt.labelmanager.inventory.application.SalesChannelQueryService;
 import org.omt.labelmanager.inventory.domain.ChannelType;
@@ -18,13 +17,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
+
+import java.util.List;
 
 
 @Controller
