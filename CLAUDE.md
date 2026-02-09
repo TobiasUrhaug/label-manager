@@ -55,14 +55,123 @@ org.omt.labelmanager/
 └── infrastructure/    # Cross-cutting: security, storage, dashboard
 ```
 
-Each bounded context has the same internal structure:
+Within each bounded context, organize by **module** (not by layer):
 
 ```
 catalog/
-├── api/               # Controllers
-├── application/       # Use cases (CRUD handlers)
-├── domain/            # Domain models (records), factories
-└── infrastructure/    # Persistence (entities, repositories)
+├── label/             # Label module (fully encapsulated)
+│   ├── Label.java                  # Public domain record
+│   ├── LabelCRUDHandler.java       # Public service (mutations)
+│   ├── LabelQueryService.java      # Public service (queries)
+│   ├── LabelEntity.java            # package-private
+│   ├── LabelRepository.java        # package-private
+│   └── api/
+│       └── LabelController.java
+├── release/           # Release module
+├── artist/            # Artist module
+└── domain/
+    └── shared/        # Shared value objects (Address, Person, etc.)
+```
+
+### Modular Architecture Pattern
+
+Within each bounded context, organize code into **modules** with encapsulated internals and clean public APIs. This prevents tight coupling and allows modules to evolve independently.
+
+#### Module Structure
+
+Each module (e.g., `label`, `release`, `artist`) should follow this pattern:
+
+```
+catalog/label/
+├── Label.java                  # Public domain record
+├── LabelCRUDHandler.java       # Public - mutations (create, update, delete)
+├── LabelQueryService.java      # Public - queries (findById, exists)
+├── LabelEntity.java            # package-private (internal persistence)
+├── LabelRepository.java        # package-private (internal persistence)
+└── api/
+    └── LabelController.java    # Public HTTP interface
+```
+
+#### Encapsulation Rules
+
+1. **Make internal classes package-private**: `Entity` and `Repository` classes should have **no access modifier** (package-private), not `public`.
+
+2. **Provide a QueryService facade**: Create a public `*QueryService` for read operations that other modules need:
+   ```java
+   @Service
+   public class LabelQueryService {
+       private final LabelRepository repository;  // package-private, only accessible within module
+
+       public Optional<Label> findById(Long id) {
+           return repository.findById(id).map(Label::fromEntity);
+       }
+
+       public boolean exists(Long id) {
+           return repository.existsById(id);
+       }
+   }
+   ```
+
+3. **Use ID references between modules**: Domain records should reference other modules by ID, not by embedding full objects:
+   ```java
+   // Good - loose coupling
+   public record Release(Long id, String name, Long labelId, ...) {}
+
+   // Avoid - tight coupling
+   public record Release(Long id, String name, Label label, ...) {}
+   ```
+
+4. **Keep mapping methods package-private**: Methods like `fromEntity()` should be package-private:
+   ```java
+   public record Label(...) {
+       // package-private - only QueryService can call this
+       static Label fromEntity(LabelEntity entity) { ... }
+   }
+   ```
+
+5. **Provide test helpers for other modules**: Create a public test helper in the test source tree:
+   ```java
+   @Component  // in src/test/java
+   public class LabelTestHelper {
+       private final LabelRepository labelRepository;
+
+       public Label createLabel(String name) {
+           LabelEntity entity = new LabelEntity(name, null, null);
+           return Label.fromEntity(labelRepository.save(entity));
+       }
+   }
+   ```
+
+#### Benefits
+
+- **Encapsulation**: Internal persistence details hidden from other modules
+- **Flexibility**: Can refactor module internals without affecting other modules
+- **Clear contracts**: Public API (QueryService, CRUDHandler) defines what other modules can do
+- **Testability**: Each module can be tested in isolation
+
+#### Inter-Module Communication
+
+When one module needs data from another:
+
+```java
+@Service
+public class ReleaseCRUDHandler {
+    private final LabelQueryService labelQueryService;  // Use QueryService, not Repository
+
+    public void createRelease(Long labelId, ...) {
+        // Validate using QueryService
+        if (!labelQueryService.exists(labelId)) {
+            throw new IllegalArgumentException("Label not found");
+        }
+        // ... create release with labelId reference
+    }
+
+    public Release findById(Long id) {
+        // Return Release with labelId
+        // If UI needs label details, controller fetches separately:
+        //   Label label = labelQueryService.findById(release.labelId())
+    }
+}
 ```
 
 ### Layer Separation
@@ -178,6 +287,24 @@ Each level owns a responsibility. If the same assertion appears at multiple leve
 ### Test Factories
 
 Fluent builders for test data: `LabelFactory.aLabel().name("Test").build()`
+
+#### Module Test Helpers
+
+For modules with package-private internals, provide a public test helper in `src/test/java` that other modules can use to create test fixtures:
+
+```java
+@Component
+public class LabelTestHelper {
+    private final LabelRepository labelRepository;
+
+    public Label createLabel(String name) {
+        LabelEntity entity = new LabelEntity(name, null, null);
+        return Label.fromEntity(labelRepository.save(entity));
+    }
+}
+```
+
+This allows integration tests in other modules (e.g., `ReleaseCRUDIntegrationTest`) to create label fixtures without accessing package-private classes directly.
 
 ## Logging Strategy
 
