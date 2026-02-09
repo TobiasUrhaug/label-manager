@@ -1,21 +1,20 @@
-package org.omt.labelmanager.inventory.application;
+package org.omt.labelmanager.inventory.allocation;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
-
-import java.time.Instant;
-import java.util.List;
-import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.omt.labelmanager.catalog.domain.release.ReleaseFormat;
-import org.omt.labelmanager.inventory.infrastructure.persistence.ChannelAllocationEntity;
-import org.omt.labelmanager.inventory.infrastructure.persistence.ChannelAllocationRepository;
 import org.omt.labelmanager.inventory.infrastructure.persistence.ProductionRunEntity;
 import org.omt.labelmanager.inventory.infrastructure.persistence.ProductionRunRepository;
+
+import java.time.Instant;
+import java.util.List;
+import java.util.Optional;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class AllocationQueryServiceTest {

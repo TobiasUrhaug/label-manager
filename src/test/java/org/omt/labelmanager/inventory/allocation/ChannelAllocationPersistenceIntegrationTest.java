@@ -1,9 +1,5 @@
-package org.omt.labelmanager.inventory.infrastructure.persistence;
+package org.omt.labelmanager.inventory.allocation;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.time.Instant;
-import java.time.LocalDate;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.omt.labelmanager.catalog.domain.release.ReleaseFormat;
@@ -12,6 +8,10 @@ import org.omt.labelmanager.catalog.infrastructure.persistence.label.LabelReposi
 import org.omt.labelmanager.catalog.infrastructure.persistence.release.ReleaseEntity;
 import org.omt.labelmanager.catalog.infrastructure.persistence.release.ReleaseRepository;
 import org.omt.labelmanager.inventory.domain.ChannelType;
+import org.omt.labelmanager.inventory.infrastructure.persistence.ProductionRunEntity;
+import org.omt.labelmanager.inventory.infrastructure.persistence.ProductionRunRepository;
+import org.omt.labelmanager.inventory.infrastructure.persistence.SalesChannelEntity;
+import org.omt.labelmanager.inventory.infrastructure.persistence.SalesChannelRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.DynamicPropertyRegistry;
@@ -20,6 +20,11 @@ import org.testcontainers.containers.MinIOContainer;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+
+import java.time.Instant;
+import java.time.LocalDate;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 @Testcontainers
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)

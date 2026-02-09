@@ -1,4 +1,4 @@
-package org.omt.labelmanager.inventory.domain;
+package org.omt.labelmanager.inventory.allocation;
 
 import java.time.Instant;
 import java.util.concurrent.atomic.AtomicLong;

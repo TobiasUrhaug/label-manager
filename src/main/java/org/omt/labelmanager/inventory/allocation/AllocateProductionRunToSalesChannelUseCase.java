@@ -1,10 +1,6 @@
-package org.omt.labelmanager.inventory.application;
+package org.omt.labelmanager.inventory.allocation;
 
-import java.time.Instant;
-import org.omt.labelmanager.inventory.domain.ChannelAllocation;
 import org.omt.labelmanager.inventory.domain.MovementType;
-import org.omt.labelmanager.inventory.infrastructure.persistence.ChannelAllocationEntity;
-import org.omt.labelmanager.inventory.infrastructure.persistence.ChannelAllocationRepository;
 import org.omt.labelmanager.inventory.infrastructure.persistence.InventoryMovementEntity;
 import org.omt.labelmanager.inventory.infrastructure.persistence.InventoryMovementRepository;
 import org.omt.labelmanager.inventory.infrastructure.persistence.ProductionRunRepository;
@@ -13,16 +9,18 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-@Service
-public class AllocationCRUDHandler {
+import java.time.Instant;
 
-    private static final Logger log = LoggerFactory.getLogger(AllocationCRUDHandler.class);
+@Service
+public class AllocateProductionRunToSalesChannelUseCase {
+
+    private static final Logger log = LoggerFactory.getLogger(AllocateProductionRunToSalesChannelUseCase.class);
 
     private final ChannelAllocationRepository channelAllocationRepository;
     private final InventoryMovementRepository inventoryMovementRepository;
     private final ProductionRunRepository productionRunRepository;
 
-    public AllocationCRUDHandler(
+    public AllocateProductionRunToSalesChannelUseCase(
             ChannelAllocationRepository channelAllocationRepository,
             InventoryMovementRepository inventoryMovementRepository,
             ProductionRunRepository productionRunRepository
@@ -33,7 +31,7 @@ public class AllocationCRUDHandler {
     }
 
     @Transactional
-    public ChannelAllocation create(Long productionRunId, Long salesChannelId, int quantity) {
+    public ChannelAllocation invoke(Long productionRunId, Long salesChannelId, int quantity) {
         log.info(
                 "Creating allocation of {} units from production run {} to channel {}",
                 quantity,
@@ -41,19 +39,7 @@ public class AllocationCRUDHandler {
                 salesChannelId
         );
 
-        int manufactured = getManufacturedQuantity(productionRunId);
-        int allocated = channelAllocationRepository.sumQuantityByProductionRunId(productionRunId);
-        int unallocated = manufactured - allocated;
-
-        if (quantity > unallocated) {
-            log.warn(
-                    "Allocation rejected: requested {} but only {} unallocated for run {}",
-                    quantity,
-                    unallocated,
-                    productionRunId
-            );
-            throw new InsufficientInventoryException(quantity, unallocated);
-        }
+        validateQuantityIsAvailable(productionRunId, quantity);
 
         Instant now = Instant.now();
 
@@ -78,6 +64,22 @@ public class AllocationCRUDHandler {
         log.debug("Movement record created for allocation {}", allocationEntity.getId());
 
         return ChannelAllocation.fromEntity(allocationEntity);
+    }
+
+    private void validateQuantityIsAvailable(Long productionRunId, int quantity) {
+        int manufactured = getManufacturedQuantity(productionRunId);
+        int allocated = channelAllocationRepository.sumQuantityByProductionRunId(productionRunId);
+        int unallocated = manufactured - allocated;
+
+        if (quantity > unallocated) {
+            log.warn(
+                    "Allocation rejected: requested {} but only {} unallocated for run {}",
+                    quantity,
+                    unallocated,
+                    productionRunId
+            );
+            throw new InsufficientInventoryException(quantity, unallocated);
+        }
     }
 
     private int getManufacturedQuantity(Long productionRunId) {

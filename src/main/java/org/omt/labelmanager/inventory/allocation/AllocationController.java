@@ -1,7 +1,5 @@
-package org.omt.labelmanager.inventory.api;
+package org.omt.labelmanager.inventory.allocation;
 
-import org.omt.labelmanager.inventory.application.AllocationCRUDHandler;
-import org.omt.labelmanager.inventory.application.InsufficientInventoryException;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -13,10 +11,10 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 @RequestMapping("/labels/{labelId}/releases/{releaseId}/production-runs/{runId}/allocations")
 public class AllocationController {
 
-    private final AllocationCRUDHandler allocationCRUDHandler;
+    private final AllocateProductionRunToSalesChannelUseCase allocateProductionRunToSalesChannelUseCase;
 
-    public AllocationController(AllocationCRUDHandler allocationCRUDHandler) {
-        this.allocationCRUDHandler = allocationCRUDHandler;
+    public AllocationController(AllocateProductionRunToSalesChannelUseCase allocateProductionRunToSalesChannelUseCase) {
+        this.allocateProductionRunToSalesChannelUseCase = allocateProductionRunToSalesChannelUseCase;
     }
 
     @PostMapping
@@ -28,7 +26,7 @@ public class AllocationController {
             RedirectAttributes redirectAttributes
     ) {
         try {
-            allocationCRUDHandler.create(runId, form.getSalesChannelId(), form.getQuantity());
+            allocateProductionRunToSalesChannelUseCase.invoke(runId, form.getSalesChannelId(), form.getQuantity());
         } catch (InsufficientInventoryException ex) {
             redirectAttributes.addFlashAttribute("allocationError", ex.getMessage());
         }

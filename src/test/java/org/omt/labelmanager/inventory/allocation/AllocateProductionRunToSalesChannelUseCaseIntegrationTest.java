@@ -1,9 +1,5 @@
-package org.omt.labelmanager.inventory.application;
+package org.omt.labelmanager.inventory.allocation;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-
-import java.time.LocalDate;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.omt.labelmanager.catalog.domain.release.ReleaseFormat;
@@ -13,12 +9,7 @@ import org.omt.labelmanager.catalog.infrastructure.persistence.release.ReleaseEn
 import org.omt.labelmanager.catalog.infrastructure.persistence.release.ReleaseRepository;
 import org.omt.labelmanager.inventory.domain.ChannelType;
 import org.omt.labelmanager.inventory.domain.MovementType;
-import org.omt.labelmanager.inventory.infrastructure.persistence.ChannelAllocationRepository;
-import org.omt.labelmanager.inventory.infrastructure.persistence.InventoryMovementRepository;
-import org.omt.labelmanager.inventory.infrastructure.persistence.ProductionRunEntity;
-import org.omt.labelmanager.inventory.infrastructure.persistence.ProductionRunRepository;
-import org.omt.labelmanager.inventory.infrastructure.persistence.SalesChannelEntity;
-import org.omt.labelmanager.inventory.infrastructure.persistence.SalesChannelRepository;
+import org.omt.labelmanager.inventory.infrastructure.persistence.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.DynamicPropertyRegistry;
@@ -28,9 +19,14 @@ import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import java.time.LocalDate;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
 @Testcontainers
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-class AllocationCRUDHandlerIntegrationTest {
+class AllocateProductionRunToSalesChannelUseCaseIntegrationTest {
 
     private static final String MINIO_ACCESS_KEY = "minioadmin";
     private static final String MINIO_SECRET_KEY = "minioadmin";
@@ -60,7 +56,7 @@ class AllocationCRUDHandlerIntegrationTest {
     }
 
     @Autowired
-    private AllocationCRUDHandler allocationCRUDHandler;
+    private AllocateProductionRunToSalesChannelUseCase allocateProductionRunToSalesChannelUseCase;
 
     @Autowired
     private ChannelAllocationRepository channelAllocationRepository;
@@ -114,7 +110,7 @@ class AllocationCRUDHandlerIntegrationTest {
 
     @Test
     void createsAllocationAndMovement() {
-        var allocation = allocationCRUDHandler.create(productionRunId, salesChannelId, 100);
+        var allocation = allocateProductionRunToSalesChannelUseCase.invoke(productionRunId, salesChannelId, 100);
 
         assertThat(allocation.id()).isNotNull();
         assertThat(allocation.productionRunId()).isEqualTo(productionRunId);
@@ -131,9 +127,9 @@ class AllocationCRUDHandlerIntegrationTest {
 
     @Test
     void allowsMultipleAllocationsUpToManufacturedQuantity() {
-        allocationCRUDHandler.create(productionRunId, salesChannelId, 200);
-        allocationCRUDHandler.create(productionRunId, salesChannelId, 200);
-        var thirdAllocation = allocationCRUDHandler.create(productionRunId, salesChannelId, 100);
+        allocateProductionRunToSalesChannelUseCase.invoke(productionRunId, salesChannelId, 200);
+        allocateProductionRunToSalesChannelUseCase.invoke(productionRunId, salesChannelId, 200);
+        var thirdAllocation = allocateProductionRunToSalesChannelUseCase.invoke(productionRunId, salesChannelId, 100);
 
         assertThat(thirdAllocation.quantity()).isEqualTo(100);
         assertThat(channelAllocationRepository.sumQuantityByProductionRunId(productionRunId))
@@ -142,10 +138,10 @@ class AllocationCRUDHandlerIntegrationTest {
 
     @Test
     void throwsExceptionWhenOverAllocating() {
-        allocationCRUDHandler.create(productionRunId, salesChannelId, 400);
+        allocateProductionRunToSalesChannelUseCase.invoke(productionRunId, salesChannelId, 400);
 
         assertThatThrownBy(() ->
-                allocationCRUDHandler.create(productionRunId, salesChannelId, 200))
+                allocateProductionRunToSalesChannelUseCase.invoke(productionRunId, salesChannelId, 200))
                 .isInstanceOf(InsufficientInventoryException.class)
                 .hasMessageContaining("requested 200")
                 .hasMessageContaining("only 100 available");
@@ -154,7 +150,7 @@ class AllocationCRUDHandlerIntegrationTest {
     @Test
     void throwsExceptionWhenAllocatingMoreThanTotal() {
         assertThatThrownBy(() ->
-                allocationCRUDHandler.create(productionRunId, salesChannelId, 600))
+                allocateProductionRunToSalesChannelUseCase.invoke(productionRunId, salesChannelId, 600))
                 .isInstanceOf(InsufficientInventoryException.class)
                 .hasMessageContaining("requested 600")
                 .hasMessageContaining("only 500 available");
@@ -162,10 +158,10 @@ class AllocationCRUDHandlerIntegrationTest {
 
     @Test
     void exceptionContainsRequestedAndAvailableQuantities() {
-        allocationCRUDHandler.create(productionRunId, salesChannelId, 450);
+        allocateProductionRunToSalesChannelUseCase.invoke(productionRunId, salesChannelId, 450);
 
         try {
-            allocationCRUDHandler.create(productionRunId, salesChannelId, 100);
+            allocateProductionRunToSalesChannelUseCase.invoke(productionRunId, salesChannelId, 100);
         } catch (InsufficientInventoryException ex) {
             assertThat(ex.getRequested()).isEqualTo(100);
             assertThat(ex.getAvailable()).isEqualTo(50);

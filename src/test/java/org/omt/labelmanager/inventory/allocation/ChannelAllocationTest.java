@@ -1,10 +1,11 @@
-package org.omt.labelmanager.inventory.domain;
+package org.omt.labelmanager.inventory.allocation;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.omt.labelmanager.inventory.domain.ChannelAllocationFactory.aChannelAllocation;
+import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
-import org.junit.jupiter.api.Test;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.omt.labelmanager.inventory.allocation.ChannelAllocationFactory.aChannelAllocation;
 
 class ChannelAllocationTest {
 

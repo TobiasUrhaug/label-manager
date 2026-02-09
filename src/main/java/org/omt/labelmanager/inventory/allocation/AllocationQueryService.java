@@ -1,10 +1,9 @@
-package org.omt.labelmanager.inventory.application;
+package org.omt.labelmanager.inventory.allocation;
 
-import java.util.List;
-import org.omt.labelmanager.inventory.domain.ChannelAllocation;
-import org.omt.labelmanager.inventory.infrastructure.persistence.ChannelAllocationRepository;
 import org.omt.labelmanager.inventory.infrastructure.persistence.ProductionRunRepository;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 public class AllocationQueryService {

@@ -1,4 +1,4 @@
-package org.omt.labelmanager.inventory.application;
+package org.omt.labelmanager.inventory.allocation;
 
 public class InsufficientInventoryException extends RuntimeException {
 

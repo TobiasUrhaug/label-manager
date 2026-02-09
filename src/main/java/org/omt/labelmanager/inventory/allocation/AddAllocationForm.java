@@ -1,4 +1,4 @@
-package org.omt.labelmanager.inventory.api;
+package org.omt.labelmanager.inventory.allocation;
 
 public class AddAllocationForm {
 

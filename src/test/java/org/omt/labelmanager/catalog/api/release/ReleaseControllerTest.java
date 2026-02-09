@@ -11,7 +11,7 @@ import org.omt.labelmanager.catalog.domain.release.ReleaseFormat;
 import org.omt.labelmanager.catalog.domain.track.TrackFactory;
 import org.omt.labelmanager.finance.application.CostQueryService;
 import org.omt.labelmanager.identity.application.AppUserDetails;
-import org.omt.labelmanager.inventory.application.AllocationQueryService;
+import org.omt.labelmanager.inventory.allocation.AllocationQueryService;
 import org.omt.labelmanager.inventory.application.ProductionRunQueryService;
 import org.omt.labelmanager.inventory.application.SalesChannelQueryService;
 import org.omt.labelmanager.test.TestSecurityConfig;
