@@ -5,19 +5,19 @@ public class AddAllocationForm {
     private Long salesChannelId;
     private int quantity;
 
-    Long getSalesChannelId() {
+    public Long getSalesChannelId() {
         return salesChannelId;
     }
 
-    void setSalesChannelId(Long salesChannelId) {
+    public void setSalesChannelId(Long salesChannelId) {
         this.salesChannelId = salesChannelId;
     }
 
-    int getQuantity() {
+    public int getQuantity() {
         return quantity;
     }
 
-    void setQuantity(int quantity) {
+    public void setQuantity(int quantity) {
         this.quantity = quantity;
     }
 }
