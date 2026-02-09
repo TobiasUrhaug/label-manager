@@ -1,0 +1,63 @@
+# Build outputs
+build/
+target/
+dist/
+out/
+bin/
+
+# Dependencies
+node_modules/
+.gradle/
+
+# IDE files
+.idea/
+.vscode/
+*.iml
+.project
+.classpath
+.settings/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Test coverage and reports
+coverage/
+.nyc_output/
+.jacoco/
+htmlcov/
+
+# Temporary files
+*.tmp
+*.temp
+.cache/
+
+# Compiled files
+*.class
+
+# Package manager lock files (optional - uncomment if you want to exclude)
+# package-lock.json
+# yarn.lock
+# gradle.lockfile
+
+# Test results
+test-results/
+test-output/
+
+# Playwright
+playwright-report/
+test-results/
+
+# Docker
+.docker/
+
+# Environment files (if they contain secrets)
+# .env
+# .env.local
