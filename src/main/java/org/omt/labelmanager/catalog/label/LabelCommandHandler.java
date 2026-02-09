@@ -13,14 +13,14 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 @Service
-public class LabelCommandHandler implements LabelCommandFacade {
+class LabelCommandHandler implements LabelCommandFacade {
 
     private static final Logger log = LoggerFactory.getLogger(LabelCommandHandler.class);
 
     private final LabelRepository repository;
     private final SalesChannelCRUDHandler salesChannelCRUDHandler;
 
-    public LabelCommandHandler(
+    LabelCommandHandler(
             LabelRepository repository,
             SalesChannelCRUDHandler salesChannelCRUDHandler
     ) {

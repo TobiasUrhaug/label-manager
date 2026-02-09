@@ -6,7 +6,6 @@ import org.omt.labelmanager.catalog.domain.artist.Artist;
 import org.omt.labelmanager.catalog.domain.release.Release;
 import org.omt.labelmanager.catalog.domain.release.ReleaseFormat;
 import org.omt.labelmanager.catalog.label.Label;
-import org.omt.labelmanager.catalog.label.LabelCommandHandler;
 import org.omt.labelmanager.identity.application.AppUserDetails;
 import org.omt.labelmanager.inventory.application.SalesChannelQueryService;
 import org.omt.labelmanager.inventory.domain.ChannelType;
@@ -29,14 +28,14 @@ public class LabelController {
 
     private static final Logger log = LoggerFactory.getLogger(LabelController.class);
 
-    private final LabelCommandHandler labelCommandHandler;
+    private final LabelCommandFacade labelCommandHandler;
     private final LabelQueryFacade labelQueryFacade;
     private final ReleaseCRUDHandler releaseCRUDHandler;
     private final ArtistCRUDHandler artistCRUDHandler;
     private final SalesChannelQueryService salesChannelQueryService;
 
     public LabelController(
-            LabelCommandHandler labelCommandHandler, LabelQueryFacade labelQueryFacade,
+            LabelCommandFacade labelCommandHandler, LabelQueryFacade labelQueryFacade,
             ReleaseCRUDHandler releaseCRUDHandler,
             ArtistCRUDHandler artistCRUDHandler,
             SalesChannelQueryService salesChannelQueryService

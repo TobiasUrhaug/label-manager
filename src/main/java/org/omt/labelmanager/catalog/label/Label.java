@@ -3,8 +3,15 @@ package org.omt.labelmanager.catalog.label;
 import org.omt.labelmanager.catalog.domain.shared.Address;
 import org.omt.labelmanager.catalog.domain.shared.Person;
 
-public record Label(Long id, String name, String email, String website, Address address,
-                    Person owner, Long userId) {
+public record Label(
+        Long id,
+        String name,
+        String email,
+        String website,
+        Address address,
+        Person owner,
+        Long userId
+) {
 
     static Label fromEntity(LabelEntity entity) {
         return new Label(
