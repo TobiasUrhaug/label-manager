@@ -1,4 +1,4 @@
-package org.omt.labelmanager.infrastructure.web.dashboard;
+package org.omt.labelmanager.dashboard;
 
 import org.omt.labelmanager.catalog.application.ArtistCRUDHandler;
 import org.omt.labelmanager.catalog.label.api.LabelQueryFacade;
