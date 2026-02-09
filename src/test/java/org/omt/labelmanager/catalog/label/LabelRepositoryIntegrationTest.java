@@ -5,6 +5,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.jupiter.api.Test;
 import org.omt.labelmanager.catalog.infrastructure.persistence.shared.AddressEmbeddable;
 import org.omt.labelmanager.catalog.infrastructure.persistence.shared.PersonEmbeddable;
+import org.omt.labelmanager.identity.infrastructure.persistence.user.UserEntity;
+import org.omt.labelmanager.identity.infrastructure.persistence.user.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.DynamicPropertyRegistry;
@@ -19,6 +21,9 @@ class LabelRepositoryIntegrationTest {
 
     @Autowired
     LabelRepository repo;
+
+    @Autowired
+    UserRepository userRepository;
 
     @Container
     static PostgreSQLContainer<?> postgres =
@@ -70,5 +75,32 @@ class LabelRepositoryIntegrationTest {
         assertThat(retrieved.get().getOwner()).isNotNull();
         assertThat(retrieved.get().getOwner().getName())
                 .isEqualTo("John Doe");
+    }
+
+    @Test
+    void findByUserId_onlyReturnsLabelsForSpecifiedUser() {
+        var user1 = userRepository.save(
+                new UserEntity("u1@test.com", "password", "User 1"));
+        var user2 = userRepository.save(
+                new UserEntity("u2@test.com", "password", "User 2"));
+
+        var label1 = new LabelEntity("User 1 Label", null, null);
+        label1.setUserId(user1.getId());
+        repo.save(label1);
+
+        var label2 = new LabelEntity("User 2 Label", null, null);
+        label2.setUserId(user2.getId());
+        repo.save(label2);
+
+        var label3 = new LabelEntity(
+                "Another User 1 Label", null, null);
+        label3.setUserId(user1.getId());
+        repo.save(label3);
+
+        var result = repo.findByUserId(user2.getId());
+
+        assertThat(result).hasSize(1);
+        assertThat(result.getFirst().getName())
+                .isEqualTo("User 2 Label");
     }
 }
