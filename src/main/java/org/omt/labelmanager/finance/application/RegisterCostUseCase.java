@@ -1,8 +1,7 @@
 package org.omt.labelmanager.finance.application;
 
-import java.time.LocalDate;
-import org.omt.labelmanager.catalog.infrastructure.persistence.label.LabelRepository;
 import org.omt.labelmanager.catalog.infrastructure.persistence.release.ReleaseRepository;
+import org.omt.labelmanager.catalog.label.LabelQueryService;
 import org.omt.labelmanager.finance.domain.cost.CostOwner;
 import org.omt.labelmanager.finance.domain.cost.CostType;
 import org.omt.labelmanager.finance.domain.cost.VatAmount;
@@ -16,6 +15,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
+
 @Service
 public class RegisterCostUseCase {
 
@@ -23,20 +24,20 @@ public class RegisterCostUseCase {
 
     private final CostRepository costRepository;
     private final ReleaseRepository releaseRepository;
-    private final LabelRepository labelRepository;
+    private final LabelQueryService labelQueryService;
     private final UserRepository userRepository;
     private final DocumentStoragePort documentStorage;
 
     public RegisterCostUseCase(
             CostRepository costRepository,
             ReleaseRepository releaseRepository,
-            LabelRepository labelRepository,
+            LabelQueryService labelQueryService,
             UserRepository userRepository,
             DocumentStoragePort documentStorage
     ) {
         this.costRepository = costRepository;
         this.releaseRepository = releaseRepository;
-        this.labelRepository = labelRepository;
+        this.labelQueryService = labelQueryService;
         this.userRepository = userRepository;
         this.documentStorage = documentStorage;
     }
@@ -106,7 +107,7 @@ public class RegisterCostUseCase {
     private void validateOwnerExists(CostOwner owner) {
         boolean exists = switch (owner.type()) {
             case RELEASE -> releaseRepository.existsById(owner.id());
-            case LABEL -> labelRepository.existsById(owner.id());
+            case LABEL -> labelQueryService.exists(owner.id());
             case USER -> userRepository.existsById(owner.id());
         };
 

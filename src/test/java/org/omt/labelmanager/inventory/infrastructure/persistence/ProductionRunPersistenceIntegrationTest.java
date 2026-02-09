@@ -3,10 +3,9 @@ package org.omt.labelmanager.inventory.infrastructure.persistence;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.omt.labelmanager.catalog.domain.release.ReleaseFormat;
-import org.omt.labelmanager.catalog.infrastructure.persistence.label.LabelEntity;
-import org.omt.labelmanager.catalog.infrastructure.persistence.label.LabelRepository;
 import org.omt.labelmanager.catalog.infrastructure.persistence.release.ReleaseEntity;
 import org.omt.labelmanager.catalog.infrastructure.persistence.release.ReleaseRepository;
+import org.omt.labelmanager.catalog.label.LabelTestHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.DynamicPropertyRegistry;
@@ -58,7 +57,7 @@ class ProductionRunPersistenceIntegrationTest {
     private ReleaseRepository releaseRepository;
 
     @Autowired
-    private LabelRepository labelRepository;
+    private LabelTestHelper labelTestHelper;
 
     private Long releaseId;
 
@@ -66,15 +65,14 @@ class ProductionRunPersistenceIntegrationTest {
     void setUp() {
         productionRunRepository.deleteAll();
         releaseRepository.deleteAll();
-        labelRepository.deleteAll();
 
-        LabelEntity label = labelRepository.save(new LabelEntity("Test Label", null, null));
+        var label = labelTestHelper.createLabel("Test Label");
 
         ReleaseEntity release = new ReleaseEntity(
                 null,
                 "Test Release",
                 LocalDate.of(2025, 1, 1),
-                label.getId()
+                label.id()
         );
         release = releaseRepository.save(release);
         releaseId = release.getId();
@@ -123,14 +121,13 @@ class ProductionRunPersistenceIntegrationTest {
                 200
         ));
 
-        LabelEntity otherLabel = labelRepository.save(
-                new LabelEntity("Other Label", null, null));
+        var otherLabel = labelTestHelper.createLabel("Other Label");
 
         ReleaseEntity otherRelease = new ReleaseEntity(
                 null,
                 "Other Release",
                 LocalDate.of(2025, 2, 1),
-                otherLabel.getId()
+                otherLabel.id()
         );
         otherRelease = releaseRepository.save(otherRelease);
 

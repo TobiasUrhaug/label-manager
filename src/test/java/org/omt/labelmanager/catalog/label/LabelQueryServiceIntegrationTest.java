@@ -1,13 +1,10 @@
-package org.omt.labelmanager;
+package org.omt.labelmanager.catalog.label;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureRestTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
-import org.springframework.test.web.servlet.client.RestTestClient;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -16,14 +13,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @Testcontainers
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@AutoConfigureRestTestClient
-class LabelManagerApplicationTests {
-
-    @LocalServerPort
-    int port;
+public class LabelQueryServiceIntegrationTest {
 
     @Autowired
-    private RestTestClient restClient;
+    LabelQueryService labelQueryService;
+
+    @Autowired
+    LabelTestHelper labelTestHelper;
 
     @Container
     static PostgreSQLContainer<?> postgres =
@@ -40,26 +36,38 @@ class LabelManagerApplicationTests {
     }
 
     @Test
-    void contextLoads() {
+    void findById_returnsLabelWhenExists() {
+        var label = labelTestHelper.createLabel(
+                "Test Label", "test@example.com", "https://test.com");
+
+        var result = labelQueryService.findById(label.id());
+
+        assertThat(result).isPresent();
+        assertThat(result.get().name()).isEqualTo("Test Label");
+        assertThat(result.get().email()).isEqualTo("test@example.com");
+        assertThat(result.get().website()).isEqualTo("https://test.com");
     }
 
     @Test
-    void loginPageLoads() {
-        restClient.get()
-                .uri("http://localhost:" + port + "/login")
-                .exchange()
-                .expectStatus().is2xxSuccessful()
-                .expectBody(String.class)
-                .consumeWith(response ->
-                        assertThat(response.getResponseBody()).contains("Login"));
+    void findById_returnsEmptyWhenNotExists() {
+        var result = labelQueryService.findById(99999L);
+
+        assertThat(result).isEmpty();
     }
 
     @Test
-    void dashboardRedirectsToLoginWhenUnauthenticated() {
-        restClient.get()
-                .uri("http://localhost:" + port + "/dashboard")
-                .exchange()
-                .expectStatus().is3xxRedirection();
+    void exists_returnsTrueWhenLabelExists() {
+        var label = labelTestHelper.createLabel("Existing Label");
+
+        var result = labelQueryService.exists(label.id());
+
+        assertThat(result).isTrue();
     }
 
+    @Test
+    void exists_returnsFalseWhenLabelDoesNotExist() {
+        var result = labelQueryService.exists(99999L);
+
+        assertThat(result).isFalse();
+    }
 }

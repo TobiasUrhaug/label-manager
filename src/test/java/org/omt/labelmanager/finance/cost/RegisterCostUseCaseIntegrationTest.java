@@ -1,18 +1,10 @@
 package org.omt.labelmanager.finance.cost;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-
-import java.io.ByteArrayInputStream;
-import java.math.BigDecimal;
-import java.nio.charset.StandardCharsets;
-import java.time.LocalDate;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.omt.labelmanager.catalog.infrastructure.persistence.label.LabelEntity;
-import org.omt.labelmanager.catalog.infrastructure.persistence.label.LabelRepository;
 import org.omt.labelmanager.catalog.infrastructure.persistence.release.ReleaseEntity;
 import org.omt.labelmanager.catalog.infrastructure.persistence.release.ReleaseRepository;
+import org.omt.labelmanager.catalog.label.LabelTestHelper;
 import org.omt.labelmanager.finance.application.DocumentUpload;
 import org.omt.labelmanager.finance.application.RegisterCostUseCase;
 import org.omt.labelmanager.finance.domain.cost.CostOwner;
@@ -37,6 +29,14 @@ import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
 import software.amazon.awssdk.services.s3.model.HeadBucketRequest;
 import software.amazon.awssdk.services.s3.model.NoSuchBucketException;
 
+import java.io.ByteArrayInputStream;
+import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
 @Testcontainers
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class RegisterCostUseCaseIntegrationTest {
@@ -52,7 +52,7 @@ public class RegisterCostUseCaseIntegrationTest {
     CostRepository costRepository;
 
     @Autowired
-    LabelRepository labelRepository;
+    LabelTestHelper labelTestHelper;
 
     @Autowired
     ReleaseRepository releaseRepository;
@@ -101,10 +101,10 @@ public class RegisterCostUseCaseIntegrationTest {
 
     @Test
     void registersCostForRelease() {
-        var label = labelRepository.save(new LabelEntity("Test Label", null, null));
+        var label = labelTestHelper.createLabel("Test Label");
         var release = new ReleaseEntity();
         release.setName("Test Release");
-        release.setLabelId(label.getId());
+        release.setLabelId(label.id());
         release = releaseRepository.save(release);
 
         registerCostUseCase.registerCost(
@@ -127,7 +127,7 @@ public class RegisterCostUseCaseIntegrationTest {
 
     @Test
     void registersCostForLabel() {
-        var label = labelRepository.save(new LabelEntity("Label With Cost", null, null));
+        var label = labelTestHelper.createLabel("Label With Cost");
 
         registerCostUseCase.registerCost(
                 Money.of(new BigDecimal("50.00")),
@@ -136,12 +136,12 @@ public class RegisterCostUseCaseIntegrationTest {
                 CostType.HOSTING,
                 LocalDate.of(2024, 7, 1),
                 "Website hosting",
-                CostOwner.label(label.getId()),
+                CostOwner.label(label.id()),
                 null
         );
 
         var costs = costRepository.findByOwnerOwnerTypeAndOwnerOwnerId(
-                CostOwnerType.LABEL, label.getId());
+                CostOwnerType.LABEL, label.id());
         assertThat(costs).hasSize(1);
         assertThat(costs.getFirst().getCostType()).isEqualTo(CostType.HOSTING);
     }
@@ -176,10 +176,10 @@ public class RegisterCostUseCaseIntegrationTest {
 
     @Test
     void registersCostWithDocumentUpload() {
-        var label = labelRepository.save(new LabelEntity("Label With Document", null, null));
+        var label = labelTestHelper.createLabel("Label With Document");
         var release = new ReleaseEntity();
         release.setName("Release With Invoice");
-        release.setLabelId(label.getId());
+        release.setLabelId(label.id());
         release = releaseRepository.save(release);
 
         String documentContent = "Invoice PDF content";

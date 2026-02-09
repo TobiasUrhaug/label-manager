@@ -2,8 +2,7 @@ package org.omt.labelmanager.inventory.application;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.omt.labelmanager.catalog.infrastructure.persistence.label.LabelEntity;
-import org.omt.labelmanager.catalog.infrastructure.persistence.label.LabelRepository;
+import org.omt.labelmanager.catalog.label.LabelTestHelper;
 import org.omt.labelmanager.inventory.domain.ChannelType;
 import org.omt.labelmanager.inventory.infrastructure.persistence.SalesChannelRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,17 +57,16 @@ class SalesChannelCRUDHandlerIntegrationTest {
     private SalesChannelRepository salesChannelRepository;
 
     @Autowired
-    private LabelRepository labelRepository;
+    private LabelTestHelper labelTestHelper;
 
     private Long labelId;
 
     @BeforeEach
     void setUp() {
         salesChannelRepository.deleteAll();
-        labelRepository.deleteAll();
 
-        LabelEntity label = labelRepository.save(new LabelEntity("Test Label", null, null));
-        labelId = label.getId();
+        var label = labelTestHelper.createLabel("Test Label");
+        labelId = label.id();
     }
 
     @Test

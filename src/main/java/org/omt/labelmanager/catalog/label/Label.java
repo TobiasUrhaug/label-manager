@@ -1,13 +1,12 @@
-package org.omt.labelmanager.catalog.domain.label;
+package org.omt.labelmanager.catalog.label;
 
 import org.omt.labelmanager.catalog.domain.shared.Address;
 import org.omt.labelmanager.catalog.domain.shared.Person;
-import org.omt.labelmanager.catalog.infrastructure.persistence.label.LabelEntity;
 
 public record Label(Long id, String name, String email, String website, Address address,
                     Person owner, Long userId) {
 
-    public static Label fromEntity(LabelEntity entity) {
+    static Label fromEntity(LabelEntity entity) {
         return new Label(
                 entity.getId(),
                 entity.getName(),

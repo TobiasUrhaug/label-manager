@@ -1,22 +1,21 @@
 package org.omt.labelmanager.catalog.application;
 
 import org.omt.labelmanager.catalog.domain.artist.Artist;
-import org.omt.labelmanager.catalog.domain.label.Label;
-import org.omt.labelmanager.catalog.infrastructure.persistence.artist.ArtistEntity;
-import org.omt.labelmanager.catalog.infrastructure.persistence.artist.ArtistRepository;
-import org.omt.labelmanager.catalog.infrastructure.persistence.label.LabelEntity;
-import org.omt.labelmanager.catalog.infrastructure.persistence.label.LabelRepository;
 import org.omt.labelmanager.catalog.domain.release.Release;
 import org.omt.labelmanager.catalog.domain.release.ReleaseFormat;
 import org.omt.labelmanager.catalog.domain.track.Track;
 import org.omt.labelmanager.catalog.domain.track.TrackDuration;
+import org.omt.labelmanager.catalog.domain.track.TrackInput;
+import org.omt.labelmanager.catalog.infrastructure.persistence.artist.ArtistEntity;
+import org.omt.labelmanager.catalog.infrastructure.persistence.artist.ArtistRepository;
 import org.omt.labelmanager.catalog.infrastructure.persistence.release.ReleaseArtistRepository;
 import org.omt.labelmanager.catalog.infrastructure.persistence.release.ReleaseEntity;
 import org.omt.labelmanager.catalog.infrastructure.persistence.release.ReleaseRepository;
-import org.omt.labelmanager.catalog.domain.track.TrackInput;
 import org.omt.labelmanager.catalog.infrastructure.persistence.track.TrackArtistRepository;
 import org.omt.labelmanager.catalog.infrastructure.persistence.track.TrackEntity;
 import org.omt.labelmanager.catalog.infrastructure.persistence.track.TrackRepository;
+import org.omt.labelmanager.catalog.label.Label;
+import org.omt.labelmanager.catalog.label.LabelQueryService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -34,7 +33,7 @@ public class ReleaseCRUDHandler {
             LoggerFactory.getLogger(ReleaseCRUDHandler.class);
 
     private final ReleaseRepository releaseRepository;
-    private final LabelRepository labelRepository;
+    private final LabelQueryService labelQueryService;
     private final ArtistRepository artistRepository;
     private final TrackRepository trackRepository;
     private final ReleaseArtistRepository releaseArtistRepository;
@@ -42,14 +41,14 @@ public class ReleaseCRUDHandler {
 
     public ReleaseCRUDHandler(
             ReleaseRepository releaseRepository,
-            LabelRepository labelRepository,
+            LabelQueryService labelQueryService,
             ArtistRepository artistRepository,
             TrackRepository trackRepository,
             ReleaseArtistRepository releaseArtistRepository,
             TrackArtistRepository trackArtistRepository
     ) {
         this.releaseRepository = releaseRepository;
-        this.labelRepository = labelRepository;
+        this.labelQueryService = labelQueryService;
         this.artistRepository = artistRepository;
         this.trackRepository = trackRepository;
         this.releaseArtistRepository = releaseArtistRepository;
@@ -57,9 +56,8 @@ public class ReleaseCRUDHandler {
     }
 
     public List<Release> getReleasesForLabel(Long labelId) {
-        LabelEntity labelEntity = labelRepository.findById(labelId)
+        Label label = labelQueryService.findById(labelId)
                 .orElseThrow(() -> new IllegalArgumentException("Label not found"));
-        Label label = Label.fromEntity(labelEntity);
 
         List<ReleaseEntity> releaseEntities = releaseRepository.findByLabelId(labelId);
         List<Release> releases = releaseEntities.stream()
@@ -127,7 +125,7 @@ public class ReleaseCRUDHandler {
         );
         requireAtLeastOneTrack(tracks, name);
 
-        if (!labelRepository.existsById(labelId)) {
+        if (!labelQueryService.exists(labelId)) {
             log.warn("Cannot create release: label {} not found", labelId);
             throw new IllegalArgumentException("Label not found");
         }
@@ -190,9 +188,8 @@ public class ReleaseCRUDHandler {
         }
 
         ReleaseEntity entity = releaseEntity.get();
-        LabelEntity labelEntity = labelRepository.findById(entity.getLabelId())
+        Label label = labelQueryService.findById(entity.getLabelId())
                 .orElseThrow(() -> new IllegalStateException("Label not found"));
-        Label label = Label.fromEntity(labelEntity);
 
         return Optional.of(buildRelease(entity, label));
     }

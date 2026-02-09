@@ -3,10 +3,9 @@ package org.omt.labelmanager.inventory.allocation;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.omt.labelmanager.catalog.domain.release.ReleaseFormat;
-import org.omt.labelmanager.catalog.infrastructure.persistence.label.LabelEntity;
-import org.omt.labelmanager.catalog.infrastructure.persistence.label.LabelRepository;
 import org.omt.labelmanager.catalog.infrastructure.persistence.release.ReleaseEntity;
 import org.omt.labelmanager.catalog.infrastructure.persistence.release.ReleaseRepository;
+import org.omt.labelmanager.catalog.label.LabelTestHelper;
 import org.omt.labelmanager.inventory.domain.ChannelType;
 import org.omt.labelmanager.inventory.infrastructure.persistence.ProductionRunEntity;
 import org.omt.labelmanager.inventory.infrastructure.persistence.ProductionRunRepository;
@@ -70,7 +69,7 @@ class ChannelAllocationPersistenceIntegrationTest {
     private ReleaseRepository releaseRepository;
 
     @Autowired
-    private LabelRepository labelRepository;
+    private LabelTestHelper labelTestHelper;
 
     private Long productionRunId;
     private Long salesChannelId;
@@ -81,15 +80,14 @@ class ChannelAllocationPersistenceIntegrationTest {
         productionRunRepository.deleteAll();
         salesChannelRepository.deleteAll();
         releaseRepository.deleteAll();
-        labelRepository.deleteAll();
 
-        LabelEntity label = labelRepository.save(new LabelEntity("Test Label", null, null));
+        var label = labelTestHelper.createLabel("Test Label");
         ReleaseEntity release = releaseRepository.save(
                 new ReleaseEntity(
                         null,
                         "Test Release",
                         LocalDate.of(2025, 1, 1),
-                        label.getId()
+                        label.id()
                 ));
 
         ProductionRunEntity productionRun = productionRunRepository.save(
@@ -104,7 +102,7 @@ class ChannelAllocationPersistenceIntegrationTest {
         productionRunId = productionRun.getId();
 
         SalesChannelEntity salesChannel = salesChannelRepository.save(
-                new SalesChannelEntity(label.getId(), "Direct Sales", ChannelType.DIRECT));
+                new SalesChannelEntity(label.id(), "Direct Sales", ChannelType.DIRECT));
         salesChannelId = salesChannel.getId();
     }
 

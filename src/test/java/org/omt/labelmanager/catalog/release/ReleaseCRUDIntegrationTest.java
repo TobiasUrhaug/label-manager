@@ -1,38 +1,37 @@
 package org.omt.labelmanager.catalog.release;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.time.LocalDate;
-import java.util.List;
-import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.omt.labelmanager.catalog.application.ReleaseCRUDHandler;
-import org.omt.labelmanager.catalog.domain.release.Release;
 import org.omt.labelmanager.catalog.domain.release.ReleaseFormat;
 import org.omt.labelmanager.catalog.domain.track.TrackDuration;
 import org.omt.labelmanager.catalog.domain.track.TrackInput;
 import org.omt.labelmanager.catalog.infrastructure.persistence.artist.ArtistEntity;
 import org.omt.labelmanager.catalog.infrastructure.persistence.artist.ArtistRepository;
-import org.omt.labelmanager.catalog.infrastructure.persistence.label.LabelEntity;
-import org.omt.labelmanager.catalog.infrastructure.persistence.label.LabelRepository;
 import org.omt.labelmanager.catalog.infrastructure.persistence.release.ReleaseArtistRepository;
 import org.omt.labelmanager.catalog.infrastructure.persistence.release.ReleaseRepository;
 import org.omt.labelmanager.catalog.infrastructure.persistence.track.TrackRepository;
+import org.omt.labelmanager.catalog.label.LabelTestHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.transaction.annotation.Transactional;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+
+import java.time.LocalDate;
+import java.util.List;
+import java.util.Set;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 @Testcontainers
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class ReleaseCRUDIntegrationTest {
 
     @Autowired
-    LabelRepository labelRepository;
+    LabelTestHelper labelTestHelper;
 
     @Autowired
     ReleaseRepository releaseRepository;
@@ -65,8 +64,8 @@ public class ReleaseCRUDIntegrationTest {
 
     @Test
     void createRelease() {
-        var savedLabel = labelRepository.save(new LabelEntity("The Label", null, null));
-        var labelId = savedLabel.getId();
+        var savedLabel = labelTestHelper.createLabel("The Label");
+        var labelId = savedLabel.id();
         var savedArtist = artistRepository.save(new ArtistEntity("Test Artist"));
         var artistId = savedArtist.getId();
 
@@ -92,8 +91,7 @@ public class ReleaseCRUDIntegrationTest {
     @Test
     @Transactional
     void updateRelease() {
-        var label = new LabelEntity("Label For Update", null, null);
-        labelRepository.save(label);
+        var label = labelTestHelper.createLabel("Label For Update");
 
         var artist1 = artistRepository.save(new ArtistEntity("Artist One"));
         var artist2 = artistRepository.save(new ArtistEntity("Artist Two"));
@@ -108,7 +106,7 @@ public class ReleaseCRUDIntegrationTest {
         releaseCRUDHandler.createRelease(
                 "Original Release",
                 LocalDate.of(2026, 1, 1),
-                label.getId(),
+                label.id(),
                 List.of(artist1.getId()),
                 List.of(originalTrack),
                 Set.of(ReleaseFormat.DIGITAL)
@@ -154,8 +152,7 @@ public class ReleaseCRUDIntegrationTest {
 
     @Test
     void deleteRelease() {
-        var label = new LabelEntity("Label For Release Deletion", null, null);
-        labelRepository.save(label);
+        var label = labelTestHelper.createLabel("Label For Release Deletion");
 
         var savedArtist = artistRepository.save(new ArtistEntity("Artist For Release"));
         var artistId = savedArtist.getId();
@@ -170,7 +167,7 @@ public class ReleaseCRUDIntegrationTest {
         releaseCRUDHandler.createRelease(
                 "Release To Delete",
                 LocalDate.of(2026, 1, 15),
-                label.getId(),
+                label.id(),
                 List.of(artistId),
                 List.of(trackInput),
                 Set.of(ReleaseFormat.DIGITAL)
