@@ -13,10 +13,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @Testcontainers
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-public class LabelQueryServiceIntegrationTest {
+public class LabelQueryHandlerIntegrationTest {
 
     @Autowired
-    LabelQueryService labelQueryService;
+    LabelQueryHandler labelQueryHandler;
 
     @Autowired
     LabelTestHelper labelTestHelper;
@@ -40,7 +40,7 @@ public class LabelQueryServiceIntegrationTest {
         var label = labelTestHelper.createLabel(
                 "Test Label", "test@example.com", "https://test.com");
 
-        var result = labelQueryService.findById(label.id());
+        var result = labelQueryHandler.findById(label.id());
 
         assertThat(result).isPresent();
         assertThat(result.get().name()).isEqualTo("Test Label");
@@ -50,7 +50,7 @@ public class LabelQueryServiceIntegrationTest {
 
     @Test
     void findById_returnsEmptyWhenNotExists() {
-        var result = labelQueryService.findById(99999L);
+        var result = labelQueryHandler.findById(99999L);
 
         assertThat(result).isEmpty();
     }
@@ -59,14 +59,14 @@ public class LabelQueryServiceIntegrationTest {
     void exists_returnsTrueWhenLabelExists() {
         var label = labelTestHelper.createLabel("Existing Label");
 
-        var result = labelQueryService.exists(label.id());
+        var result = labelQueryHandler.exists(label.id());
 
         assertThat(result).isTrue();
     }
 
     @Test
     void exists_returnsFalseWhenLabelDoesNotExist() {
-        var result = labelQueryService.exists(99999L);
+        var result = labelQueryHandler.exists(99999L);
 
         assertThat(result).isFalse();
     }

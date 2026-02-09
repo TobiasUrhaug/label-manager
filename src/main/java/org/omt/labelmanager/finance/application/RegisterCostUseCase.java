@@ -1,7 +1,7 @@
 package org.omt.labelmanager.finance.application;
 
 import org.omt.labelmanager.catalog.infrastructure.persistence.release.ReleaseRepository;
-import org.omt.labelmanager.catalog.label.LabelQueryService;
+import org.omt.labelmanager.catalog.label.api.LabelQueryFacade;
 import org.omt.labelmanager.finance.domain.cost.CostOwner;
 import org.omt.labelmanager.finance.domain.cost.CostType;
 import org.omt.labelmanager.finance.domain.cost.VatAmount;
@@ -24,20 +24,20 @@ public class RegisterCostUseCase {
 
     private final CostRepository costRepository;
     private final ReleaseRepository releaseRepository;
-    private final LabelQueryService labelQueryService;
+    private final LabelQueryFacade labelQueryFacade;
     private final UserRepository userRepository;
     private final DocumentStoragePort documentStorage;
 
     public RegisterCostUseCase(
             CostRepository costRepository,
             ReleaseRepository releaseRepository,
-            LabelQueryService labelQueryService,
+            LabelQueryFacade labelQueryFacade,
             UserRepository userRepository,
             DocumentStoragePort documentStorage
     ) {
         this.costRepository = costRepository;
         this.releaseRepository = releaseRepository;
-        this.labelQueryService = labelQueryService;
+        this.labelQueryFacade = labelQueryFacade;
         this.userRepository = userRepository;
         this.documentStorage = documentStorage;
     }
@@ -107,7 +107,7 @@ public class RegisterCostUseCase {
     private void validateOwnerExists(CostOwner owner) {
         boolean exists = switch (owner.type()) {
             case RELEASE -> releaseRepository.existsById(owner.id());
-            case LABEL -> labelQueryService.exists(owner.id());
+            case LABEL -> labelQueryFacade.exists(owner.id());
             case USER -> userRepository.existsById(owner.id());
         };
 

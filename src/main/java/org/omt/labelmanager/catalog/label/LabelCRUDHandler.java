@@ -12,7 +12,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class LabelCRUDHandler {
@@ -67,14 +66,6 @@ public class LabelCRUDHandler {
     public void delete(Long id) {
         log.info("Deleting label with id {}", id);
         repository.deleteById(id);
-    }
-
-    public Optional<Label> findById(long id) {
-        Optional<Label> label = repository.findById(id).map(Label::fromEntity);
-        if (label.isEmpty()) {
-            log.debug("Label with id {} not found", id);
-        }
-        return label;
     }
 
     @Transactional

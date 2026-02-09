@@ -41,6 +41,9 @@ class LabelControllerTest {
     private LabelCRUDHandler labelCRUDHandler;
 
     @MockitoBean
+    private LabelQueryFacade labelQueryFacade;
+
+    @MockitoBean
     private ReleaseCRUDHandler releaseCRUDHandler;
 
     @MockitoBean
@@ -60,7 +63,7 @@ class LabelControllerTest {
                 .email("contact@mylabel.com")
                 .website("https://mylabel.com")
                 .build();
-        when(labelCRUDHandler.findById(1L)).thenReturn(Optional.of(label));
+        when(labelQueryFacade.findById(1L)).thenReturn(Optional.of(label));
 
         var release = ReleaseFactory.aRelease().id(1L).name("My Release").build();
         when(releaseCRUDHandler.getReleasesForLabel(1L)).thenReturn(List.of(release));
@@ -86,7 +89,7 @@ class LabelControllerTest {
 
     @Test
     void label_returns404_whenResourceNotFound() throws Exception {
-        when(labelCRUDHandler.findById(1123L)).thenReturn(Optional.empty());
+        when(labelQueryFacade.findById(1123L)).thenReturn(Optional.empty());
 
         mockMvc.perform(get("/labels/1123").with(user(testUser)))
                 .andExpect(status().isNotFound());

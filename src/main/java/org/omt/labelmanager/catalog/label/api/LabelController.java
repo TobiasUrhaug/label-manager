@@ -30,17 +30,19 @@ public class LabelController {
     private static final Logger log = LoggerFactory.getLogger(LabelController.class);
 
     private final LabelCRUDHandler labelCRUDHandler;
+    private final LabelQueryFacade labelQueryFacade;
     private final ReleaseCRUDHandler releaseCRUDHandler;
     private final ArtistCRUDHandler artistCRUDHandler;
     private final SalesChannelQueryService salesChannelQueryService;
 
     public LabelController(
-            LabelCRUDHandler labelCRUDHandler,
+            LabelCRUDHandler labelCRUDHandler, LabelQueryFacade labelQueryFacade,
             ReleaseCRUDHandler releaseCRUDHandler,
             ArtistCRUDHandler artistCRUDHandler,
             SalesChannelQueryService salesChannelQueryService
     ) {
         this.labelCRUDHandler = labelCRUDHandler;
+        this.labelQueryFacade = labelQueryFacade;
         this.releaseCRUDHandler = releaseCRUDHandler;
         this.artistCRUDHandler = artistCRUDHandler;
         this.salesChannelQueryService = salesChannelQueryService;
@@ -53,7 +55,7 @@ public class LabelController {
             Model model
     ) {
         Label label =
-                labelCRUDHandler
+                labelQueryFacade
                         .findById(id)
                         .orElseThrow(() -> {
                             log.warn("Label with id {} not found", id);

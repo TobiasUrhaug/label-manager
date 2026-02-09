@@ -7,14 +7,13 @@ import org.omt.labelmanager.catalog.domain.track.Track;
 import org.omt.labelmanager.catalog.domain.track.TrackDuration;
 import org.omt.labelmanager.catalog.domain.track.TrackInput;
 import org.omt.labelmanager.catalog.infrastructure.persistence.artist.ArtistEntity;
-import org.omt.labelmanager.catalog.infrastructure.persistence.artist.ArtistRepository;
 import org.omt.labelmanager.catalog.infrastructure.persistence.release.ReleaseArtistRepository;
 import org.omt.labelmanager.catalog.infrastructure.persistence.release.ReleaseEntity;
 import org.omt.labelmanager.catalog.infrastructure.persistence.release.ReleaseRepository;
 import org.omt.labelmanager.catalog.infrastructure.persistence.track.TrackArtistRepository;
 import org.omt.labelmanager.catalog.infrastructure.persistence.track.TrackEntity;
 import org.omt.labelmanager.catalog.infrastructure.persistence.track.TrackRepository;
-import org.omt.labelmanager.catalog.label.LabelQueryService;
+import org.omt.labelmanager.catalog.label.api.LabelQueryFacade;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -32,30 +31,27 @@ public class ReleaseCRUDHandler {
             LoggerFactory.getLogger(ReleaseCRUDHandler.class);
 
     private final ReleaseRepository releaseRepository;
-    private final LabelQueryService labelQueryService;
-    private final ArtistRepository artistRepository;
+    private final LabelQueryFacade labelQueryFacade;
     private final TrackRepository trackRepository;
     private final ReleaseArtistRepository releaseArtistRepository;
     private final TrackArtistRepository trackArtistRepository;
 
     public ReleaseCRUDHandler(
             ReleaseRepository releaseRepository,
-            LabelQueryService labelQueryService,
-            ArtistRepository artistRepository,
+            LabelQueryFacade labelQueryFacade,
             TrackRepository trackRepository,
             ReleaseArtistRepository releaseArtistRepository,
             TrackArtistRepository trackArtistRepository
     ) {
         this.releaseRepository = releaseRepository;
-        this.labelQueryService = labelQueryService;
-        this.artistRepository = artistRepository;
+        this.labelQueryFacade = labelQueryFacade;
         this.trackRepository = trackRepository;
         this.releaseArtistRepository = releaseArtistRepository;
         this.trackArtistRepository = trackArtistRepository;
     }
 
     public List<Release> getReleasesForLabel(Long labelId) {
-        if (!labelQueryService.exists(labelId)) {
+        if (!labelQueryFacade.exists(labelId)) {
             throw new IllegalArgumentException("Label not found");
         }
 
@@ -125,7 +121,7 @@ public class ReleaseCRUDHandler {
         );
         requireAtLeastOneTrack(tracks, name);
 
-        if (!labelQueryService.exists(labelId)) {
+        if (!labelQueryFacade.exists(labelId)) {
             log.warn("Cannot create release: label {} not found", labelId);
             throw new IllegalArgumentException("Label not found");
         }

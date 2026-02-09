@@ -1,15 +1,16 @@
 package org.omt.labelmanager.catalog.label;
 
+import org.omt.labelmanager.catalog.label.api.LabelQueryFacade;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
 
 @Service
-public class LabelQueryService {
+class LabelQueryHandler implements LabelQueryFacade {
 
     private final LabelRepository repository;
 
-    public LabelQueryService(LabelRepository repository) {
+    LabelQueryHandler(LabelRepository repository) {
         this.repository = repository;
     }
 

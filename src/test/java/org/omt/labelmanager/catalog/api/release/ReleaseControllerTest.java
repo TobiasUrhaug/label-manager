@@ -9,6 +9,7 @@ import org.omt.labelmanager.catalog.domain.release.ReleaseFormat;
 import org.omt.labelmanager.catalog.domain.track.TrackFactory;
 import org.omt.labelmanager.catalog.label.LabelCRUDHandler;
 import org.omt.labelmanager.catalog.label.LabelFactory;
+import org.omt.labelmanager.catalog.label.api.LabelQueryFacade;
 import org.omt.labelmanager.finance.application.CostQueryService;
 import org.omt.labelmanager.identity.application.AppUserDetails;
 import org.omt.labelmanager.inventory.allocation.AllocationQueryService;
@@ -42,6 +43,9 @@ class ReleaseControllerTest {
 
     @MockitoBean
     private LabelCRUDHandler labelCRUDHandler;
+
+    @MockitoBean
+    private LabelQueryFacade labelQueryFacade;
 
     @MockitoBean
     private ReleaseCRUDHandler releaseCRUDHandler;
@@ -88,7 +92,7 @@ class ReleaseControllerTest {
                 .formats(formats)
                 .build();
 
-        when(labelCRUDHandler.findById(1L)).thenReturn(Optional.of(label));
+        when(labelQueryFacade.findById(1L)).thenReturn(Optional.of(label));
         when(releaseCRUDHandler.findById(4L)).thenReturn(Optional.of(release));
         when(artistCRUDHandler.getArtistsForUser(1L)).thenReturn(List.of(artist, anotherArtist));
 
@@ -108,7 +112,7 @@ class ReleaseControllerTest {
 
     @Test
     void release_returns404_whenResourceNotFound() throws Exception {
-        when(labelCRUDHandler.findById(1123L)).thenReturn(Optional.empty());
+        when(labelQueryFacade.findById(1123L)).thenReturn(Optional.empty());
 
         mockMvc.perform(get("/labels/1123").with(user(testUser)))
                 .andExpect(status().isNotFound());
