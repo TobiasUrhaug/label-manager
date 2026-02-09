@@ -5,6 +5,7 @@ import org.omt.labelmanager.catalog.domain.shared.Address;
 import org.omt.labelmanager.catalog.domain.shared.Person;
 import org.omt.labelmanager.catalog.infrastructure.persistence.shared.AddressEmbeddable;
 import org.omt.labelmanager.catalog.infrastructure.persistence.shared.PersonEmbeddable;
+import org.omt.labelmanager.catalog.label.api.LabelCommandFacade;
 import org.omt.labelmanager.inventory.application.SalesChannelCRUDHandler;
 import org.omt.labelmanager.inventory.domain.ChannelType;
 import org.slf4j.Logger;
@@ -14,14 +15,14 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 @Service
-public class LabelCRUDHandler {
+public class LabelCommandHandler implements LabelCommandFacade {
 
-    private static final Logger log = LoggerFactory.getLogger(LabelCRUDHandler.class);
+    private static final Logger log = LoggerFactory.getLogger(LabelCommandHandler.class);
 
     private final LabelRepository repository;
     private final SalesChannelCRUDHandler salesChannelCRUDHandler;
 
-    public LabelCRUDHandler(
+    public LabelCommandHandler(
             LabelRepository repository,
             SalesChannelCRUDHandler salesChannelCRUDHandler
     ) {

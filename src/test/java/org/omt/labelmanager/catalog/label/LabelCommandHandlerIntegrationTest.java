@@ -21,13 +21,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @Testcontainers
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-public class LabelCRUDIntegrationTest {
+public class LabelCommandHandlerIntegrationTest {
 
     @Autowired
     LabelRepository repo;
 
     @Autowired
-    LabelCRUDHandler labelCRUDHandler;
+    LabelCommandHandler labelCommandHandler;
 
     @Autowired
     UserRepository userRepository;
@@ -54,7 +54,7 @@ public class LabelCRUDIntegrationTest {
         var user = userRepository.save(
                 new UserEntity("test1@example.com", "password", "Test User"));
 
-        labelCRUDHandler.createLabel(
+        labelCommandHandler.createLabel(
                 "My Label",
                 "contact@mylabel.com",
                 "https://mylabel.com",
@@ -75,7 +75,7 @@ public class LabelCRUDIntegrationTest {
         var user = userRepository.save(
                 new UserEntity("sales-channel-test@example.com", "password", "Test User"));
 
-        var label = labelCRUDHandler.createLabel(
+        var label = labelCommandHandler.createLabel(
                 "Label With Default Channel",
                 null,
                 null,
@@ -129,7 +129,7 @@ public class LabelCRUDIntegrationTest {
         var user = userRepository.save(
                 new UserEntity("test2@example.com", "password", "Test User 2"));
 
-        labelCRUDHandler.createLabel(
+        labelCommandHandler.createLabel(
                 "Label With Owner Via Handler",
                 null,
                 null,
@@ -154,7 +154,7 @@ public class LabelCRUDIntegrationTest {
         var newAddress = new Address("New Street", "Apt 2", "Bergen", "5020", "Norway");
         var newOwner = new Person("New Owner");
 
-        labelCRUDHandler.updateLabel(
+        labelCommandHandler.updateLabel(
                 label.getId(),
                 "Updated Label",
                 "new@email.com",
@@ -187,7 +187,7 @@ public class LabelCRUDIntegrationTest {
         )
                 .contains("WronglyNamedLabel");
 
-        labelCRUDHandler.delete(label.getId());
+        labelCommandHandler.delete(label.getId());
 
         assertThat(repo
                 .findAll()

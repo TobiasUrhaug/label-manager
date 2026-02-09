@@ -7,7 +7,7 @@ import org.omt.labelmanager.catalog.domain.artist.ArtistFactory;
 import org.omt.labelmanager.catalog.domain.release.ReleaseFactory;
 import org.omt.labelmanager.catalog.domain.release.ReleaseFormat;
 import org.omt.labelmanager.catalog.domain.track.TrackFactory;
-import org.omt.labelmanager.catalog.label.LabelCRUDHandler;
+import org.omt.labelmanager.catalog.label.LabelCommandHandler;
 import org.omt.labelmanager.catalog.label.LabelFactory;
 import org.omt.labelmanager.catalog.label.api.LabelQueryFacade;
 import org.omt.labelmanager.finance.application.CostQueryService;
@@ -42,7 +42,7 @@ class ReleaseControllerTest {
     private MockMvc mockMvc;
 
     @MockitoBean
-    private LabelCRUDHandler labelCRUDHandler;
+    private LabelCommandHandler labelCommandHandler;
 
     @MockitoBean
     private LabelQueryFacade labelQueryFacade;

@@ -6,7 +6,7 @@ import org.omt.labelmanager.catalog.domain.artist.Artist;
 import org.omt.labelmanager.catalog.domain.release.Release;
 import org.omt.labelmanager.catalog.domain.release.ReleaseFormat;
 import org.omt.labelmanager.catalog.label.Label;
-import org.omt.labelmanager.catalog.label.LabelCRUDHandler;
+import org.omt.labelmanager.catalog.label.LabelCommandHandler;
 import org.omt.labelmanager.identity.application.AppUserDetails;
 import org.omt.labelmanager.inventory.application.SalesChannelQueryService;
 import org.omt.labelmanager.inventory.domain.ChannelType;
@@ -29,19 +29,19 @@ public class LabelController {
 
     private static final Logger log = LoggerFactory.getLogger(LabelController.class);
 
-    private final LabelCRUDHandler labelCRUDHandler;
+    private final LabelCommandHandler labelCommandHandler;
     private final LabelQueryFacade labelQueryFacade;
     private final ReleaseCRUDHandler releaseCRUDHandler;
     private final ArtistCRUDHandler artistCRUDHandler;
     private final SalesChannelQueryService salesChannelQueryService;
 
     public LabelController(
-            LabelCRUDHandler labelCRUDHandler, LabelQueryFacade labelQueryFacade,
+            LabelCommandHandler labelCommandHandler, LabelQueryFacade labelQueryFacade,
             ReleaseCRUDHandler releaseCRUDHandler,
             ArtistCRUDHandler artistCRUDHandler,
             SalesChannelQueryService salesChannelQueryService
     ) {
-        this.labelCRUDHandler = labelCRUDHandler;
+        this.labelCommandHandler = labelCommandHandler;
         this.labelQueryFacade = labelQueryFacade;
         this.releaseCRUDHandler = releaseCRUDHandler;
         this.artistCRUDHandler = artistCRUDHandler;
@@ -86,7 +86,7 @@ public class LabelController {
             @AuthenticationPrincipal AppUserDetails user,
             CreateLabelForm form
     ) {
-        labelCRUDHandler.createLabel(
+        labelCommandHandler.createLabel(
                 form.getLabelName(),
                 form.getEmail(),
                 form.getWebsite(),
@@ -99,13 +99,13 @@ public class LabelController {
 
     @DeleteMapping("/{id}")
     public String deleteLabel(@PathVariable Long id) {
-        labelCRUDHandler.delete(id);
+        labelCommandHandler.delete(id);
         return "redirect:/dashboard";
     }
 
     @PutMapping("/{id}")
     public String updateLabel(@PathVariable Long id, UpdateLabelForm form) {
-        labelCRUDHandler.updateLabel(
+        labelCommandHandler.updateLabel(
                 id,
                 form.getLabelName(),
                 form.getEmail(),

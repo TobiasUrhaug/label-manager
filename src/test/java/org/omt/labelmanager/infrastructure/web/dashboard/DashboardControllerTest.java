@@ -3,7 +3,7 @@ package org.omt.labelmanager.infrastructure.web.dashboard;
 import org.junit.jupiter.api.Test;
 import org.omt.labelmanager.catalog.application.ArtistCRUDHandler;
 import org.omt.labelmanager.catalog.domain.artist.ArtistFactory;
-import org.omt.labelmanager.catalog.label.LabelCRUDHandler;
+import org.omt.labelmanager.catalog.label.LabelCommandHandler;
 import org.omt.labelmanager.catalog.label.LabelFactory;
 import org.omt.labelmanager.identity.application.AppUserDetails;
 import org.omt.labelmanager.test.TestSecurityConfig;
@@ -28,7 +28,7 @@ class DashboardControllerTest {
     private MockMvc mockMvc;
 
     @MockitoBean
-    private LabelCRUDHandler labelCRUDHandler;
+    private LabelCommandHandler labelCommandHandler;
 
     @MockitoBean
     private ArtistCRUDHandler artistCRUDHandler;
@@ -38,7 +38,7 @@ class DashboardControllerTest {
         var testUser = new AppUserDetails(1L, "test@example.com", "password", "Test User");
         var labelA = LabelFactory.aLabel().id(1L).name("My Label").build();
         var labelB = LabelFactory.aLabel().id(2L).name("Other Label").build();
-        when(labelCRUDHandler.getLabelsForUser(1L)).thenReturn(List.of(labelA, labelB));
+        when(labelCommandHandler.getLabelsForUser(1L)).thenReturn(List.of(labelA, labelB));
 
         mockMvc.perform(get("/dashboard").with(user(testUser)))
                 .andExpect(status().isOk())

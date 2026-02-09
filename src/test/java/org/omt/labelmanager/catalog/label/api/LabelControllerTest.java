@@ -7,7 +7,7 @@ import org.omt.labelmanager.catalog.domain.artist.ArtistFactory;
 import org.omt.labelmanager.catalog.domain.release.ReleaseFactory;
 import org.omt.labelmanager.catalog.domain.shared.Address;
 import org.omt.labelmanager.catalog.domain.shared.Person;
-import org.omt.labelmanager.catalog.label.LabelCRUDHandler;
+import org.omt.labelmanager.catalog.label.LabelCommandHandler;
 import org.omt.labelmanager.catalog.label.LabelFactory;
 import org.omt.labelmanager.identity.application.AppUserDetails;
 import org.omt.labelmanager.inventory.application.SalesChannelQueryService;
@@ -38,7 +38,7 @@ class LabelControllerTest {
     private MockMvc mockMvc;
 
     @MockitoBean
-    private LabelCRUDHandler labelCRUDHandler;
+    private LabelCommandHandler labelCommandHandler;
 
     @MockitoBean
     private LabelQueryFacade labelQueryFacade;
@@ -107,7 +107,7 @@ class LabelControllerTest {
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/dashboard"));
 
-        verify(labelCRUDHandler).createLabel(
+        verify(labelCommandHandler).createLabel(
                 "New Label", "info@newlabel.com", "https://newlabel.com", null, null, 1L);
     }
 
@@ -129,7 +129,7 @@ class LabelControllerTest {
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/labels/1"));
 
-        verify(labelCRUDHandler).updateLabel(
+        verify(labelCommandHandler).updateLabel(
                 1L,
                 "Updated Label",
                 "updated@label.com",
