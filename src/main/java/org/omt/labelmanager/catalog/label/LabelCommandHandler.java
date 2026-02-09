@@ -12,8 +12,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-
 @Service
 public class LabelCommandHandler implements LabelCommandFacade {
 
@@ -28,14 +26,6 @@ public class LabelCommandHandler implements LabelCommandFacade {
     ) {
         this.repository = repository;
         this.salesChannelCRUDHandler = salesChannelCRUDHandler;
-    }
-
-    public List<Label> getLabelsForUser(Long userId) {
-        List<Label> labels = repository.findByUserId(userId).stream()
-                .map(Label::fromEntity)
-                .toList();
-        log.debug("Retrieved {} labels for user {}", labels.size(), userId);
-        return labels;
     }
 
     @Transactional

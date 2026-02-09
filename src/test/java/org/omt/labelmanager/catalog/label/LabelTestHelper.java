@@ -26,4 +26,11 @@ public class LabelTestHelper {
         entity = labelRepository.save(entity);
         return Label.fromEntity(entity);
     }
+
+    public Label createLabel(String name, Long userId) {
+        LabelEntity entity = new LabelEntity(name, null, null);
+        entity.setUserId(userId);
+        entity = labelRepository.save(entity);
+        return Label.fromEntity(entity);
+    }
 }
