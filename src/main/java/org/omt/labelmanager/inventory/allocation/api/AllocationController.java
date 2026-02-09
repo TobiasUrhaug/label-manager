@@ -1,5 +1,7 @@
-package org.omt.labelmanager.inventory.allocation;
+package org.omt.labelmanager.inventory.allocation.api;
 
+import org.omt.labelmanager.inventory.allocation.AllocateProductionRunToSalesChannelUseCase;
+import org.omt.labelmanager.inventory.allocation.InsufficientInventoryException;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;

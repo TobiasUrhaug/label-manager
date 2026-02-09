@@ -1,23 +1,23 @@
-package org.omt.labelmanager.inventory.allocation;
+package org.omt.labelmanager.inventory.allocation.api;
 
 public class AddAllocationForm {
 
     private Long salesChannelId;
     private int quantity;
 
-    public Long getSalesChannelId() {
+    Long getSalesChannelId() {
         return salesChannelId;
     }
 
-    public void setSalesChannelId(Long salesChannelId) {
+    void setSalesChannelId(Long salesChannelId) {
         this.salesChannelId = salesChannelId;
     }
 
-    public int getQuantity() {
+    int getQuantity() {
         return quantity;
     }
 
-    public void setQuantity(int quantity) {
+    void setQuantity(int quantity) {
         this.quantity = quantity;
     }
 }
