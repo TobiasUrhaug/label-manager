@@ -1,6 +1,5 @@
 package org.omt.labelmanager.catalog.infrastructure.persistence.release;
 
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
 import jakarta.persistence.ElementCollection;
@@ -12,21 +11,11 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.JoinTable;
-import jakarta.persistence.ManyToMany;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.OrderBy;
 import jakarta.persistence.Table;
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
-import org.omt.labelmanager.catalog.infrastructure.persistence.artist.ArtistEntity;
-import org.omt.labelmanager.catalog.infrastructure.persistence.label.LabelEntity;
 import org.omt.labelmanager.catalog.domain.release.ReleaseFormat;
-import org.omt.labelmanager.catalog.infrastructure.persistence.track.TrackEntity;
 
 @Entity
 @Table(name = "release")
@@ -40,35 +29,25 @@ public class ReleaseEntity {
 
     private LocalDate releaseDate;
 
-    @ManyToOne
-    @JoinColumn(name = "label_id")
-    private LabelEntity label;
-
-    @ManyToMany
-    @JoinTable(
-            name = "release_artist",
-            joinColumns = @JoinColumn(name = "release_id"),
-            inverseJoinColumns = @JoinColumn(name = "artist_id")
-    )
-    private List<ArtistEntity> artists = new ArrayList<>();
-
-    @OneToMany(mappedBy = "release", cascade = CascadeType.ALL, orphanRemoval = true)
-    @OrderBy("position ASC")
-    private List<TrackEntity> tracks = new ArrayList<>();
+    @Column(name = "label_id", nullable = false)
+    private Long labelId;
 
     @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(name = "release_format", joinColumns = @JoinColumn(name = "release_id"))
+    @CollectionTable(
+            name = "release_format",
+            joinColumns = @JoinColumn(name = "release_id")
+    )
     @Column(name = "format")
     @Enumerated(EnumType.STRING)
     private Set<ReleaseFormat> formats = new HashSet<>();
 
     public ReleaseEntity() {}
 
-    public ReleaseEntity(Long id, String name, LocalDate releaseDate, LabelEntity label) {
+    public ReleaseEntity(Long id, String name, LocalDate releaseDate, Long labelId) {
         this.id = id;
         this.name = name;
         this.releaseDate = releaseDate;
-        this.label = label;
+        this.labelId = labelId;
     }
 
     public Long getId() {
@@ -95,28 +74,12 @@ public class ReleaseEntity {
         this.releaseDate = releaseDate;
     }
 
-    public LabelEntity getLabel() {
-        return label;
+    public Long getLabelId() {
+        return labelId;
     }
 
-    public void setLabel(LabelEntity label) {
-        this.label = label;
-    }
-
-    public List<ArtistEntity> getArtists() {
-        return artists;
-    }
-
-    public void setArtists(List<ArtistEntity> artists) {
-        this.artists = artists;
-    }
-
-    public List<TrackEntity> getTracks() {
-        return tracks;
-    }
-
-    public void setTracks(List<TrackEntity> tracks) {
-        this.tracks = tracks;
+    public void setLabelId(Long labelId) {
+        this.labelId = labelId;
     }
 
     public Set<ReleaseFormat> getFormats() {

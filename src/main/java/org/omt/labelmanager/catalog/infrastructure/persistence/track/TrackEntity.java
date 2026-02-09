@@ -1,18 +1,11 @@
 package org.omt.labelmanager.catalog.infrastructure.persistence.track;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.JoinTable;
-import jakarta.persistence.ManyToMany;
-import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
-import java.util.ArrayList;
-import java.util.List;
-import org.omt.labelmanager.catalog.infrastructure.persistence.artist.ArtistEntity;
-import org.omt.labelmanager.catalog.infrastructure.persistence.release.ReleaseEntity;
 
 @Entity
 @Table(name = "track")
@@ -22,40 +15,29 @@ public class TrackEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToMany
-    @JoinTable(
-            name = "track_artist",
-            joinColumns = @JoinColumn(name = "track_id"),
-            inverseJoinColumns = @JoinColumn(name = "artist_id")
-    )
-    private List<ArtistEntity> artists = new ArrayList<>();
-
     private String name;
 
     private Integer durationSeconds;
 
     private Integer position;
 
-    @ManyToOne
-    @JoinColumn(name = "release_id")
-    private ReleaseEntity release;
+    @Column(name = "release_id", nullable = false)
+    private Long releaseId;
 
     public TrackEntity() {}
 
     public TrackEntity(
             Long id,
-            List<ArtistEntity> artists,
             String name,
             Integer durationSeconds,
             Integer position,
-            ReleaseEntity release
+            Long releaseId
     ) {
         this.id = id;
-        this.artists = artists != null ? artists : new ArrayList<>();
         this.name = name;
         this.durationSeconds = durationSeconds;
         this.position = position;
-        this.release = release;
+        this.releaseId = releaseId;
     }
 
     public Long getId() {
@@ -64,14 +46,6 @@ public class TrackEntity {
 
     public void setId(Long id) {
         this.id = id;
-    }
-
-    public List<ArtistEntity> getArtists() {
-        return artists;
-    }
-
-    public void setArtists(List<ArtistEntity> artists) {
-        this.artists = artists;
     }
 
     public String getName() {
@@ -98,11 +72,11 @@ public class TrackEntity {
         this.position = position;
     }
 
-    public ReleaseEntity getRelease() {
-        return release;
+    public Long getReleaseId() {
+        return releaseId;
     }
 
-    public void setRelease(ReleaseEntity release) {
-        this.release = release;
+    public void setReleaseId(Long releaseId) {
+        this.releaseId = releaseId;
     }
 }
