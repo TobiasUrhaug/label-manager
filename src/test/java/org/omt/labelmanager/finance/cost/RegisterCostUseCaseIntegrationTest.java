@@ -104,7 +104,7 @@ public class RegisterCostUseCaseIntegrationTest {
         var label = labelRepository.save(new LabelEntity("Test Label", null, null));
         var release = new ReleaseEntity();
         release.setName("Test Release");
-        release.setLabel(label);
+        release.setLabelId(label.getId());
         release = releaseRepository.save(release);
 
         registerCostUseCase.registerCost(
@@ -179,7 +179,7 @@ public class RegisterCostUseCaseIntegrationTest {
         var label = labelRepository.save(new LabelEntity("Label With Document", null, null));
         var release = new ReleaseEntity();
         release.setName("Release With Invoice");
-        release.setLabel(label);
+        release.setLabelId(label.getId());
         release = releaseRepository.save(release);
 
         String documentContent = "Invoice PDF content";

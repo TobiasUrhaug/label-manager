@@ -85,7 +85,12 @@ class ChannelAllocationPersistenceIntegrationTest {
 
         LabelEntity label = labelRepository.save(new LabelEntity("Test Label", null, null));
         ReleaseEntity release = releaseRepository.save(
-                new ReleaseEntity(null, "Test Release", LocalDate.of(2025, 1, 1), label));
+                new ReleaseEntity(
+                        null,
+                        "Test Release",
+                        LocalDate.of(2025, 1, 1),
+                        label.getId()
+                ));
 
         ProductionRunEntity productionRun = productionRunRepository.save(
                 new ProductionRunEntity(

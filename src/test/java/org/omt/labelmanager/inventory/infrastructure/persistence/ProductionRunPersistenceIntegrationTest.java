@@ -74,7 +74,7 @@ class ProductionRunPersistenceIntegrationTest {
                 null,
                 "Test Release",
                 LocalDate.of(2025, 1, 1),
-                label
+                label.getId()
         );
         release = releaseRepository.save(release);
         releaseId = release.getId();
@@ -130,7 +130,7 @@ class ProductionRunPersistenceIntegrationTest {
                 null,
                 "Other Release",
                 LocalDate.of(2025, 2, 1),
-                otherLabel
+                otherLabel.getId()
         );
         otherRelease = releaseRepository.save(otherRelease);
 

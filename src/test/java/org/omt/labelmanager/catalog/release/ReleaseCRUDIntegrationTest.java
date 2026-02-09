@@ -6,16 +6,18 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
+import org.omt.labelmanager.catalog.application.ReleaseCRUDHandler;
+import org.omt.labelmanager.catalog.domain.release.Release;
+import org.omt.labelmanager.catalog.domain.release.ReleaseFormat;
+import org.omt.labelmanager.catalog.domain.track.TrackDuration;
+import org.omt.labelmanager.catalog.domain.track.TrackInput;
 import org.omt.labelmanager.catalog.infrastructure.persistence.artist.ArtistEntity;
 import org.omt.labelmanager.catalog.infrastructure.persistence.artist.ArtistRepository;
 import org.omt.labelmanager.catalog.infrastructure.persistence.label.LabelEntity;
 import org.omt.labelmanager.catalog.infrastructure.persistence.label.LabelRepository;
-import org.omt.labelmanager.catalog.application.ReleaseCRUDHandler;
-import org.omt.labelmanager.catalog.domain.release.Release;
-import org.omt.labelmanager.catalog.domain.release.ReleaseFormat;
+import org.omt.labelmanager.catalog.infrastructure.persistence.release.ReleaseArtistRepository;
 import org.omt.labelmanager.catalog.infrastructure.persistence.release.ReleaseRepository;
-import org.omt.labelmanager.catalog.domain.track.TrackDuration;
-import org.omt.labelmanager.catalog.domain.track.TrackInput;
+import org.omt.labelmanager.catalog.infrastructure.persistence.track.TrackRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
@@ -37,6 +39,12 @@ public class ReleaseCRUDIntegrationTest {
 
     @Autowired
     ArtistRepository artistRepository;
+
+    @Autowired
+    TrackRepository trackRepository;
+
+    @Autowired
+    ReleaseArtistRepository releaseArtistRepository;
 
     @Autowired
     ReleaseCRUDHandler releaseCRUDHandler;
@@ -134,10 +142,14 @@ public class ReleaseCRUDIntegrationTest {
         var updatedRelease = releaseRepository.findById(releaseId).orElseThrow();
         assertThat(updatedRelease.getName()).isEqualTo("Updated Release");
         assertThat(updatedRelease.getReleaseDate()).isEqualTo(LocalDate.of(2026, 6, 15));
-        assertThat(updatedRelease.getArtists()).hasSize(2);
-        assertThat(updatedRelease.getTracks()).hasSize(2);
-        assertThat(updatedRelease.getTracks().get(0).getName()).isEqualTo("Updated Track 1");
-        assertThat(updatedRelease.getTracks().get(1).getName()).isEqualTo("Updated Track 2");
+
+        var releaseArtists = releaseArtistRepository.findArtistsByReleaseId(releaseId);
+        assertThat(releaseArtists).hasSize(2);
+
+        var tracks = trackRepository.findByReleaseIdOrderByPosition(releaseId);
+        assertThat(tracks).hasSize(2);
+        assertThat(tracks.get(0).getName()).isEqualTo("Updated Track 1");
+        assertThat(tracks.get(1).getName()).isEqualTo("Updated Track 2");
     }
 
     @Test

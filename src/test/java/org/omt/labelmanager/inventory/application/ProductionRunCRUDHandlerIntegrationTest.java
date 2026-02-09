@@ -81,7 +81,7 @@ class ProductionRunCRUDHandlerIntegrationTest {
                 null,
                 "Test Release",
                 LocalDate.of(2025, 1, 1),
-                label
+                label.getId()
         );
         release = releaseRepository.save(release);
         releaseId = release.getId();
