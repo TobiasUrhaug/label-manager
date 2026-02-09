@@ -61,11 +61,13 @@ Within each bounded context, organize by **module** (not by layer):
 catalog/
 ├── label/             # Label module (fully encapsulated)
 │   ├── Label.java                  # Public domain record
-│   ├── LabelCRUDHandler.java       # Public service (mutations)
-│   ├── LabelQueryService.java      # Public service (queries)
+│   ├── LabelCommandHandler.java    # package-private implementation
+│   ├── LabelQueryHandler.java      # package-private implementation
 │   ├── LabelEntity.java            # package-private
 │   ├── LabelRepository.java        # package-private
 │   └── api/
+│       ├── LabelCommandFacade.java # Public interface (mutations)
+│       ├── LabelQueryFacade.java   # Public interface (queries)
 │       └── LabelController.java
 ├── release/           # Release module
 ├── artist/            # Artist module
@@ -83,36 +85,69 @@ Each module (e.g., `label`, `release`, `artist`) should follow this pattern:
 
 ```
 catalog/label/
-├── Label.java                  # Public domain record
-├── LabelCRUDHandler.java       # Public - mutations (create, update, delete)
-├── LabelQueryService.java      # Public - queries (findById, exists)
-├── LabelEntity.java            # package-private (internal persistence)
-├── LabelRepository.java        # package-private (internal persistence)
+├── Label.java                   # Public domain record
+├── LabelCommandHandler.java     # package-private implementation
+├── LabelQueryHandler.java       # package-private implementation
+├── LabelEntity.java             # package-private persistence
+├── LabelRepository.java         # package-private persistence
 └── api/
-    └── LabelController.java    # Public HTTP interface
+    ├── LabelCommandFacade.java  # Public interface (mutations)
+    ├── LabelQueryFacade.java    # Public interface (queries)
+    └── LabelController.java     # Public HTTP interface
 ```
+
+**Key principle**: The `api/` package contains public interfaces that define the module's contract. All implementations remain package-private.
 
 #### Encapsulation Rules
 
-1. **Make internal classes package-private**: `Entity` and `Repository` classes should have **no access modifier** (package-private), not `public`.
-
-2. **Provide a QueryService facade**: Create a public `*QueryService` for read operations that other modules need:
+1. **Define public facade interfaces in `api/` package**: Create two interfaces per module:
    ```java
+   // api/LabelCommandFacade.java - mutations
+   public interface LabelCommandFacade {
+       Label createLabel(String name, String email, ...);
+       void updateLabel(Long id, String name, ...);
+       void delete(Long id);
+   }
+
+   // api/LabelQueryFacade.java - queries
+   public interface LabelQueryFacade {
+       Optional<Label> findById(Long id);
+       boolean exists(Long id);
+       List<Label> getLabelsForUser(Long userId);
+   }
+   ```
+
+2. **Implement facades with package-private handlers**:
+   ```java
+   // LabelCommandHandler.java (package-private class)
    @Service
-   public class LabelQueryService {
-       private final LabelRepository repository;  // package-private, only accessible within module
+   class LabelCommandHandler implements LabelCommandFacade {
+       private final LabelRepository repository;  // package-private
+
+       @Transactional
+       public Label createLabel(String name, String email, ...) {
+           var entity = new LabelEntity(name, email, ...);
+           entity = repository.save(entity);
+           return Label.fromEntity(entity);
+       }
+       // ... other methods
+   }
+
+   // LabelQueryHandler.java (package-private class)
+   @Service
+   class LabelQueryHandler implements LabelQueryFacade {
+       private final LabelRepository repository;  // package-private
 
        public Optional<Label> findById(Long id) {
            return repository.findById(id).map(Label::fromEntity);
        }
-
-       public boolean exists(Long id) {
-           return repository.existsById(id);
-       }
+       // ... other methods
    }
    ```
 
-3. **Use ID references between modules**: Domain records should reference other modules by ID, not by embedding full objects:
+3. **Make all internal classes package-private**: `Entity`, `Repository`, and handler implementations should have **no access modifier** (package-private), not `public`.
+
+4. **Use ID references between modules**: Domain records should reference other modules by ID, not by embedding full objects:
    ```java
    // Good - loose coupling
    public record Release(Long id, String name, Long labelId, ...) {}
@@ -121,15 +156,15 @@ catalog/label/
    public record Release(Long id, String name, Label label, ...) {}
    ```
 
-4. **Keep mapping methods package-private**: Methods like `fromEntity()` should be package-private:
+5. **Keep mapping methods package-private**: Methods like `fromEntity()` should be package-private:
    ```java
    public record Label(...) {
-       // package-private - only QueryService can call this
+       // package-private - only handlers within this module can call this
        static Label fromEntity(LabelEntity entity) { ... }
    }
    ```
 
-5. **Provide test helpers for other modules**: Create a public test helper in the test source tree:
+6. **Provide test helpers for other modules**: Create a public test helper in the test source tree:
    ```java
    @Component  // in src/test/java
    public class LabelTestHelper {
@@ -144,23 +179,29 @@ catalog/label/
 
 #### Benefits
 
-- **Encapsulation**: Internal persistence details hidden from other modules
+- **Encapsulation**: All implementation details (Entity, Repository, Handlers) are hidden from other modules
 - **Flexibility**: Can refactor module internals without affecting other modules
-- **Clear contracts**: Public API (QueryService, CRUDHandler) defines what other modules can do
+- **Clear contracts**: Public facades (CommandFacade, QueryFacade) define exactly what other modules can do
 - **Testability**: Each module can be tested in isolation
+- **Interface segregation**: Separating commands and queries follows CQRS principles
 
 #### Inter-Module Communication
 
-When one module needs data from another:
+When one module needs to interact with another, depend on the public facades:
 
 ```java
 @Service
-public class ReleaseCRUDHandler {
-    private final LabelQueryService labelQueryService;  // Use QueryService, not Repository
+class ReleaseCommandHandler implements ReleaseCommandFacade {
+    private final LabelQueryFacade labelQuery;  // Depend on facade, not internal classes
 
-    public void createRelease(Long labelId, ...) {
-        // Validate using QueryService
-        if (!labelQueryService.exists(labelId)) {
+    ReleaseCommandHandler(LabelQueryFacade labelQuery, ...) {
+        this.labelQuery = labelQuery;
+    }
+
+    @Transactional
+    public Release createRelease(Long labelId, String name, ...) {
+        // Validate using facade
+        if (!labelQuery.exists(labelId)) {
             throw new IllegalArgumentException("Label not found");
         }
         // ... create release with labelId reference
@@ -169,19 +210,22 @@ public class ReleaseCRUDHandler {
     public Release findById(Long id) {
         // Return Release with labelId
         // If UI needs label details, controller fetches separately:
-        //   Label label = labelQueryService.findById(release.labelId())
+        //   Label label = labelQuery.findById(release.labelId())
     }
 }
 ```
 
 ### Layer Separation
 
+Within each module, organize code into these layers:
+
 | Layer | Contains | Example |
 |-------|----------|---------|
-| `domain/` | Immutable records, value objects | `Label.java`, `Money.java` |
-| `application/` | Use cases, orchestration | `LabelCRUDHandler.java` |
-| `api/` | Controllers, forms | `LabelController.java` |
-| `infrastructure/` | JPA entities, repositories, adapters | `LabelEntity.java`, `S3DocumentStorageAdapter.java` |
+| `api/` | Public facades, controllers, forms | `LabelCommandFacade.java`, `LabelController.java` |
+| Module root | Domain records, handlers (package-private) | `Label.java`, `LabelCommandHandler.java` |
+| Module root | Persistence (package-private) | `LabelEntity.java`, `LabelRepository.java` |
+
+Note: Shared infrastructure (cross-cutting concerns) lives in the `infrastructure/` bounded context, not within individual modules.
 
 ### Database
 
