@@ -2,9 +2,9 @@ package org.omt.labelmanager.catalog.label.api;
 
 import org.omt.labelmanager.catalog.domain.shared.Address;
 import org.omt.labelmanager.catalog.domain.shared.Person;
-import org.omt.labelmanager.catalog.label.Label;
+import org.omt.labelmanager.catalog.label.domain.Label;
 
-public interface LabelCommandFacade {
+public interface LabelCommandApi {
 
     Label createLabel(
             String labelName,

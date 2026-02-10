@@ -1,11 +1,13 @@
-package org.omt.labelmanager.catalog.label;
+package org.omt.labelmanager.catalog.label.application;
 
 import jakarta.transaction.Transactional;
 import org.omt.labelmanager.catalog.domain.shared.Address;
 import org.omt.labelmanager.catalog.domain.shared.Person;
 import org.omt.labelmanager.catalog.infrastructure.persistence.shared.AddressEmbeddable;
 import org.omt.labelmanager.catalog.infrastructure.persistence.shared.PersonEmbeddable;
-import org.omt.labelmanager.catalog.label.api.LabelCommandFacade;
+import org.omt.labelmanager.catalog.label.domain.Label;
+import org.omt.labelmanager.catalog.label.infrastructure.LabelEntity;
+import org.omt.labelmanager.catalog.label.infrastructure.LabelRepository;
 import org.omt.labelmanager.inventory.application.SalesChannelCRUDHandler;
 import org.omt.labelmanager.inventory.domain.ChannelType;
 import org.slf4j.Logger;
@@ -13,14 +15,15 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 @Service
-class LabelCommandHandler implements LabelCommandFacade {
+class CreateLabelUseCase {
 
-    private static final Logger log = LoggerFactory.getLogger(LabelCommandHandler.class);
+    private static final Logger log =
+            LoggerFactory.getLogger(CreateLabelUseCase.class);
 
     private final LabelRepository repository;
     private final SalesChannelCRUDHandler salesChannelCRUDHandler;
 
-    LabelCommandHandler(
+    CreateLabelUseCase(
             LabelRepository repository,
             SalesChannelCRUDHandler salesChannelCRUDHandler
     ) {
@@ -29,7 +32,7 @@ class LabelCommandHandler implements LabelCommandFacade {
     }
 
     @Transactional
-    public Label createLabel(
+    public Label execute(
             String labelName,
             String email,
             String website,
@@ -48,38 +51,10 @@ class LabelCommandHandler implements LabelCommandFacade {
         }
         entity = repository.save(entity);
 
-        salesChannelCRUDHandler.create(entity.getId(), "Direct Sales", ChannelType.DIRECT);
+        salesChannelCRUDHandler.create(
+                entity.getId(), "Direct Sales", ChannelType.DIRECT
+        );
 
         return Label.fromEntity(entity);
-    }
-
-    @Transactional
-    public void delete(Long id) {
-        log.info("Deleting label with id {}", id);
-        repository.deleteById(id);
-    }
-
-    @Transactional
-    public void updateLabel(
-            Long id,
-            String name,
-            String email,
-            String website,
-            Address address,
-            Person owner
-    ) {
-        log.info("Updating label {}", id);
-        repository.findById(id).ifPresent(entity -> {
-            entity.setName(name);
-            entity.setEmail(email);
-            entity.setWebsite(website);
-            if (address != null) {
-                entity.setAddress(AddressEmbeddable.fromAddress(address));
-            }
-            if (owner != null) {
-                entity.setOwner(PersonEmbeddable.fromPerson(owner));
-            }
-            repository.save(entity);
-        });
     }
 }

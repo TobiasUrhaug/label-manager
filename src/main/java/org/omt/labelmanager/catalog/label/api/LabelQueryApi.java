@@ -1,11 +1,11 @@
 package org.omt.labelmanager.catalog.label.api;
 
-import org.omt.labelmanager.catalog.label.Label;
+import org.omt.labelmanager.catalog.label.domain.Label;
 
 import java.util.List;
 import java.util.Optional;
 
-public interface LabelQueryFacade {
+public interface LabelQueryApi {
 
     Optional<Label> findById(Long id);
 

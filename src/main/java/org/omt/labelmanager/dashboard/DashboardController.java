@@ -1,7 +1,7 @@
 package org.omt.labelmanager.dashboard;
 
 import org.omt.labelmanager.catalog.application.ArtistCRUDHandler;
-import org.omt.labelmanager.catalog.label.api.LabelQueryFacade;
+import org.omt.labelmanager.catalog.label.api.LabelQueryApi;
 import org.omt.labelmanager.identity.application.AppUserDetails;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,11 +15,11 @@ public class DashboardController {
 
     private static final Logger log = LoggerFactory.getLogger(DashboardController.class);
 
-    private final LabelQueryFacade labelQueryFacade;
+    private final LabelQueryApi labelQueryFacade;
     private final ArtistCRUDHandler artistCRUDHandler;
 
     public DashboardController(
-            LabelQueryFacade labelQueryFacade,
+            LabelQueryApi labelQueryFacade,
             ArtistCRUDHandler artistCRUDHandler
     ) {
         this.labelQueryFacade = labelQueryFacade;

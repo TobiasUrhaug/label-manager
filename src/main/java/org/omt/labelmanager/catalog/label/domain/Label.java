@@ -1,7 +1,8 @@
-package org.omt.labelmanager.catalog.label;
+package org.omt.labelmanager.catalog.label.domain;
 
 import org.omt.labelmanager.catalog.domain.shared.Address;
 import org.omt.labelmanager.catalog.domain.shared.Person;
+import org.omt.labelmanager.catalog.label.infrastructure.LabelEntity;
 
 public record Label(
         Long id,
@@ -13,7 +14,7 @@ public record Label(
         Long userId
 ) {
 
-    static Label fromEntity(LabelEntity entity) {
+    public static Label fromEntity(LabelEntity entity) {
         return new Label(
                 entity.getId(),
                 entity.getName(),

@@ -5,7 +5,7 @@ import org.omt.labelmanager.finance.cost.infrastructure.CostEntity;
 import org.omt.labelmanager.finance.cost.infrastructure.CostOwnerEmbeddable;
 import org.omt.labelmanager.finance.cost.CostMapper;
 
-import org.omt.labelmanager.catalog.label.api.LabelQueryFacade;
+import org.omt.labelmanager.catalog.label.api.LabelQueryApi;
 import org.omt.labelmanager.catalog.release.api.ReleaseQueryApi;
 import org.omt.labelmanager.finance.shared.DocumentUpload;
 import org.omt.labelmanager.finance.cost.domain.CostOwner;
@@ -28,14 +28,14 @@ class RegisterCostUseCase {
 
     private final CostRepository costRepository;
     private final ReleaseQueryApi releaseQueryApi;
-    private final LabelQueryFacade labelQueryFacade;
+    private final LabelQueryApi labelQueryFacade;
     private final UserRepository userRepository;
     private final DocumentStoragePort documentStorage;
 
     public RegisterCostUseCase(
             CostRepository costRepository,
             ReleaseQueryApi releaseQueryApi,
-            LabelQueryFacade labelQueryFacade,
+            LabelQueryApi labelQueryFacade,
             UserRepository userRepository,
             DocumentStoragePort documentStorage
     ) {

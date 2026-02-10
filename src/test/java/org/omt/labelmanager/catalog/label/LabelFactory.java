@@ -2,6 +2,7 @@ package org.omt.labelmanager.catalog.label;
 
 import org.omt.labelmanager.catalog.domain.shared.Address;
 import org.omt.labelmanager.catalog.domain.shared.Person;
+import org.omt.labelmanager.catalog.label.domain.Label;
 
 import java.util.concurrent.atomic.AtomicLong;
 

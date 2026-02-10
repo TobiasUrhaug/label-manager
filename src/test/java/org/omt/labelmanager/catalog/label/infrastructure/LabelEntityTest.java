@@ -1,6 +1,7 @@
-package org.omt.labelmanager.catalog.label;
+package org.omt.labelmanager.catalog.label.infrastructure;
 
 import org.junit.jupiter.api.Test;
+import org.omt.labelmanager.catalog.label.infrastructure.LabelEntity;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

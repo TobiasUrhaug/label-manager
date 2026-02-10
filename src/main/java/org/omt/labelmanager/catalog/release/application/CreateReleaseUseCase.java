@@ -4,7 +4,7 @@ import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import org.omt.labelmanager.catalog.label.api.LabelQueryFacade;
+import org.omt.labelmanager.catalog.label.api.LabelQueryApi;
 import org.omt.labelmanager.catalog.release.domain.ReleaseFormat;
 import org.omt.labelmanager.catalog.release.domain.TrackInput;
 import org.omt.labelmanager.catalog.release.infrastructure.ReleaseArtistRepository;
@@ -25,14 +25,14 @@ class CreateReleaseUseCase {
             LoggerFactory.getLogger(CreateReleaseUseCase.class);
 
     private final ReleaseRepository releaseRepository;
-    private final LabelQueryFacade labelQueryFacade;
+    private final LabelQueryApi labelQueryFacade;
     private final TrackRepository trackRepository;
     private final ReleaseArtistRepository releaseArtistRepository;
     private final TrackArtistRepository trackArtistRepository;
 
     CreateReleaseUseCase(
             ReleaseRepository releaseRepository,
-            LabelQueryFacade labelQueryFacade,
+            LabelQueryApi labelQueryFacade,
             TrackRepository trackRepository,
             ReleaseArtistRepository releaseArtistRepository,
             TrackArtistRepository trackArtistRepository

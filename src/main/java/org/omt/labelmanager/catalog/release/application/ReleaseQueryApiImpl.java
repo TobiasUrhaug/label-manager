@@ -2,7 +2,7 @@ package org.omt.labelmanager.catalog.release.application;
 
 import java.util.List;
 import java.util.Optional;
-import org.omt.labelmanager.catalog.label.api.LabelQueryFacade;
+import org.omt.labelmanager.catalog.label.api.LabelQueryApi;
 import org.omt.labelmanager.catalog.release.ReleaseMapper;
 import org.omt.labelmanager.catalog.release.TrackMapper;
 import org.omt.labelmanager.catalog.release.api.ReleaseQueryApi;
@@ -25,14 +25,14 @@ class ReleaseQueryApiImpl implements ReleaseQueryApi {
             LoggerFactory.getLogger(ReleaseQueryApiImpl.class);
 
     private final ReleaseRepository releaseRepository;
-    private final LabelQueryFacade labelQueryFacade;
+    private final LabelQueryApi labelQueryFacade;
     private final TrackRepository trackRepository;
     private final ReleaseArtistRepository releaseArtistRepository;
     private final TrackArtistRepository trackArtistRepository;
 
     ReleaseQueryApiImpl(
             ReleaseRepository releaseRepository,
-            LabelQueryFacade labelQueryFacade,
+            LabelQueryApi labelQueryFacade,
             TrackRepository trackRepository,
             ReleaseArtistRepository releaseArtistRepository,
             TrackArtistRepository trackArtistRepository

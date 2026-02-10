@@ -366,6 +366,82 @@ npm run test
 ./gradlew test --tests "*IntegrationTest"
 ```
 
+#### AbstractIntegrationTest Pattern
+
+All integration tests extend `AbstractIntegrationTest` which provides a shared PostgreSQL container. This enables:
+- **Spring context caching**: Spring reuses contexts with identical configuration
+- **Static container sharing**: Single PostgreSQL container for all integration tests
+- **Fast execution**: First test starts container (~0.4s), subsequent tests reuse it (~0.02s each)
+
+```java
+@SpringBootTest
+public abstract class AbstractIntegrationTest {
+    static PostgreSQLContainer<?> postgres =
+            new PostgreSQLContainer<>("postgres:16-alpine")
+                    .withDatabaseName("testdb")
+                    .withUsername("test")
+                    .withPassword("test");
+
+    static {
+        postgres.start();
+    }
+
+    @DynamicPropertySource
+    static void dbProperties(DynamicPropertyRegistry registry) {
+        registry.add("spring.datasource.url", postgres::getJdbcUrl);
+        registry.add("spring.datasource.username", postgres::getUsername);
+        registry.add("spring.datasource.password", postgres::getPassword);
+    }
+}
+```
+
+**Important**: Do NOT use `@Testcontainers` or `@Container` annotations with this pattern. They manage per-test-class lifecycle and prevent container sharing.
+
+#### Organizing Integration Tests by Operation
+
+For simple CRUD operations, prefer integration tests over unit tests with mocks. Organize tests by operation:
+
+```
+catalog/label/
+├── CreateLabelIntegrationTest.java   # Tests label creation
+├── UpdateLabelIntegrationTest.java   # Tests label updates
+├── DeleteLabelIntegrationTest.java   # Tests label deletion
+└── QueryLabelIntegrationTest.java    # Tests label queries
+```
+
+Each test class:
+- Extends `AbstractIntegrationTest`
+- Focuses on one type of operation
+- Uses real database and Spring context
+- Autowires API interfaces (not internal use cases)
+
+**Example**:
+```java
+public class CreateLabelIntegrationTest extends AbstractIntegrationTest {
+    @Autowired
+    LabelCommandApi labelCommandApi;
+
+    @Autowired
+    UserRepository userRepository;
+
+    @Test
+    void createLabel_persistsLabelWithAllFields() {
+        var user = userRepository.save(new UserEntity(...));
+
+        var label = labelCommandApi.createLabel("Test", "test@example.com", ...);
+
+        assertThat(label.id()).isNotNull();
+        assertThat(label.name()).isEqualTo("Test");
+    }
+}
+```
+
+This approach provides:
+- **Real integration testing**: Tests actual database persistence, not mock interactions
+- **Clear organization**: Each operation in its own file
+- **Fast execution**: Shared container and Spring context
+- **Less noise**: Avoid mechanical tests that just verify method calls
+
 ### System Tests
 
 **Purpose**: Test full stack via real HTTP. High confidence, low diagnostics when failing.
@@ -430,6 +506,110 @@ public class LabelTestHelper {
 ```
 
 This allows integration tests in other modules (e.g., `ReleaseCRUDIntegrationTest`) to create label fixtures without accessing package-private classes directly.
+
+### Test Structure and Refactoring
+
+**CRITICAL**: When refactoring production code to follow the modular architecture pattern, tests MUST be refactored alongside the production code. This is not optional.
+
+#### Test Package Structure Mirrors Production
+
+Test packages must mirror the production package structure:
+
+```
+src/main/java/                          src/test/java/
+catalog/label/                          catalog/label/
+├── api/                                ├── api/
+│   ├── LabelCommandApi                 │   ├── LabelControllerTest
+│   ├── LabelQueryApi                   │   └── UpdateLabelFormTest
+│   └── LabelController
+├── application/
+│   ├── CreateLabelUseCase
+│   ├── UpdateLabelUseCase
+│   ├── DeleteLabelUseCase
+│   ├── LabelCommandApiImpl
+│   └── LabelQueryApiImpl
+├── domain/                             ├── domain/
+│   └── Label                           │   └── LabelTest (if complex logic)
+├── infrastructure/                     └── infrastructure/
+│   ├── LabelEntity                         ├── LabelEntityTest (if complex logic)
+│   └── LabelRepository                     └── LabelRepositoryIntegrationTest
+└──                                     └── LabelCRUDIntegrationTest
+```
+
+#### Testing Strategy: Prefer Integration Over Unit for CRUD
+
+**For simple CRUD operations, prefer integration tests over unit tests with mocks.**
+
+**When to use integration tests:**
+- ✅ Simple CRUD use cases (create, read, update, delete)
+- ✅ Service orchestration without complex logic
+- ✅ Testing that components wire together correctly
+- ✅ Verifying database queries and transactions
+
+**When to use unit tests with mocks:**
+- ✅ Complex business logic with multiple branches
+- ✅ Calculations and algorithms
+- ✅ External service interactions (APIs, file system)
+- ✅ Complex validation or transformation logic
+
+**Why?** Unit tests that just verify method calls (e.g., `verify(repository).save(entity)`) add little value and create maintenance burden. Integration tests with real dependencies provide more confidence.
+
+#### Example: Testing Simple CRUD
+
+**Bad** - Mechanical unit test that adds no value:
+```java
+@Test
+void execute_deletesLabelById() {
+    useCase.execute(1L);
+    verify(repository).deleteById(1L);  // Just testing we called a method
+}
+```
+
+**Good** - Integration test that verifies real behavior:
+```java
+@Test
+@SpringBootTest
+@Testcontainers
+void deleteLabel_removesLabelFromDatabase() {
+    var label = createTestLabel();
+
+    labelCommandApi.delete(label.id());
+
+    assertThat(labelQueryApi.findById(label.id())).isEmpty();  // Verifies it's actually gone
+}
+```
+
+#### Required Tests When Refactoring
+
+When splitting monolithic handlers into use cases:
+
+1. **Integration test** (`*CRUDIntegrationTest.java`):
+   - Test full stack via public API (CommandApi/QueryApi)
+   - Use `@SpringBootTest` + TestContainers
+   - Cover create, read, update, delete operations
+   - Test with real database and transactions
+
+2. **Controller tests** (`*ControllerTest.java`):
+   - Already exist, just update to use new APIs
+   - Mock the CommandApi/QueryApi interfaces
+   - Test HTTP routing and view rendering
+
+3. **Unit tests** (only for complex logic):
+   - If a use case has complex calculations, branching, or validation
+   - If a use case coordinates multiple external services
+   - Otherwise, skip unit tests in favor of integration tests
+
+#### Refactoring Workflow
+
+When refactoring a module:
+
+1. **Restructure production code**: Create use cases and API implementations
+2. **Update integration test**: Ensure it tests via the new API interfaces and covers all CRUD operations
+3. **Move test files**: Match production package structure
+4. **Verify**: Run all tests to ensure nothing broke
+5. **Skip**: Don't create mechanical unit tests for simple delegation
+
+**Never** complete a refactoring without ensuring integration tests cover the main flows.
 
 ## Logging Strategy
 

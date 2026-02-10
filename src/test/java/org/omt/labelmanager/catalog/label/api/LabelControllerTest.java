@@ -37,10 +37,10 @@ class LabelControllerTest {
     private MockMvc mockMvc;
 
     @MockitoBean
-    private LabelCommandFacade labelCommandFacade;
+    private LabelCommandApi labelCommandFacade;
 
     @MockitoBean
-    private LabelQueryFacade labelQueryFacade;
+    private LabelQueryApi labelQueryFacade;
 
     @MockitoBean
     private ReleaseQueryApi releaseQueryFacade;

@@ -4,7 +4,7 @@ import org.junit.jupiter.api.Test;
 import org.omt.labelmanager.catalog.application.ArtistCRUDHandler;
 import org.omt.labelmanager.catalog.domain.artist.ArtistFactory;
 import org.omt.labelmanager.catalog.label.LabelFactory;
-import org.omt.labelmanager.catalog.label.api.LabelQueryFacade;
+import org.omt.labelmanager.catalog.label.api.LabelQueryApi;
 import org.omt.labelmanager.dashboard.DashboardController;
 import org.omt.labelmanager.identity.application.AppUserDetails;
 import org.omt.labelmanager.test.TestSecurityConfig;
@@ -29,7 +29,7 @@ class DashboardControllerTest {
     private MockMvc mockMvc;
 
     @MockitoBean
-    private LabelQueryFacade labelQueryFacade;
+    private LabelQueryApi labelQueryFacade;
 
     @MockitoBean
     private ArtistCRUDHandler artistCRUDHandler;

@@ -1,5 +1,8 @@
 package org.omt.labelmanager.catalog.label;
 
+import org.omt.labelmanager.catalog.label.domain.Label;
+import org.omt.labelmanager.catalog.label.infrastructure.LabelEntity;
+import org.omt.labelmanager.catalog.label.infrastructure.LabelRepository;
 import org.springframework.stereotype.Component;
 
 /**

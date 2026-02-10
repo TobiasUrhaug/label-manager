@@ -1,4 +1,4 @@
-package org.omt.labelmanager.catalog.label;
+package org.omt.labelmanager.catalog.label.infrastructure;
 
 import jakarta.persistence.*;
 import org.omt.labelmanager.catalog.infrastructure.persistence.shared.AddressEmbeddable;
@@ -8,7 +8,7 @@ import java.util.Objects;
 
 @Entity
 @Table(name = "label")
-class LabelEntity {
+public class LabelEntity {
 
     private String name;
     private String email;
@@ -31,7 +31,7 @@ class LabelEntity {
     protected LabelEntity() {
     }
 
-    LabelEntity(String name, String email, String website) {
+    public LabelEntity(String name, String email, String website) {
         this.name = name;
         this.email = email;
         this.website = website;
