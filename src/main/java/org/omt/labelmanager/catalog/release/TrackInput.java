@@ -1,4 +1,4 @@
-package org.omt.labelmanager.catalog.domain.track;
+package org.omt.labelmanager.catalog.release;
 
 import java.util.List;
 

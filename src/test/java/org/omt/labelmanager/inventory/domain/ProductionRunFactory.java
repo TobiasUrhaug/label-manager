@@ -1,6 +1,6 @@
 package org.omt.labelmanager.inventory.domain;
 
-import org.omt.labelmanager.catalog.domain.release.ReleaseFormat;
+import org.omt.labelmanager.catalog.release.ReleaseFormat;
 
 import java.time.LocalDate;
 import java.util.concurrent.atomic.AtomicLong;

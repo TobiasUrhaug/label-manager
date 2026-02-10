@@ -1,8 +1,4 @@
-package org.omt.labelmanager.catalog.domain.release;
-
-import org.omt.labelmanager.catalog.domain.artist.Artist;
-import org.omt.labelmanager.catalog.domain.track.Track;
-import org.omt.labelmanager.catalog.domain.track.TrackFactory;
+package org.omt.labelmanager.catalog.release;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -33,9 +29,12 @@ public final class ReleaseFactory {
         private String name = "Default Release";
         private LocalDate releaseDate = LocalDate.now();
         private Long labelId = 1L;
-        private List<Artist> artists = new ArrayList<>();
-        private List<Track> tracks = new ArrayList<>(List.of(TrackFactory.createDefault()));
-        private Set<ReleaseFormat> formats = new HashSet<>(Set.of(ReleaseFormat.DIGITAL));
+        private List<Long> artistIds = new ArrayList<>();
+        private List<Track> tracks = new ArrayList<>(
+                List.of(TrackFactory.createDefault())
+        );
+        private Set<ReleaseFormat> formats =
+                new HashSet<>(Set.of(ReleaseFormat.DIGITAL));
 
         private Builder() {
         }
@@ -60,13 +59,13 @@ public final class ReleaseFactory {
             return this;
         }
 
-        public Builder artists(List<Artist> artists) {
-            this.artists = artists;
+        public Builder artistIds(List<Long> artistIds) {
+            this.artistIds = artistIds;
             return this;
         }
 
-        public Builder artist(Artist artist) {
-            this.artists = List.of(artist);
+        public Builder artistId(Long artistId) {
+            this.artistIds = List.of(artistId);
             return this;
         }
 
@@ -91,7 +90,15 @@ public final class ReleaseFactory {
         }
 
         public Release build() {
-            return new Release(id, name, releaseDate, labelId, artists, tracks, formats);
+            return new Release(
+                    id,
+                    name,
+                    releaseDate,
+                    labelId,
+                    artistIds,
+                    tracks,
+                    formats
+            );
         }
     }
 }

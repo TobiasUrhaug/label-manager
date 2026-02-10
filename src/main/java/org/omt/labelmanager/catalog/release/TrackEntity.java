@@ -1,4 +1,4 @@
-package org.omt.labelmanager.catalog.infrastructure.persistence.track;
+package org.omt.labelmanager.catalog.release;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -9,7 +9,7 @@ import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "track")
-public class TrackEntity {
+class TrackEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -24,9 +24,9 @@ public class TrackEntity {
     @Column(name = "release_id", nullable = false)
     private Long releaseId;
 
-    public TrackEntity() {}
+    protected TrackEntity() {}
 
-    public TrackEntity(
+    TrackEntity(
             Long id,
             String name,
             Integer durationSeconds,
@@ -40,43 +40,43 @@ public class TrackEntity {
         this.releaseId = releaseId;
     }
 
-    public Long getId() {
+    Long getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    void setId(Long id) {
         this.id = id;
     }
 
-    public String getName() {
+    String getName() {
         return name;
     }
 
-    public void setName(String name) {
+    void setName(String name) {
         this.name = name;
     }
 
-    public Integer getDurationSeconds() {
+    Integer getDurationSeconds() {
         return durationSeconds;
     }
 
-    public void setDurationSeconds(Integer durationSeconds) {
+    void setDurationSeconds(Integer durationSeconds) {
         this.durationSeconds = durationSeconds;
     }
 
-    public Integer getPosition() {
+    Integer getPosition() {
         return position;
     }
 
-    public void setPosition(Integer position) {
+    void setPosition(Integer position) {
         this.position = position;
     }
 
-    public Long getReleaseId() {
+    Long getReleaseId() {
         return releaseId;
     }
 
-    public void setReleaseId(Long releaseId) {
+    void setReleaseId(Long releaseId) {
         this.releaseId = releaseId;
     }
 }

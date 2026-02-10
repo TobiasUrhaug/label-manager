@@ -1,14 +1,14 @@
-package org.omt.labelmanager.catalog.domain.track;
+package org.omt.labelmanager.catalog.release.api;
 
 import java.util.List;
 import org.omt.labelmanager.catalog.domain.artist.Artist;
+import org.omt.labelmanager.catalog.release.TrackDuration;
 
-public record Track(
+public record TrackView(
         Long id,
         List<Artist> artists,
         String name,
         TrackDuration duration,
         Integer position
 ) {
-
 }

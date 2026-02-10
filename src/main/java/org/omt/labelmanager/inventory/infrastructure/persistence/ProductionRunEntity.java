@@ -1,7 +1,7 @@
 package org.omt.labelmanager.inventory.infrastructure.persistence;
 
 import jakarta.persistence.*;
-import org.omt.labelmanager.catalog.domain.release.ReleaseFormat;
+import org.omt.labelmanager.catalog.release.ReleaseFormat;
 
 import java.time.LocalDate;
 

@@ -1,4 +1,4 @@
-package org.omt.labelmanager.catalog.domain.track;
+package org.omt.labelmanager.catalog.release;
 
 public record TrackDuration(int totalSeconds) {
 
@@ -8,7 +8,9 @@ public record TrackDuration(int totalSeconds) {
         }
         String[] parts = mmss.split(":");
         if (parts.length != 2) {
-            throw new IllegalArgumentException("Duration must be in MM:SS format");
+            throw new IllegalArgumentException(
+                    "Duration must be in MM:SS format"
+            );
         }
         int minutes = Integer.parseInt(parts[0]);
         int seconds = Integer.parseInt(parts[1]);
@@ -20,7 +22,9 @@ public record TrackDuration(int totalSeconds) {
     }
 
     public String formatted() {
-        return String.format("%d:%02d", totalSeconds / 60, totalSeconds % 60);
+        return String.format(
+                "%d:%02d", totalSeconds / 60, totalSeconds % 60
+        );
     }
 
 }

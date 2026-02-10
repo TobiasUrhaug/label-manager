@@ -1,4 +1,4 @@
-package org.omt.labelmanager.catalog.domain.release;
+package org.omt.labelmanager.catalog.release;
 
 public enum ReleaseFormat {
 

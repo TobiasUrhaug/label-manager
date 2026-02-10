@@ -1,15 +1,10 @@
 package org.omt.labelmanager.catalog.release;
 
 import org.junit.jupiter.api.Test;
-import org.omt.labelmanager.catalog.application.ReleaseCRUDHandler;
-import org.omt.labelmanager.catalog.domain.release.ReleaseFormat;
-import org.omt.labelmanager.catalog.domain.track.TrackDuration;
-import org.omt.labelmanager.catalog.domain.track.TrackInput;
 import org.omt.labelmanager.catalog.infrastructure.persistence.artist.ArtistEntity;
 import org.omt.labelmanager.catalog.infrastructure.persistence.artist.ArtistRepository;
-import org.omt.labelmanager.catalog.infrastructure.persistence.release.ReleaseArtistRepository;
-import org.omt.labelmanager.catalog.infrastructure.persistence.release.ReleaseRepository;
-import org.omt.labelmanager.catalog.infrastructure.persistence.track.TrackRepository;
+import org.omt.labelmanager.catalog.release.api.ReleaseCommandFacade;
+import org.omt.labelmanager.catalog.release.api.ReleaseQueryFacade;
 import org.omt.labelmanager.catalog.label.LabelTestHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -27,7 +22,9 @@ import java.util.Set;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @Testcontainers
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest(
+        webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT
+)
 public class ReleaseCRUDIntegrationTest {
 
     @Autowired
@@ -46,7 +43,10 @@ public class ReleaseCRUDIntegrationTest {
     ReleaseArtistRepository releaseArtistRepository;
 
     @Autowired
-    ReleaseCRUDHandler releaseCRUDHandler;
+    ReleaseCommandFacade releaseCommandFacade;
+
+    @Autowired
+    ReleaseQueryFacade releaseQueryFacade;
 
     @Container
     static PostgreSQLContainer<?> postgres =
@@ -57,16 +57,27 @@ public class ReleaseCRUDIntegrationTest {
 
     @DynamicPropertySource
     static void dbProperties(DynamicPropertyRegistry registry) {
-        registry.add("spring.datasource.url", postgres::getJdbcUrl);
-        registry.add("spring.datasource.username", postgres::getUsername);
-        registry.add("spring.datasource.password", postgres::getPassword);
+        registry.add(
+                "spring.datasource.url", postgres::getJdbcUrl
+        );
+        registry.add(
+                "spring.datasource.username",
+                postgres::getUsername
+        );
+        registry.add(
+                "spring.datasource.password",
+                postgres::getPassword
+        );
     }
 
     @Test
     void createRelease() {
-        var savedLabel = labelTestHelper.createLabel("The Label");
+        var savedLabel =
+                labelTestHelper.createLabel("The Label");
         var labelId = savedLabel.id();
-        var savedArtist = artistRepository.save(new ArtistEntity("Test Artist"));
+        var savedArtist = artistRepository.save(
+                new ArtistEntity("Test Artist")
+        );
         var artistId = savedArtist.getId();
 
         var trackInput = new TrackInput(
@@ -76,7 +87,7 @@ public class ReleaseCRUDIntegrationTest {
                 1
         );
 
-        releaseCRUDHandler.createRelease(
+        releaseCommandFacade.createRelease(
                 "My Release",
                 LocalDate.of(2026, 1, 15),
                 labelId,
@@ -85,16 +96,22 @@ public class ReleaseCRUDIntegrationTest {
                 Set.of(ReleaseFormat.DIGITAL)
         );
 
-        assertThat(releaseRepository.findByName("My Release")).isPresent();
+        assertThat(releaseRepository.findByName("My Release"))
+                .isPresent();
     }
 
     @Test
     @Transactional
     void updateRelease() {
-        var label = labelTestHelper.createLabel("Label For Update");
+        var label =
+                labelTestHelper.createLabel("Label For Update");
 
-        var artist1 = artistRepository.save(new ArtistEntity("Artist One"));
-        var artist2 = artistRepository.save(new ArtistEntity("Artist Two"));
+        var artist1 = artistRepository.save(
+                new ArtistEntity("Artist One")
+        );
+        var artist2 = artistRepository.save(
+                new ArtistEntity("Artist Two")
+        );
 
         var originalTrack = new TrackInput(
                 List.of(artist1.getId()),
@@ -103,7 +120,7 @@ public class ReleaseCRUDIntegrationTest {
                 1
         );
 
-        releaseCRUDHandler.createRelease(
+        releaseCommandFacade.createRelease(
                 "Original Release",
                 LocalDate.of(2026, 1, 1),
                 label.id(),
@@ -112,7 +129,8 @@ public class ReleaseCRUDIntegrationTest {
                 Set.of(ReleaseFormat.DIGITAL)
         );
 
-        var release = releaseRepository.findByName("Original Release").orElseThrow();
+        var release = releaseRepository
+                .findByName("Original Release").orElseThrow();
         var releaseId = release.getId();
 
         var newTrack1 = new TrackInput(
@@ -128,7 +146,7 @@ public class ReleaseCRUDIntegrationTest {
                 2
         );
 
-        releaseCRUDHandler.updateRelease(
+        releaseCommandFacade.updateRelease(
                 releaseId,
                 "Updated Release",
                 LocalDate.of(2026, 6, 15),
@@ -137,24 +155,36 @@ public class ReleaseCRUDIntegrationTest {
                 Set.of(ReleaseFormat.VINYL, ReleaseFormat.CD)
         );
 
-        var updatedRelease = releaseRepository.findById(releaseId).orElseThrow();
-        assertThat(updatedRelease.getName()).isEqualTo("Updated Release");
-        assertThat(updatedRelease.getReleaseDate()).isEqualTo(LocalDate.of(2026, 6, 15));
+        var updatedRelease = releaseRepository
+                .findById(releaseId).orElseThrow();
+        assertThat(updatedRelease.getName())
+                .isEqualTo("Updated Release");
+        assertThat(updatedRelease.getReleaseDate())
+                .isEqualTo(LocalDate.of(2026, 6, 15));
 
-        var releaseArtists = releaseArtistRepository.findArtistsByReleaseId(releaseId);
+        var releaseArtists =
+                releaseArtistRepository
+                        .findArtistIdsByReleaseId(releaseId);
         assertThat(releaseArtists).hasSize(2);
 
-        var tracks = trackRepository.findByReleaseIdOrderByPosition(releaseId);
+        var tracks = trackRepository
+                .findByReleaseIdOrderByPosition(releaseId);
         assertThat(tracks).hasSize(2);
-        assertThat(tracks.get(0).getName()).isEqualTo("Updated Track 1");
-        assertThat(tracks.get(1).getName()).isEqualTo("Updated Track 2");
+        assertThat(tracks.get(0).getName())
+                .isEqualTo("Updated Track 1");
+        assertThat(tracks.get(1).getName())
+                .isEqualTo("Updated Track 2");
     }
 
     @Test
     void deleteRelease() {
-        var label = labelTestHelper.createLabel("Label For Release Deletion");
+        var label = labelTestHelper.createLabel(
+                "Label For Release Deletion"
+        );
 
-        var savedArtist = artistRepository.save(new ArtistEntity("Artist For Release"));
+        var savedArtist = artistRepository.save(
+                new ArtistEntity("Artist For Release")
+        );
         var artistId = savedArtist.getId();
 
         var trackInput = new TrackInput(
@@ -164,7 +194,7 @@ public class ReleaseCRUDIntegrationTest {
                 1
         );
 
-        releaseCRUDHandler.createRelease(
+        releaseCommandFacade.createRelease(
                 "Release To Delete",
                 LocalDate.of(2026, 1, 15),
                 label.id(),
@@ -173,11 +203,13 @@ public class ReleaseCRUDIntegrationTest {
                 Set.of(ReleaseFormat.DIGITAL)
         );
 
-        var release = releaseRepository.findByName("Release To Delete");
+        var release = releaseRepository
+                .findByName("Release To Delete");
         assertThat(release).isPresent();
 
-        releaseCRUDHandler.delete(release.get().getId());
+        releaseCommandFacade.delete(release.get().getId());
 
-        assertThat(releaseRepository.findByName("Release To Delete")).isEmpty();
+        assertThat(releaseRepository
+                .findByName("Release To Delete")).isEmpty();
     }
 }

@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.omt.labelmanager.catalog.domain.release.ReleaseFormat;
+import org.omt.labelmanager.catalog.release.ReleaseFormat;
 import org.omt.labelmanager.inventory.infrastructure.persistence.ProductionRunEntity;
 import org.omt.labelmanager.inventory.infrastructure.persistence.ProductionRunRepository;
 

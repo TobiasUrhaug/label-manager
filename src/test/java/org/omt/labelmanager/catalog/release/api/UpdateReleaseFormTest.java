@@ -1,10 +1,10 @@
-package org.omt.labelmanager.catalog.api.release;
+package org.omt.labelmanager.catalog.release.api;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
 import org.junit.jupiter.api.Test;
-import org.omt.labelmanager.catalog.domain.track.TrackDuration;
+import org.omt.labelmanager.catalog.release.TrackDuration;
 
 class UpdateReleaseFormTest {
 
@@ -28,14 +28,20 @@ class UpdateReleaseFormTest {
 
         assertThat(trackInputs).hasSize(2);
 
-        assertThat(trackInputs.get(0).artistIds()).containsExactly(1L, 2L);
-        assertThat(trackInputs.get(0).name()).isEqualTo("First Track");
-        assertThat(trackInputs.get(0).duration()).isEqualTo(TrackDuration.parse("3:30"));
+        assertThat(trackInputs.get(0).artistIds())
+                .containsExactly(1L, 2L);
+        assertThat(trackInputs.get(0).name())
+                .isEqualTo("First Track");
+        assertThat(trackInputs.get(0).duration())
+                .isEqualTo(TrackDuration.parse("3:30"));
         assertThat(trackInputs.get(0).position()).isEqualTo(1);
 
-        assertThat(trackInputs.get(1).artistIds()).containsExactly(2L);
-        assertThat(trackInputs.get(1).name()).isEqualTo("Second Track");
-        assertThat(trackInputs.get(1).duration()).isEqualTo(TrackDuration.parse("4:15"));
+        assertThat(trackInputs.get(1).artistIds())
+                .containsExactly(2L);
+        assertThat(trackInputs.get(1).name())
+                .isEqualTo("Second Track");
+        assertThat(trackInputs.get(1).duration())
+                .isEqualTo(TrackDuration.parse("4:15"));
         assertThat(trackInputs.get(1).position()).isEqualTo(2);
     }
 }

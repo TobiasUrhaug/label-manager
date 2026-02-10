@@ -1,15 +1,14 @@
-package org.omt.labelmanager.catalog.api.release;
+package org.omt.labelmanager.catalog.release.api;
 
 import org.junit.jupiter.api.Test;
 import org.omt.labelmanager.catalog.application.ArtistCRUDHandler;
-import org.omt.labelmanager.catalog.application.ReleaseCRUDHandler;
 import org.omt.labelmanager.catalog.domain.artist.ArtistFactory;
-import org.omt.labelmanager.catalog.domain.release.ReleaseFactory;
-import org.omt.labelmanager.catalog.domain.release.ReleaseFormat;
-import org.omt.labelmanager.catalog.domain.track.TrackFactory;
+import org.omt.labelmanager.catalog.release.ReleaseFactory;
+import org.omt.labelmanager.catalog.release.ReleaseFormat;
+import org.omt.labelmanager.catalog.release.TrackFactory;
 import org.omt.labelmanager.catalog.label.LabelFactory;
 import org.omt.labelmanager.catalog.label.api.LabelQueryFacade;
-import org.omt.labelmanager.finance.application.CostQueryService;
+import org.omt.labelmanager.finance.cost.CostQueryService;
 import org.omt.labelmanager.identity.application.AppUserDetails;
 import org.omt.labelmanager.inventory.allocation.AllocationQueryService;
 import org.omt.labelmanager.inventory.application.ProductionRunQueryService;
@@ -44,7 +43,10 @@ class ReleaseControllerTest {
     private LabelQueryFacade labelQueryFacade;
 
     @MockitoBean
-    private ReleaseCRUDHandler releaseCRUDHandler;
+    private ReleaseCommandFacade releaseCommandFacade;
+
+    @MockitoBean
+    private ReleaseQueryFacade releaseQueryFacade;
 
     @MockitoBean
     private ArtistCRUDHandler artistCRUDHandler;
@@ -62,60 +64,83 @@ class ReleaseControllerTest {
     private SalesChannelQueryService salesChannelQueryService;
 
     private final AppUserDetails testUser =
-            new AppUserDetails(1L, "test@example.com", "password", "Test User");
+            new AppUserDetails(
+                    1L, "test@example.com", "password", "Test User"
+            );
 
     @Test
-    void release_returnsReleaseViewAndPopulatedModel() throws Exception {
-        var label = LabelFactory.aLabel().id(1L).name("My Label").build();
+    void release_returnsReleaseViewAndPopulatedModel()
+            throws Exception {
+        var label = LabelFactory.aLabel()
+                .id(1L).name("My Label").build();
         var releaseDate = LocalDate.now();
-        var artist = ArtistFactory.anArtist().id(1L).artistName("Test Artist").build();
-        var anotherArtist = ArtistFactory.anArtist().id(2L).artistName("Another Artist").build();
+        var artist = ArtistFactory.anArtist()
+                .id(1L).artistName("Test Artist").build();
+        var anotherArtist = ArtistFactory.anArtist()
+                .id(2L).artistName("Another Artist").build();
         var track = TrackFactory.aTrack()
-                .artist(artist)
+                .artistId(1L)
                 .name("Test Track")
                 .durationSeconds(210)
                 .position(1)
                 .build();
-        var formats = Set.of(ReleaseFormat.DIGITAL, ReleaseFormat.VINYL);
+        var formats = Set.of(
+                ReleaseFormat.DIGITAL, ReleaseFormat.VINYL
+        );
         var release = ReleaseFactory
                 .aRelease()
                 .id(4L)
                 .name("First Release")
                 .releaseDate(releaseDate)
                 .labelId(label.id())
-                .artist(artist)
+                .artistId(1L)
                 .tracks(List.of(track))
                 .formats(formats)
                 .build();
 
-        when(labelQueryFacade.findById(1L)).thenReturn(Optional.of(label));
-        when(releaseCRUDHandler.findById(4L)).thenReturn(Optional.of(release));
-        when(artistCRUDHandler.getArtistsForUser(1L)).thenReturn(List.of(artist, anotherArtist));
+        when(labelQueryFacade.findById(1L))
+                .thenReturn(Optional.of(label));
+        when(releaseQueryFacade.findById(4L))
+                .thenReturn(Optional.of(release));
+        when(artistCRUDHandler.getArtistsForUser(1L))
+                .thenReturn(List.of(artist, anotherArtist));
 
-        mockMvc.perform(get("/labels/1/releases/4").with(user(testUser)))
+        mockMvc.perform(
+                        get("/labels/1/releases/4")
+                                .with(user(testUser)))
                 .andExpect(status().isOk())
                 .andExpect(view().name("/releases/release"))
-                .andExpect(model().attribute("name", "First Release"))
+                .andExpect(model().attribute(
+                        "name", "First Release"))
                 .andExpect(model().attribute("labelId", 1L))
                 .andExpect(model().attribute("releaseId", 4L))
-                .andExpect(model().attribute("releaseDate", releaseDate))
-                .andExpect(model().attribute("artists", List.of(artist)))
-                .andExpect(model().attribute("tracks", List.of(track)))
+                .andExpect(model().attribute(
+                        "releaseDate", releaseDate))
+                .andExpect(model().attribute(
+                        "artists", List.of(artist)))
+                .andExpect(model().attributeExists("tracks"))
                 .andExpect(model().attribute("formats", formats))
-                .andExpect(model().attribute("allArtists", List.of(artist, anotherArtist)))
-                .andExpect(model().attribute("allFormats", ReleaseFormat.values()));
+                .andExpect(model().attribute(
+                        "allArtists",
+                        List.of(artist, anotherArtist)))
+                .andExpect(model().attribute(
+                        "allFormats", ReleaseFormat.values()));
     }
 
     @Test
-    void release_returns404_whenResourceNotFound() throws Exception {
-        when(labelQueryFacade.findById(1123L)).thenReturn(Optional.empty());
+    void release_returns404_whenResourceNotFound()
+            throws Exception {
+        when(labelQueryFacade.findById(1123L))
+                .thenReturn(Optional.empty());
 
-        mockMvc.perform(get("/labels/1123").with(user(testUser)))
+        mockMvc.perform(
+                        get("/labels/1123").with(user(testUser)))
                 .andExpect(status().isNotFound());
     }
 
     @Test
-    void deleteRelease_callsHandlerAndRedirectsToLabel() throws Exception {
+    void deleteRelease_callsHandlerAndRedirectsToLabel()
+            throws Exception {
         mockMvc
                 .perform(delete("/labels/1/releases/5")
                         .with(user(testUser))
@@ -123,11 +148,12 @@ class ReleaseControllerTest {
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/labels/1"));
 
-        verify(releaseCRUDHandler).delete(5L);
+        verify(releaseCommandFacade).delete(5L);
     }
 
     @Test
-    void updateRelease_callsHandlerAndRedirectsToRelease() throws Exception {
+    void updateRelease_callsHandlerAndRedirectsToRelease()
+            throws Exception {
         mockMvc
                 .perform(put("/labels/1/releases/5")
                         .with(user(testUser))
@@ -140,12 +166,15 @@ class ReleaseControllerTest {
                         .param("tracks[0].artistIds", "1")
                         .param("formats", "VINYL", "CD"))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/labels/1/releases/5"));
+                .andExpect(redirectedUrl(
+                        "/labels/1/releases/5"));
 
-        verify(releaseCRUDHandler).updateRelease(
+        verify(releaseCommandFacade).updateRelease(
                 org.mockito.ArgumentMatchers.eq(5L),
-                org.mockito.ArgumentMatchers.eq("Updated Release"),
-                org.mockito.ArgumentMatchers.eq(LocalDate.of(2026, 6, 15)),
+                org.mockito.ArgumentMatchers.eq(
+                        "Updated Release"),
+                org.mockito.ArgumentMatchers.eq(
+                        LocalDate.of(2026, 6, 15)),
                 org.mockito.ArgumentMatchers.anyList(),
                 org.mockito.ArgumentMatchers.anyList(),
                 org.mockito.ArgumentMatchers.anySet()

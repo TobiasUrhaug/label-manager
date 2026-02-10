@@ -1,9 +1,8 @@
-package org.omt.labelmanager.catalog.domain.track;
+package org.omt.labelmanager.catalog.release;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
-import org.omt.labelmanager.catalog.domain.artist.Artist;
 
 public final class TrackFactory {
 
@@ -24,9 +23,10 @@ public final class TrackFactory {
     public static final class Builder {
 
         private Long id = counter.getAndIncrement();
-        private List<Artist> artists = new ArrayList<>();
+        private List<Long> artistIds = new ArrayList<>();
         private String name = "Default Track";
-        private TrackDuration duration = TrackDuration.ofSeconds(180);
+        private TrackDuration duration =
+                TrackDuration.ofSeconds(180);
         private Integer position = 1;
 
         private Builder() {
@@ -37,13 +37,13 @@ public final class TrackFactory {
             return this;
         }
 
-        public Builder artists(List<Artist> artists) {
-            this.artists = artists;
+        public Builder artistIds(List<Long> artistIds) {
+            this.artistIds = artistIds;
             return this;
         }
 
-        public Builder artist(Artist artist) {
-            this.artists = List.of(artist);
+        public Builder artistId(Long artistId) {
+            this.artistIds = List.of(artistId);
             return this;
         }
 
@@ -68,7 +68,9 @@ public final class TrackFactory {
         }
 
         public Track build() {
-            return new Track(id, artists, name, duration, position);
+            return new Track(
+                    id, artistIds, name, duration, position
+            );
         }
     }
 }

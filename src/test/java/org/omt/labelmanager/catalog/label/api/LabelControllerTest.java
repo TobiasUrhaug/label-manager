@@ -2,11 +2,11 @@ package org.omt.labelmanager.catalog.label.api;
 
 import org.junit.jupiter.api.Test;
 import org.omt.labelmanager.catalog.application.ArtistCRUDHandler;
-import org.omt.labelmanager.catalog.application.ReleaseCRUDHandler;
 import org.omt.labelmanager.catalog.domain.artist.ArtistFactory;
-import org.omt.labelmanager.catalog.domain.release.ReleaseFactory;
 import org.omt.labelmanager.catalog.domain.shared.Address;
 import org.omt.labelmanager.catalog.domain.shared.Person;
+import org.omt.labelmanager.catalog.release.ReleaseFactory;
+import org.omt.labelmanager.catalog.release.api.ReleaseQueryFacade;
 import org.omt.labelmanager.catalog.label.LabelFactory;
 import org.omt.labelmanager.identity.application.AppUserDetails;
 import org.omt.labelmanager.inventory.application.SalesChannelQueryService;
@@ -43,7 +43,7 @@ class LabelControllerTest {
     private LabelQueryFacade labelQueryFacade;
 
     @MockitoBean
-    private ReleaseCRUDHandler releaseCRUDHandler;
+    private ReleaseQueryFacade releaseQueryFacade;
 
     @MockitoBean
     private ArtistCRUDHandler artistCRUDHandler;
@@ -65,7 +65,7 @@ class LabelControllerTest {
         when(labelQueryFacade.findById(1L)).thenReturn(Optional.of(label));
 
         var release = ReleaseFactory.aRelease().id(1L).name("My Release").build();
-        when(releaseCRUDHandler.getReleasesForLabel(1L)).thenReturn(List.of(release));
+        when(releaseQueryFacade.getReleasesForLabel(1L)).thenReturn(List.of(release));
 
         var artist = ArtistFactory.anArtist().id(1L).artistName("Unknown").build();
         when(artistCRUDHandler.getArtistsForUser(1L)).thenReturn(List.of(artist));

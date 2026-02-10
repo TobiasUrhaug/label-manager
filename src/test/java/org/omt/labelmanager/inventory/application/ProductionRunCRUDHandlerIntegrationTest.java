@@ -2,9 +2,8 @@ package org.omt.labelmanager.inventory.application;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.omt.labelmanager.catalog.domain.release.ReleaseFormat;
-import org.omt.labelmanager.catalog.infrastructure.persistence.release.ReleaseEntity;
-import org.omt.labelmanager.catalog.infrastructure.persistence.release.ReleaseRepository;
+import org.omt.labelmanager.catalog.release.ReleaseFormat;
+import org.omt.labelmanager.catalog.release.ReleaseTestHelper;
 import org.omt.labelmanager.catalog.label.LabelTestHelper;
 import org.omt.labelmanager.inventory.infrastructure.persistence.ProductionRunRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -61,7 +60,7 @@ class ProductionRunCRUDHandlerIntegrationTest {
     private ProductionRunRepository productionRunRepository;
 
     @Autowired
-    private ReleaseRepository releaseRepository;
+    private ReleaseTestHelper releaseTestHelper;
 
     @Autowired
     private LabelTestHelper labelTestHelper;
@@ -71,18 +70,10 @@ class ProductionRunCRUDHandlerIntegrationTest {
     @BeforeEach
     void setUp() {
         productionRunRepository.deleteAll();
-        releaseRepository.deleteAll();
 
         var label = labelTestHelper.createLabel("Test Label");
-
-        ReleaseEntity release = new ReleaseEntity(
-                null,
-                "Test Release",
-                LocalDate.of(2025, 1, 1),
-                label.id()
-        );
-        release = releaseRepository.save(release);
-        releaseId = release.getId();
+        releaseId = releaseTestHelper.createReleaseEntity(
+                "Test Release", label.id());
     }
 
     @Test

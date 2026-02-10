@@ -1,10 +1,10 @@
 package org.omt.labelmanager.catalog.label.api;
 
 import org.omt.labelmanager.catalog.application.ArtistCRUDHandler;
-import org.omt.labelmanager.catalog.application.ReleaseCRUDHandler;
 import org.omt.labelmanager.catalog.domain.artist.Artist;
-import org.omt.labelmanager.catalog.domain.release.Release;
-import org.omt.labelmanager.catalog.domain.release.ReleaseFormat;
+import org.omt.labelmanager.catalog.release.Release;
+import org.omt.labelmanager.catalog.release.ReleaseFormat;
+import org.omt.labelmanager.catalog.release.api.ReleaseQueryFacade;
 import org.omt.labelmanager.catalog.label.Label;
 import org.omt.labelmanager.identity.application.AppUserDetails;
 import org.omt.labelmanager.inventory.application.SalesChannelQueryService;
@@ -30,19 +30,19 @@ public class LabelController {
 
     private final LabelCommandFacade labelCommandHandler;
     private final LabelQueryFacade labelQueryFacade;
-    private final ReleaseCRUDHandler releaseCRUDHandler;
+    private final ReleaseQueryFacade releaseQueryFacade;
     private final ArtistCRUDHandler artistCRUDHandler;
     private final SalesChannelQueryService salesChannelQueryService;
 
     public LabelController(
             LabelCommandFacade labelCommandHandler, LabelQueryFacade labelQueryFacade,
-            ReleaseCRUDHandler releaseCRUDHandler,
+            ReleaseQueryFacade releaseQueryFacade,
             ArtistCRUDHandler artistCRUDHandler,
             SalesChannelQueryService salesChannelQueryService
     ) {
         this.labelCommandHandler = labelCommandHandler;
         this.labelQueryFacade = labelQueryFacade;
-        this.releaseCRUDHandler = releaseCRUDHandler;
+        this.releaseQueryFacade = releaseQueryFacade;
         this.artistCRUDHandler = artistCRUDHandler;
         this.salesChannelQueryService = salesChannelQueryService;
     }
@@ -61,7 +61,7 @@ public class LabelController {
                             return new ResponseStatusException(HttpStatus.NOT_FOUND);
                         });
 
-        List<Release> releases = releaseCRUDHandler.getReleasesForLabel(id);
+        List<Release> releases = releaseQueryFacade.getReleasesForLabel(id);
         List<Artist> artists = artistCRUDHandler.getArtistsForUser(user.getId());
         List<SalesChannel> salesChannels = salesChannelQueryService.getSalesChannelsForLabel(id);
 

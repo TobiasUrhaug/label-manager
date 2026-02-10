@@ -2,9 +2,8 @@ package org.omt.labelmanager.inventory.allocation;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.omt.labelmanager.catalog.domain.release.ReleaseFormat;
-import org.omt.labelmanager.catalog.infrastructure.persistence.release.ReleaseEntity;
-import org.omt.labelmanager.catalog.infrastructure.persistence.release.ReleaseRepository;
+import org.omt.labelmanager.catalog.release.ReleaseFormat;
+import org.omt.labelmanager.catalog.release.ReleaseTestHelper;
 import org.omt.labelmanager.catalog.label.LabelTestHelper;
 import org.omt.labelmanager.inventory.domain.ChannelType;
 import org.omt.labelmanager.inventory.domain.MovementType;
@@ -70,7 +69,7 @@ class AllocateProductionRunToSalesChannelUseCaseIntegrationTest {
     private SalesChannelRepository salesChannelRepository;
 
     @Autowired
-    private ReleaseRepository releaseRepository;
+    private ReleaseTestHelper releaseTestHelper;
 
     @Autowired
     private LabelTestHelper labelTestHelper;
@@ -84,20 +83,14 @@ class AllocateProductionRunToSalesChannelUseCaseIntegrationTest {
         inventoryMovementRepository.deleteAll();
         productionRunRepository.deleteAll();
         salesChannelRepository.deleteAll();
-        releaseRepository.deleteAll();
 
         var label = labelTestHelper.createLabel("Test Label");
-        ReleaseEntity release = releaseRepository.save(
-                new ReleaseEntity(
-                        null,
-                        "Test Release",
-                        LocalDate.of(2025, 1, 1),
-                        label.id()
-                ));
+        Long releaseId = releaseTestHelper.createReleaseEntity(
+                "Test Release", label.id());
 
         ProductionRunEntity productionRun = productionRunRepository.save(
                 new ProductionRunEntity(
-                        release.getId(),
+                        releaseId,
                         ReleaseFormat.VINYL,
                         "First pressing",
                         "Plant A",
