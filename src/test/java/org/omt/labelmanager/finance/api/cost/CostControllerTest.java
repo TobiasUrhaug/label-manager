@@ -1,16 +1,13 @@
 package org.omt.labelmanager.finance.api.cost;
 
 import org.junit.jupiter.api.Test;
-import org.omt.labelmanager.finance.cost.DocumentUpload;
-import org.omt.labelmanager.finance.cost.RetrievedDocument;
-import org.omt.labelmanager.finance.cost.api.CostController;
 import org.omt.labelmanager.finance.cost.CostOwner;
 import org.omt.labelmanager.finance.cost.CostType;
+import org.omt.labelmanager.finance.cost.DocumentUpload;
+import org.omt.labelmanager.finance.cost.RetrievedDocument;
 import org.omt.labelmanager.finance.cost.VatAmount;
-import org.omt.labelmanager.finance.cost.DeleteCostUseCase;
-import org.omt.labelmanager.finance.cost.RegisterCostUseCase;
-import org.omt.labelmanager.finance.cost.RetrieveCostDocumentUseCase;
-import org.omt.labelmanager.finance.cost.UpdateCostUseCase;
+import org.omt.labelmanager.finance.cost.api.CostCommandFacade;
+import org.omt.labelmanager.finance.cost.api.CostController;
 import org.omt.labelmanager.finance.domain.shared.Money;
 import org.omt.labelmanager.identity.application.AppUserDetails;
 import org.omt.labelmanager.test.TestSecurityConfig;
@@ -42,16 +39,7 @@ class CostControllerTest {
     private MockMvc mockMvc;
 
     @MockitoBean
-    private RegisterCostUseCase registerCostUseCase;
-
-    @MockitoBean
-    private RetrieveCostDocumentUseCase retrieveCostDocumentUseCase;
-
-    @MockitoBean
-    private DeleteCostUseCase deleteCostUseCase;
-
-    @MockitoBean
-    private UpdateCostUseCase updateCostUseCase;
+    private CostCommandFacade costCommandFacade;
 
     private final AppUserDetails testUser =
             new AppUserDetails(1L, "test@example.com", "password", "Test User");
@@ -221,7 +209,7 @@ class CostControllerTest {
                 "invoice.pdf",
                 content.length
         );
-        when(retrieveCostDocumentUseCase.retrieveDocument(1L)).thenReturn(Optional.of(document));
+        when(costCommandFacade.retrieveDocument(1L)).thenReturn(Optional.of(document));
 
         mockMvc
                 .perform(get("/costs/1/document")
@@ -241,7 +229,7 @@ class CostControllerTest {
                 "invoice.pdf",
                 content.length
         );
-        when(retrieveCostDocumentUseCase.retrieveDocument(1L)).thenReturn(Optional.of(document));
+        when(costCommandFacade.retrieveDocument(1L)).thenReturn(Optional.of(document));
 
         mockMvc
                 .perform(get("/costs/1/document")
@@ -254,7 +242,7 @@ class CostControllerTest {
 
     @Test
     void getDocument_returns404WhenCostNotFound() throws Exception {
-        when(retrieveCostDocumentUseCase.retrieveDocument(999L)).thenReturn(Optional.empty());
+        when(costCommandFacade.retrieveDocument(999L)).thenReturn(Optional.empty());
 
         mockMvc
                 .perform(get("/costs/999/document")
@@ -264,7 +252,7 @@ class CostControllerTest {
 
     @Test
     void getDocument_returns404WhenNoDocumentAttached() throws Exception {
-        when(retrieveCostDocumentUseCase.retrieveDocument(1L)).thenReturn(Optional.empty());
+        when(costCommandFacade.retrieveDocument(1L)).thenReturn(Optional.empty());
 
         mockMvc
                 .perform(get("/costs/1/document")
@@ -274,7 +262,7 @@ class CostControllerTest {
 
     @Test
     void deleteCostForRelease_callsUseCaseAndRedirects() throws Exception {
-        when(deleteCostUseCase.deleteCost(99L)).thenReturn(true);
+        when(costCommandFacade.deleteCost(99L)).thenReturn(true);
 
         mockMvc
                 .perform(delete("/labels/1/releases/42/costs/99")
@@ -288,7 +276,7 @@ class CostControllerTest {
 
     @Test
     void deleteCostForLabel_callsUseCaseAndRedirects() throws Exception {
-        when(deleteCostUseCase.deleteCost(99L)).thenReturn(true);
+        when(costCommandFacade.deleteCost(99L)).thenReturn(true);
 
         mockMvc
                 .perform(delete("/labels/10/costs/99")
@@ -302,7 +290,7 @@ class CostControllerTest {
 
     @Test
     void updateCostForRelease_callsUseCaseAndRedirects() throws Exception {
-        when(updateCostUseCase.updateCost(
+        when(costCommandFacade.updateCost(
                 any(), any(), any(), any(), any(), any(), any(), any(), any()))
                 .thenReturn(true);
 
@@ -336,7 +324,7 @@ class CostControllerTest {
 
     @Test
     void updateCostForLabel_callsUseCaseAndRedirects() throws Exception {
-        when(updateCostUseCase.updateCost(
+        when(costCommandFacade.updateCost(
                 any(), any(), any(), any(), any(), any(), any(), any(), any()))
                 .thenReturn(true);
 

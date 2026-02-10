@@ -1,12 +1,8 @@
 package org.omt.labelmanager.finance.cost.api;
 
+import org.omt.labelmanager.finance.cost.CostOwner;
 import org.omt.labelmanager.finance.cost.DocumentUpload;
 import org.omt.labelmanager.finance.cost.RetrievedDocument;
-import org.omt.labelmanager.finance.cost.CostOwner;
-import org.omt.labelmanager.finance.cost.DeleteCostUseCase;
-import org.omt.labelmanager.finance.cost.RegisterCostUseCase;
-import org.omt.labelmanager.finance.cost.RetrieveCostDocumentUseCase;
-import org.omt.labelmanager.finance.cost.UpdateCostUseCase;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -31,21 +27,10 @@ public class CostController {
             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     );
 
-    private final RegisterCostUseCase registerCostUseCase;
-    private final RetrieveCostDocumentUseCase retrieveCostDocumentUseCase;
-    private final DeleteCostUseCase deleteCostUseCase;
-    private final UpdateCostUseCase updateCostUseCase;
+    private final CostCommandFacade costCommandFacade;
 
-    public CostController(
-            RegisterCostUseCase registerCostUseCase,
-            RetrieveCostDocumentUseCase retrieveCostDocumentUseCase,
-            DeleteCostUseCase deleteCostUseCase,
-            UpdateCostUseCase updateCostUseCase
-    ) {
-        this.registerCostUseCase = registerCostUseCase;
-        this.retrieveCostDocumentUseCase = retrieveCostDocumentUseCase;
-        this.deleteCostUseCase = deleteCostUseCase;
-        this.updateCostUseCase = updateCostUseCase;
+    public CostController(CostCommandFacade costCommandFacade) {
+        this.costCommandFacade = costCommandFacade;
     }
 
     @PostMapping("/labels/{labelId}/releases/{releaseId}/costs")
@@ -55,7 +40,7 @@ public class CostController {
             RegisterCostForm form,
             @RequestParam(value = "document", required = false) MultipartFile document
     ) throws IOException {
-        registerCostUseCase.registerCost(
+        costCommandFacade.registerCost(
                 form.toNetAmount(),
                 form.toVatAmount(),
                 form.toGrossAmount(),
@@ -75,7 +60,7 @@ public class CostController {
             RegisterCostForm form,
             @RequestParam(value = "document", required = false) MultipartFile document
     ) throws IOException {
-        registerCostUseCase.registerCost(
+        costCommandFacade.registerCost(
                 form.toNetAmount(),
                 form.toVatAmount(),
                 form.toGrossAmount(),
@@ -94,7 +79,7 @@ public class CostController {
             @PathVariable Long costId,
             @RequestParam(defaultValue = "view") String action
     ) {
-        RetrievedDocument document = retrieveCostDocumentUseCase.retrieveDocument(costId)
+        RetrievedDocument document = costCommandFacade.retrieveDocument(costId)
                 .orElseThrow(() -> new DocumentNotFoundException(costId));
 
         String disposition = "download".equals(action)
@@ -114,7 +99,7 @@ public class CostController {
             @PathVariable Long releaseId,
             @PathVariable Long costId
     ) {
-        deleteCostUseCase.deleteCost(costId);
+        costCommandFacade.deleteCost(costId);
         return "redirect:/labels/" + labelId + "/releases/" + releaseId;
     }
 
@@ -123,7 +108,7 @@ public class CostController {
             @PathVariable Long labelId,
             @PathVariable Long costId
     ) {
-        deleteCostUseCase.deleteCost(costId);
+        costCommandFacade.deleteCost(costId);
         return "redirect:/labels/" + labelId;
     }
 
@@ -135,7 +120,7 @@ public class CostController {
             RegisterCostForm form,
             @RequestParam(value = "document", required = false) MultipartFile document
     ) throws IOException {
-        updateCostUseCase.updateCost(
+        costCommandFacade.updateCost(
                 costId,
                 form.toNetAmount(),
                 form.toVatAmount(),
@@ -156,7 +141,7 @@ public class CostController {
             RegisterCostForm form,
             @RequestParam(value = "document", required = false) MultipartFile document
     ) throws IOException {
-        updateCostUseCase.updateCost(
+        costCommandFacade.updateCost(
                 costId,
                 form.toNetAmount(),
                 form.toVatAmount(),
