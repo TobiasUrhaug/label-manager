@@ -1,7 +1,8 @@
-package org.omt.labelmanager.finance.application;
+package org.omt.labelmanager.finance.cost.features;
 
-import org.omt.labelmanager.finance.infrastructure.persistence.cost.CostEntity;
-import org.omt.labelmanager.finance.infrastructure.persistence.cost.CostRepository;
+import org.omt.labelmanager.finance.cost.persistence.CostEntity;
+import org.omt.labelmanager.finance.cost.persistence.CostRepository;
+import org.omt.labelmanager.finance.cost.ports.DocumentStoragePort;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;

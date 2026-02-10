@@ -1,8 +1,9 @@
-package org.omt.labelmanager.finance.infrastructure.persistence.cost;
+package org.omt.labelmanager.finance.cost.persistence;
+
+import org.omt.labelmanager.finance.cost.domain.CostOwnerType;
+import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
-import org.omt.labelmanager.finance.domain.cost.CostOwnerType;
-import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface CostRepository extends JpaRepository<CostEntity, Long> {
 

@@ -2,8 +2,8 @@ package org.omt.labelmanager.infrastructure.storage;
 
 import java.io.InputStream;
 import java.util.UUID;
-import org.omt.labelmanager.finance.application.DocumentStoragePort;
-import org.omt.labelmanager.finance.application.RetrievedDocument;
+import org.omt.labelmanager.finance.cost.ports.DocumentStoragePort;
+import org.omt.labelmanager.finance.cost.RetrievedDocument;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;

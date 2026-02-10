@@ -1,4 +1,6 @@
-package org.omt.labelmanager.finance.application;
+package org.omt.labelmanager.finance.cost.ports;
+
+import org.omt.labelmanager.finance.cost.RetrievedDocument;
 
 import java.io.InputStream;
 

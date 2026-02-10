@@ -1,8 +1,10 @@
 package org.omt.labelmanager.finance.domain.cost;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import org.junit.jupiter.api.Test;
+import org.omt.labelmanager.finance.cost.domain.CostOwner;
+import org.omt.labelmanager.finance.cost.domain.CostOwnerType;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 class CostOwnerTest {
 

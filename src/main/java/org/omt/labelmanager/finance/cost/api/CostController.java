@@ -1,7 +1,12 @@
-package org.omt.labelmanager.finance.api.cost;
+package org.omt.labelmanager.finance.cost.api;
 
-import org.omt.labelmanager.finance.application.*;
-import org.omt.labelmanager.finance.domain.cost.CostOwner;
+import org.omt.labelmanager.finance.cost.DocumentUpload;
+import org.omt.labelmanager.finance.cost.RetrievedDocument;
+import org.omt.labelmanager.finance.cost.domain.CostOwner;
+import org.omt.labelmanager.finance.cost.features.DeleteCostUseCase;
+import org.omt.labelmanager.finance.cost.features.RegisterCostUseCase;
+import org.omt.labelmanager.finance.cost.features.RetrieveCostDocumentUseCase;
+import org.omt.labelmanager.finance.cost.features.UpdateCostUseCase;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;

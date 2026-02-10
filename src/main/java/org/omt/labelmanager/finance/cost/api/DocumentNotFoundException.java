@@ -1,4 +1,4 @@
-package org.omt.labelmanager.finance.api.cost;
+package org.omt.labelmanager.finance.cost.api;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;

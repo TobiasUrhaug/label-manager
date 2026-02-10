@@ -2,17 +2,15 @@ package org.omt.labelmanager.finance.cost;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.omt.labelmanager.catalog.infrastructure.persistence.release.ReleaseEntity;
-import org.omt.labelmanager.catalog.infrastructure.persistence.release.ReleaseRepository;
+import org.omt.labelmanager.catalog.release.ReleaseTestHelper;
 import org.omt.labelmanager.catalog.label.LabelTestHelper;
-import org.omt.labelmanager.finance.application.DocumentUpload;
-import org.omt.labelmanager.finance.application.RegisterCostUseCase;
-import org.omt.labelmanager.finance.domain.cost.CostOwner;
-import org.omt.labelmanager.finance.domain.cost.CostOwnerType;
-import org.omt.labelmanager.finance.domain.cost.CostType;
-import org.omt.labelmanager.finance.domain.cost.VatAmount;
+import org.omt.labelmanager.finance.cost.domain.CostOwner;
+import org.omt.labelmanager.finance.cost.domain.CostOwnerType;
+import org.omt.labelmanager.finance.cost.domain.CostType;
+import org.omt.labelmanager.finance.cost.domain.VatAmount;
+import org.omt.labelmanager.finance.cost.features.RegisterCostUseCase;
+import org.omt.labelmanager.finance.cost.persistence.CostRepository;
 import org.omt.labelmanager.finance.domain.shared.Money;
-import org.omt.labelmanager.finance.infrastructure.persistence.cost.CostRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.DynamicPropertyRegistry;
@@ -55,7 +53,7 @@ public class RegisterCostUseCaseIntegrationTest {
     LabelTestHelper labelTestHelper;
 
     @Autowired
-    ReleaseRepository releaseRepository;
+    ReleaseTestHelper releaseTestHelper;
 
     @Container
     static PostgreSQLContainer<?> postgres =
@@ -102,10 +100,8 @@ public class RegisterCostUseCaseIntegrationTest {
     @Test
     void registersCostForRelease() {
         var label = labelTestHelper.createLabel("Test Label");
-        var release = new ReleaseEntity();
-        release.setName("Test Release");
-        release.setLabelId(label.id());
-        release = releaseRepository.save(release);
+        Long releaseId = releaseTestHelper.createReleaseEntity(
+                "Test Release", label.id());
 
         registerCostUseCase.registerCost(
                 Money.of(new BigDecimal("100.00")),
@@ -114,12 +110,12 @@ public class RegisterCostUseCaseIntegrationTest {
                 CostType.MASTERING,
                 LocalDate.of(2024, 6, 15),
                 "Mastering for album",
-                CostOwner.release(release.getId()),
+                CostOwner.release(releaseId),
                 "INV-2024-001"
         );
 
         var costs = costRepository.findByOwnerOwnerTypeAndOwnerOwnerId(
-                CostOwnerType.RELEASE, release.getId());
+                CostOwnerType.RELEASE, releaseId);
         assertThat(costs).hasSize(1);
         assertThat(costs.getFirst().getNetAmount()).isEqualTo(new BigDecimal("100.00"));
         assertThat(costs.getFirst().getDescription()).isEqualTo("Mastering for album");
@@ -177,10 +173,8 @@ public class RegisterCostUseCaseIntegrationTest {
     @Test
     void registersCostWithDocumentUpload() {
         var label = labelTestHelper.createLabel("Label With Document");
-        var release = new ReleaseEntity();
-        release.setName("Release With Invoice");
-        release.setLabelId(label.id());
-        release = releaseRepository.save(release);
+        Long releaseId = releaseTestHelper.createReleaseEntity(
+                "Release With Invoice", label.id());
 
         String documentContent = "Invoice PDF content";
         var document = new DocumentUpload(
@@ -196,13 +190,13 @@ public class RegisterCostUseCaseIntegrationTest {
                 CostType.MASTERING,
                 LocalDate.of(2024, 8, 20),
                 "Mastering with invoice",
-                CostOwner.release(release.getId()),
+                CostOwner.release(releaseId),
                 "INV-2024-001",
                 document
         );
 
         var costs = costRepository.findByOwnerOwnerTypeAndOwnerOwnerId(
-                CostOwnerType.RELEASE, release.getId());
+                CostOwnerType.RELEASE, releaseId);
         assertThat(costs).hasSize(1);
         assertThat(costs.getFirst().getDocumentReference()).isEqualTo("INV-2024-001");
         assertThat(costs.getFirst().getDocumentStorageKey())

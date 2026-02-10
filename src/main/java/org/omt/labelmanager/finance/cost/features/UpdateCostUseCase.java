@@ -1,15 +1,18 @@
-package org.omt.labelmanager.finance.application;
+package org.omt.labelmanager.finance.cost.features;
 
-import java.time.LocalDate;
-import org.omt.labelmanager.finance.domain.cost.CostType;
-import org.omt.labelmanager.finance.domain.cost.VatAmount;
+import org.omt.labelmanager.finance.cost.DocumentUpload;
+import org.omt.labelmanager.finance.cost.domain.CostType;
+import org.omt.labelmanager.finance.cost.domain.VatAmount;
+import org.omt.labelmanager.finance.cost.persistence.CostEntity;
+import org.omt.labelmanager.finance.cost.persistence.CostRepository;
+import org.omt.labelmanager.finance.cost.ports.DocumentStoragePort;
 import org.omt.labelmanager.finance.domain.shared.Money;
-import org.omt.labelmanager.finance.infrastructure.persistence.cost.CostEntity;
-import org.omt.labelmanager.finance.infrastructure.persistence.cost.CostRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDate;
 
 @Service
 public class UpdateCostUseCase {

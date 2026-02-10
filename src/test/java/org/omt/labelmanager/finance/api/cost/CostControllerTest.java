@@ -1,37 +1,16 @@
 package org.omt.labelmanager.finance.api.cost;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.isNull;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
-import java.io.ByteArrayInputStream;
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.util.Optional;
 import org.junit.jupiter.api.Test;
-import org.omt.labelmanager.finance.application.DeleteCostUseCase;
-import org.omt.labelmanager.finance.application.DocumentUpload;
-import org.omt.labelmanager.finance.application.RegisterCostUseCase;
-import org.omt.labelmanager.finance.application.RetrieveCostDocumentUseCase;
-import org.omt.labelmanager.finance.application.RetrievedDocument;
-import org.omt.labelmanager.finance.application.UpdateCostUseCase;
-import org.omt.labelmanager.finance.domain.cost.CostOwner;
-import org.omt.labelmanager.finance.domain.cost.CostType;
-import org.omt.labelmanager.finance.domain.cost.VatAmount;
+import org.omt.labelmanager.finance.cost.DocumentUpload;
+import org.omt.labelmanager.finance.cost.RetrievedDocument;
+import org.omt.labelmanager.finance.cost.api.CostController;
+import org.omt.labelmanager.finance.cost.domain.CostOwner;
+import org.omt.labelmanager.finance.cost.domain.CostType;
+import org.omt.labelmanager.finance.cost.domain.VatAmount;
+import org.omt.labelmanager.finance.cost.features.DeleteCostUseCase;
+import org.omt.labelmanager.finance.cost.features.RegisterCostUseCase;
+import org.omt.labelmanager.finance.cost.features.RetrieveCostDocumentUseCase;
+import org.omt.labelmanager.finance.cost.features.UpdateCostUseCase;
 import org.omt.labelmanager.finance.domain.shared.Money;
 import org.omt.labelmanager.identity.application.AppUserDetails;
 import org.omt.labelmanager.test.TestSecurityConfig;
@@ -41,6 +20,19 @@ import org.springframework.context.annotation.Import;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+
+import java.io.ByteArrayInputStream;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.Optional;
+
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(CostController.class)
 @Import(TestSecurityConfig.class)

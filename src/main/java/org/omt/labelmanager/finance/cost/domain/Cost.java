@@ -1,8 +1,9 @@
-package org.omt.labelmanager.finance.domain.cost;
+package org.omt.labelmanager.finance.cost.domain;
+
+import org.omt.labelmanager.finance.cost.persistence.CostEntity;
+import org.omt.labelmanager.finance.domain.shared.Money;
 
 import java.time.LocalDate;
-import org.omt.labelmanager.finance.domain.shared.Money;
-import org.omt.labelmanager.finance.infrastructure.persistence.cost.CostEntity;
 
 public record Cost(
         Long id,

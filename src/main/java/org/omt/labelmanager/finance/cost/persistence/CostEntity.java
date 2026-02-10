@@ -1,17 +1,10 @@
-package org.omt.labelmanager.finance.infrastructure.persistence.cost;
+package org.omt.labelmanager.finance.cost.persistence;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Embedded;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
+import org.omt.labelmanager.finance.cost.domain.CostType;
+
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import org.omt.labelmanager.finance.domain.cost.CostType;
 
 @Entity
 @Table(name = "cost")

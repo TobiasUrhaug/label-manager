@@ -1,7 +1,8 @@
-package org.omt.labelmanager.finance.domain.cost;
+package org.omt.labelmanager.finance.cost.domain;
+
+import org.omt.labelmanager.finance.domain.shared.Money;
 
 import java.math.BigDecimal;
-import org.omt.labelmanager.finance.domain.shared.Money;
 
 public record VatAmount(Money amount, BigDecimal rate) {
 }

@@ -1,10 +1,11 @@
-package org.omt.labelmanager.finance.api.cost;
+package org.omt.labelmanager.finance.cost.api;
+
+import org.omt.labelmanager.finance.cost.domain.CostType;
+import org.omt.labelmanager.finance.cost.domain.VatAmount;
+import org.omt.labelmanager.finance.domain.shared.Money;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import org.omt.labelmanager.finance.domain.shared.Money;
-import org.omt.labelmanager.finance.domain.cost.CostType;
-import org.omt.labelmanager.finance.domain.cost.VatAmount;
 
 public class RegisterCostForm {
 

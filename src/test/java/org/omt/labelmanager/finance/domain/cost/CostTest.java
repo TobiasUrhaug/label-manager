@@ -1,13 +1,15 @@
 package org.omt.labelmanager.finance.domain.cost;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import org.junit.jupiter.api.Test;
+import org.omt.labelmanager.finance.cost.domain.*;
+import org.omt.labelmanager.finance.cost.persistence.CostEntity;
+import org.omt.labelmanager.finance.cost.persistence.CostOwnerEmbeddable;
+import org.omt.labelmanager.finance.domain.shared.Money;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import org.junit.jupiter.api.Test;
-import org.omt.labelmanager.finance.domain.shared.Money;
-import org.omt.labelmanager.finance.infrastructure.persistence.cost.CostEntity;
-import org.omt.labelmanager.finance.infrastructure.persistence.cost.CostOwnerEmbeddable;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 class CostTest {
 
