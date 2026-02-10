@@ -8,8 +8,7 @@ import org.omt.labelmanager.finance.cost.CostOwner;
 import org.omt.labelmanager.finance.cost.CostOwnerType;
 import org.omt.labelmanager.finance.cost.CostType;
 import org.omt.labelmanager.finance.cost.VatAmount;
-import org.omt.labelmanager.finance.cost.RegisterCostUseCase;
-import org.omt.labelmanager.finance.cost.CostRepository;
+import org.omt.labelmanager.finance.cost.api.CostCommandFacade;
 import org.omt.labelmanager.finance.domain.shared.Money;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -37,14 +36,14 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @Testcontainers
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-public class RegisterCostUseCaseIntegrationTest {
+public class CostCommandIntegrationTest {
 
     private static final String BUCKET = "costs";
     private static final String MINIO_ACCESS_KEY = "minioadmin";
     private static final String MINIO_SECRET_KEY = "minioadmin";
 
     @Autowired
-    RegisterCostUseCase registerCostUseCase;
+    CostCommandFacade costCommandFacade;
 
     @Autowired
     CostRepository costRepository;
@@ -103,7 +102,7 @@ public class RegisterCostUseCaseIntegrationTest {
         Long releaseId = releaseTestHelper.createReleaseEntity(
                 "Test Release", label.id());
 
-        registerCostUseCase.registerCost(
+        costCommandFacade.registerCost(
                 Money.of(new BigDecimal("100.00")),
                 new VatAmount(Money.of(new BigDecimal("25.00")), new BigDecimal("0.25")),
                 Money.of(new BigDecimal("125.00")),
@@ -125,7 +124,7 @@ public class RegisterCostUseCaseIntegrationTest {
     void registersCostForLabel() {
         var label = labelTestHelper.createLabel("Label With Cost");
 
-        registerCostUseCase.registerCost(
+        costCommandFacade.registerCost(
                 Money.of(new BigDecimal("50.00")),
                 new VatAmount(Money.of(new BigDecimal("12.50")), new BigDecimal("0.25")),
                 Money.of(new BigDecimal("62.50")),
@@ -144,7 +143,7 @@ public class RegisterCostUseCaseIntegrationTest {
 
     @Test
     void throwsWhenReleaseNotFound() {
-        assertThatThrownBy(() -> registerCostUseCase.registerCost(
+        assertThatThrownBy(() -> costCommandFacade.registerCost(
                 Money.of(new BigDecimal("100.00")),
                 new VatAmount(Money.of(new BigDecimal("25.00")), new BigDecimal("0.25")),
                 Money.of(new BigDecimal("125.00")),
@@ -158,7 +157,7 @@ public class RegisterCostUseCaseIntegrationTest {
 
     @Test
     void throwsWhenLabelNotFound() {
-        assertThatThrownBy(() -> registerCostUseCase.registerCost(
+        assertThatThrownBy(() -> costCommandFacade.registerCost(
                 Money.of(new BigDecimal("100.00")),
                 new VatAmount(Money.of(new BigDecimal("25.00")), new BigDecimal("0.25")),
                 Money.of(new BigDecimal("125.00")),
@@ -183,7 +182,7 @@ public class RegisterCostUseCaseIntegrationTest {
                 new ByteArrayInputStream(documentContent.getBytes(StandardCharsets.UTF_8))
         );
 
-        registerCostUseCase.registerCost(
+        costCommandFacade.registerCost(
                 Money.of(new BigDecimal("200.00")),
                 new VatAmount(Money.of(new BigDecimal("50.00")), new BigDecimal("0.25")),
                 Money.of(new BigDecimal("250.00")),
