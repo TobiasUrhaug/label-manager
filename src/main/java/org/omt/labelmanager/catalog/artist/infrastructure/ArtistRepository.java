@@ -1,13 +1,13 @@
-package org.omt.labelmanager.catalog.infrastructure.persistence.artist;
+package org.omt.labelmanager.catalog.artist.infrastructure;
 
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
+@Repository
 public interface ArtistRepository extends JpaRepository<ArtistEntity, Long> {
-
-    Optional<ArtistEntity> findByArtistName(String artistName);
-
     List<ArtistEntity> findByUserId(Long userId);
 
+    Optional<ArtistEntity> findByArtistName(String artistName);
 }

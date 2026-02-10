@@ -8,8 +8,8 @@ import java.util.Set;
 
 import org.junit.jupiter.api.Test;
 import org.omt.labelmanager.AbstractIntegrationTest;
-import org.omt.labelmanager.catalog.infrastructure.persistence.artist.ArtistEntity;
-import org.omt.labelmanager.catalog.infrastructure.persistence.artist.ArtistRepository;
+import org.omt.labelmanager.catalog.artist.infrastructure.ArtistEntity;
+import org.omt.labelmanager.catalog.artist.infrastructure.ArtistRepository;
 import org.omt.labelmanager.catalog.label.LabelTestHelper;
 import org.omt.labelmanager.catalog.release.api.ReleaseCommandApi;
 import org.omt.labelmanager.catalog.release.domain.ReleaseFormat;

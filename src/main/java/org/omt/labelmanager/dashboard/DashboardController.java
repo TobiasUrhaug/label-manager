@@ -1,6 +1,6 @@
 package org.omt.labelmanager.dashboard;
 
-import org.omt.labelmanager.catalog.application.ArtistCRUDHandler;
+import org.omt.labelmanager.catalog.artist.api.ArtistQueryApi;
 import org.omt.labelmanager.catalog.label.api.LabelQueryApi;
 import org.omt.labelmanager.identity.application.AppUserDetails;
 import org.slf4j.Logger;
@@ -16,21 +16,21 @@ public class DashboardController {
     private static final Logger log = LoggerFactory.getLogger(DashboardController.class);
 
     private final LabelQueryApi labelQueryFacade;
-    private final ArtistCRUDHandler artistCRUDHandler;
+    private final ArtistQueryApi artistQueryApi;
 
     public DashboardController(
             LabelQueryApi labelQueryFacade,
-            ArtistCRUDHandler artistCRUDHandler
+            ArtistQueryApi artistQueryApi
     ) {
         this.labelQueryFacade = labelQueryFacade;
-        this.artistCRUDHandler = artistCRUDHandler;
+        this.artistQueryApi = artistQueryApi;
     }
 
     @GetMapping("/dashboard")
     public String overview(@AuthenticationPrincipal AppUserDetails user, Model model) {
         log.debug("Loading dashboard for user {}", user.getId());
         var labels = labelQueryFacade.getLabelsForUser(user.getId());
-        var artists = artistCRUDHandler.getArtistsForUser(user.getId());
+        var artists = artistQueryApi.getArtistsForUser(user.getId());
 
         model.addAttribute("labels", labels);
         model.addAttribute("artists", artists);

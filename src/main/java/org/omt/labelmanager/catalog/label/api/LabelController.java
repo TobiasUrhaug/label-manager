@@ -1,7 +1,7 @@
 package org.omt.labelmanager.catalog.label.api;
 
-import org.omt.labelmanager.catalog.application.ArtistCRUDHandler;
-import org.omt.labelmanager.catalog.domain.artist.Artist;
+import org.omt.labelmanager.catalog.artist.api.ArtistQueryApi;
+import org.omt.labelmanager.catalog.artist.domain.Artist;
 import org.omt.labelmanager.catalog.release.domain.Release;
 import org.omt.labelmanager.catalog.release.domain.ReleaseFormat;
 import org.omt.labelmanager.catalog.release.api.ReleaseQueryApi;
@@ -31,19 +31,19 @@ public class LabelController {
     private final LabelCommandApi labelCommandHandler;
     private final LabelQueryApi labelQueryFacade;
     private final ReleaseQueryApi releaseQueryFacade;
-    private final ArtistCRUDHandler artistCRUDHandler;
+    private final ArtistQueryApi artistQueryApi;
     private final SalesChannelQueryService salesChannelQueryService;
 
     public LabelController(
             LabelCommandApi labelCommandHandler, LabelQueryApi labelQueryFacade,
             ReleaseQueryApi releaseQueryFacade,
-            ArtistCRUDHandler artistCRUDHandler,
+            ArtistQueryApi artistQueryApi,
             SalesChannelQueryService salesChannelQueryService
     ) {
         this.labelCommandHandler = labelCommandHandler;
         this.labelQueryFacade = labelQueryFacade;
         this.releaseQueryFacade = releaseQueryFacade;
-        this.artistCRUDHandler = artistCRUDHandler;
+        this.artistQueryApi = artistQueryApi;
         this.salesChannelQueryService = salesChannelQueryService;
     }
 
@@ -62,7 +62,7 @@ public class LabelController {
                         });
 
         List<Release> releases = releaseQueryFacade.getReleasesForLabel(id);
-        List<Artist> artists = artistCRUDHandler.getArtistsForUser(user.getId());
+        List<Artist> artists = artistQueryApi.getArtistsForUser(user.getId());
         List<SalesChannel> salesChannels = salesChannelQueryService.getSalesChannelsForLabel(id);
 
         model.addAttribute("name", label.name());

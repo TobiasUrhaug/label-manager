@@ -1,9 +1,9 @@
-package org.omt.labelmanager.catalog.api.artist;
+package org.omt.labelmanager.catalog.artist.api;
 
 import org.omt.labelmanager.catalog.domain.shared.Address;
 import org.omt.labelmanager.catalog.domain.shared.Person;
 
-public class UpdateArtistForm {
+public class CreateArtistForm {
 
     private String artistName;
     private String realName;

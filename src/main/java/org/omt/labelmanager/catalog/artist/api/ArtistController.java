@@ -1,7 +1,6 @@
-package org.omt.labelmanager.catalog.api.artist;
+package org.omt.labelmanager.catalog.artist.api;
 
-import org.omt.labelmanager.catalog.domain.artist.Artist;
-import org.omt.labelmanager.catalog.application.ArtistCRUDHandler;
+import org.omt.labelmanager.catalog.artist.domain.Artist;
 import org.omt.labelmanager.identity.application.AppUserDetails;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,16 +22,21 @@ public class ArtistController {
 
     private static final Logger log = LoggerFactory.getLogger(ArtistController.class);
 
-    private final ArtistCRUDHandler artistCRUDHandler;
+    private final ArtistCommandApi artistCommandApi;
+    private final ArtistQueryApi artistQueryApi;
 
-    public ArtistController(ArtistCRUDHandler artistCRUDHandler) {
-        this.artistCRUDHandler = artistCRUDHandler;
+    public ArtistController(
+            ArtistCommandApi artistCommandApi,
+            ArtistQueryApi artistQueryApi
+    ) {
+        this.artistCommandApi = artistCommandApi;
+        this.artistQueryApi = artistQueryApi;
     }
 
     @GetMapping("/{id}")
     public String artistView(@PathVariable Long id, Model model) {
         Artist artist =
-                artistCRUDHandler
+                artistQueryApi
                         .findById(id)
                         .orElseThrow(() -> {
                             log.warn("Artist with id {} not found", id);
@@ -53,7 +57,7 @@ public class ArtistController {
             @AuthenticationPrincipal AppUserDetails user,
             CreateArtistForm form
     ) {
-        artistCRUDHandler.createArtist(
+        artistCommandApi.createArtist(
                 form.getArtistName(),
                 form.toRealName(),
                 form.getEmail(),
@@ -65,7 +69,7 @@ public class ArtistController {
 
     @PutMapping("/{id}")
     public String updateArtist(@PathVariable Long id, UpdateArtistForm form) {
-        artistCRUDHandler.updateArtist(
+        artistCommandApi.updateArtist(
                 id,
                 form.getArtistName(),
                 form.toRealName(),
@@ -77,7 +81,7 @@ public class ArtistController {
 
     @DeleteMapping("/{id}")
     public String deleteArtist(@PathVariable Long id) {
-        artistCRUDHandler.delete(id);
+        artistCommandApi.delete(id);
         return "redirect:/dashboard";
     }
 }

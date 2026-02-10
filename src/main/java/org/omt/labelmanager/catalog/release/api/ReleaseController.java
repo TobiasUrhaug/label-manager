@@ -1,7 +1,7 @@
 package org.omt.labelmanager.catalog.release.api;
 
-import org.omt.labelmanager.catalog.application.ArtistCRUDHandler;
-import org.omt.labelmanager.catalog.domain.artist.Artist;
+import org.omt.labelmanager.catalog.artist.api.ArtistQueryApi;
+import org.omt.labelmanager.catalog.artist.domain.Artist;
 import org.omt.labelmanager.catalog.release.domain.Release;
 import org.omt.labelmanager.catalog.release.domain.ReleaseFormat;
 import org.omt.labelmanager.catalog.release.domain.Track;
@@ -42,7 +42,7 @@ public class ReleaseController {
 
     private final ReleaseCommandApi releaseCommandApi;
     private final ReleaseQueryApi releaseQueryApi;
-    private final ArtistCRUDHandler artistCRUDHandler;
+    private final ArtistQueryApi artistQueryApi;
     private final CostQueryApi costQueryFacade;
     private final ProductionRunQueryService productionRunQueryService;
     private final AllocationQueryService allocationQueryService;
@@ -51,7 +51,7 @@ public class ReleaseController {
     public ReleaseController(
             ReleaseCommandApi releaseCommandApi,
             ReleaseQueryApi releaseQueryApi,
-            ArtistCRUDHandler artistCRUDHandler,
+            ArtistQueryApi artistQueryApi,
             CostQueryApi costQueryFacade,
             ProductionRunQueryService productionRunQueryService,
             AllocationQueryService allocationQueryService,
@@ -59,7 +59,7 @@ public class ReleaseController {
     ) {
         this.releaseCommandApi = releaseCommandApi;
         this.releaseQueryApi = releaseQueryApi;
-        this.artistCRUDHandler = artistCRUDHandler;
+        this.artistQueryApi = artistQueryApi;
         this.costQueryFacade = costQueryFacade;
         this.productionRunQueryService = productionRunQueryService;
         this.allocationQueryService = allocationQueryService;
@@ -105,7 +105,7 @@ public class ReleaseController {
                 });
 
         List<Artist> allArtists =
-                artistCRUDHandler.getArtistsForUser(user.getId());
+                artistQueryApi.getArtistsForUser(user.getId());
         Map<Long, Artist> artistMap = allArtists.stream()
                 .collect(Collectors.toMap(
                         Artist::id, Function.identity()

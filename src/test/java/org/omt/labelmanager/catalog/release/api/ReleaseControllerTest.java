@@ -1,8 +1,8 @@
 package org.omt.labelmanager.catalog.release.api;
 
 import org.junit.jupiter.api.Test;
-import org.omt.labelmanager.catalog.application.ArtistCRUDHandler;
-import org.omt.labelmanager.catalog.domain.artist.ArtistFactory;
+import org.omt.labelmanager.catalog.artist.api.ArtistQueryApi;
+import org.omt.labelmanager.catalog.artist.domain.ArtistFactory;
 import org.omt.labelmanager.catalog.release.ReleaseFactory;
 import org.omt.labelmanager.catalog.release.domain.ReleaseFormat;
 import org.omt.labelmanager.catalog.release.TrackFactory;
@@ -49,7 +49,7 @@ class ReleaseControllerTest {
     private ReleaseQueryApi releaseQueryFacade;
 
     @MockitoBean
-    private ArtistCRUDHandler artistCRUDHandler;
+    private ArtistQueryApi artistQueryApi;
 
     @MockitoBean
     private CostQueryApi costQueryFacade;
@@ -102,7 +102,7 @@ class ReleaseControllerTest {
                 .thenReturn(Optional.of(label));
         when(releaseQueryFacade.findById(4L))
                 .thenReturn(Optional.of(release));
-        when(artistCRUDHandler.getArtistsForUser(1L))
+        when(artistQueryApi.getArtistsForUser(1L))
                 .thenReturn(List.of(artist, anotherArtist));
 
         mockMvc.perform(

@@ -1,8 +1,8 @@
 package org.omt.labelmanager.catalog.label.api;
 
 import org.junit.jupiter.api.Test;
-import org.omt.labelmanager.catalog.application.ArtistCRUDHandler;
-import org.omt.labelmanager.catalog.domain.artist.ArtistFactory;
+import org.omt.labelmanager.catalog.artist.api.ArtistQueryApi;
+import org.omt.labelmanager.catalog.artist.domain.ArtistFactory;
 import org.omt.labelmanager.catalog.domain.shared.Address;
 import org.omt.labelmanager.catalog.domain.shared.Person;
 import org.omt.labelmanager.catalog.release.ReleaseFactory;
@@ -46,7 +46,7 @@ class LabelControllerTest {
     private ReleaseQueryApi releaseQueryFacade;
 
     @MockitoBean
-    private ArtistCRUDHandler artistCRUDHandler;
+    private ArtistQueryApi artistQueryApi;
 
     @MockitoBean
     private SalesChannelQueryService salesChannelQueryService;
@@ -68,7 +68,7 @@ class LabelControllerTest {
         when(releaseQueryFacade.getReleasesForLabel(1L)).thenReturn(List.of(release));
 
         var artist = ArtistFactory.anArtist().id(1L).artistName("Unknown").build();
-        when(artistCRUDHandler.getArtistsForUser(1L)).thenReturn(List.of(artist));
+        when(artistQueryApi.getArtistsForUser(1L)).thenReturn(List.of(artist));
 
         var salesChannel = SalesChannelFactory.aSalesChannel().id(1L).name("Direct Sales").build();
         when(salesChannelQueryService.getSalesChannelsForLabel(1L)).thenReturn(List.of(salesChannel));

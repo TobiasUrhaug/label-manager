@@ -1,4 +1,4 @@
-package org.omt.labelmanager.catalog.infrastructure.persistence.artist;
+package org.omt.labelmanager.catalog.artist.infrastructure;
 
 import jakarta.persistence.AttributeOverride;
 import jakarta.persistence.Column;

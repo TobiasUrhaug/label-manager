@@ -1,6 +1,6 @@
-package org.omt.labelmanager.catalog.domain.artist;
+package org.omt.labelmanager.catalog.artist.domain;
 
-import org.omt.labelmanager.catalog.infrastructure.persistence.artist.ArtistEntity;
+import org.omt.labelmanager.catalog.artist.infrastructure.ArtistEntity;
 import org.omt.labelmanager.catalog.domain.shared.Address;
 import org.omt.labelmanager.catalog.domain.shared.Person;
 

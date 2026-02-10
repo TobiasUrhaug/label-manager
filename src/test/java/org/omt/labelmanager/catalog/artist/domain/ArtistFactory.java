@@ -1,4 +1,4 @@
-package org.omt.labelmanager.catalog.domain.artist;
+package org.omt.labelmanager.catalog.artist.domain;
 
 import java.util.concurrent.atomic.AtomicLong;
 import org.omt.labelmanager.catalog.domain.shared.Address;

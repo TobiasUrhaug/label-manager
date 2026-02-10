@@ -1,4 +1,4 @@
-package org.omt.labelmanager.catalog.api.artist;
+package org.omt.labelmanager.catalog.artist.api;
 
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -15,12 +15,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
-import org.omt.labelmanager.catalog.application.ArtistCRUDHandler;
-import org.omt.labelmanager.catalog.domain.artist.ArtistFactory;
+import org.omt.labelmanager.catalog.artist.domain.ArtistFactory;
 import org.omt.labelmanager.catalog.domain.shared.Address;
 import org.omt.labelmanager.catalog.domain.shared.Person;
-import org.omt.labelmanager.test.TestSecurityConfig;
 import org.omt.labelmanager.identity.application.AppUserDetails;
+import org.omt.labelmanager.test.TestSecurityConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
@@ -35,7 +34,10 @@ class ArtistControllerTest {
     private MockMvc mockMvc;
 
     @MockitoBean
-    private ArtistCRUDHandler artistCRUDHandler;
+    private ArtistCommandApi artistCommandApi;
+
+    @MockitoBean
+    private ArtistQueryApi artistQueryApi;
 
     private final AppUserDetails testUser =
             new AppUserDetails(1L, "test@example.com", "password", "Test User");
@@ -48,7 +50,7 @@ class ArtistControllerTest {
                 .realName(new Person("John Smith"))
                 .email("dj@cool.com")
                 .build();
-        when(artistCRUDHandler.findById(1L)).thenReturn(Optional.of(artist));
+        when(artistQueryApi.findById(1L)).thenReturn(Optional.of(artist));
 
         mockMvc
                 .perform(get("/artists/1").with(user(testUser)))
@@ -61,7 +63,7 @@ class ArtistControllerTest {
 
     @Test
     void artist_returns404_whenNotFound() throws Exception {
-        when(artistCRUDHandler.findById(999L)).thenReturn(Optional.empty());
+        when(artistQueryApi.findById(999L)).thenReturn(Optional.empty());
 
         mockMvc
                 .perform(get("/artists/999").with(user(testUser)))
@@ -80,7 +82,7 @@ class ArtistControllerTest {
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/dashboard"));
 
-        verify(artistCRUDHandler).createArtist(
+        verify(artistCommandApi).createArtist(
                 "New Artist",
                 new Person("Real Name"),
                 "artist@email.com",
@@ -103,7 +105,7 @@ class ArtistControllerTest {
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/dashboard"));
 
-        verify(artistCRUDHandler).createArtist(
+        verify(artistCommandApi).createArtist(
                 "New Artist",
                 null,
                 null,
@@ -129,7 +131,7 @@ class ArtistControllerTest {
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/artists/1"));
 
-        verify(artistCRUDHandler).updateArtist(
+        verify(artistCommandApi).updateArtist(
                 1L,
                 "Updated Artist",
                 new Person("New Real Name"),
@@ -147,6 +149,6 @@ class ArtistControllerTest {
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/dashboard"));
 
-        verify(artistCRUDHandler).delete(1L);
+        verify(artistCommandApi).delete(1L);
     }
 }
