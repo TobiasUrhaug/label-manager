@@ -13,14 +13,14 @@ import java.time.LocalDate;
 import java.util.Optional;
 
 @Service
-class CostCommandHandler implements CostCommandApi {
+class CostCommandApiImpl implements CostCommandApi {
 
     private final RegisterCostUseCase registerCostUseCase;
     private final UpdateCostUseCase updateCostUseCase;
     private final DeleteCostUseCase deleteCostUseCase;
     private final RetrieveCostDocumentUseCase retrieveCostDocumentUseCase;
 
-    CostCommandHandler(
+    CostCommandApiImpl(
             RegisterCostUseCase registerCostUseCase,
             UpdateCostUseCase updateCostUseCase,
             DeleteCostUseCase deleteCostUseCase,
