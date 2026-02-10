@@ -3,6 +3,7 @@ package org.omt.labelmanager.catalog.label.infrastructure;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
+import org.omt.labelmanager.AbstractIntegrationTest;
 import org.omt.labelmanager.catalog.infrastructure.persistence.shared.AddressEmbeddable;
 import org.omt.labelmanager.catalog.infrastructure.persistence.shared.PersonEmbeddable;
 import org.omt.labelmanager.catalog.label.infrastructure.LabelEntity;
@@ -10,36 +11,14 @@ import org.omt.labelmanager.catalog.label.infrastructure.LabelRepository;
 import org.omt.labelmanager.identity.infrastructure.persistence.user.UserEntity;
 import org.omt.labelmanager.identity.infrastructure.persistence.user.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
-import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
 
-@SpringBootTest
-@Testcontainers
-class LabelRepositoryIntegrationTest {
+public class LabelRepositoryIntegrationTest extends AbstractIntegrationTest {
 
     @Autowired
     LabelRepository repo;
 
     @Autowired
     UserRepository userRepository;
-
-    @Container
-    static PostgreSQLContainer<?> postgres =
-            new PostgreSQLContainer<>("postgres:16-alpine")
-                    .withDatabaseName("testdb")
-                    .withUsername("test")
-                    .withPassword("test");
-
-    @DynamicPropertySource
-    static void dbProperties(DynamicPropertyRegistry registry) {
-        registry.add("spring.datasource.url", postgres::getJdbcUrl);
-        registry.add("spring.datasource.username", postgres::getUsername);
-        registry.add("spring.datasource.password", postgres::getPassword);
-    }
 
     @Test
     void labelWithAddress_persistsAndRetrievesAddress() {
