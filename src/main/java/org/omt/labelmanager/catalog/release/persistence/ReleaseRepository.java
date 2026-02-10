@@ -1,10 +1,10 @@
-package org.omt.labelmanager.catalog.release;
+package org.omt.labelmanager.catalog.release.persistence;
 
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-interface ReleaseRepository extends JpaRepository<ReleaseEntity, Long> {
+public interface ReleaseRepository extends JpaRepository<ReleaseEntity, Long> {
 
     List<ReleaseEntity> findByLabelId(Long labelId);
 

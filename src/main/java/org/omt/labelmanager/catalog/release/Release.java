@@ -3,6 +3,7 @@ package org.omt.labelmanager.catalog.release;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Set;
+import org.omt.labelmanager.catalog.release.persistence.ReleaseEntity;
 
 public record Release(
         Long id,

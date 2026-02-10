@@ -1,4 +1,4 @@
-package org.omt.labelmanager.catalog.release;
+package org.omt.labelmanager.catalog.release.persistence;
 
 import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
@@ -13,12 +13,13 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.Table;
 import java.time.LocalDate;
+import org.omt.labelmanager.catalog.release.ReleaseFormat;
 import java.util.HashSet;
 import java.util.Set;
 
 @Entity
 @Table(name = "release")
-class ReleaseEntity {
+public class ReleaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -40,9 +41,9 @@ class ReleaseEntity {
     @Enumerated(EnumType.STRING)
     private Set<ReleaseFormat> formats = new HashSet<>();
 
-    protected ReleaseEntity() {}
+    public ReleaseEntity() {}
 
-    ReleaseEntity(
+    public ReleaseEntity(
             Long id,
             String name,
             LocalDate releaseDate,
@@ -54,43 +55,43 @@ class ReleaseEntity {
         this.labelId = labelId;
     }
 
-    Long getId() {
+    public Long getId() {
         return id;
     }
 
-    void setId(Long id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
-    String getName() {
+    public String getName() {
         return name;
     }
 
-    void setName(String name) {
+    public void setName(String name) {
         this.name = name;
     }
 
-    LocalDate getReleaseDate() {
+    public LocalDate getReleaseDate() {
         return releaseDate;
     }
 
-    void setReleaseDate(LocalDate releaseDate) {
+    public void setReleaseDate(LocalDate releaseDate) {
         this.releaseDate = releaseDate;
     }
 
-    Long getLabelId() {
+    public Long getLabelId() {
         return labelId;
     }
 
-    void setLabelId(Long labelId) {
+    public void setLabelId(Long labelId) {
         this.labelId = labelId;
     }
 
-    Set<ReleaseFormat> getFormats() {
+    public Set<ReleaseFormat> getFormats() {
         return formats;
     }
 
-    void setFormats(Set<ReleaseFormat> formats) {
+    public void setFormats(Set<ReleaseFormat> formats) {
         this.formats = formats;
     }
 }

@@ -1,6 +1,8 @@
 package org.omt.labelmanager.catalog.release;
 
 import org.omt.labelmanager.catalog.release.api.ReleaseCommandFacade;
+import org.omt.labelmanager.catalog.release.persistence.ReleaseEntity;
+import org.omt.labelmanager.catalog.release.persistence.ReleaseRepository;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;

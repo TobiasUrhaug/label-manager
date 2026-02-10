@@ -5,6 +5,9 @@ import org.omt.labelmanager.catalog.infrastructure.persistence.artist.ArtistEnti
 import org.omt.labelmanager.catalog.infrastructure.persistence.artist.ArtistRepository;
 import org.omt.labelmanager.catalog.release.api.ReleaseCommandFacade;
 import org.omt.labelmanager.catalog.release.api.ReleaseQueryFacade;
+import org.omt.labelmanager.catalog.release.persistence.ReleaseArtistRepository;
+import org.omt.labelmanager.catalog.release.persistence.ReleaseRepository;
+import org.omt.labelmanager.catalog.release.persistence.TrackRepository;
 import org.omt.labelmanager.catalog.label.LabelTestHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;

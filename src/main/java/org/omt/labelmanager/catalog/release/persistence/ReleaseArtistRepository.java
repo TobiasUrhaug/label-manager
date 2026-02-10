@@ -1,4 +1,4 @@
-package org.omt.labelmanager.catalog.release;
+package org.omt.labelmanager.catalog.release.persistence;
 
 import java.util.List;
 import org.springframework.data.jpa.repository.Modifying;
@@ -7,7 +7,7 @@ import org.springframework.data.repository.Repository;
 import org.springframework.data.repository.query.Param;
 
 @org.springframework.stereotype.Repository
-interface ReleaseArtistRepository
+public interface ReleaseArtistRepository
         extends Repository<ReleaseEntity, Long> {
 
     @Query(value = """

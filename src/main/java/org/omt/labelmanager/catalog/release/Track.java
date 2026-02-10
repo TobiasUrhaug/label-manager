@@ -1,6 +1,7 @@
 package org.omt.labelmanager.catalog.release;
 
 import java.util.List;
+import org.omt.labelmanager.catalog.release.persistence.TrackEntity;
 
 public record Track(
         Long id,
