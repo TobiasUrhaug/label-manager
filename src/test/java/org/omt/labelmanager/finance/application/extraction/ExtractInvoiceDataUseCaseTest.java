@@ -15,6 +15,8 @@ import java.time.LocalDate;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.omt.labelmanager.finance.extraction.domain.ExtractedInvoiceData;
+import org.omt.labelmanager.finance.extraction.infrastructure.InvoiceParserPort;
+import org.omt.labelmanager.finance.extraction.infrastructure.OcrPort;
 
 class ExtractInvoiceDataUseCaseTest {
 

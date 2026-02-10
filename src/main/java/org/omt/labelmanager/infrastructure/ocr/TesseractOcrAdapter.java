@@ -11,7 +11,7 @@ import javax.imageio.ImageIO;
 import net.sourceforge.tess4j.ITesseract;
 import net.sourceforge.tess4j.Tesseract;
 import net.sourceforge.tess4j.TesseractException;
-import org.omt.labelmanager.finance.application.extraction.OcrPort;
+import org.omt.labelmanager.finance.extraction.infrastructure.OcrPort;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;

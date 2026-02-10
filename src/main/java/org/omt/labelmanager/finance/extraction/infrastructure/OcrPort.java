@@ -1,4 +1,4 @@
-package org.omt.labelmanager.finance.application.extraction;
+package org.omt.labelmanager.finance.extraction.infrastructure;
 
 import java.io.InputStream;
 
