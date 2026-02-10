@@ -18,7 +18,7 @@ public record Cost(
         String documentStorageKey
 ) {
 
-    public static Cost fromEntity(CostEntity entity) {
+    static Cost fromEntity(CostEntity entity) {
         String currency = entity.getCurrency();
         return new Cost(
                 entity.getId(),
