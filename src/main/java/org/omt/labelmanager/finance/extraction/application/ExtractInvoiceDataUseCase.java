@@ -13,7 +13,7 @@ import org.springframework.stereotype.Service;
  * Orchestrates OCR text extraction followed by LLM-based field parsing.
  */
 @Service
-public class ExtractInvoiceDataUseCase {
+class ExtractInvoiceDataUseCase {
 
     private static final Logger log = LoggerFactory.getLogger(ExtractInvoiceDataUseCase.class);
 

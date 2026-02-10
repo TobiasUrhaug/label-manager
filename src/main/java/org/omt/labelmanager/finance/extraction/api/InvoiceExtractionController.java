@@ -1,9 +1,7 @@
-package org.omt.labelmanager.finance.api.extraction;
+package org.omt.labelmanager.finance.extraction.api;
 
 import java.io.IOException;
 import java.util.Set;
-import org.omt.labelmanager.finance.cost.api.InvalidDocumentTypeException;
-import org.omt.labelmanager.finance.extraction.application.ExtractInvoiceDataUseCase;
 import org.omt.labelmanager.finance.extraction.domain.ExtractedInvoiceData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,10 +24,10 @@ public class InvoiceExtractionController {
             "image/jpeg"
     );
 
-    private final ExtractInvoiceDataUseCase extractInvoiceDataUseCase;
+    private final ExtractionCommandApi extractionCommandApi;
 
-    public InvoiceExtractionController(ExtractInvoiceDataUseCase extractInvoiceDataUseCase) {
-        this.extractInvoiceDataUseCase = extractInvoiceDataUseCase;
+    public InvoiceExtractionController(ExtractionCommandApi extractionCommandApi) {
+        this.extractionCommandApi = extractionCommandApi;
     }
 
     @PostMapping("/extract")
@@ -49,7 +47,7 @@ public class InvoiceExtractionController {
 
         log.info("Extracting invoice data from document: {}", document.getOriginalFilename());
 
-        ExtractedInvoiceData result = extractInvoiceDataUseCase.extract(
+        ExtractedInvoiceData result = extractionCommandApi.extract(
                 document.getInputStream(),
                 contentType
         );

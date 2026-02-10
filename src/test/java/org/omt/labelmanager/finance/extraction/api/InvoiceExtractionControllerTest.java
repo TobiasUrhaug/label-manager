@@ -1,4 +1,4 @@
-package org.omt.labelmanager.finance.api.extraction;
+package org.omt.labelmanager.finance.extraction.api;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -12,7 +12,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import org.junit.jupiter.api.Test;
-import org.omt.labelmanager.finance.extraction.application.ExtractInvoiceDataUseCase;
 import org.omt.labelmanager.finance.extraction.domain.ExtractedInvoiceData;
 import org.omt.labelmanager.identity.application.AppUserDetails;
 import org.omt.labelmanager.test.TestSecurityConfig;
@@ -31,7 +30,7 @@ class InvoiceExtractionControllerTest {
     private MockMvc mockMvc;
 
     @MockitoBean
-    private ExtractInvoiceDataUseCase extractInvoiceDataUseCase;
+    private ExtractionCommandApi extractionCommandApi;
 
     private final AppUserDetails testUser =
             new AppUserDetails(1L, "test@example.com", "password", "Test User");
@@ -45,7 +44,7 @@ class InvoiceExtractionControllerTest {
                 "pdf content".getBytes()
         );
 
-        when(extractInvoiceDataUseCase.extract(any(), eq("application/pdf")))
+        when(extractionCommandApi.extract(any(), eq("application/pdf")))
                 .thenReturn(new ExtractedInvoiceData(
                         new BigDecimal("100.00"),
                         new BigDecimal("21.00"),
@@ -79,7 +78,7 @@ class InvoiceExtractionControllerTest {
                 "image content".getBytes()
         );
 
-        when(extractInvoiceDataUseCase.extract(any(), eq("image/png")))
+        when(extractionCommandApi.extract(any(), eq("image/png")))
                 .thenReturn(new ExtractedInvoiceData(
                         new BigDecimal("50.00"),
                         null,
@@ -133,7 +132,7 @@ class InvoiceExtractionControllerTest {
                 "pdf content".getBytes()
         );
 
-        when(extractInvoiceDataUseCase.extract(any(), eq("application/pdf")))
+        when(extractionCommandApi.extract(any(), eq("application/pdf")))
                 .thenReturn(ExtractedInvoiceData.empty());
 
         mockMvc.perform(multipart("/api/costs/extract")
