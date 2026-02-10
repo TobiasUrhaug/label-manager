@@ -15,7 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 
 @Service
-public class UpdateCostUseCase {
+class UpdateCostUseCase {
 
     private static final Logger log = LoggerFactory.getLogger(UpdateCostUseCase.class);
 

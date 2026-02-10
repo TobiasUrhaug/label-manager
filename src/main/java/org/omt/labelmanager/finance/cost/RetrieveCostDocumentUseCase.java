@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service;
 import java.util.Optional;
 
 @Service
-public class RetrieveCostDocumentUseCase {
+class RetrieveCostDocumentUseCase {
 
     private final CostRepository costRepository;
     private final DocumentStoragePort documentStorage;

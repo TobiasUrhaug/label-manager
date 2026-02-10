@@ -20,7 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 
 @Service
-public class RegisterCostUseCase {
+class RegisterCostUseCase {
 
     private static final Logger log = LoggerFactory.getLogger(RegisterCostUseCase.class);
 
