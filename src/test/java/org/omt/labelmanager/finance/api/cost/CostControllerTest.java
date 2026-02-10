@@ -61,7 +61,7 @@ class CostControllerTest {
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/labels/1/releases/42"));
 
-        verify(registerCostUseCase).registerCost(
+        verify(costCommandFacade).registerCost(
                 eq(Money.of(new BigDecimal("100.00"))),
                 eq(new VatAmount(Money.of(new BigDecimal("25.00")), new BigDecimal("0.25"))),
                 eq(Money.of(new BigDecimal("125.00"))),
@@ -90,7 +90,7 @@ class CostControllerTest {
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/labels/10"));
 
-        verify(registerCostUseCase).registerCost(
+        verify(costCommandFacade).registerCost(
                 eq(Money.of(new BigDecimal("50.00"))),
                 eq(new VatAmount(Money.of(new BigDecimal("12.50")), new BigDecimal("0.25"))),
                 eq(Money.of(new BigDecimal("62.50"))),
@@ -127,7 +127,7 @@ class CostControllerTest {
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/labels/1/releases/42"));
 
-        verify(registerCostUseCase).registerCost(
+        verify(costCommandFacade).registerCost(
                 eq(Money.of(new BigDecimal("100.00"))),
                 eq(new VatAmount(Money.of(new BigDecimal("25.00")), new BigDecimal("0.25"))),
                 eq(Money.of(new BigDecimal("125.00"))),
@@ -191,7 +191,7 @@ class CostControllerTest {
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/labels/10"));
 
-        verify(registerCostUseCase).registerCost(
+        verify(costCommandFacade).registerCost(
                 any(), any(), any(), any(), any(), any(), any(), any(),
                 argThat((DocumentUpload doc) ->
                         doc != null
@@ -271,7 +271,7 @@ class CostControllerTest {
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/labels/1/releases/42"));
 
-        verify(deleteCostUseCase).deleteCost(99L);
+        verify(costCommandFacade).deleteCost(99L);
     }
 
     @Test
@@ -285,7 +285,7 @@ class CostControllerTest {
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/labels/10"));
 
-        verify(deleteCostUseCase).deleteCost(99L);
+        verify(costCommandFacade).deleteCost(99L);
     }
 
     @Test
@@ -309,7 +309,7 @@ class CostControllerTest {
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/labels/1/releases/42"));
 
-        verify(updateCostUseCase).updateCost(
+        verify(costCommandFacade).updateCost(
                 eq(99L),
                 eq(Money.of(new BigDecimal("200.00"))),
                 eq(new VatAmount(Money.of(new BigDecimal("50.00")), new BigDecimal("0.25"))),
@@ -342,7 +342,7 @@ class CostControllerTest {
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/labels/10"));
 
-        verify(updateCostUseCase).updateCost(
+        verify(costCommandFacade).updateCost(
                 eq(99L),
                 eq(Money.of(new BigDecimal("75.00"))),
                 eq(new VatAmount(Money.of(new BigDecimal("18.75")), new BigDecimal("0.25"))),

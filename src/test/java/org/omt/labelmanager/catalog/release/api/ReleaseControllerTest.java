@@ -8,7 +8,7 @@ import org.omt.labelmanager.catalog.release.ReleaseFormat;
 import org.omt.labelmanager.catalog.release.TrackFactory;
 import org.omt.labelmanager.catalog.label.LabelFactory;
 import org.omt.labelmanager.catalog.label.api.LabelQueryFacade;
-import org.omt.labelmanager.finance.cost.CostQueryService;
+import org.omt.labelmanager.finance.cost.api.CostQueryFacade;
 import org.omt.labelmanager.identity.application.AppUserDetails;
 import org.omt.labelmanager.inventory.allocation.AllocationQueryService;
 import org.omt.labelmanager.inventory.application.ProductionRunQueryService;
@@ -52,7 +52,7 @@ class ReleaseControllerTest {
     private ArtistCRUDHandler artistCRUDHandler;
 
     @MockitoBean
-    private CostQueryService costQueryService;
+    private CostQueryFacade costQueryFacade;
 
     @MockitoBean
     private ProductionRunQueryService productionRunQueryService;

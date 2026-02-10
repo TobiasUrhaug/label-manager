@@ -5,8 +5,8 @@ import org.omt.labelmanager.catalog.domain.artist.Artist;
 import org.omt.labelmanager.catalog.release.Release;
 import org.omt.labelmanager.catalog.release.ReleaseFormat;
 import org.omt.labelmanager.catalog.release.Track;
-import org.omt.labelmanager.finance.cost.CostQueryService;
 import org.omt.labelmanager.finance.cost.Cost;
+import org.omt.labelmanager.finance.cost.api.CostQueryFacade;
 import org.omt.labelmanager.finance.cost.CostType;
 import org.omt.labelmanager.identity.application.AppUserDetails;
 import org.omt.labelmanager.inventory.allocation.AllocationQueryService;
@@ -43,7 +43,7 @@ public class ReleaseController {
     private final ReleaseCommandFacade releaseCommandFacade;
     private final ReleaseQueryFacade releaseQueryFacade;
     private final ArtistCRUDHandler artistCRUDHandler;
-    private final CostQueryService costQueryService;
+    private final CostQueryFacade costQueryFacade;
     private final ProductionRunQueryService productionRunQueryService;
     private final AllocationQueryService allocationQueryService;
     private final SalesChannelQueryService salesChannelQueryService;
@@ -52,7 +52,7 @@ public class ReleaseController {
             ReleaseCommandFacade releaseCommandFacade,
             ReleaseQueryFacade releaseQueryFacade,
             ArtistCRUDHandler artistCRUDHandler,
-            CostQueryService costQueryService,
+            CostQueryFacade costQueryFacade,
             ProductionRunQueryService productionRunQueryService,
             AllocationQueryService allocationQueryService,
             SalesChannelQueryService salesChannelQueryService
@@ -60,7 +60,7 @@ public class ReleaseController {
         this.releaseCommandFacade = releaseCommandFacade;
         this.releaseQueryFacade = releaseQueryFacade;
         this.artistCRUDHandler = artistCRUDHandler;
-        this.costQueryService = costQueryService;
+        this.costQueryFacade = costQueryFacade;
         this.productionRunQueryService = productionRunQueryService;
         this.allocationQueryService = allocationQueryService;
         this.salesChannelQueryService = salesChannelQueryService;
@@ -113,7 +113,7 @@ public class ReleaseController {
         List<String> releaseArtistNames =
                 resolveArtistNames(release.artistIds(), artistMap);
         List<Cost> costs =
-                costQueryService.getCostsForRelease(releaseId);
+                costQueryFacade.getCostsForRelease(releaseId);
         List<ProductionRun> productionRuns =
                 productionRunQueryService
                         .getProductionRunsForRelease(releaseId);
