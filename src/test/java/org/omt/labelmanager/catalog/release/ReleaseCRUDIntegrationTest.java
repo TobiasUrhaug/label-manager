@@ -3,11 +3,15 @@ package org.omt.labelmanager.catalog.release;
 import org.junit.jupiter.api.Test;
 import org.omt.labelmanager.catalog.infrastructure.persistence.artist.ArtistEntity;
 import org.omt.labelmanager.catalog.infrastructure.persistence.artist.ArtistRepository;
-import org.omt.labelmanager.catalog.release.api.ReleaseCommandFacade;
-import org.omt.labelmanager.catalog.release.api.ReleaseQueryFacade;
-import org.omt.labelmanager.catalog.release.persistence.ReleaseArtistRepository;
-import org.omt.labelmanager.catalog.release.persistence.ReleaseRepository;
-import org.omt.labelmanager.catalog.release.persistence.TrackRepository;
+import org.omt.labelmanager.catalog.release.api.ReleaseCommandApi;
+import org.omt.labelmanager.catalog.release.api.ReleaseQueryApi;
+import org.omt.labelmanager.catalog.release.domain.Release;
+import org.omt.labelmanager.catalog.release.domain.ReleaseFormat;
+import org.omt.labelmanager.catalog.release.domain.TrackDuration;
+import org.omt.labelmanager.catalog.release.domain.TrackInput;
+import org.omt.labelmanager.catalog.release.infrastructure.ReleaseArtistRepository;
+import org.omt.labelmanager.catalog.release.infrastructure.ReleaseRepository;
+import org.omt.labelmanager.catalog.release.infrastructure.TrackRepository;
 import org.omt.labelmanager.catalog.label.LabelTestHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -46,10 +50,10 @@ public class ReleaseCRUDIntegrationTest {
     ReleaseArtistRepository releaseArtistRepository;
 
     @Autowired
-    ReleaseCommandFacade releaseCommandFacade;
+    ReleaseCommandApi releaseCommandFacade;
 
     @Autowired
-    ReleaseQueryFacade releaseQueryFacade;
+    ReleaseQueryApi releaseQueryFacade;
 
     @Container
     static PostgreSQLContainer<?> postgres =

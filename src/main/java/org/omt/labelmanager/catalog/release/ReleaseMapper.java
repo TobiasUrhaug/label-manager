@@ -1,21 +1,13 @@
 package org.omt.labelmanager.catalog.release;
 
-import java.time.LocalDate;
 import java.util.List;
-import java.util.Set;
-import org.omt.labelmanager.catalog.release.persistence.ReleaseEntity;
+import org.omt.labelmanager.catalog.release.domain.Release;
+import org.omt.labelmanager.catalog.release.domain.Track;
+import org.omt.labelmanager.catalog.release.infrastructure.ReleaseEntity;
 
-public record Release(
-        Long id,
-        String name,
-        LocalDate releaseDate,
-        Long labelId,
-        List<Long> artistIds,
-        List<Track> tracks,
-        Set<ReleaseFormat> formats
-) {
+public class ReleaseMapper {
 
-    static Release fromEntity(
+    public static Release fromEntity(
             ReleaseEntity entity,
             List<Long> artistIds,
             List<Track> tracks

@@ -2,7 +2,7 @@ package org.omt.labelmanager.inventory.application;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.omt.labelmanager.catalog.release.ReleaseFormat;
+import org.omt.labelmanager.catalog.release.domain.ReleaseFormat;
 import org.omt.labelmanager.catalog.release.ReleaseTestHelper;
 import org.omt.labelmanager.catalog.label.LabelTestHelper;
 import org.omt.labelmanager.inventory.infrastructure.persistence.ProductionRunRepository;

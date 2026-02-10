@@ -3,10 +3,10 @@ package org.omt.labelmanager.catalog.release.api;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Set;
-import org.omt.labelmanager.catalog.release.ReleaseFormat;
-import org.omt.labelmanager.catalog.release.TrackInput;
+import org.omt.labelmanager.catalog.release.domain.ReleaseFormat;
+import org.omt.labelmanager.catalog.release.domain.TrackInput;
 
-public interface ReleaseCommandFacade {
+public interface ReleaseCommandApi {
 
     void createRelease(
             String name,

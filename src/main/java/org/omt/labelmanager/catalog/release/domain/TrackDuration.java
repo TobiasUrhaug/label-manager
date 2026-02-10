@@ -1,4 +1,4 @@
-package org.omt.labelmanager.catalog.release;
+package org.omt.labelmanager.catalog.release.domain;
 
 public record TrackDuration(int totalSeconds) {
 

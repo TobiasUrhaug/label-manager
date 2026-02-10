@@ -6,7 +6,7 @@ import org.omt.labelmanager.finance.cost.infrastructure.CostOwnerEmbeddable;
 import org.omt.labelmanager.finance.cost.CostMapper;
 
 import org.omt.labelmanager.catalog.label.api.LabelQueryFacade;
-import org.omt.labelmanager.catalog.release.api.ReleaseQueryFacade;
+import org.omt.labelmanager.catalog.release.api.ReleaseQueryApi;
 import org.omt.labelmanager.finance.shared.DocumentUpload;
 import org.omt.labelmanager.finance.cost.domain.CostOwner;
 import org.omt.labelmanager.finance.cost.domain.CostType;
@@ -27,20 +27,20 @@ class RegisterCostUseCase {
     private static final Logger log = LoggerFactory.getLogger(RegisterCostUseCase.class);
 
     private final CostRepository costRepository;
-    private final ReleaseQueryFacade releaseQueryFacade;
+    private final ReleaseQueryApi releaseQueryApi;
     private final LabelQueryFacade labelQueryFacade;
     private final UserRepository userRepository;
     private final DocumentStoragePort documentStorage;
 
     public RegisterCostUseCase(
             CostRepository costRepository,
-            ReleaseQueryFacade releaseQueryFacade,
+            ReleaseQueryApi releaseQueryApi,
             LabelQueryFacade labelQueryFacade,
             UserRepository userRepository,
             DocumentStoragePort documentStorage
     ) {
         this.costRepository = costRepository;
-        this.releaseQueryFacade = releaseQueryFacade;
+        this.releaseQueryApi = releaseQueryApi;
         this.labelQueryFacade = labelQueryFacade;
         this.userRepository = userRepository;
         this.documentStorage = documentStorage;
@@ -110,7 +110,7 @@ class RegisterCostUseCase {
 
     private void validateOwnerExists(CostOwner owner) {
         boolean exists = switch (owner.type()) {
-            case RELEASE -> releaseQueryFacade.exists(owner.id());
+            case RELEASE -> releaseQueryApi.exists(owner.id());
             case LABEL -> labelQueryFacade.exists(owner.id());
             case USER -> userRepository.existsById(owner.id());
         };

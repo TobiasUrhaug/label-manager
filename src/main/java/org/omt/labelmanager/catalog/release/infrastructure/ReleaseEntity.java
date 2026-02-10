@@ -1,4 +1,4 @@
-package org.omt.labelmanager.catalog.release.persistence;
+package org.omt.labelmanager.catalog.release.infrastructure;
 
 import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
@@ -13,7 +13,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.Table;
 import java.time.LocalDate;
-import org.omt.labelmanager.catalog.release.ReleaseFormat;
+import org.omt.labelmanager.catalog.release.domain.ReleaseFormat;
 import java.util.HashSet;
 import java.util.Set;
 

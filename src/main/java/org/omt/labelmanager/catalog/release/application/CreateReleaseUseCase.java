@@ -1,27 +1,28 @@
-package org.omt.labelmanager.catalog.release;
+package org.omt.labelmanager.catalog.release.application;
 
 import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import org.omt.labelmanager.catalog.label.api.LabelQueryFacade;
-import org.omt.labelmanager.catalog.release.api.ReleaseCommandFacade;
-import org.omt.labelmanager.catalog.release.persistence.ReleaseArtistRepository;
-import org.omt.labelmanager.catalog.release.persistence.ReleaseEntity;
-import org.omt.labelmanager.catalog.release.persistence.ReleaseRepository;
-import org.omt.labelmanager.catalog.release.persistence.TrackArtistRepository;
-import org.omt.labelmanager.catalog.release.persistence.TrackEntity;
-import org.omt.labelmanager.catalog.release.persistence.TrackRepository;
+import org.omt.labelmanager.catalog.release.domain.ReleaseFormat;
+import org.omt.labelmanager.catalog.release.domain.TrackInput;
+import org.omt.labelmanager.catalog.release.infrastructure.ReleaseArtistRepository;
+import org.omt.labelmanager.catalog.release.infrastructure.ReleaseEntity;
+import org.omt.labelmanager.catalog.release.infrastructure.ReleaseRepository;
+import org.omt.labelmanager.catalog.release.infrastructure.TrackArtistRepository;
+import org.omt.labelmanager.catalog.release.infrastructure.TrackEntity;
+import org.omt.labelmanager.catalog.release.infrastructure.TrackRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-class ReleaseCommandHandler implements ReleaseCommandFacade {
+class CreateReleaseUseCase {
 
     private static final Logger log =
-            LoggerFactory.getLogger(ReleaseCommandHandler.class);
+            LoggerFactory.getLogger(CreateReleaseUseCase.class);
 
     private final ReleaseRepository releaseRepository;
     private final LabelQueryFacade labelQueryFacade;
@@ -29,7 +30,7 @@ class ReleaseCommandHandler implements ReleaseCommandFacade {
     private final ReleaseArtistRepository releaseArtistRepository;
     private final TrackArtistRepository trackArtistRepository;
 
-    ReleaseCommandHandler(
+    CreateReleaseUseCase(
             ReleaseRepository releaseRepository,
             LabelQueryFacade labelQueryFacade,
             TrackRepository trackRepository,
@@ -44,7 +45,7 @@ class ReleaseCommandHandler implements ReleaseCommandFacade {
     }
 
     @Transactional
-    public void createRelease(
+    public void execute(
             String name,
             LocalDate releaseDate,
             Long labelId,
@@ -83,61 +84,6 @@ class ReleaseCommandHandler implements ReleaseCommandFacade {
         }
 
         createTracksForRelease(tracks, release.getId());
-    }
-
-    @Transactional
-    public void updateRelease(
-            Long id,
-            String name,
-            LocalDate releaseDate,
-            List<Long> artistIds,
-            List<TrackInput> tracks,
-            Set<ReleaseFormat> formats
-    ) {
-        log.info(
-                "Updating release {} with {} tracks",
-                id,
-                tracks.size()
-        );
-        requireAtLeastOneTrack(tracks, id.toString());
-
-        ReleaseEntity release = releaseRepository.findById(id)
-                .orElseThrow(() -> {
-                    log.warn(
-                            "Cannot update release: release {} not found",
-                            id
-                    );
-                    return new IllegalArgumentException();
-                });
-
-        release.setName(name);
-        release.setReleaseDate(releaseDate);
-        release.setFormats(new HashSet<>(formats));
-        releaseRepository.save(release);
-
-        releaseArtistRepository.deleteAllByReleaseId(id);
-        for (Long artistId : artistIds) {
-            releaseArtistRepository.addArtistToRelease(
-                    id, artistId
-            );
-        }
-
-        List<TrackEntity> existingTracks =
-                trackRepository.findByReleaseIdOrderByPosition(id);
-        for (TrackEntity trackEntity : existingTracks) {
-            trackArtistRepository.deleteAllByTrackId(
-                    trackEntity.getId()
-            );
-        }
-        trackRepository.deleteAll(existingTracks);
-
-        createTracksForRelease(tracks, id);
-    }
-
-    @Transactional
-    public void delete(Long id) {
-        log.info("Deleting release with id {}", id);
-        releaseRepository.deleteById(id);
     }
 
     private void requireAtLeastOneTrack(

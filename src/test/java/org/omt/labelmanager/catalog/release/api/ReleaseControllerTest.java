@@ -4,7 +4,7 @@ import org.junit.jupiter.api.Test;
 import org.omt.labelmanager.catalog.application.ArtistCRUDHandler;
 import org.omt.labelmanager.catalog.domain.artist.ArtistFactory;
 import org.omt.labelmanager.catalog.release.ReleaseFactory;
-import org.omt.labelmanager.catalog.release.ReleaseFormat;
+import org.omt.labelmanager.catalog.release.domain.ReleaseFormat;
 import org.omt.labelmanager.catalog.release.TrackFactory;
 import org.omt.labelmanager.catalog.label.LabelFactory;
 import org.omt.labelmanager.catalog.label.api.LabelQueryFacade;
@@ -43,10 +43,10 @@ class ReleaseControllerTest {
     private LabelQueryFacade labelQueryFacade;
 
     @MockitoBean
-    private ReleaseCommandFacade releaseCommandFacade;
+    private ReleaseCommandApi releaseCommandFacade;
 
     @MockitoBean
-    private ReleaseQueryFacade releaseQueryFacade;
+    private ReleaseQueryApi releaseQueryFacade;
 
     @MockitoBean
     private ArtistCRUDHandler artistCRUDHandler;

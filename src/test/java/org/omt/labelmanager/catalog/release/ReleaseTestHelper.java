@@ -1,8 +1,11 @@
 package org.omt.labelmanager.catalog.release;
 
-import org.omt.labelmanager.catalog.release.api.ReleaseCommandFacade;
-import org.omt.labelmanager.catalog.release.persistence.ReleaseEntity;
-import org.omt.labelmanager.catalog.release.persistence.ReleaseRepository;
+import org.omt.labelmanager.catalog.release.api.ReleaseCommandApi;
+import org.omt.labelmanager.catalog.release.domain.ReleaseFormat;
+import org.omt.labelmanager.catalog.release.domain.TrackDuration;
+import org.omt.labelmanager.catalog.release.domain.TrackInput;
+import org.omt.labelmanager.catalog.release.infrastructure.ReleaseEntity;
+import org.omt.labelmanager.catalog.release.infrastructure.ReleaseRepository;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
@@ -17,11 +20,11 @@ import java.util.Set;
 public class ReleaseTestHelper {
 
     private final ReleaseRepository releaseRepository;
-    private final ReleaseCommandFacade releaseCommandFacade;
+    private final ReleaseCommandApi releaseCommandFacade;
 
     public ReleaseTestHelper(
             ReleaseRepository releaseRepository,
-            ReleaseCommandFacade releaseCommandFacade
+            ReleaseCommandApi releaseCommandFacade
     ) {
         this.releaseRepository = releaseRepository;
         this.releaseCommandFacade = releaseCommandFacade;

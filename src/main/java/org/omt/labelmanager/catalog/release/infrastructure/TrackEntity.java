@@ -1,4 +1,4 @@
-package org.omt.labelmanager.catalog.release.persistence;
+package org.omt.labelmanager.catalog.release.infrastructure;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

@@ -2,9 +2,9 @@ package org.omt.labelmanager.catalog.release.api;
 
 import org.omt.labelmanager.catalog.application.ArtistCRUDHandler;
 import org.omt.labelmanager.catalog.domain.artist.Artist;
-import org.omt.labelmanager.catalog.release.Release;
-import org.omt.labelmanager.catalog.release.ReleaseFormat;
-import org.omt.labelmanager.catalog.release.Track;
+import org.omt.labelmanager.catalog.release.domain.Release;
+import org.omt.labelmanager.catalog.release.domain.ReleaseFormat;
+import org.omt.labelmanager.catalog.release.domain.Track;
 import org.omt.labelmanager.finance.cost.domain.Cost;
 import org.omt.labelmanager.finance.cost.api.CostQueryApi;
 import org.omt.labelmanager.finance.cost.domain.CostType;
@@ -40,8 +40,8 @@ public class ReleaseController {
     private static final Logger log =
             LoggerFactory.getLogger(ReleaseController.class);
 
-    private final ReleaseCommandFacade releaseCommandFacade;
-    private final ReleaseQueryFacade releaseQueryFacade;
+    private final ReleaseCommandApi releaseCommandApi;
+    private final ReleaseQueryApi releaseQueryApi;
     private final ArtistCRUDHandler artistCRUDHandler;
     private final CostQueryApi costQueryFacade;
     private final ProductionRunQueryService productionRunQueryService;
@@ -49,16 +49,16 @@ public class ReleaseController {
     private final SalesChannelQueryService salesChannelQueryService;
 
     public ReleaseController(
-            ReleaseCommandFacade releaseCommandFacade,
-            ReleaseQueryFacade releaseQueryFacade,
+            ReleaseCommandApi releaseCommandApi,
+            ReleaseQueryApi releaseQueryApi,
             ArtistCRUDHandler artistCRUDHandler,
             CostQueryApi costQueryFacade,
             ProductionRunQueryService productionRunQueryService,
             AllocationQueryService allocationQueryService,
             SalesChannelQueryService salesChannelQueryService
     ) {
-        this.releaseCommandFacade = releaseCommandFacade;
-        this.releaseQueryFacade = releaseQueryFacade;
+        this.releaseCommandApi = releaseCommandApi;
+        this.releaseQueryApi = releaseQueryApi;
         this.artistCRUDHandler = artistCRUDHandler;
         this.costQueryFacade = costQueryFacade;
         this.productionRunQueryService = productionRunQueryService;
@@ -73,7 +73,7 @@ public class ReleaseController {
     ) {
         LocalDate date = LocalDate.parse(form.getReleaseDate());
 
-        releaseCommandFacade.createRelease(
+        releaseCommandApi.createRelease(
                 form.getReleaseName(),
                 date,
                 labelId,
@@ -92,7 +92,7 @@ public class ReleaseController {
             @PathVariable Long releaseId,
             Model model
     ) {
-        Release release = releaseQueryFacade
+        Release release = releaseQueryApi
                 .findById(releaseId)
                 .orElseThrow(() -> {
                     log.warn(
@@ -173,7 +173,7 @@ public class ReleaseController {
     ) {
         LocalDate date = LocalDate.parse(form.getReleaseDate());
 
-        releaseCommandFacade.updateRelease(
+        releaseCommandApi.updateRelease(
                 releaseId,
                 form.getReleaseName(),
                 date,
@@ -191,7 +191,7 @@ public class ReleaseController {
             @PathVariable Long labelId,
             @PathVariable Long releaseId
     ) {
-        releaseCommandFacade.delete(releaseId);
+        releaseCommandApi.delete(releaseId);
         return "redirect:/labels/" + labelId;
     }
 

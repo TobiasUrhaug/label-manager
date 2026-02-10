@@ -1,7 +1,7 @@
 package org.omt.labelmanager.inventory.api;
 
 import org.junit.jupiter.api.Test;
-import org.omt.labelmanager.catalog.release.ReleaseFormat;
+import org.omt.labelmanager.catalog.release.domain.ReleaseFormat;
 import org.omt.labelmanager.identity.application.AppUserDetails;
 import org.omt.labelmanager.inventory.application.ProductionRunCRUDHandler;
 import org.omt.labelmanager.test.TestSecurityConfig;

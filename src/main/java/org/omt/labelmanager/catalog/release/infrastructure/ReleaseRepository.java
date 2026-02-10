@@ -1,4 +1,4 @@
-package org.omt.labelmanager.catalog.release.persistence;
+package org.omt.labelmanager.catalog.release.infrastructure;
 
 import java.util.List;
 import java.util.Optional;

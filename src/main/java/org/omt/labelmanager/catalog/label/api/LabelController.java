@@ -2,9 +2,9 @@ package org.omt.labelmanager.catalog.label.api;
 
 import org.omt.labelmanager.catalog.application.ArtistCRUDHandler;
 import org.omt.labelmanager.catalog.domain.artist.Artist;
-import org.omt.labelmanager.catalog.release.Release;
-import org.omt.labelmanager.catalog.release.ReleaseFormat;
-import org.omt.labelmanager.catalog.release.api.ReleaseQueryFacade;
+import org.omt.labelmanager.catalog.release.domain.Release;
+import org.omt.labelmanager.catalog.release.domain.ReleaseFormat;
+import org.omt.labelmanager.catalog.release.api.ReleaseQueryApi;
 import org.omt.labelmanager.catalog.label.Label;
 import org.omt.labelmanager.identity.application.AppUserDetails;
 import org.omt.labelmanager.inventory.application.SalesChannelQueryService;
@@ -30,13 +30,13 @@ public class LabelController {
 
     private final LabelCommandFacade labelCommandHandler;
     private final LabelQueryFacade labelQueryFacade;
-    private final ReleaseQueryFacade releaseQueryFacade;
+    private final ReleaseQueryApi releaseQueryFacade;
     private final ArtistCRUDHandler artistCRUDHandler;
     private final SalesChannelQueryService salesChannelQueryService;
 
     public LabelController(
             LabelCommandFacade labelCommandHandler, LabelQueryFacade labelQueryFacade,
-            ReleaseQueryFacade releaseQueryFacade,
+            ReleaseQueryApi releaseQueryFacade,
             ArtistCRUDHandler artistCRUDHandler,
             SalesChannelQueryService salesChannelQueryService
     ) {

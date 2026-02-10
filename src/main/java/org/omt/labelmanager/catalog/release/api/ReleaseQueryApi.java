@@ -2,9 +2,9 @@ package org.omt.labelmanager.catalog.release.api;
 
 import java.util.List;
 import java.util.Optional;
-import org.omt.labelmanager.catalog.release.Release;
+import org.omt.labelmanager.catalog.release.domain.Release;
 
-public interface ReleaseQueryFacade {
+public interface ReleaseQueryApi {
 
     Optional<Release> findById(Long id);
 

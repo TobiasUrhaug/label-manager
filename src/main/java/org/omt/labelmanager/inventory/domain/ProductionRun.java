@@ -1,6 +1,6 @@
 package org.omt.labelmanager.inventory.domain;
 
-import org.omt.labelmanager.catalog.release.ReleaseFormat;
+import org.omt.labelmanager.catalog.release.domain.ReleaseFormat;
 import org.omt.labelmanager.inventory.infrastructure.persistence.ProductionRunEntity;
 
 import java.time.LocalDate;

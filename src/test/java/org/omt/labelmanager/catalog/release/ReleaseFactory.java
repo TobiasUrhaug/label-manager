@@ -6,6 +6,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
+import org.omt.labelmanager.catalog.release.domain.Release;
+import org.omt.labelmanager.catalog.release.domain.Track;
+import org.omt.labelmanager.catalog.release.domain.ReleaseFormat;
 
 public final class ReleaseFactory {
 

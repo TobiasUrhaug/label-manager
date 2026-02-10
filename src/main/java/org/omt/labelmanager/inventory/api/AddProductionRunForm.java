@@ -1,6 +1,6 @@
 package org.omt.labelmanager.inventory.api;
 
-import org.omt.labelmanager.catalog.release.ReleaseFormat;
+import org.omt.labelmanager.catalog.release.domain.ReleaseFormat;
 
 import java.time.LocalDate;
 

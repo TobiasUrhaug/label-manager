@@ -3,6 +3,8 @@ package org.omt.labelmanager.catalog.release;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
+import org.omt.labelmanager.catalog.release.domain.Track;
+import org.omt.labelmanager.catalog.release.domain.TrackDuration;
 
 public final class TrackFactory {
 

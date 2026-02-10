@@ -1,6 +1,6 @@
 package org.omt.labelmanager.inventory.application;
 
-import org.omt.labelmanager.catalog.release.ReleaseFormat;
+import org.omt.labelmanager.catalog.release.domain.ReleaseFormat;
 import org.omt.labelmanager.inventory.domain.ProductionRun;
 import org.omt.labelmanager.inventory.infrastructure.persistence.ProductionRunEntity;
 import org.omt.labelmanager.inventory.infrastructure.persistence.ProductionRunRepository;

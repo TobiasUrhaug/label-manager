@@ -6,7 +6,7 @@ import org.omt.labelmanager.catalog.domain.artist.ArtistFactory;
 import org.omt.labelmanager.catalog.domain.shared.Address;
 import org.omt.labelmanager.catalog.domain.shared.Person;
 import org.omt.labelmanager.catalog.release.ReleaseFactory;
-import org.omt.labelmanager.catalog.release.api.ReleaseQueryFacade;
+import org.omt.labelmanager.catalog.release.api.ReleaseQueryApi;
 import org.omt.labelmanager.catalog.label.LabelFactory;
 import org.omt.labelmanager.identity.application.AppUserDetails;
 import org.omt.labelmanager.inventory.application.SalesChannelQueryService;
@@ -43,7 +43,7 @@ class LabelControllerTest {
     private LabelQueryFacade labelQueryFacade;
 
     @MockitoBean
-    private ReleaseQueryFacade releaseQueryFacade;
+    private ReleaseQueryApi releaseQueryFacade;
 
     @MockitoBean
     private ArtistCRUDHandler artistCRUDHandler;
