@@ -1,11 +1,11 @@
 package org.omt.labelmanager.finance.api.cost;
 
 import org.junit.jupiter.api.Test;
-import org.omt.labelmanager.finance.cost.CostOwner;
-import org.omt.labelmanager.finance.cost.CostType;
+import org.omt.labelmanager.finance.cost.domain.CostOwner;
+import org.omt.labelmanager.finance.cost.domain.CostType;
 import org.omt.labelmanager.finance.shared.DocumentUpload;
 import org.omt.labelmanager.finance.shared.RetrievedDocument;
-import org.omt.labelmanager.finance.cost.VatAmount;
+import org.omt.labelmanager.finance.cost.domain.VatAmount;
 import org.omt.labelmanager.finance.cost.api.CostCommandApi;
 import org.omt.labelmanager.finance.cost.api.CostController;
 import org.omt.labelmanager.finance.domain.shared.Money;

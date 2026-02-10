@@ -22,7 +22,7 @@ class RetrieveCostDocumentUseCase {
 
     public Optional<RetrievedDocument> retrieveDocument(Long costId) {
         return costRepository.findById(costId)
-                .map(Cost::fromEntity)
+                .map(CostMapper::fromEntity)
                 .filter(cost -> cost.documentStorageKey() != null)
                 .map(cost -> documentStorage.retrieve(cost.documentStorageKey()));
     }

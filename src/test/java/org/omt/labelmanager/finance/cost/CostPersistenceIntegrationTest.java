@@ -1,8 +1,8 @@
 package org.omt.labelmanager.finance.cost;
 
 import org.junit.jupiter.api.Test;
-import org.omt.labelmanager.finance.cost.CostOwnerType;
-import org.omt.labelmanager.finance.cost.CostType;
+import org.omt.labelmanager.finance.cost.domain.CostOwnerType;
+import org.omt.labelmanager.finance.cost.domain.CostType;
 import org.omt.labelmanager.finance.cost.CostEntity;
 import org.omt.labelmanager.finance.cost.CostOwnerEmbeddable;
 import org.omt.labelmanager.finance.cost.CostRepository;

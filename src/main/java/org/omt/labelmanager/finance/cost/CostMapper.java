@@ -1,22 +1,10 @@
 package org.omt.labelmanager.finance.cost;
 
-import org.omt.labelmanager.finance.cost.CostEntity;
+import org.omt.labelmanager.finance.cost.domain.Cost;
+import org.omt.labelmanager.finance.cost.domain.VatAmount;
 import org.omt.labelmanager.finance.domain.shared.Money;
 
-import java.time.LocalDate;
-
-public record Cost(
-        Long id,
-        Money netAmount,
-        VatAmount vat,
-        Money grossAmount,
-        CostType type,
-        LocalDate incurredOn,
-        String description,
-        CostOwner owner,
-        String documentReference,
-        String documentStorageKey
-) {
+class CostMapper {
 
     static Cost fromEntity(CostEntity entity) {
         String currency = entity.getCurrency();

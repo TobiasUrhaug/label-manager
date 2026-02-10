@@ -1,6 +1,6 @@
 package org.omt.labelmanager.finance.cost.api;
 
-import org.omt.labelmanager.finance.cost.Cost;
+import org.omt.labelmanager.finance.cost.domain.Cost;
 
 import java.util.List;
 

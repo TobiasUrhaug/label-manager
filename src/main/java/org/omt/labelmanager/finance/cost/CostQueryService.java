@@ -1,7 +1,7 @@
 package org.omt.labelmanager.finance.cost;
 
-import org.omt.labelmanager.finance.cost.Cost;
-import org.omt.labelmanager.finance.cost.CostOwnerType;
+import org.omt.labelmanager.finance.cost.domain.Cost;
+import org.omt.labelmanager.finance.cost.domain.CostOwnerType;
 import org.omt.labelmanager.finance.cost.CostRepository;
 import org.springframework.stereotype.Service;
 
@@ -20,7 +20,7 @@ class CostQueryService {
         return costRepository
                 .findByOwnerOwnerTypeAndOwnerOwnerId(CostOwnerType.RELEASE, releaseId)
                 .stream()
-                .map(Cost::fromEntity)
+                .map(CostMapper::fromEntity)
                 .toList();
     }
 
@@ -28,7 +28,7 @@ class CostQueryService {
         return costRepository
                 .findByOwnerOwnerTypeAndOwnerOwnerId(CostOwnerType.LABEL, labelId)
                 .stream()
-                .map(Cost::fromEntity)
+                .map(CostMapper::fromEntity)
                 .toList();
     }
 
@@ -36,7 +36,7 @@ class CostQueryService {
         return costRepository
                 .findByOwnerOwnerTypeAndOwnerOwnerId(CostOwnerType.USER, userId)
                 .stream()
-                .map(Cost::fromEntity)
+                .map(CostMapper::fromEntity)
                 .toList();
     }
 }

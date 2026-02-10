@@ -1,4 +1,4 @@
-package org.omt.labelmanager.finance.cost;
+package org.omt.labelmanager.finance.cost.domain;
 
 public record CostOwner(CostOwnerType type, Long id) {
 

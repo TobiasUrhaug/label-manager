@@ -1,6 +1,6 @@
 package org.omt.labelmanager.finance.cost;
 
-import org.omt.labelmanager.finance.cost.CostOwnerType;
+import org.omt.labelmanager.finance.cost.domain.CostOwnerType;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;

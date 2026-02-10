@@ -1,7 +1,7 @@
 package org.omt.labelmanager.finance.cost;
 
 import org.junit.jupiter.api.Test;
-import org.omt.labelmanager.finance.cost.VatAmount;
+import org.omt.labelmanager.finance.cost.domain.VatAmount;
 import org.omt.labelmanager.finance.domain.shared.Money;
 
 import java.math.BigDecimal;

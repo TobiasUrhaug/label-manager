@@ -1,6 +1,7 @@
 package org.omt.labelmanager.finance.cost;
 
 import org.omt.labelmanager.finance.cost.api.CostQueryApi;
+import org.omt.labelmanager.finance.cost.domain.Cost;
 import org.springframework.stereotype.Service;
 
 import java.util.List;

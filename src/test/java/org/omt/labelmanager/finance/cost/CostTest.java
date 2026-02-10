@@ -62,7 +62,7 @@ class CostTest {
                 "costs/uuid/receipt.pdf"
         );
 
-        var cost = Cost.fromEntity(entity);
+        var cost = CostMapper.fromEntity(entity);
 
         assertThat(cost.netAmount().amount()).isEqualTo(new BigDecimal("100.00"));
         assertThat(cost.netAmount().currency()).isEqualTo("EUR");

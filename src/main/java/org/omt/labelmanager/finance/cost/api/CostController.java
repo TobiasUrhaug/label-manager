@@ -1,6 +1,6 @@
 package org.omt.labelmanager.finance.cost.api;
 
-import org.omt.labelmanager.finance.cost.CostOwner;
+import org.omt.labelmanager.finance.cost.domain.CostOwner;
 import org.omt.labelmanager.finance.shared.DocumentUpload;
 import org.omt.labelmanager.finance.shared.RetrievedDocument;
 import org.springframework.core.io.InputStreamResource;
