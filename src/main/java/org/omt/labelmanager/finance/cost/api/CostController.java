@@ -27,9 +27,9 @@ public class CostController {
             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     );
 
-    private final CostCommandFacade costCommandFacade;
+    private final CostCommandApi costCommandFacade;
 
-    public CostController(CostCommandFacade costCommandFacade) {
+    public CostController(CostCommandApi costCommandFacade) {
         this.costCommandFacade = costCommandFacade;
     }
 

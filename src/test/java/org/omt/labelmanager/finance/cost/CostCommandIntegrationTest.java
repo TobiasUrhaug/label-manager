@@ -8,7 +8,7 @@ import org.omt.labelmanager.finance.cost.CostOwner;
 import org.omt.labelmanager.finance.cost.CostOwnerType;
 import org.omt.labelmanager.finance.cost.CostType;
 import org.omt.labelmanager.finance.cost.VatAmount;
-import org.omt.labelmanager.finance.cost.api.CostCommandFacade;
+import org.omt.labelmanager.finance.cost.api.CostCommandApi;
 import org.omt.labelmanager.finance.domain.shared.Money;
 import org.omt.labelmanager.finance.shared.DocumentUpload;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,7 +44,7 @@ public class CostCommandIntegrationTest {
     private static final String MINIO_SECRET_KEY = "minioadmin";
 
     @Autowired
-    CostCommandFacade costCommandFacade;
+    CostCommandApi costCommandFacade;
 
     @Autowired
     CostRepository costRepository;

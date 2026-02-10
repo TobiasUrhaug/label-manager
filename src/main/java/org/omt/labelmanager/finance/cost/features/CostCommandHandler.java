@@ -1,6 +1,6 @@
 package org.omt.labelmanager.finance.cost;
 
-import org.omt.labelmanager.finance.cost.api.CostCommandFacade;
+import org.omt.labelmanager.finance.cost.api.CostCommandApi;
 import org.omt.labelmanager.finance.domain.shared.Money;
 import org.omt.labelmanager.finance.shared.DocumentUpload;
 import org.omt.labelmanager.finance.shared.RetrievedDocument;
@@ -10,7 +10,7 @@ import java.time.LocalDate;
 import java.util.Optional;
 
 @Service
-class CostCommandHandler implements CostCommandFacade {
+class CostCommandHandler implements CostCommandApi {
 
     private final RegisterCostUseCase registerCostUseCase;
     private final UpdateCostUseCase updateCostUseCase;

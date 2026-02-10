@@ -10,7 +10,7 @@ import org.omt.labelmanager.finance.domain.shared.Money;
 import java.time.LocalDate;
 import java.util.Optional;
 
-public interface CostCommandFacade {
+public interface CostCommandApi {
 
     void registerCost(
             Money netAmount,

@@ -6,7 +6,7 @@ import org.omt.labelmanager.finance.cost.CostType;
 import org.omt.labelmanager.finance.shared.DocumentUpload;
 import org.omt.labelmanager.finance.shared.RetrievedDocument;
 import org.omt.labelmanager.finance.cost.VatAmount;
-import org.omt.labelmanager.finance.cost.api.CostCommandFacade;
+import org.omt.labelmanager.finance.cost.api.CostCommandApi;
 import org.omt.labelmanager.finance.cost.api.CostController;
 import org.omt.labelmanager.finance.domain.shared.Money;
 import org.omt.labelmanager.identity.application.AppUserDetails;
@@ -39,7 +39,7 @@ class CostControllerTest {
     private MockMvc mockMvc;
 
     @MockitoBean
-    private CostCommandFacade costCommandFacade;
+    private CostCommandApi costCommandFacade;
 
     private final AppUserDetails testUser =
             new AppUserDetails(1L, "test@example.com", "password", "Test User");
