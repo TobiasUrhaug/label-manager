@@ -1,12 +1,12 @@
 package org.omt.labelmanager.finance.cost;
 
-import org.omt.labelmanager.finance.cost.api.CostQueryFacade;
+import org.omt.labelmanager.finance.cost.api.CostQueryApi;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
-class CostQueryHandler implements CostQueryFacade {
+class CostQueryHandler implements CostQueryApi {
 
     private final CostQueryService costQueryService;
 

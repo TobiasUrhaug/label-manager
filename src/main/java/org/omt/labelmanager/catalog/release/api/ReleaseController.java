@@ -6,7 +6,7 @@ import org.omt.labelmanager.catalog.release.Release;
 import org.omt.labelmanager.catalog.release.ReleaseFormat;
 import org.omt.labelmanager.catalog.release.Track;
 import org.omt.labelmanager.finance.cost.Cost;
-import org.omt.labelmanager.finance.cost.api.CostQueryFacade;
+import org.omt.labelmanager.finance.cost.api.CostQueryApi;
 import org.omt.labelmanager.finance.cost.CostType;
 import org.omt.labelmanager.identity.application.AppUserDetails;
 import org.omt.labelmanager.inventory.allocation.AllocationQueryService;
@@ -43,7 +43,7 @@ public class ReleaseController {
     private final ReleaseCommandFacade releaseCommandFacade;
     private final ReleaseQueryFacade releaseQueryFacade;
     private final ArtistCRUDHandler artistCRUDHandler;
-    private final CostQueryFacade costQueryFacade;
+    private final CostQueryApi costQueryFacade;
     private final ProductionRunQueryService productionRunQueryService;
     private final AllocationQueryService allocationQueryService;
     private final SalesChannelQueryService salesChannelQueryService;
@@ -52,7 +52,7 @@ public class ReleaseController {
             ReleaseCommandFacade releaseCommandFacade,
             ReleaseQueryFacade releaseQueryFacade,
             ArtistCRUDHandler artistCRUDHandler,
-            CostQueryFacade costQueryFacade,
+            CostQueryApi costQueryFacade,
             ProductionRunQueryService productionRunQueryService,
             AllocationQueryService allocationQueryService,
             SalesChannelQueryService salesChannelQueryService

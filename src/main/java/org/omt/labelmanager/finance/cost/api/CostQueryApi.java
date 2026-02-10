@@ -4,7 +4,7 @@ import org.omt.labelmanager.finance.cost.Cost;
 
 import java.util.List;
 
-public interface CostQueryFacade {
+public interface CostQueryApi {
 
     List<Cost> getCostsForRelease(Long releaseId);
 
