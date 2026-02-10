@@ -1,6 +1,7 @@
 package org.omt.labelmanager.finance.application.extraction;
 
 import java.io.InputStream;
+import org.omt.labelmanager.finance.extraction.domain.ExtractedInvoiceData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;

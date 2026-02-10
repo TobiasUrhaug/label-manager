@@ -13,7 +13,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import org.junit.jupiter.api.Test;
 import org.omt.labelmanager.finance.application.extraction.ExtractInvoiceDataUseCase;
-import org.omt.labelmanager.finance.application.extraction.ExtractedInvoiceData;
+import org.omt.labelmanager.finance.extraction.domain.ExtractedInvoiceData;
 import org.omt.labelmanager.identity.application.AppUserDetails;
 import org.omt.labelmanager.test.TestSecurityConfig;
 import org.springframework.beans.factory.annotation.Autowired;

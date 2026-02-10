@@ -1,4 +1,4 @@
-package org.omt.labelmanager.finance.application.extraction;
+package org.omt.labelmanager.finance.extraction.domain;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;

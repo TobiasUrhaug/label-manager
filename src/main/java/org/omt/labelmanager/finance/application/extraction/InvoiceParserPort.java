@@ -1,5 +1,7 @@
 package org.omt.labelmanager.finance.application.extraction;
 
+import org.omt.labelmanager.finance.extraction.domain.ExtractedInvoiceData;
+
 /**
  * Port for parsing invoice text and extracting structured field data.
  * Implementations may use LLMs, regex patterns, or other parsing strategies.

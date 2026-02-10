@@ -14,6 +14,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.omt.labelmanager.finance.extraction.domain.ExtractedInvoiceData;
 
 class ExtractInvoiceDataUseCaseTest {
 
