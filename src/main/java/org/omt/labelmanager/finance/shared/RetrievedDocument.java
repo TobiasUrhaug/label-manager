@@ -1,4 +1,4 @@
-package org.omt.labelmanager.finance.cost;
+package org.omt.labelmanager.finance.shared;
 
 import java.io.InputStream;
 

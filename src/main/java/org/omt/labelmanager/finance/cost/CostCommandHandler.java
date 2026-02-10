@@ -2,6 +2,8 @@ package org.omt.labelmanager.finance.cost;
 
 import org.omt.labelmanager.finance.cost.api.CostCommandFacade;
 import org.omt.labelmanager.finance.domain.shared.Money;
+import org.omt.labelmanager.finance.shared.DocumentUpload;
+import org.omt.labelmanager.finance.shared.RetrievedDocument;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;

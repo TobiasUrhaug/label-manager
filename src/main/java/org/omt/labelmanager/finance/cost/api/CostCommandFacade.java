@@ -1,7 +1,7 @@
 package org.omt.labelmanager.finance.cost.api;
 
-import org.omt.labelmanager.finance.cost.DocumentUpload;
-import org.omt.labelmanager.finance.cost.RetrievedDocument;
+import org.omt.labelmanager.finance.shared.DocumentUpload;
+import org.omt.labelmanager.finance.shared.RetrievedDocument;
 import org.omt.labelmanager.finance.cost.CostOwner;
 import org.omt.labelmanager.finance.cost.CostType;
 import org.omt.labelmanager.finance.cost.VatAmount;
