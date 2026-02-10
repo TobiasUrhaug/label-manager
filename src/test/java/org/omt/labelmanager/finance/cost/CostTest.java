@@ -1,9 +1,9 @@
-package org.omt.labelmanager.finance.domain.cost;
+package org.omt.labelmanager.finance.cost;
 
 import org.junit.jupiter.api.Test;
 import org.omt.labelmanager.finance.cost.*;
-import org.omt.labelmanager.finance.cost.persistence.CostEntity;
-import org.omt.labelmanager.finance.cost.persistence.CostOwnerEmbeddable;
+import org.omt.labelmanager.finance.cost.CostEntity;
+import org.omt.labelmanager.finance.cost.CostOwnerEmbeddable;
 import org.omt.labelmanager.finance.domain.shared.Money;
 
 import java.math.BigDecimal;

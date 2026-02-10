@@ -1,4 +1,4 @@
-package org.omt.labelmanager.finance.domain.cost;
+package org.omt.labelmanager.finance.cost;
 
 import org.junit.jupiter.api.Test;
 import org.omt.labelmanager.finance.cost.VatAmount;

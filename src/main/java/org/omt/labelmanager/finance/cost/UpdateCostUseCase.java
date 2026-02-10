@@ -1,10 +1,10 @@
-package org.omt.labelmanager.finance.cost.features;
+package org.omt.labelmanager.finance.cost;
 
 import org.omt.labelmanager.finance.cost.DocumentUpload;
 import org.omt.labelmanager.finance.cost.CostType;
 import org.omt.labelmanager.finance.cost.VatAmount;
-import org.omt.labelmanager.finance.cost.persistence.CostEntity;
-import org.omt.labelmanager.finance.cost.persistence.CostRepository;
+import org.omt.labelmanager.finance.cost.CostEntity;
+import org.omt.labelmanager.finance.cost.CostRepository;
 import org.omt.labelmanager.finance.cost.ports.DocumentStoragePort;
 import org.omt.labelmanager.finance.domain.shared.Money;
 import org.slf4j.Logger;

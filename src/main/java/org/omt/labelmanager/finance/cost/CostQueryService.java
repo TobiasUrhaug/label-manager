@@ -2,7 +2,7 @@ package org.omt.labelmanager.finance.cost;
 
 import org.omt.labelmanager.finance.cost.Cost;
 import org.omt.labelmanager.finance.cost.CostOwnerType;
-import org.omt.labelmanager.finance.cost.persistence.CostRepository;
+import org.omt.labelmanager.finance.cost.CostRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
