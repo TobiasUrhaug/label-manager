@@ -1,4 +1,4 @@
-package org.omt.labelmanager.finance.cost;
+package org.omt.labelmanager.finance.cost.infrastructure;
 
 import jakarta.persistence.*;
 import org.omt.labelmanager.finance.cost.domain.CostType;
@@ -8,7 +8,7 @@ import java.time.LocalDate;
 
 @Entity
 @Table(name = "cost")
-class CostEntity {
+public class CostEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

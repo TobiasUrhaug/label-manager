@@ -1,4 +1,9 @@
-package org.omt.labelmanager.finance.cost;
+package org.omt.labelmanager.finance.cost.application;
+
+import org.omt.labelmanager.finance.cost.infrastructure.CostRepository;
+import org.omt.labelmanager.finance.cost.infrastructure.CostEntity;
+import org.omt.labelmanager.finance.cost.infrastructure.CostOwnerEmbeddable;
+import org.omt.labelmanager.finance.cost.CostMapper;
 
 import org.omt.labelmanager.catalog.label.api.LabelQueryFacade;
 import org.omt.labelmanager.catalog.release.api.ReleaseQueryFacade;

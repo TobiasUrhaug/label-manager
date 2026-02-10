@@ -1,5 +1,7 @@
-package org.omt.labelmanager.finance.cost;
+package org.omt.labelmanager.finance.cost.application;
 
+import org.omt.labelmanager.finance.cost.infrastructure.CostEntity;
+import org.omt.labelmanager.finance.cost.infrastructure.CostRepository;
 import org.omt.labelmanager.infrastructure.storage.DocumentStoragePort;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

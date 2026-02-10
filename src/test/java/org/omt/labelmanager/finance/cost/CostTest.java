@@ -6,6 +6,8 @@ import org.omt.labelmanager.finance.cost.domain.CostOwner;
 import org.omt.labelmanager.finance.cost.domain.CostOwnerType;
 import org.omt.labelmanager.finance.cost.domain.CostType;
 import org.omt.labelmanager.finance.cost.domain.VatAmount;
+import org.omt.labelmanager.finance.cost.infrastructure.CostEntity;
+import org.omt.labelmanager.finance.cost.infrastructure.CostOwnerEmbeddable;
 import org.omt.labelmanager.finance.domain.shared.Money;
 
 import java.math.BigDecimal;

@@ -9,6 +9,7 @@ import org.omt.labelmanager.finance.cost.domain.CostOwnerType;
 import org.omt.labelmanager.finance.cost.domain.CostType;
 import org.omt.labelmanager.finance.cost.domain.VatAmount;
 import org.omt.labelmanager.finance.cost.api.CostCommandApi;
+import org.omt.labelmanager.finance.cost.infrastructure.CostRepository;
 import org.omt.labelmanager.finance.domain.shared.Money;
 import org.omt.labelmanager.finance.shared.DocumentUpload;
 import org.springframework.beans.factory.annotation.Autowired;

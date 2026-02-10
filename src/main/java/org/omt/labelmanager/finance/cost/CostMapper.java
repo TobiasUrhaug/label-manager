@@ -2,11 +2,12 @@ package org.omt.labelmanager.finance.cost;
 
 import org.omt.labelmanager.finance.cost.domain.Cost;
 import org.omt.labelmanager.finance.cost.domain.VatAmount;
+import org.omt.labelmanager.finance.cost.infrastructure.CostEntity;
 import org.omt.labelmanager.finance.domain.shared.Money;
 
-class CostMapper {
+public class CostMapper {
 
-    static Cost fromEntity(CostEntity entity) {
+    public static Cost fromEntity(CostEntity entity) {
         String currency = entity.getCurrency();
         return new Cost(
                 entity.getId(),
