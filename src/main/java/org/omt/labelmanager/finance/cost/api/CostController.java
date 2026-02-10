@@ -2,7 +2,7 @@ package org.omt.labelmanager.finance.cost.api;
 
 import org.omt.labelmanager.finance.cost.DocumentUpload;
 import org.omt.labelmanager.finance.cost.RetrievedDocument;
-import org.omt.labelmanager.finance.cost.domain.CostOwner;
+import org.omt.labelmanager.finance.cost.CostOwner;
 import org.omt.labelmanager.finance.cost.features.DeleteCostUseCase;
 import org.omt.labelmanager.finance.cost.features.RegisterCostUseCase;
 import org.omt.labelmanager.finance.cost.features.RetrieveCostDocumentUseCase;

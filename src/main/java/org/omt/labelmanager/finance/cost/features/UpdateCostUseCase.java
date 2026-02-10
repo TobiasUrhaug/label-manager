@@ -1,8 +1,8 @@
 package org.omt.labelmanager.finance.cost.features;
 
 import org.omt.labelmanager.finance.cost.DocumentUpload;
-import org.omt.labelmanager.finance.cost.domain.CostType;
-import org.omt.labelmanager.finance.cost.domain.VatAmount;
+import org.omt.labelmanager.finance.cost.CostType;
+import org.omt.labelmanager.finance.cost.VatAmount;
 import org.omt.labelmanager.finance.cost.persistence.CostEntity;
 import org.omt.labelmanager.finance.cost.persistence.CostRepository;
 import org.omt.labelmanager.finance.cost.ports.DocumentStoragePort;

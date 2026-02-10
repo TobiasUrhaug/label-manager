@@ -1,4 +1,4 @@
-package org.omt.labelmanager.finance.cost.domain;
+package org.omt.labelmanager.finance.cost;
 
 import org.omt.labelmanager.finance.domain.shared.Money;
 

@@ -1,7 +1,7 @@
 package org.omt.labelmanager.finance.domain.cost;
 
 import org.junit.jupiter.api.Test;
-import org.omt.labelmanager.finance.cost.domain.*;
+import org.omt.labelmanager.finance.cost.*;
 import org.omt.labelmanager.finance.cost.persistence.CostEntity;
 import org.omt.labelmanager.finance.cost.persistence.CostOwnerEmbeddable;
 import org.omt.labelmanager.finance.domain.shared.Money;

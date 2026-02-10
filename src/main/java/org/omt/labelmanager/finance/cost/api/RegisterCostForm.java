@@ -1,7 +1,7 @@
 package org.omt.labelmanager.finance.cost.api;
 
-import org.omt.labelmanager.finance.cost.domain.CostType;
-import org.omt.labelmanager.finance.cost.domain.VatAmount;
+import org.omt.labelmanager.finance.cost.CostType;
+import org.omt.labelmanager.finance.cost.VatAmount;
 import org.omt.labelmanager.finance.domain.shared.Money;
 
 import java.math.BigDecimal;

@@ -1,7 +1,7 @@
 package org.omt.labelmanager.finance.cost.persistence;
 
 import jakarta.persistence.*;
-import org.omt.labelmanager.finance.cost.domain.CostType;
+import org.omt.labelmanager.finance.cost.CostType;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;

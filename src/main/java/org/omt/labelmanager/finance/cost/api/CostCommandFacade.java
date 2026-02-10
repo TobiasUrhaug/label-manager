@@ -2,9 +2,9 @@ package org.omt.labelmanager.finance.cost.api;
 
 import org.omt.labelmanager.finance.cost.DocumentUpload;
 import org.omt.labelmanager.finance.cost.RetrievedDocument;
-import org.omt.labelmanager.finance.cost.domain.CostOwner;
-import org.omt.labelmanager.finance.cost.domain.CostType;
-import org.omt.labelmanager.finance.cost.domain.VatAmount;
+import org.omt.labelmanager.finance.cost.CostOwner;
+import org.omt.labelmanager.finance.cost.CostType;
+import org.omt.labelmanager.finance.cost.VatAmount;
 import org.omt.labelmanager.finance.domain.shared.Money;
 
 import java.time.LocalDate;
