@@ -1,11 +1,10 @@
-package org.omt.labelmanager.finance.application.extraction;
+package org.omt.labelmanager.finance.extraction.domain;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import org.junit.jupiter.api.Test;
-import org.omt.labelmanager.finance.extraction.domain.ExtractedInvoiceData;
 
 class ExtractedInvoiceDataTest {
 
