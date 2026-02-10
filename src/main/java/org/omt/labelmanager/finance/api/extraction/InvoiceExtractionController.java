@@ -3,7 +3,7 @@ package org.omt.labelmanager.finance.api.extraction;
 import java.io.IOException;
 import java.util.Set;
 import org.omt.labelmanager.finance.cost.api.InvalidDocumentTypeException;
-import org.omt.labelmanager.finance.application.extraction.ExtractInvoiceDataUseCase;
+import org.omt.labelmanager.finance.extraction.application.ExtractInvoiceDataUseCase;
 import org.omt.labelmanager.finance.extraction.domain.ExtractedInvoiceData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

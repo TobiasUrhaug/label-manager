@@ -1,4 +1,4 @@
-package org.omt.labelmanager.finance.application.extraction;
+package org.omt.labelmanager.finance.extraction.application;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
