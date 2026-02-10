@@ -55,25 +55,7 @@ org.omt.labelmanager/
 └── infrastructure/    # Cross-cutting: security, storage, dashboard
 ```
 
-Within each bounded context, organize by **module** (not by layer):
-
-```
-catalog/
-├── label/             # Label module (fully encapsulated)
-│   ├── Label.java                  # Public domain record
-│   ├── LabelCommandHandler.java    # package-private implementation
-│   ├── LabelQueryHandler.java      # package-private implementation
-│   ├── LabelEntity.java            # package-private
-│   ├── LabelRepository.java        # package-private
-│   └── api/
-│       ├── LabelCommandFacade.java # Public interface (mutations)
-│       ├── LabelQueryFacade.java   # Public interface (queries)
-│       └── LabelController.java
-├── release/           # Release module
-├── artist/            # Artist module
-└── domain/
-    └── shared/        # Shared value objects (Address, Person, etc.)
-```
+Within each bounded context, organize by **module** (not by layer). See "Modular Architecture Pattern" below for details.
 
 ### Modular Architecture Pattern
 
@@ -85,67 +67,126 @@ Each module (e.g., `label`, `release`, `artist`) should follow this pattern:
 
 ```
 catalog/label/
-├── Label.java                   # Public domain record
-├── LabelCommandHandler.java     # package-private implementation
-├── LabelQueryHandler.java       # package-private implementation
-├── LabelEntity.java             # package-private persistence
-├── LabelRepository.java         # package-private persistence
-└── api/
-    ├── LabelCommandFacade.java  # Public interface (mutations)
-    ├── LabelQueryFacade.java    # Public interface (queries)
-    └── LabelController.java     # Public HTTP interface
+├── api/
+│   ├── LabelCommandApi.java       # Public interface (mutations)
+│   ├── LabelQueryApi.java         # Public interface (queries)
+│   └── LabelController.java       # Public HTTP interface
+│
+├── application/                   # package-private use cases
+│   ├── CreateLabelUseCase.java    # Focused business operations
+│   ├── UpdateLabelUseCase.java
+│   ├── DeleteLabelUseCase.java
+│   ├── LabelCommandApiImpl.java   # Implements CommandApi, delegates to use cases
+│   └── LabelQueryApiImpl.java     # Implements QueryApi
+│
+├── domain/
+│   └── Label.java                 # Public domain record
+│
+└── infrastructure/                # package-private
+    ├── LabelEntity.java           # JPA entity
+    └── LabelRepository.java       # Spring Data repository
 ```
 
-**Key principle**: The `api/` package contains public interfaces that define the module's contract. All implementations remain package-private.
+**Key principles**:
+- The `api/` package contains public interfaces and controllers that define the module's contract
+- Business logic is implemented in small, focused use case classes in `application/`
+- API implementations delegate to use cases
+- All implementations (use cases, entities, repositories) remain package-private
 
 #### Encapsulation Rules
 
-1. **Define public facade interfaces in `api/` package**: Create two interfaces per module:
+1. **Define public API interfaces in `api/` package**: Create two interfaces per module:
    ```java
-   // api/LabelCommandFacade.java - mutations
-   public interface LabelCommandFacade {
+   // api/LabelCommandApi.java - mutations
+   public interface LabelCommandApi {
        Label createLabel(String name, String email, ...);
        void updateLabel(Long id, String name, ...);
        void delete(Long id);
    }
 
-   // api/LabelQueryFacade.java - queries
-   public interface LabelQueryFacade {
+   // api/LabelQueryApi.java - queries
+   public interface LabelQueryApi {
        Optional<Label> findById(Long id);
        boolean exists(Long id);
        List<Label> getLabelsForUser(Long userId);
    }
    ```
 
-2. **Implement facades with package-private handlers**:
+2. **Implement business logic in focused use case classes**:
    ```java
-   // LabelCommandHandler.java (package-private class)
+   // application/CreateLabelUseCase.java (package-private)
    @Service
-   class LabelCommandHandler implements LabelCommandFacade {
-       private final LabelRepository repository;  // package-private
+   class CreateLabelUseCase {
+       private final LabelRepository repository;
 
        @Transactional
-       public Label createLabel(String name, String email, ...) {
+       public Label execute(String name, String email, ...) {
            var entity = new LabelEntity(name, email, ...);
            entity = repository.save(entity);
            return Label.fromEntity(entity);
        }
-       // ... other methods
    }
 
-   // LabelQueryHandler.java (package-private class)
+   // application/UpdateLabelUseCase.java (package-private)
    @Service
-   class LabelQueryHandler implements LabelQueryFacade {
-       private final LabelRepository repository;  // package-private
+   class UpdateLabelUseCase {
+       private final LabelRepository repository;
 
-       public Optional<Label> findById(Long id) {
-           return repository.findById(id).map(Label::fromEntity);
+       @Transactional
+       public void execute(Long id, String name, ...) {
+           var entity = repository.findById(id)
+               .orElseThrow(() -> new EntityNotFoundException("Label not found"));
+           entity.setName(name);
+           // ... update other fields
        }
-       // ... other methods
    }
    ```
 
-3. **Make all internal classes package-private**: `Entity`, `Repository`, and handler implementations should have **no access modifier** (package-private), not `public`.
+3. **Implement API interfaces by delegating to use cases**:
+   ```java
+   // application/LabelCommandApiImpl.java (package-private)
+   @Service
+   class LabelCommandApiImpl implements LabelCommandApi {
+       private final CreateLabelUseCase createLabel;
+       private final UpdateLabelUseCase updateLabel;
+       private final DeleteLabelUseCase deleteLabel;
+
+       @Override
+       public Label createLabel(String name, String email, ...) {
+           return createLabel.execute(name, email, ...);
+       }
+
+       @Override
+       public void updateLabel(Long id, String name, ...) {
+           updateLabel.execute(id, name, ...);
+       }
+
+       @Override
+       public void delete(Long id) {
+           deleteLabel.execute(id);
+       }
+   }
+
+   // application/LabelQueryApiImpl.java (package-private)
+   @Service
+   class LabelQueryApiImpl implements LabelQueryApi {
+       private final LabelRepository repository;
+
+       @Override
+       public Optional<Label> findById(Long id) {
+           return repository.findById(id).map(Label::fromEntity);
+       }
+
+       @Override
+       public List<Label> getLabelsForUser(Long userId) {
+           return repository.findByUserId(userId).stream()
+               .map(Label::fromEntity)
+               .toList();
+       }
+   }
+   ```
+
+4. **Make all internal classes package-private**: Use case classes, `Entity`, `Repository`, and API implementations should have **no access modifier** (package-private), not `public`.
 
 4. **Use ID references between modules**: Domain records should reference other modules by ID, not by embedding full objects:
    ```java
@@ -159,7 +200,7 @@ catalog/label/
 5. **Keep mapping methods package-private**: Methods like `fromEntity()` should be package-private:
    ```java
    public record Label(...) {
-       // package-private - only handlers within this module can call this
+       // package-private - only use cases within this module can call this
        static Label fromEntity(LabelEntity entity) { ... }
    }
    ```
@@ -179,53 +220,93 @@ catalog/label/
 
 #### Benefits
 
-- **Encapsulation**: All implementation details (Entity, Repository, Handlers) are hidden from other modules
+- **Encapsulation**: All implementation details (Entity, Repository, Use Cases) are hidden from other modules
 - **Flexibility**: Can refactor module internals without affecting other modules
-- **Clear contracts**: Public facades (CommandFacade, QueryFacade) define exactly what other modules can do
-- **Testability**: Each module can be tested in isolation
+- **Clear contracts**: Public APIs (CommandApi, QueryApi) define exactly what other modules can do
+- **Testability**: Small, focused use cases are easy to test in isolation
+- **Intention-revealing**: Each use case class clearly states what business operation it performs
 - **Interface segregation**: Separating commands and queries follows CQRS principles
+
+#### Use Case Guidelines
+
+Use cases represent discrete business operations. Follow these guidelines:
+
+**When to create a new use case:**
+- Each significant business operation gets its own use case class
+- Examples: `CreateLabelUseCase`, `PublishReleaseUseCase`, `CalculateRoyaltiesUseCase`
+- Use cases should be named with verbs that describe what they do
+
+**Keep use cases focused:**
+- Each use case should do one thing well
+- Typically 10-30 lines of code
+- If a use case grows large, consider extracting helper methods or splitting into multiple use cases
+
+**Query operations:**
+- Simple queries (find by ID, exists check) can live directly in `QueryApiImpl`
+- Complex queries with business logic should be extracted to use cases
+- Example: `CalculateLabelRevenueUseCase` for complex aggregations
+
+**Reusing logic:**
+- Use cases can depend on other use cases within the same module
+- For cross-cutting concerns, create shared services in the `infrastructure` bounded context
 
 #### Inter-Module Communication
 
-When one module needs to interact with another, depend on the public facades:
+When one module needs to interact with another, depend on the public APIs:
 
 ```java
+// application/CreateReleaseUseCase.java
 @Service
-class ReleaseCommandHandler implements ReleaseCommandFacade {
-    private final LabelQueryFacade labelQuery;  // Depend on facade, not internal classes
+class CreateReleaseUseCase {
+    private final LabelQueryApi labelQuery;  // Depend on API, not internal classes
+    private final ReleaseRepository repository;
 
-    ReleaseCommandHandler(LabelQueryFacade labelQuery, ...) {
+    CreateReleaseUseCase(LabelQueryApi labelQuery, ReleaseRepository repository) {
         this.labelQuery = labelQuery;
+        this.repository = repository;
     }
 
     @Transactional
-    public Release createRelease(Long labelId, String name, ...) {
-        // Validate using facade
+    public Release execute(Long labelId, String name, ...) {
+        // Validate using API
         if (!labelQuery.exists(labelId)) {
             throw new IllegalArgumentException("Label not found");
         }
-        // ... create release with labelId reference
-    }
 
-    public Release findById(Long id) {
-        // Return Release with labelId
-        // If UI needs label details, controller fetches separately:
-        //   Label label = labelQuery.findById(release.labelId())
+        var entity = new ReleaseEntity(name, labelId, ...);
+        entity = repository.save(entity);
+        return Release.fromEntity(entity);
     }
+}
+```
+
+**In controllers**, if you need data from multiple modules, fetch them separately:
+```java
+@GetMapping("/{id}")
+public String showRelease(@PathVariable Long id, Model model) {
+    Release release = releaseQuery.findById(id)
+        .orElseThrow(() -> new EntityNotFoundException("Release not found"));
+    Label label = labelQuery.findById(release.labelId())
+        .orElseThrow(() -> new EntityNotFoundException("Label not found"));
+
+    model.addAttribute("release", release);
+    model.addAttribute("label", label);
+    return "release/detail";
 }
 ```
 
 ### Layer Separation
 
-Within each module, organize code into these layers:
+Within each module, organize code into these subdirectories:
 
-| Layer | Contains | Example |
-|-------|----------|---------|
-| `api/` | Public facades, controllers, forms | `LabelCommandFacade.java`, `LabelController.java` |
-| Module root | Domain records, handlers (package-private) | `Label.java`, `LabelCommandHandler.java` |
-| Module root | Persistence (package-private) | `LabelEntity.java`, `LabelRepository.java` |
+| Subdirectory | Contains | Visibility | Example |
+|--------------|----------|------------|---------|
+| `api/` | Public interfaces, controllers, forms | Public | `LabelCommandApi.java`, `LabelController.java` |
+| `application/` | Use cases, API implementations | Package-private | `CreateLabelUseCase.java`, `LabelCommandApiImpl.java` |
+| `domain/` | Domain records | Public | `Label.java` |
+| `infrastructure/` | JPA entities, repositories | Package-private | `LabelEntity.java`, `LabelRepository.java` |
 
-Note: Shared infrastructure (cross-cutting concerns) lives in the `infrastructure/` bounded context, not within individual modules.
+Note: Shared infrastructure (cross-cutting concerns like security, storage) lives in the `infrastructure/` **bounded context**, not within individual modules.
 
 ### Database
 
@@ -265,7 +346,7 @@ npm run test
 **Purpose**: Test HTTP routing and view rendering. Uses `@WebMvcTest` (slice).
 
 **Test**: Request mappings, redirects, view names, model attributes, form binding, validation errors.
-**Mock**: All handlers/services via `@MockitoBean`.
+**Mock**: All API interfaces (CommandApi/QueryApi) via `@MockitoBean`.
 
 ```bash
 ./gradlew test --tests "*ControllerTest"
@@ -458,10 +539,11 @@ Use Test-Driven Development with small, atomic commits. For any feature, break i
 - Integration test for persistence
 - Commit: "Add X to persistence layer"
 
-**Slice 3: Service Layer**
-- Add method to handler
+**Slice 3: Application Layer**
+- Add use case class (or update existing)
+- Update API implementation to delegate to use case
 - Integration test
-- Commit: "Add X to service layer"
+- Commit: "Add X to application layer"
 
 **Slice 4: Controller**
 - Add endpoint
