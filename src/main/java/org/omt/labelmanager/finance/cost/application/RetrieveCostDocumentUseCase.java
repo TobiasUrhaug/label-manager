@@ -1,8 +1,6 @@
 package org.omt.labelmanager.finance.cost;
 
 import org.omt.labelmanager.finance.shared.RetrievedDocument;
-import org.omt.labelmanager.finance.cost.Cost;
-import org.omt.labelmanager.finance.cost.CostRepository;
 import org.omt.labelmanager.infrastructure.storage.DocumentStoragePort;
 import org.springframework.stereotype.Service;
 

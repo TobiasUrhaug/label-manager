@@ -3,8 +3,6 @@ package org.omt.labelmanager.finance.cost;
 import org.omt.labelmanager.finance.shared.DocumentUpload;
 import org.omt.labelmanager.finance.cost.CostType;
 import org.omt.labelmanager.finance.cost.VatAmount;
-import org.omt.labelmanager.finance.cost.CostEntity;
-import org.omt.labelmanager.finance.cost.CostRepository;
 import org.omt.labelmanager.infrastructure.storage.DocumentStoragePort;
 import org.omt.labelmanager.finance.domain.shared.Money;
 import org.slf4j.Logger;
