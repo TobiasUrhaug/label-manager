@@ -5,9 +5,13 @@ import org.junit.jupiter.api.Test;
 import org.omt.labelmanager.catalog.release.domain.ReleaseFormat;
 import org.omt.labelmanager.catalog.release.ReleaseTestHelper;
 import org.omt.labelmanager.catalog.label.LabelTestHelper;
-import org.omt.labelmanager.inventory.domain.ChannelType;
+import org.omt.labelmanager.distribution.distributor.domain.ChannelType;
 import org.omt.labelmanager.inventory.domain.MovementType;
-import org.omt.labelmanager.inventory.infrastructure.persistence.*;
+import org.omt.labelmanager.inventory.infrastructure.persistence.InventoryMovementRepository;
+import org.omt.labelmanager.distribution.distributor.infrastructure.DistributorEntity;
+import org.omt.labelmanager.distribution.distributor.infrastructure.DistributorRepository;
+import org.omt.labelmanager.inventory.productionrun.infrastructure.ProductionRunEntity;
+import org.omt.labelmanager.inventory.productionrun.infrastructure.ProductionRunRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.DynamicPropertyRegistry;
@@ -24,7 +28,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @Testcontainers
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-class AllocateProductionRunToSalesChannelUseCaseIntegrationTest {
+class AllocateProductionRunToDistributorUseCaseIntegrationTest {
 
     private static final String MINIO_ACCESS_KEY = "minioadmin";
     private static final String MINIO_SECRET_KEY = "minioadmin";
@@ -54,7 +58,7 @@ class AllocateProductionRunToSalesChannelUseCaseIntegrationTest {
     }
 
     @Autowired
-    private AllocateProductionRunToSalesChannelUseCase allocateProductionRunToSalesChannelUseCase;
+    private AllocateProductionRunToDistributorUseCase allocateProductionRunToDistributorUseCase;
 
     @Autowired
     private ChannelAllocationRepository channelAllocationRepository;
@@ -66,7 +70,7 @@ class AllocateProductionRunToSalesChannelUseCaseIntegrationTest {
     private ProductionRunRepository productionRunRepository;
 
     @Autowired
-    private SalesChannelRepository salesChannelRepository;
+    private DistributorRepository distributorRepository;
 
     @Autowired
     private ReleaseTestHelper releaseTestHelper;
@@ -75,14 +79,14 @@ class AllocateProductionRunToSalesChannelUseCaseIntegrationTest {
     private LabelTestHelper labelTestHelper;
 
     private Long productionRunId;
-    private Long salesChannelId;
+    private Long distributorId;
 
     @BeforeEach
     void setUp() {
         channelAllocationRepository.deleteAll();
         inventoryMovementRepository.deleteAll();
         productionRunRepository.deleteAll();
-        salesChannelRepository.deleteAll();
+        distributorRepository.deleteAll();
 
         var label = labelTestHelper.createLabel("Test Label");
         Long releaseId = releaseTestHelper.createReleaseEntity(
@@ -99,18 +103,18 @@ class AllocateProductionRunToSalesChannelUseCaseIntegrationTest {
                 ));
         productionRunId = productionRun.getId();
 
-        SalesChannelEntity salesChannel = salesChannelRepository.save(
-                new SalesChannelEntity(label.id(), "Direct Sales", ChannelType.DIRECT));
-        salesChannelId = salesChannel.getId();
+        DistributorEntity distributor = distributorRepository.save(
+                new DistributorEntity(label.id(), "Direct Sales", ChannelType.DIRECT));
+        distributorId = distributor.getId();
     }
 
     @Test
     void createsAllocationAndMovement() {
-        var allocation = allocateProductionRunToSalesChannelUseCase.invoke(productionRunId, salesChannelId, 100);
+        var allocation = allocateProductionRunToDistributorUseCase.invoke(productionRunId, distributorId, 100);
 
         assertThat(allocation.id()).isNotNull();
         assertThat(allocation.productionRunId()).isEqualTo(productionRunId);
-        assertThat(allocation.salesChannelId()).isEqualTo(salesChannelId);
+        assertThat(allocation.distributorId()).isEqualTo(distributorId);
         assertThat(allocation.quantity()).isEqualTo(100);
         assertThat(allocation.allocatedAt()).isNotNull();
 
@@ -123,9 +127,9 @@ class AllocateProductionRunToSalesChannelUseCaseIntegrationTest {
 
     @Test
     void allowsMultipleAllocationsUpToManufacturedQuantity() {
-        allocateProductionRunToSalesChannelUseCase.invoke(productionRunId, salesChannelId, 200);
-        allocateProductionRunToSalesChannelUseCase.invoke(productionRunId, salesChannelId, 200);
-        var thirdAllocation = allocateProductionRunToSalesChannelUseCase.invoke(productionRunId, salesChannelId, 100);
+        allocateProductionRunToDistributorUseCase.invoke(productionRunId, distributorId, 200);
+        allocateProductionRunToDistributorUseCase.invoke(productionRunId, distributorId, 200);
+        var thirdAllocation = allocateProductionRunToDistributorUseCase.invoke(productionRunId, distributorId, 100);
 
         assertThat(thirdAllocation.quantity()).isEqualTo(100);
         assertThat(channelAllocationRepository.sumQuantityByProductionRunId(productionRunId))
@@ -134,10 +138,10 @@ class AllocateProductionRunToSalesChannelUseCaseIntegrationTest {
 
     @Test
     void throwsExceptionWhenOverAllocating() {
-        allocateProductionRunToSalesChannelUseCase.invoke(productionRunId, salesChannelId, 400);
+        allocateProductionRunToDistributorUseCase.invoke(productionRunId, distributorId, 400);
 
         assertThatThrownBy(() ->
-                allocateProductionRunToSalesChannelUseCase.invoke(productionRunId, salesChannelId, 200))
+                allocateProductionRunToDistributorUseCase.invoke(productionRunId, distributorId, 200))
                 .isInstanceOf(InsufficientInventoryException.class)
                 .hasMessageContaining("requested 200")
                 .hasMessageContaining("only 100 available");
@@ -146,7 +150,7 @@ class AllocateProductionRunToSalesChannelUseCaseIntegrationTest {
     @Test
     void throwsExceptionWhenAllocatingMoreThanTotal() {
         assertThatThrownBy(() ->
-                allocateProductionRunToSalesChannelUseCase.invoke(productionRunId, salesChannelId, 600))
+                allocateProductionRunToDistributorUseCase.invoke(productionRunId, distributorId, 600))
                 .isInstanceOf(InsufficientInventoryException.class)
                 .hasMessageContaining("requested 600")
                 .hasMessageContaining("only 500 available");
@@ -154,10 +158,10 @@ class AllocateProductionRunToSalesChannelUseCaseIntegrationTest {
 
     @Test
     void exceptionContainsRequestedAndAvailableQuantities() {
-        allocateProductionRunToSalesChannelUseCase.invoke(productionRunId, salesChannelId, 450);
+        allocateProductionRunToDistributorUseCase.invoke(productionRunId, distributorId, 450);
 
         try {
-            allocateProductionRunToSalesChannelUseCase.invoke(productionRunId, salesChannelId, 100);
+            allocateProductionRunToDistributorUseCase.invoke(productionRunId, distributorId, 100);
         } catch (InsufficientInventoryException ex) {
             assertThat(ex.getRequested()).isEqualTo(100);
             assertThat(ex.getAvailable()).isEqualTo(50);

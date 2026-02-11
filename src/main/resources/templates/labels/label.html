@@ -41,24 +41,24 @@
     </div>
 
     <div class="d-flex align-items-center gap-2 mb-3">
-        <h2 class="mb-0">Sales Channels</h2>
-        <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addSalesChannelModal">+</button>
+        <h2 class="mb-0">Distributors</h2>
+        <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addDistributorModal">+</button>
     </div>
 
-    <div th:if="${#lists.isEmpty(salesChannels)}" class="alert alert-info mb-4">
-        No sales channels yet. Click + to add one.
+    <div th:if="${#lists.isEmpty(distributors)}" class="alert alert-info mb-4">
+        No distributors yet. Click + to add one.
     </div>
 
-    <div class="list-group mb-4" th:unless="${#lists.isEmpty(salesChannels)}">
-        <div th:each="channel : ${salesChannels}"
+    <div class="list-group mb-4" th:unless="${#lists.isEmpty(distributors)}">
+        <div th:each="distributor : ${distributors}"
              class="list-group-item d-flex justify-content-between align-items-center">
             <div>
-                <span th:text="${channel.name()}">Channel Name</span>
-                <span class="badge bg-secondary ms-2" th:text="${channel.channelType()}">Type</span>
+                <span th:text="${distributor.name()}">Distributor Name</span>
+                <span class="badge bg-secondary ms-2" th:text="${distributor.channelType()}">Type</span>
             </div>
-            <form th:action="@{/labels/{labelId}/sales-channels/{channelId}(labelId=${id}, channelId=${channel.id()})}"
+            <form th:action="@{/labels/{labelId}/distributors/{distributorId}(labelId=${id}, distributorId=${distributor.id()})}"
                   method="post"
-                  onsubmit="return confirm('Delete this sales channel?');">
+                  onsubmit="return confirm('Delete this distributor?');">
                 <input type="hidden" name="_method" value="delete">
                 <button type="submit" class="btn btn-outline-danger btn-sm">Delete</button>
             </form>
@@ -212,19 +212,19 @@
     });
     </script>
 
-    <!-- Add Sales Channel Modal -->
-    <div class="modal fade" id="addSalesChannelModal" tabindex="-1" aria-labelledby="addSalesChannelModalLabel" aria-hidden="true">
+    <!-- Add Distributor Modal -->
+    <div class="modal fade" id="addDistributorModal" tabindex="-1" aria-labelledby="addDistributorModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
-                <form th:action="@{/labels/{labelId}/sales-channels(labelId=${id})}" method="post">
+                <form th:action="@{/labels/{labelId}/distributors(labelId=${id})}" method="post">
                     <div class="modal-header">
-                        <h5 class="modal-title" id="addSalesChannelModalLabel">Add Sales Channel</h5>
+                        <h5 class="modal-title" id="addDistributorModalLabel">Add Distributor</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
                         <div class="mb-3">
-                            <label for="channelName" class="form-label">Channel Name</label>
-                            <input type="text" class="form-control" id="channelName" name="name" required>
+                            <label for="distributorName" class="form-label">Distributor Name</label>
+                            <input type="text" class="form-control" id="distributorName" name="name" required>
                         </div>
                         <div class="mb-3">
                             <label for="channelType" class="form-label">Channel Type</label>
@@ -235,7 +235,7 @@
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-primary">Add Channel</button>
+                        <button type="submit" class="btn btn-primary">Add Distributor</button>
                     </div>
                 </form>
             </div>

@@ -5,11 +5,11 @@ import org.junit.jupiter.api.Test;
 import org.omt.labelmanager.catalog.release.domain.ReleaseFormat;
 import org.omt.labelmanager.catalog.release.ReleaseTestHelper;
 import org.omt.labelmanager.catalog.label.LabelTestHelper;
-import org.omt.labelmanager.inventory.domain.ChannelType;
-import org.omt.labelmanager.inventory.infrastructure.persistence.ProductionRunEntity;
-import org.omt.labelmanager.inventory.infrastructure.persistence.ProductionRunRepository;
-import org.omt.labelmanager.inventory.infrastructure.persistence.SalesChannelEntity;
-import org.omt.labelmanager.inventory.infrastructure.persistence.SalesChannelRepository;
+import org.omt.labelmanager.distribution.distributor.domain.ChannelType;
+import org.omt.labelmanager.inventory.productionrun.infrastructure.ProductionRunEntity;
+import org.omt.labelmanager.inventory.productionrun.infrastructure.ProductionRunRepository;
+import org.omt.labelmanager.distribution.distributor.infrastructure.DistributorEntity;
+import org.omt.labelmanager.distribution.distributor.infrastructure.DistributorRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.DynamicPropertyRegistry;
@@ -62,7 +62,7 @@ class ChannelAllocationPersistenceIntegrationTest {
     private ProductionRunRepository productionRunRepository;
 
     @Autowired
-    private SalesChannelRepository salesChannelRepository;
+    private DistributorRepository distributorRepository;
 
     @Autowired
     private ReleaseTestHelper releaseTestHelper;
@@ -71,13 +71,13 @@ class ChannelAllocationPersistenceIntegrationTest {
     private LabelTestHelper labelTestHelper;
 
     private Long productionRunId;
-    private Long salesChannelId;
+    private Long distributorId;
 
     @BeforeEach
     void setUp() {
         channelAllocationRepository.deleteAll();
         productionRunRepository.deleteAll();
-        salesChannelRepository.deleteAll();
+        distributorRepository.deleteAll();
 
         var label = labelTestHelper.createLabel("Test Label");
         Long releaseId = releaseTestHelper.createReleaseEntity(
@@ -94,23 +94,23 @@ class ChannelAllocationPersistenceIntegrationTest {
                 ));
         productionRunId = productionRun.getId();
 
-        SalesChannelEntity salesChannel = salesChannelRepository.save(
-                new SalesChannelEntity(label.id(), "Direct Sales", ChannelType.DIRECT));
-        salesChannelId = salesChannel.getId();
+        DistributorEntity distributor = distributorRepository.save(
+                new DistributorEntity(label.id(), "Direct Sales", ChannelType.DIRECT));
+        distributorId = distributor.getId();
     }
 
     @Test
     void savesAndRetrievesChannelAllocation() {
         Instant allocatedAt = Instant.parse("2025-06-15T10:00:00Z");
         var entity = new ChannelAllocationEntity(
-                productionRunId, salesChannelId, 100, allocatedAt);
+                productionRunId, distributorId, 100, allocatedAt);
 
         var saved = channelAllocationRepository.save(entity);
 
         var retrieved = channelAllocationRepository.findById(saved.getId());
         assertThat(retrieved).isPresent();
         assertThat(retrieved.get().getProductionRunId()).isEqualTo(productionRunId);
-        assertThat(retrieved.get().getSalesChannelId()).isEqualTo(salesChannelId);
+        assertThat(retrieved.get().getDistributorId()).isEqualTo(distributorId);
         assertThat(retrieved.get().getQuantity()).isEqualTo(100);
         assertThat(retrieved.get().getAllocatedAt()).isEqualTo(allocatedAt);
     }
@@ -119,9 +119,9 @@ class ChannelAllocationPersistenceIntegrationTest {
     void findsByProductionRunId() {
         Instant allocatedAt = Instant.now();
         channelAllocationRepository.save(
-                new ChannelAllocationEntity(productionRunId, salesChannelId, 100, allocatedAt));
+                new ChannelAllocationEntity(productionRunId, distributorId, 100, allocatedAt));
         channelAllocationRepository.save(
-                new ChannelAllocationEntity(productionRunId, salesChannelId, 50, allocatedAt));
+                new ChannelAllocationEntity(productionRunId, distributorId, 50, allocatedAt));
 
         var allocations = channelAllocationRepository.findByProductionRunId(productionRunId);
 
@@ -134,9 +134,9 @@ class ChannelAllocationPersistenceIntegrationTest {
     void sumQuantityByProductionRunIdReturnsTotal() {
         Instant allocatedAt = Instant.now();
         channelAllocationRepository.save(
-                new ChannelAllocationEntity(productionRunId, salesChannelId, 100, allocatedAt));
+                new ChannelAllocationEntity(productionRunId, distributorId, 100, allocatedAt));
         channelAllocationRepository.save(
-                new ChannelAllocationEntity(productionRunId, salesChannelId, 150, allocatedAt));
+                new ChannelAllocationEntity(productionRunId, distributorId, 150, allocatedAt));
 
         int total = channelAllocationRepository.sumQuantityByProductionRunId(productionRunId);
 
@@ -154,7 +154,7 @@ class ChannelAllocationPersistenceIntegrationTest {
     void deletesAllocationWhenProductionRunDeleted() {
         Instant allocatedAt = Instant.now();
         channelAllocationRepository.save(
-                new ChannelAllocationEntity(productionRunId, salesChannelId, 100, allocatedAt));
+                new ChannelAllocationEntity(productionRunId, distributorId, 100, allocatedAt));
 
         assertThat(channelAllocationRepository.findByProductionRunId(productionRunId)).hasSize(1);
 

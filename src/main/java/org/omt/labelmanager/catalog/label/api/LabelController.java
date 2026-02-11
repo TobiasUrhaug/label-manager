@@ -7,9 +7,9 @@ import org.omt.labelmanager.catalog.release.domain.ReleaseFormat;
 import org.omt.labelmanager.catalog.release.api.ReleaseQueryApi;
 import org.omt.labelmanager.catalog.label.domain.Label;
 import org.omt.labelmanager.identity.application.AppUserDetails;
-import org.omt.labelmanager.inventory.application.SalesChannelQueryService;
-import org.omt.labelmanager.inventory.domain.ChannelType;
-import org.omt.labelmanager.inventory.domain.SalesChannel;
+import org.omt.labelmanager.distribution.distributor.api.DistributorQueryApi;
+import org.omt.labelmanager.distribution.distributor.domain.ChannelType;
+import org.omt.labelmanager.distribution.distributor.domain.Distributor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -32,19 +32,19 @@ public class LabelController {
     private final LabelQueryApi labelQueryFacade;
     private final ReleaseQueryApi releaseQueryFacade;
     private final ArtistQueryApi artistQueryApi;
-    private final SalesChannelQueryService salesChannelQueryService;
+    private final DistributorQueryApi distributorQueryApi;
 
     public LabelController(
             LabelCommandApi labelCommandHandler, LabelQueryApi labelQueryFacade,
             ReleaseQueryApi releaseQueryFacade,
             ArtistQueryApi artistQueryApi,
-            SalesChannelQueryService salesChannelQueryService
+            DistributorQueryApi distributorQueryApi
     ) {
         this.labelCommandHandler = labelCommandHandler;
         this.labelQueryFacade = labelQueryFacade;
         this.releaseQueryFacade = releaseQueryFacade;
         this.artistQueryApi = artistQueryApi;
-        this.salesChannelQueryService = salesChannelQueryService;
+        this.distributorQueryApi = distributorQueryApi;
     }
 
     @GetMapping("/{id}")
@@ -63,7 +63,7 @@ public class LabelController {
 
         List<Release> releases = releaseQueryFacade.getReleasesForLabel(id);
         List<Artist> artists = artistQueryApi.getArtistsForUser(user.getId());
-        List<SalesChannel> salesChannels = salesChannelQueryService.getSalesChannelsForLabel(id);
+        List<Distributor> distributors = distributorQueryApi.findByLabelId(id);
 
         model.addAttribute("name", label.name());
         model.addAttribute("id", id);
@@ -74,7 +74,7 @@ public class LabelController {
         model.addAttribute("releases", releases);
         model.addAttribute("artists", artists);
         model.addAttribute("allFormats", ReleaseFormat.values());
-        model.addAttribute("salesChannels", salesChannels);
+        model.addAttribute("distributors", distributors);
         model.addAttribute("allChannelTypes", ChannelType.values());
 
         return "labels/label";

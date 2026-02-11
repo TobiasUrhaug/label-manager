@@ -8,5 +8,5 @@ public interface InventoryMovementRepository
 
     List<InventoryMovementEntity> findByProductionRunId(Long productionRunId);
 
-    List<InventoryMovementEntity> findBySalesChannelId(Long salesChannelId);
+    List<InventoryMovementEntity> findByDistributorId(Long distributorId);
 }

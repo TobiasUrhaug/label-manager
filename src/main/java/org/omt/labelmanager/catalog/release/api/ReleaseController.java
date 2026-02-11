@@ -13,10 +13,10 @@ import org.omt.labelmanager.inventory.allocation.AllocationQueryService;
 import org.omt.labelmanager.inventory.allocation.ChannelAllocation;
 import org.omt.labelmanager.inventory.api.AllocationView;
 import org.omt.labelmanager.inventory.api.ProductionRunWithAllocation;
-import org.omt.labelmanager.inventory.application.ProductionRunQueryService;
-import org.omt.labelmanager.inventory.application.SalesChannelQueryService;
-import org.omt.labelmanager.inventory.domain.ProductionRun;
-import org.omt.labelmanager.inventory.domain.SalesChannel;
+import org.omt.labelmanager.inventory.productionrun.api.ProductionRunQueryApi;
+import org.omt.labelmanager.distribution.distributor.api.DistributorQueryApi;
+import org.omt.labelmanager.inventory.productionrun.domain.ProductionRun;
+import org.omt.labelmanager.distribution.distributor.domain.Distributor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -44,26 +44,26 @@ public class ReleaseController {
     private final ReleaseQueryApi releaseQueryApi;
     private final ArtistQueryApi artistQueryApi;
     private final CostQueryApi costQueryFacade;
-    private final ProductionRunQueryService productionRunQueryService;
+    private final ProductionRunQueryApi productionRunQueryApi;
     private final AllocationQueryService allocationQueryService;
-    private final SalesChannelQueryService salesChannelQueryService;
+    private final DistributorQueryApi distributorQueryApi;
 
     public ReleaseController(
             ReleaseCommandApi releaseCommandApi,
             ReleaseQueryApi releaseQueryApi,
             ArtistQueryApi artistQueryApi,
             CostQueryApi costQueryFacade,
-            ProductionRunQueryService productionRunQueryService,
+            ProductionRunQueryApi productionRunQueryApi,
             AllocationQueryService allocationQueryService,
-            SalesChannelQueryService salesChannelQueryService
+            DistributorQueryApi distributorQueryApi
     ) {
         this.releaseCommandApi = releaseCommandApi;
         this.releaseQueryApi = releaseQueryApi;
         this.artistQueryApi = artistQueryApi;
         this.costQueryFacade = costQueryFacade;
-        this.productionRunQueryService = productionRunQueryService;
+        this.productionRunQueryApi = productionRunQueryApi;
         this.allocationQueryService = allocationQueryService;
-        this.salesChannelQueryService = salesChannelQueryService;
+        this.distributorQueryApi = distributorQueryApi;
     }
 
     @PostMapping
@@ -115,17 +115,17 @@ public class ReleaseController {
         List<Cost> costs =
                 costQueryFacade.getCostsForRelease(releaseId);
         List<ProductionRun> productionRuns =
-                productionRunQueryService
-                        .getProductionRunsForRelease(releaseId);
-        List<SalesChannel> salesChannels =
-                salesChannelQueryService
-                        .getSalesChannelsForLabel(labelId);
+                productionRunQueryApi
+                        .findByReleaseId(releaseId);
+        List<Distributor> distributors =
+                distributorQueryApi
+                        .findByLabelId(labelId);
         List<ProductionRunWithAllocation>
                 productionRunsWithAllocation =
                 productionRuns.stream()
                         .map(run ->
                                 buildProductionRunWithAllocation(
-                                        run, salesChannels
+                                        run, distributors
                                 ))
                         .toList();
         List<ReleaseFormat> physicalFormats =
@@ -160,7 +160,7 @@ public class ReleaseController {
                 "productionRuns", productionRunsWithAllocation
         );
         model.addAttribute("physicalFormats", physicalFormats);
-        model.addAttribute("salesChannels", salesChannels);
+        model.addAttribute("distributors", distributors);
 
         return "/releases/release";
     }
@@ -237,7 +237,7 @@ public class ReleaseController {
     private ProductionRunWithAllocation
             buildProductionRunWithAllocation(
                     ProductionRun run,
-                    List<SalesChannel> salesChannels
+                    List<Distributor> distributors
     ) {
         List<ChannelAllocation> allocations =
                 allocationQueryService
@@ -247,8 +247,8 @@ public class ReleaseController {
                         .map(alloc -> new AllocationView(
                                 alloc.id(),
                                 findChannelName(
-                                        alloc.salesChannelId(),
-                                        salesChannels
+                                        alloc.distributorId(),
+                                        distributors
                                 ),
                                 alloc.quantity(),
                                 alloc.allocatedAt()
@@ -268,12 +268,12 @@ public class ReleaseController {
 
     private String findChannelName(
             Long channelId,
-            List<SalesChannel> channels
+            List<Distributor> distributors
     ) {
-        return channels.stream()
+        return distributors.stream()
                 .filter(ch -> ch.id().equals(channelId))
                 .findFirst()
-                .map(SalesChannel::name)
+                .map(Distributor::name)
                 .orElse("Unknown Channel");
     }
 }

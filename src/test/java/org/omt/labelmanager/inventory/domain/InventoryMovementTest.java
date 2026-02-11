@@ -16,7 +16,7 @@ class InventoryMovementTest {
         InventoryMovement movement = anInventoryMovement()
                 .id(42L)
                 .productionRunId(10L)
-                .salesChannelId(5L)
+                .distributorId(5L)
                 .quantityDelta(200)
                 .movementType(MovementType.ALLOCATION)
                 .occurredAt(occurredAt)
@@ -25,7 +25,7 @@ class InventoryMovementTest {
 
         assertThat(movement.id()).isEqualTo(42L);
         assertThat(movement.productionRunId()).isEqualTo(10L);
-        assertThat(movement.salesChannelId()).isEqualTo(5L);
+        assertThat(movement.distributorId()).isEqualTo(5L);
         assertThat(movement.quantityDelta()).isEqualTo(200);
         assertThat(movement.movementType()).isEqualTo(MovementType.ALLOCATION);
         assertThat(movement.occurredAt()).isEqualTo(occurredAt);

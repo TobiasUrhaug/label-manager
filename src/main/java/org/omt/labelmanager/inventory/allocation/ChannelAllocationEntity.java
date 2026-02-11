@@ -15,8 +15,8 @@ public class ChannelAllocationEntity {
     @Column(name = "production_run_id", nullable = false)
     private Long productionRunId;
 
-    @Column(name = "sales_channel_id", nullable = false)
-    private Long salesChannelId;
+    @Column(name = "distributor_id", nullable = false)
+    private Long distributorId;
 
     @Column(nullable = false)
     private int quantity;
@@ -29,12 +29,12 @@ public class ChannelAllocationEntity {
 
     public ChannelAllocationEntity(
             Long productionRunId,
-            Long salesChannelId,
+            Long distributorId,
             int quantity,
             Instant allocatedAt
     ) {
         this.productionRunId = productionRunId;
-        this.salesChannelId = salesChannelId;
+        this.distributorId = distributorId;
         this.quantity = quantity;
         this.allocatedAt = allocatedAt;
     }
@@ -47,8 +47,8 @@ public class ChannelAllocationEntity {
         return productionRunId;
     }
 
-    public Long getSalesChannelId() {
-        return salesChannelId;
+    public Long getDistributorId() {
+        return distributorId;
     }
 
     public int getQuantity() {

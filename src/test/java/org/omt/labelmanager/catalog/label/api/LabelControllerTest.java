@@ -9,8 +9,8 @@ import org.omt.labelmanager.catalog.release.ReleaseFactory;
 import org.omt.labelmanager.catalog.release.api.ReleaseQueryApi;
 import org.omt.labelmanager.catalog.label.LabelFactory;
 import org.omt.labelmanager.identity.application.AppUserDetails;
-import org.omt.labelmanager.inventory.application.SalesChannelQueryService;
-import org.omt.labelmanager.inventory.domain.SalesChannelFactory;
+import org.omt.labelmanager.distribution.distributor.api.DistributorQueryApi;
+import org.omt.labelmanager.distribution.distributor.domain.DistributorFactory;
 import org.omt.labelmanager.test.TestSecurityConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
@@ -49,7 +49,7 @@ class LabelControllerTest {
     private ArtistQueryApi artistQueryApi;
 
     @MockitoBean
-    private SalesChannelQueryService salesChannelQueryService;
+    private DistributorQueryApi distributorQueryService;
 
     private final AppUserDetails testUser =
             new AppUserDetails(1L, "test@example.com", "password", "Test User");
@@ -70,8 +70,8 @@ class LabelControllerTest {
         var artist = ArtistFactory.anArtist().id(1L).artistName("Unknown").build();
         when(artistQueryApi.getArtistsForUser(1L)).thenReturn(List.of(artist));
 
-        var salesChannel = SalesChannelFactory.aSalesChannel().id(1L).name("Direct Sales").build();
-        when(salesChannelQueryService.getSalesChannelsForLabel(1L)).thenReturn(List.of(salesChannel));
+        var distributor = DistributorFactory.aDistributor().id(1L).name("Direct Sales").build();
+        when(distributorQueryService.findByLabelId(1L)).thenReturn(List.of(distributor));
 
         mockMvc
                 .perform(get("/labels/1").with(user(testUser)))
@@ -83,7 +83,7 @@ class LabelControllerTest {
                 .andExpect(model().attribute("website", "https://mylabel.com"))
                 .andExpect(model().attribute("releases", hasSize(1)))
                 .andExpect(model().attribute("artists", hasSize(1)))
-                .andExpect(model().attribute("salesChannels", hasSize(1)));
+                .andExpect(model().attribute("distributors", hasSize(1)));
     }
 
     @Test

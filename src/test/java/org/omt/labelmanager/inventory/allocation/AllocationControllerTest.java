@@ -26,7 +26,7 @@ class AllocationControllerTest {
     private MockMvc mockMvc;
 
     @MockitoBean
-    private AllocateProductionRunToSalesChannelUseCase allocateProductionRunToSalesChannelUseCase;
+    private AllocateProductionRunToDistributorUseCase allocateProductionRunToDistributorUseCase;
 
     private final AppUserDetails testUser =
             new AppUserDetails(1L, "test@example.com", "password", "Test User");
@@ -37,24 +37,24 @@ class AllocationControllerTest {
                 .perform(post("/labels/1/releases/2/production-runs/3/allocations")
                         .with(user(testUser))
                         .with(csrf())
-                        .param("salesChannelId", "5")
+                        .param("distributorId", "5")
                         .param("quantity", "100"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/labels/1/releases/2"));
 
-        verify(allocateProductionRunToSalesChannelUseCase).invoke(eq(3L), eq(5L), eq(100));
+        verify(allocateProductionRunToDistributorUseCase).invoke(eq(3L), eq(5L), eq(100));
     }
 
     @Test
     void addAllocation_addsFlashErrorOnInsufficientInventory() throws Exception {
         doThrow(new InsufficientInventoryException(200, 100))
-                .when(allocateProductionRunToSalesChannelUseCase).invoke(anyLong(), anyLong(), anyInt());
+                .when(allocateProductionRunToDistributorUseCase).invoke(anyLong(), anyLong(), anyInt());
 
         mockMvc
                 .perform(post("/labels/1/releases/2/production-runs/3/allocations")
                         .with(user(testUser))
                         .with(csrf())
-                        .param("salesChannelId", "5")
+                        .param("distributorId", "5")
                         .param("quantity", "200"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/labels/1/releases/2"))
@@ -64,13 +64,13 @@ class AllocationControllerTest {
     @Test
     void addAllocation_flashErrorContainsExceptionMessage() throws Exception {
         doThrow(new InsufficientInventoryException(200, 50))
-                .when(allocateProductionRunToSalesChannelUseCase).invoke(anyLong(), anyLong(), anyInt());
+                .when(allocateProductionRunToDistributorUseCase).invoke(anyLong(), anyLong(), anyInt());
 
         mockMvc
                 .perform(post("/labels/1/releases/2/production-runs/3/allocations")
                         .with(user(testUser))
                         .with(csrf())
-                        .param("salesChannelId", "5")
+                        .param("distributorId", "5")
                         .param("quantity", "200"))
                 .andExpect(flash().attribute(
                         "allocationError",

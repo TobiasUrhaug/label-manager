@@ -2,15 +2,15 @@ package org.omt.labelmanager.inventory.allocation.api;
 
 public class AddAllocationForm {
 
-    private Long salesChannelId;
+    private Long distributorId;
     private int quantity;
 
-    public Long getSalesChannelId() {
-        return salesChannelId;
+    public Long getDistributorId() {
+        return distributorId;
     }
 
-    public void setSalesChannelId(Long salesChannelId) {
-        this.salesChannelId = salesChannelId;
+    public void setDistributorId(Long distributorId) {
+        this.distributorId = distributorId;
     }
 
     public int getQuantity() {

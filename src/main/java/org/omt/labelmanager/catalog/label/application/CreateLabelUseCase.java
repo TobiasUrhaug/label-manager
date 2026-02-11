@@ -8,8 +8,8 @@ import org.omt.labelmanager.catalog.infrastructure.persistence.shared.PersonEmbe
 import org.omt.labelmanager.catalog.label.domain.Label;
 import org.omt.labelmanager.catalog.label.infrastructure.LabelEntity;
 import org.omt.labelmanager.catalog.label.infrastructure.LabelRepository;
-import org.omt.labelmanager.inventory.application.SalesChannelCRUDHandler;
-import org.omt.labelmanager.inventory.domain.ChannelType;
+import org.omt.labelmanager.distribution.distributor.api.DistributorCommandApi;
+import org.omt.labelmanager.distribution.distributor.domain.ChannelType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -21,14 +21,14 @@ class CreateLabelUseCase {
             LoggerFactory.getLogger(CreateLabelUseCase.class);
 
     private final LabelRepository repository;
-    private final SalesChannelCRUDHandler salesChannelCRUDHandler;
+    private final DistributorCommandApi distributorCommandApi;
 
     CreateLabelUseCase(
             LabelRepository repository,
-            SalesChannelCRUDHandler salesChannelCRUDHandler
+            DistributorCommandApi distributorCommandApi
     ) {
         this.repository = repository;
-        this.salesChannelCRUDHandler = salesChannelCRUDHandler;
+        this.distributorCommandApi = distributorCommandApi;
     }
 
     @Transactional
@@ -51,7 +51,7 @@ class CreateLabelUseCase {
         }
         entity = repository.save(entity);
 
-        salesChannelCRUDHandler.create(
+        distributorCommandApi.createDistributor(
                 entity.getId(), "Direct Sales", ChannelType.DIRECT
         );
 

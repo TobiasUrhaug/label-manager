@@ -5,7 +5,7 @@ import java.time.Instant;
 public record ChannelAllocation(
         Long id,
         Long productionRunId,
-        Long salesChannelId,
+        Long distributorId,
         int quantity,
         Instant allocatedAt
 ) {
@@ -14,7 +14,7 @@ public record ChannelAllocation(
         return new ChannelAllocation(
                 entity.getId(),
                 entity.getProductionRunId(),
-                entity.getSalesChannelId(),
+                entity.getDistributorId(),
                 entity.getQuantity(),
                 entity.getAllocatedAt()
         );

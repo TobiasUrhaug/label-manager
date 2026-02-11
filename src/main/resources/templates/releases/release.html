@@ -179,7 +179,7 @@
                             <td class="text-end" th:text="${runWithAlloc.unallocated()}">300</td>
                             <td class="text-nowrap">
                                 <button type="button" class="btn btn-sm btn-outline-primary allocate-btn"
-                                        th:if="${runWithAlloc.unallocated() > 0 && !salesChannels.isEmpty()}"
+                                        th:if="${runWithAlloc.unallocated() > 0 && !distributors.isEmpty()}"
                                         th:data-run-id="${runWithAlloc.productionRun().id()}"
                                         th:data-unallocated="${runWithAlloc.unallocated()}"
                                         data-bs-toggle="modal" data-bs-target="#allocateModal">Allocate</button>
@@ -304,16 +304,16 @@
                     </div>
                     <div class="modal-body">
                         <div class="mb-3">
-                            <label for="allocationSalesChannelId" class="form-label">
-                                Sales Channel
+                            <label for="allocationDistributorId" class="form-label">
+                                Distributor
                             </label>
-                            <select class="form-select" id="allocationSalesChannelId"
-                                    name="salesChannelId" required>
-                                <option value="">Select channel...</option>
-                                <option th:each="channel : ${salesChannels}"
-                                        th:value="${channel.id()}"
-                                        th:text="${channel.name()} + ' (' + ${channel.channelType()} + ')'">
-                                    Channel Name
+                            <select class="form-select" id="allocationDistributorId"
+                                    name="distributorId" required>
+                                <option value="">Select distributor...</option>
+                                <option th:each="distributor : ${distributors}"
+                                        th:value="${distributor.id()}"
+                                        th:text="${distributor.name()} + ' (' + ${distributor.channelType()} + ')'">
+                                    Distributor Name
                                 </option>
                             </select>
                         </div>

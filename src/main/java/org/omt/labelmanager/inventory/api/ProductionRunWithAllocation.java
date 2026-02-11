@@ -1,7 +1,7 @@
 package org.omt.labelmanager.inventory.api;
 
 import java.util.List;
-import org.omt.labelmanager.inventory.domain.ProductionRun;
+import org.omt.labelmanager.inventory.productionrun.domain.ProductionRun;
 
 public record ProductionRunWithAllocation(
         ProductionRun productionRun,

@@ -22,8 +22,8 @@ public class InventoryMovementEntity {
     @Column(name = "production_run_id", nullable = false)
     private Long productionRunId;
 
-    @Column(name = "sales_channel_id", nullable = false)
-    private Long salesChannelId;
+    @Column(name = "distributor_id", nullable = false)
+    private Long distributorId;
 
     @Column(name = "quantity_delta", nullable = false)
     private int quantityDelta;
@@ -43,14 +43,14 @@ public class InventoryMovementEntity {
 
     public InventoryMovementEntity(
             Long productionRunId,
-            Long salesChannelId,
+            Long distributorId,
             int quantityDelta,
             MovementType movementType,
             Instant occurredAt,
             Long referenceId
     ) {
         this.productionRunId = productionRunId;
-        this.salesChannelId = salesChannelId;
+        this.distributorId = distributorId;
         this.quantityDelta = quantityDelta;
         this.movementType = movementType;
         this.occurredAt = occurredAt;
@@ -65,8 +65,8 @@ public class InventoryMovementEntity {
         return productionRunId;
     }
 
-    public Long getSalesChannelId() {
-        return salesChannelId;
+    public Long getDistributorId() {
+        return distributorId;
     }
 
     public int getQuantityDelta() {

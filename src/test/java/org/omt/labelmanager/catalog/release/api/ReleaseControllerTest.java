@@ -11,8 +11,8 @@ import org.omt.labelmanager.catalog.label.api.LabelQueryApi;
 import org.omt.labelmanager.finance.cost.api.CostQueryApi;
 import org.omt.labelmanager.identity.application.AppUserDetails;
 import org.omt.labelmanager.inventory.allocation.AllocationQueryService;
-import org.omt.labelmanager.inventory.application.ProductionRunQueryService;
-import org.omt.labelmanager.inventory.application.SalesChannelQueryService;
+import org.omt.labelmanager.inventory.productionrun.api.ProductionRunQueryApi;
+import org.omt.labelmanager.distribution.distributor.api.DistributorQueryApi;
 import org.omt.labelmanager.test.TestSecurityConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
@@ -55,13 +55,13 @@ class ReleaseControllerTest {
     private CostQueryApi costQueryFacade;
 
     @MockitoBean
-    private ProductionRunQueryService productionRunQueryService;
+    private ProductionRunQueryApi productionRunQueryService;
 
     @MockitoBean
     private AllocationQueryService allocationQueryService;
 
     @MockitoBean
-    private SalesChannelQueryService salesChannelQueryService;
+    private DistributorQueryApi distributorQueryService;
 
     private final AppUserDetails testUser =
             new AppUserDetails(

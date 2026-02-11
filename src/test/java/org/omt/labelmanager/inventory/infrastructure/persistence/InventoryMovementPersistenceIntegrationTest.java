@@ -5,8 +5,12 @@ import org.junit.jupiter.api.Test;
 import org.omt.labelmanager.catalog.release.domain.ReleaseFormat;
 import org.omt.labelmanager.catalog.release.ReleaseTestHelper;
 import org.omt.labelmanager.catalog.label.LabelTestHelper;
-import org.omt.labelmanager.inventory.domain.ChannelType;
+import org.omt.labelmanager.distribution.distributor.domain.ChannelType;
+import org.omt.labelmanager.distribution.distributor.infrastructure.DistributorEntity;
+import org.omt.labelmanager.distribution.distributor.infrastructure.DistributorRepository;
 import org.omt.labelmanager.inventory.domain.MovementType;
+import org.omt.labelmanager.inventory.productionrun.infrastructure.ProductionRunEntity;
+import org.omt.labelmanager.inventory.productionrun.infrastructure.ProductionRunRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.DynamicPropertyRegistry;
@@ -59,7 +63,7 @@ class InventoryMovementPersistenceIntegrationTest {
     private ProductionRunRepository productionRunRepository;
 
     @Autowired
-    private SalesChannelRepository salesChannelRepository;
+    private DistributorRepository distributorRepository;
 
     @Autowired
     private ReleaseTestHelper releaseTestHelper;
@@ -68,13 +72,13 @@ class InventoryMovementPersistenceIntegrationTest {
     private LabelTestHelper labelTestHelper;
 
     private Long productionRunId;
-    private Long salesChannelId;
+    private Long distributorId;
 
     @BeforeEach
     void setUp() {
         inventoryMovementRepository.deleteAll();
         productionRunRepository.deleteAll();
-        salesChannelRepository.deleteAll();
+        distributorRepository.deleteAll();
 
         var label = labelTestHelper.createLabel("Test Label");
         Long releaseId = releaseTestHelper.createReleaseEntity(
@@ -91,9 +95,9 @@ class InventoryMovementPersistenceIntegrationTest {
                 ));
         productionRunId = productionRun.getId();
 
-        SalesChannelEntity salesChannel = salesChannelRepository.save(
-                new SalesChannelEntity(label.id(), "Direct Sales", ChannelType.DIRECT));
-        salesChannelId = salesChannel.getId();
+        DistributorEntity distributor = distributorRepository.save(
+                new DistributorEntity(label.id(), "Direct Sales", ChannelType.DIRECT));
+        distributorId = distributor.getId();
     }
 
     @Test
@@ -101,7 +105,7 @@ class InventoryMovementPersistenceIntegrationTest {
         Instant occurredAt = Instant.parse("2025-06-15T10:00:00Z");
         var entity = new InventoryMovementEntity(
                 productionRunId,
-                salesChannelId,
+                distributorId,
                 100,
                 MovementType.ALLOCATION,
                 occurredAt,
@@ -113,7 +117,7 @@ class InventoryMovementPersistenceIntegrationTest {
         var retrieved = inventoryMovementRepository.findById(saved.getId());
         assertThat(retrieved).isPresent();
         assertThat(retrieved.get().getProductionRunId()).isEqualTo(productionRunId);
-        assertThat(retrieved.get().getSalesChannelId()).isEqualTo(salesChannelId);
+        assertThat(retrieved.get().getDistributorId()).isEqualTo(distributorId);
         assertThat(retrieved.get().getQuantityDelta()).isEqualTo(100);
         assertThat(retrieved.get().getMovementType()).isEqualTo(MovementType.ALLOCATION);
         assertThat(retrieved.get().getOccurredAt()).isEqualTo(occurredAt);
@@ -125,7 +129,7 @@ class InventoryMovementPersistenceIntegrationTest {
         Instant occurredAt = Instant.now();
         var entity = new InventoryMovementEntity(
                 productionRunId,
-                salesChannelId,
+                distributorId,
                 -50,
                 MovementType.SALE,
                 occurredAt,
@@ -143,9 +147,9 @@ class InventoryMovementPersistenceIntegrationTest {
     void findsByProductionRunId() {
         Instant occurredAt = Instant.now();
         inventoryMovementRepository.save(new InventoryMovementEntity(
-                productionRunId, salesChannelId, 100, MovementType.ALLOCATION, occurredAt, null));
+                productionRunId, distributorId, 100, MovementType.ALLOCATION, occurredAt, null));
         inventoryMovementRepository.save(new InventoryMovementEntity(
-                productionRunId, salesChannelId, -20, MovementType.SALE, occurredAt, null));
+                productionRunId, distributorId, -20, MovementType.SALE, occurredAt, null));
 
         var movements = inventoryMovementRepository.findByProductionRunId(productionRunId);
 
@@ -154,24 +158,24 @@ class InventoryMovementPersistenceIntegrationTest {
     }
 
     @Test
-    void findsBySalesChannelId() {
+    void findsByDistributorId() {
         Instant occurredAt = Instant.now();
         inventoryMovementRepository.save(new InventoryMovementEntity(
-                productionRunId, salesChannelId, 100, MovementType.ALLOCATION, occurredAt, null));
+                productionRunId, distributorId, 100, MovementType.ALLOCATION, occurredAt, null));
         inventoryMovementRepository.save(new InventoryMovementEntity(
-                productionRunId, salesChannelId, -20, MovementType.SALE, occurredAt, null));
+                productionRunId, distributorId, -20, MovementType.SALE, occurredAt, null));
 
-        var movements = inventoryMovementRepository.findBySalesChannelId(salesChannelId);
+        var movements = inventoryMovementRepository.findByDistributorId(distributorId);
 
         assertThat(movements).hasSize(2);
-        assertThat(movements).allMatch(m -> m.getSalesChannelId().equals(salesChannelId));
+        assertThat(movements).allMatch(m -> m.getDistributorId().equals(distributorId));
     }
 
     @Test
     void deletesMovementWhenProductionRunDeleted() {
         Instant occurredAt = Instant.now();
         inventoryMovementRepository.save(new InventoryMovementEntity(
-                productionRunId, salesChannelId, 100, MovementType.ALLOCATION, occurredAt, null));
+                productionRunId, distributorId, 100, MovementType.ALLOCATION, occurredAt, null));
 
         assertThat(inventoryMovementRepository.findByProductionRunId(productionRunId)).hasSize(1);
 

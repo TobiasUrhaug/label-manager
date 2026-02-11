@@ -9,8 +9,8 @@ import org.omt.labelmanager.catalog.domain.shared.Person;
 import org.omt.labelmanager.catalog.label.api.LabelCommandApi;
 import org.omt.labelmanager.identity.infrastructure.persistence.user.UserEntity;
 import org.omt.labelmanager.identity.infrastructure.persistence.user.UserRepository;
-import org.omt.labelmanager.inventory.application.SalesChannelQueryService;
-import org.omt.labelmanager.inventory.domain.ChannelType;
+import org.omt.labelmanager.distribution.distributor.api.DistributorQueryApi;
+import org.omt.labelmanager.distribution.distributor.domain.ChannelType;
 import org.springframework.beans.factory.annotation.Autowired;
 
 public class CreateLabelIntegrationTest extends AbstractIntegrationTest {
@@ -22,7 +22,7 @@ public class CreateLabelIntegrationTest extends AbstractIntegrationTest {
     UserRepository userRepository;
 
     @Autowired
-    SalesChannelQueryService salesChannelQueryService;
+    DistributorQueryApi distributorQueryService;
 
     @Test
     void createLabel_persistsLabelWithAllFields() {
@@ -55,7 +55,7 @@ public class CreateLabelIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    void createLabel_createsDefaultDirectSalesChannel() {
+    void createLabel_createsDefaultDirectDistributor() {
         var user = createTestUser("sales-channel-test@example.com");
 
         var label = labelCommandApi.createLabel(
@@ -67,14 +67,14 @@ public class CreateLabelIntegrationTest extends AbstractIntegrationTest {
                 user.getId()
         );
 
-        var salesChannels =
-                salesChannelQueryService.getSalesChannelsForLabel(
+        var distributors =
+                distributorQueryService.findByLabelId(
                         label.id()
                 );
-        assertThat(salesChannels).hasSize(1);
-        assertThat(salesChannels.getFirst().name())
+        assertThat(distributors).hasSize(1);
+        assertThat(distributors.getFirst().name())
                 .isEqualTo("Direct Sales");
-        assertThat(salesChannels.getFirst().channelType())
+        assertThat(distributors.getFirst().channelType())
                 .isEqualTo(ChannelType.DIRECT);
     }
 

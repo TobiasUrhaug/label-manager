@@ -6,7 +6,7 @@ import org.omt.labelmanager.inventory.infrastructure.persistence.InventoryMoveme
 public record InventoryMovement(
         Long id,
         Long productionRunId,
-        Long salesChannelId,
+        Long distributorId,
         int quantityDelta,
         MovementType movementType,
         Instant occurredAt,
@@ -17,7 +17,7 @@ public record InventoryMovement(
         return new InventoryMovement(
                 entity.getId(),
                 entity.getProductionRunId(),
-                entity.getSalesChannelId(),
+                entity.getDistributorId(),
                 entity.getQuantityDelta(),
                 entity.getMovementType(),
                 entity.getOccurredAt(),

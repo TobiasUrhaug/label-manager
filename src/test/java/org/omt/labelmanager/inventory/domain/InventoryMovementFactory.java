@@ -22,7 +22,7 @@ public final class InventoryMovementFactory {
 
         private Long id = counter.getAndIncrement();
         private Long productionRunId = 1L;
-        private Long salesChannelId = 1L;
+        private Long distributorId = 1L;
         private int quantityDelta = 100;
         private MovementType movementType = MovementType.ALLOCATION;
         private Instant occurredAt = Instant.parse("2025-01-15T10:00:00Z");
@@ -41,8 +41,8 @@ public final class InventoryMovementFactory {
             return this;
         }
 
-        public Builder salesChannelId(Long salesChannelId) {
-            this.salesChannelId = salesChannelId;
+        public Builder distributorId(Long distributorId) {
+            this.distributorId = distributorId;
             return this;
         }
 
@@ -70,7 +70,7 @@ public final class InventoryMovementFactory {
             return new InventoryMovement(
                     id,
                     productionRunId,
-                    salesChannelId,
+                    distributorId,
                     quantityDelta,
                     movementType,
                     occurredAt,

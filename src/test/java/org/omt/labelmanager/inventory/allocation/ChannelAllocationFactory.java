@@ -22,7 +22,7 @@ public final class ChannelAllocationFactory {
 
         private Long id = counter.getAndIncrement();
         private Long productionRunId = 1L;
-        private Long salesChannelId = 1L;
+        private Long distributorId = 1L;
         private int quantity = 100;
         private Instant allocatedAt = Instant.parse("2025-01-15T10:00:00Z");
 
@@ -39,8 +39,8 @@ public final class ChannelAllocationFactory {
             return this;
         }
 
-        public Builder salesChannelId(Long salesChannelId) {
-            this.salesChannelId = salesChannelId;
+        public Builder distributorId(Long distributorId) {
+            this.distributorId = distributorId;
             return this;
         }
 
@@ -58,7 +58,7 @@ public final class ChannelAllocationFactory {
             return new ChannelAllocation(
                     id,
                     productionRunId,
-                    salesChannelId,
+                    distributorId,
                     quantity,
                     allocatedAt
             );

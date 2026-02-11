@@ -1,6 +1,6 @@
 package org.omt.labelmanager.inventory.allocation;
 
-import org.omt.labelmanager.inventory.infrastructure.persistence.ProductionRunRepository;
+import org.omt.labelmanager.inventory.productionrun.infrastructure.ProductionRunRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;

@@ -6,8 +6,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.omt.labelmanager.catalog.release.domain.ReleaseFormat;
-import org.omt.labelmanager.inventory.infrastructure.persistence.ProductionRunEntity;
-import org.omt.labelmanager.inventory.infrastructure.persistence.ProductionRunRepository;
+import org.omt.labelmanager.inventory.productionrun.infrastructure.ProductionRunEntity;
+import org.omt.labelmanager.inventory.productionrun.infrastructure.ProductionRunRepository;
 
 import java.time.Instant;
 import java.util.List;
@@ -91,12 +91,12 @@ class AllocationQueryServiceTest {
     private ChannelAllocationEntity createAllocationEntity(
             Long id,
             Long productionRunId,
-            Long salesChannelId,
+            Long distributorId,
             int quantity
     ) {
         var entity = new ChannelAllocationEntity(
                 productionRunId,
-                salesChannelId,
+                distributorId,
                 quantity,
                 Instant.now()
         );
