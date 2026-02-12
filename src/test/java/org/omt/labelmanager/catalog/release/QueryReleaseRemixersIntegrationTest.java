@@ -62,7 +62,7 @@ public class QueryReleaseRemixersIntegrationTest
         );
 
         releaseCommandApi.createRelease(
-                "Release With Remixers",
+                "Query Release 1",
                 LocalDate.of(2026, 1, 15),
                 label.id(),
                 List.of(artist.id()),
@@ -71,7 +71,7 @@ public class QueryReleaseRemixersIntegrationTest
         );
 
         var releaseEntity = releaseRepository
-                .findByName("Release With Remixers")
+                .findByName("Query Release 1")
                 .orElseThrow();
         var trackId = trackRepository.findByReleaseIdOrderByPosition(
                 releaseEntity.getId()
@@ -104,7 +104,7 @@ public class QueryReleaseRemixersIntegrationTest
         );
 
         releaseCommandApi.createRelease(
-                "Release Without Remixers",
+                "Query Release 2",
                 LocalDate.of(2026, 1, 15),
                 label.id(),
                 List.of(artist.id()),
@@ -113,7 +113,7 @@ public class QueryReleaseRemixersIntegrationTest
         );
 
         var releaseEntity = releaseRepository
-                .findByName("Release Without Remixers")
+                .findByName("Query Release 2")
                 .orElseThrow();
 
         var release = releaseQueryApi.findById(

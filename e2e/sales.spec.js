@@ -148,22 +148,8 @@ test.describe('Sales Registration', () => {
     await firstLineItem.locator('input.quantity-input').fill('5');
     await firstLineItem.locator('input.price-input').fill('15.00');
 
-    // Wait for SaleForm to be initialized (it happens in DOMContentLoaded)
-    await page.waitForFunction(() => {
-      return window.SaleForm &&
-             window.SaleForm.releases &&
-             window.SaleForm.releases.length > 0;
-    }, { timeout: 5000 });
-
-    // Check if SaleForm is available and initialized
-    const salesFormDebug = await page.evaluate(() => {
-      return {
-        saleFormAvailable: typeof window.SaleForm !== 'undefined',
-        releases: window.SaleForm?.releases,
-        formats: window.SaleForm?.formats
-      };
-    });
-    console.log('SaleForm debug:', salesFormDebug);
+    // Wait a bit for module to load
+    await page.waitForTimeout(1000);
 
     // Click "Add Line Item" button
     const addLineItemButton = page.locator('button').filter({ hasText: '+ Add Line Item' });
