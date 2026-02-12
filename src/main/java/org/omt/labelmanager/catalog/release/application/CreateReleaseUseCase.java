@@ -10,9 +10,6 @@ import org.omt.labelmanager.catalog.release.domain.TrackInput;
 import org.omt.labelmanager.catalog.release.infrastructure.ReleaseArtistRepository;
 import org.omt.labelmanager.catalog.release.infrastructure.ReleaseEntity;
 import org.omt.labelmanager.catalog.release.infrastructure.ReleaseRepository;
-import org.omt.labelmanager.catalog.release.infrastructure.TrackArtistRepository;
-import org.omt.labelmanager.catalog.release.infrastructure.TrackEntity;
-import org.omt.labelmanager.catalog.release.infrastructure.TrackRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -26,22 +23,19 @@ class CreateReleaseUseCase {
 
     private final ReleaseRepository releaseRepository;
     private final LabelQueryApi labelQueryFacade;
-    private final TrackRepository trackRepository;
     private final ReleaseArtistRepository releaseArtistRepository;
-    private final TrackArtistRepository trackArtistRepository;
+    private final CreateTracksUseCase createTracks;
 
     CreateReleaseUseCase(
             ReleaseRepository releaseRepository,
             LabelQueryApi labelQueryFacade,
-            TrackRepository trackRepository,
             ReleaseArtistRepository releaseArtistRepository,
-            TrackArtistRepository trackArtistRepository
+            CreateTracksUseCase createTracks
     ) {
         this.releaseRepository = releaseRepository;
         this.labelQueryFacade = labelQueryFacade;
-        this.trackRepository = trackRepository;
         this.releaseArtistRepository = releaseArtistRepository;
-        this.trackArtistRepository = trackArtistRepository;
+        this.createTracks = createTracks;
     }
 
     @Transactional
@@ -83,7 +77,7 @@ class CreateReleaseUseCase {
             );
         }
 
-        createTracksForRelease(tracks, release.getId());
+        createTracks.createTracksForRelease(tracks, release.getId());
     }
 
     private void requireAtLeastOneTrack(
@@ -113,27 +107,5 @@ class CreateReleaseUseCase {
         release.setLabelId(labelId);
         release.setFormats(new HashSet<>(formats));
         return release;
-    }
-
-    private void createTracksForRelease(
-            List<TrackInput> tracks,
-            Long releaseId
-    ) {
-        for (TrackInput trackInput : tracks) {
-            TrackEntity trackEntity = new TrackEntity();
-            trackEntity.setName(trackInput.name());
-            trackEntity.setDurationSeconds(
-                    trackInput.duration().totalSeconds()
-            );
-            trackEntity.setPosition(trackInput.position());
-            trackEntity.setReleaseId(releaseId);
-            trackRepository.save(trackEntity);
-
-            for (Long artistId : trackInput.artistIds()) {
-                trackArtistRepository.addArtistToTrack(
-                        trackEntity.getId(), artistId
-                );
-            }
-        }
     }
 }

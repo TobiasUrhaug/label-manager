@@ -91,6 +91,11 @@
         </div>
     </div>
 
+    <div class="d-flex align-items-center justify-content-between mb-3 mt-5">
+        <h2 class="mb-0">Sales</h2>
+        <a th:href="@{/labels/{labelId}/sales(labelId=${id})}" class="btn btn-outline-primary btn-sm">View All Sales</a>
+    </div>
+
     <!-- Add Release Modal -->
     <div class="modal fade" id="createReleaseModal" tabindex="-1" aria-labelledby="createReleaseModalLabel" aria-hidden="true" data-testid="create-release-modal">
         <div class="modal-dialog modal-lg">

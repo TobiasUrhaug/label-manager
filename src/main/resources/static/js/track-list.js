@@ -1,5 +1,5 @@
 import { createTrackRow } from './track-row.js';
-import { createTrackArtistSelection } from './artist-selection.js';
+import { createTrackArtistSelection, createArtistSelection } from './artist-selection.js';
 
 /**
  * Creates a track list manager for handling dynamic track rows.
@@ -54,20 +54,30 @@ export function createTrackList(config) {
   }
 
   /**
-   * Creates artist selection for a track row.
+   * Creates artist and remixer selections for a track row.
    * @param {HTMLElement} row - The track row element
    * @param {number} index - The track index
-   * @returns {Object} Artist selection manager
+   * @returns {Object} Object with artist and remixer selection managers
    */
   function setupTrackArtistSelection(row, index) {
-    const selection = createTrackArtistSelection({
+    const artistSelection = createTrackArtistSelection({
       artists,
       trackRow: row,
       trackIndex: index,
       onAdd: onTrackArtistAdd,
     });
-    trackSelections.set(index, selection);
-    return selection;
+
+    const remixerSelection = createArtistSelection({
+      artists,
+      selectElement: row.querySelector('.track-remixer-select'),
+      tagsContainer: row.querySelector('.track-remixer-tags'),
+      inputsContainer: row.querySelector('.track-remixer-inputs'),
+      inputName: `tracks[${index}].remixerIds`,
+    });
+
+    const selections = { artists: artistSelection, remixers: remixerSelection };
+    trackSelections.set(index, selections);
+    return selections;
   }
 
   /**
@@ -80,17 +90,22 @@ export function createTrackList(config) {
     const row = createTrackRow(currentIndex, artists, trackData);
     container.appendChild(row);
 
-    const selection = setupTrackArtistSelection(row, currentIndex);
+    const selections = setupTrackArtistSelection(row, currentIndex);
 
     // Pre-select release artists for new tracks
     if (!trackData && getSelectedReleaseArtists) {
       const releaseArtists = getSelectedReleaseArtists();
-      releaseArtists.forEach(artistId => selection.add(artistId));
+      releaseArtists.forEach(artistId => selections.artists.add(artistId));
     }
 
     // Pre-populate existing track artists
     if (trackData?.artists) {
-      trackData.artists.forEach(artist => selection.add(artist.id));
+      trackData.artists.forEach(artist => selections.artists.add(artist.id));
+    }
+
+    // Pre-populate existing track remixers
+    if (trackData?.remixers) {
+      trackData.remixers.forEach(remixer => selections.remixers.add(remixer.id));
     }
 
     updateRemoveButtons();
@@ -146,9 +161,18 @@ export function createTrackList(config) {
       const row = e.target.closest('.track-row');
       const select = row?.querySelector('.track-artist-select');
       const index = parseInt(row?.dataset.trackIndex, 10);
-      const selection = trackSelections.get(index);
-      if (select && selection) {
-        selection.add(select.value);
+      const selections = trackSelections.get(index);
+      if (select && selections) {
+        selections.artists.add(select.value);
+      }
+    }
+    if (e.target.classList.contains('add-track-remixer-btn')) {
+      const row = e.target.closest('.track-row');
+      const select = row?.querySelector('.track-remixer-select');
+      const index = parseInt(row?.dataset.trackIndex, 10);
+      const selections = trackSelections.get(index);
+      if (select && selections) {
+        selections.remixers.add(select.value);
       }
     }
   });
@@ -157,9 +181,17 @@ export function createTrackList(config) {
     if (e.target.classList.contains('track-artist-select')) {
       const row = e.target.closest('.track-row');
       const index = parseInt(row?.dataset.trackIndex, 10);
-      const selection = trackSelections.get(index);
-      if (selection) {
-        selection.add(e.target.value);
+      const selections = trackSelections.get(index);
+      if (selections) {
+        selections.artists.add(e.target.value);
+      }
+    }
+    if (e.target.classList.contains('track-remixer-select')) {
+      const row = e.target.closest('.track-row');
+      const index = parseInt(row?.dataset.trackIndex, 10);
+      const selections = trackSelections.get(index);
+      if (selections) {
+        selections.remixers.add(e.target.value);
       }
     }
   });

@@ -58,4 +58,17 @@ public class ChannelAllocationEntity {
     public Instant getAllocatedAt() {
         return allocatedAt;
     }
+
+    public void reduceQuantity(int amount) {
+        if (amount < 0) {
+            throw new IllegalArgumentException("Amount must be positive");
+        }
+        if (this.quantity < amount) {
+            throw new IllegalStateException(
+                    "Insufficient quantity: available=" + this.quantity
+                            + ", requested=" + amount
+            );
+        }
+        this.quantity -= amount;
+    }
 }

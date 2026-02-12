@@ -229,7 +229,10 @@ public class ReleaseController {
                         ),
                         track.name(),
                         track.duration(),
-                        track.position()
+                        track.position(),
+                        resolveArtists(
+                                track.remixerIds(), artistMap
+                        )
                 ))
                 .toList();
     }

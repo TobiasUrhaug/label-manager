@@ -9,9 +9,6 @@ import org.omt.labelmanager.catalog.release.domain.TrackInput;
 import org.omt.labelmanager.catalog.release.infrastructure.ReleaseArtistRepository;
 import org.omt.labelmanager.catalog.release.infrastructure.ReleaseEntity;
 import org.omt.labelmanager.catalog.release.infrastructure.ReleaseRepository;
-import org.omt.labelmanager.catalog.release.infrastructure.TrackArtistRepository;
-import org.omt.labelmanager.catalog.release.infrastructure.TrackEntity;
-import org.omt.labelmanager.catalog.release.infrastructure.TrackRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -24,20 +21,20 @@ class UpdateReleaseUseCase {
             LoggerFactory.getLogger(UpdateReleaseUseCase.class);
 
     private final ReleaseRepository releaseRepository;
-    private final TrackRepository trackRepository;
     private final ReleaseArtistRepository releaseArtistRepository;
-    private final TrackArtistRepository trackArtistRepository;
+    private final CreateTracksUseCase createTracks;
+    private final DeleteTracksUseCase deleteTracks;
 
     UpdateReleaseUseCase(
             ReleaseRepository releaseRepository,
-            TrackRepository trackRepository,
             ReleaseArtistRepository releaseArtistRepository,
-            TrackArtistRepository trackArtistRepository
+            CreateTracksUseCase createTracks,
+            DeleteTracksUseCase deleteTracks
     ) {
         this.releaseRepository = releaseRepository;
-        this.trackRepository = trackRepository;
         this.releaseArtistRepository = releaseArtistRepository;
-        this.trackArtistRepository = trackArtistRepository;
+        this.createTracks = createTracks;
+        this.deleteTracks = deleteTracks;
     }
 
     @Transactional
@@ -77,16 +74,8 @@ class UpdateReleaseUseCase {
             );
         }
 
-        List<TrackEntity> existingTracks =
-                trackRepository.findByReleaseIdOrderByPosition(id);
-        for (TrackEntity trackEntity : existingTracks) {
-            trackArtistRepository.deleteAllByTrackId(
-                    trackEntity.getId()
-            );
-        }
-        trackRepository.deleteAll(existingTracks);
-
-        createTracksForRelease(tracks, id);
+        deleteTracks.deleteTracksForRelease(id);
+        createTracks.createTracksForRelease(tracks, id);
     }
 
     private void requireAtLeastOneTrack(
@@ -101,28 +90,6 @@ class UpdateReleaseUseCase {
             throw new IllegalArgumentException(
                     "At least one track is required"
             );
-        }
-    }
-
-    private void createTracksForRelease(
-            List<TrackInput> tracks,
-            Long releaseId
-    ) {
-        for (TrackInput trackInput : tracks) {
-            TrackEntity trackEntity = new TrackEntity();
-            trackEntity.setName(trackInput.name());
-            trackEntity.setDurationSeconds(
-                    trackInput.duration().totalSeconds()
-            );
-            trackEntity.setPosition(trackInput.position());
-            trackEntity.setReleaseId(releaseId);
-            trackRepository.save(trackEntity);
-
-            for (Long artistId : trackInput.artistIds()) {
-                trackArtistRepository.addArtistToTrack(
-                        trackEntity.getId(), artistId
-                );
-            }
         }
     }
 }

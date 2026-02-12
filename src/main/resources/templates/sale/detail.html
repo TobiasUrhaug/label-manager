@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: page(title='Sale Details', content=~{::main})}">
+<main>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Sale Details</h1>
+        <a th:href="@{/labels/{id}/sales(id=${label.id})}" class="btn btn-outline-secondary">Back to Sales</a>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <dl class="row mb-0">
+                <dt class="col-sm-3">Date</dt>
+                <dd class="col-sm-9" th:text="${#temporals.format(sale.saleDate, 'MMMM dd, yyyy')}">January 15, 2026</dd>
+
+                <dt class="col-sm-3">Channel</dt>
+                <dd class="col-sm-9" th:text="${sale.channel}">EVENT</dd>
+
+                <dt class="col-sm-3" th:if="${sale.notes}">Notes</dt>
+                <dd class="col-sm-9" th:if="${sale.notes}" th:text="${sale.notes}">Concert at venue X</dd>
+
+                <dt class="col-sm-3">Total Amount</dt>
+                <dd class="col-sm-9">
+                    <strong th:text="${sale.totalAmount.amount} + ' ' + ${sale.totalAmount.currency}">0.00 EUR</strong>
+                </dd>
+            </dl>
+        </div>
+    </div>
+
+    <h2 class="mb-3">Line Items</h2>
+
+    <div class="card">
+        <div class="card-body">
+            <table class="table mb-0">
+                <thead>
+                <tr>
+                    <th>Release</th>
+                    <th>Format</th>
+                    <th>Quantity</th>
+                    <th>Unit Price</th>
+                    <th>Line Total</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="item, stat : ${sale.lineItems}">
+                    <td th:text="${releaseNames[stat.index]}">Release Name</td>
+                    <td th:text="${item.format}">VINYL</td>
+                    <td th:text="${item.quantity}">5</td>
+                    <td th:text="${item.unitPrice.amount} + ' ' + ${item.unitPrice.currency}">15.00 EUR</td>
+                    <td th:text="${item.lineTotal.amount} + ' ' + ${item.lineTotal.currency}">75.00 EUR</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</main>
+</html>

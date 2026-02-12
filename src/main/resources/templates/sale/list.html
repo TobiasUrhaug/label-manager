@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: page(title='Sales - ' + ${label.name}, content=~{::main})}">
+<main>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Sales - <span th:text="${label.name}">Label Name</span></h1>
+        <div class="d-flex gap-2">
+            <a th:href="@{/labels/{id}/sales/new(id=${label.id})}" class="btn btn-primary">Register Sale</a>
+            <a th:href="@{/labels/{id}(id=${label.id})}" class="btn btn-outline-secondary">Back to Label</a>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title">Total Revenue</h5>
+            <p class="display-6" th:text="${totalRevenue.amount} + ' ' + ${totalRevenue.currency}">0.00 EUR</p>
+        </div>
+    </div>
+
+    <div th:if="${#lists.isEmpty(sales)}" class="alert alert-info">
+        No sales registered yet. Click "Register Sale" to add one.
+    </div>
+
+    <div th:if="${not #lists.isEmpty(sales)}" class="card">
+        <div class="card-body">
+            <table class="table table-hover mb-0">
+                <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Channel</th>
+                    <th>Items</th>
+                    <th>Total</th>
+                    <th></th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="sale : ${sales}">
+                    <td th:text="${#temporals.format(sale.saleDate, 'MMM dd, yyyy')}">Jan 15, 2026</td>
+                    <td th:text="${sale.channel}">EVENT</td>
+                    <td th:text="${#lists.size(sale.lineItems)}">0</td>
+                    <td th:text="${sale.totalAmount.amount} + ' ' + ${sale.totalAmount.currency}">0.00 EUR</td>
+                    <td>
+                        <a th:href="@{/labels/{labelId}/sales/{saleId}(labelId=${label.id},saleId=${sale.id})}"
+                           class="btn btn-sm btn-outline-primary">View</a>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</main>
+</html>

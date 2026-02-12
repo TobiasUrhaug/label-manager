@@ -2,50 +2,14 @@ package org.omt.labelmanager.distribution.distributor.infrastructure;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.omt.labelmanager.AbstractIntegrationTest;
 import org.omt.labelmanager.catalog.label.LabelTestHelper;
 import org.omt.labelmanager.distribution.distributor.domain.ChannelType;
-import org.omt.labelmanager.distribution.distributor.infrastructure.DistributorRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
-import org.testcontainers.containers.MinIOContainer;
-import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@Testcontainers
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-class DistributorPersistenceIntegrationTest {
-
-    private static final String MINIO_ACCESS_KEY = "minioadmin";
-    private static final String MINIO_SECRET_KEY = "minioadmin";
-
-    @Container
-    static PostgreSQLContainer<?> postgres =
-            new PostgreSQLContainer<>("postgres:16-alpine")
-                    .withDatabaseName("testdb")
-                    .withUsername("test")
-                    .withPassword("test");
-
-    @Container
-    static MinIOContainer minIO = new MinIOContainer("minio/minio:latest")
-            .withUserName(MINIO_ACCESS_KEY)
-            .withPassword(MINIO_SECRET_KEY);
-
-    @DynamicPropertySource
-    static void containerProperties(DynamicPropertyRegistry registry) {
-        registry.add("spring.datasource.url", postgres::getJdbcUrl);
-        registry.add("spring.datasource.username", postgres::getUsername);
-        registry.add("spring.datasource.password", postgres::getPassword);
-        registry.add("storage.s3.endpoint", minIO::getS3URL);
-        registry.add("storage.s3.bucket", () -> "costs");
-        registry.add("storage.s3.region", () -> "us-east-1");
-        registry.add("storage.s3.access-key", () -> MINIO_ACCESS_KEY);
-        registry.add("storage.s3.secret-key", () -> MINIO_SECRET_KEY);
-    }
+class DistributorPersistenceIntegrationTest extends AbstractIntegrationTest {
 
     @Autowired
     private DistributorRepository distributorRepository;
@@ -96,4 +60,30 @@ class DistributorPersistenceIntegrationTest {
 
     // Note: Cascade delete test removed as LabelRepository is package-private.
     // Cascade behavior from Label to Distributor is tested in the label package.
+
+    @Test
+    void findsByLabelIdAndChannelType() {
+        distributorRepository.save(
+                new DistributorEntity(labelId, "Direct Sales", ChannelType.DIRECT));
+        distributorRepository.save(
+                new DistributorEntity(labelId, "Cargo Records", ChannelType.DISTRIBUTOR));
+
+        var directDistributor =
+                distributorRepository.findByLabelIdAndChannelType(labelId, ChannelType.DIRECT);
+
+        assertThat(directDistributor).isPresent();
+        assertThat(directDistributor.get().getName()).isEqualTo("Direct Sales");
+        assertThat(directDistributor.get().getChannelType()).isEqualTo(ChannelType.DIRECT);
+    }
+
+    @Test
+    void findByLabelIdAndChannelType_returnsEmpty_whenNotFound() {
+        distributorRepository.save(
+                new DistributorEntity(labelId, "Cargo Records", ChannelType.DISTRIBUTOR));
+
+        var directDistributor =
+                distributorRepository.findByLabelIdAndChannelType(labelId, ChannelType.DIRECT);
+
+        assertThat(directDistributor).isEmpty();
+    }
 }

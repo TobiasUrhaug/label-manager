@@ -4,16 +4,12 @@ import java.util.List;
 import java.util.Optional;
 import org.omt.labelmanager.catalog.label.api.LabelQueryApi;
 import org.omt.labelmanager.catalog.release.ReleaseMapper;
-import org.omt.labelmanager.catalog.release.TrackMapper;
 import org.omt.labelmanager.catalog.release.api.ReleaseQueryApi;
 import org.omt.labelmanager.catalog.release.domain.Release;
 import org.omt.labelmanager.catalog.release.domain.Track;
 import org.omt.labelmanager.catalog.release.infrastructure.ReleaseArtistRepository;
 import org.omt.labelmanager.catalog.release.infrastructure.ReleaseEntity;
 import org.omt.labelmanager.catalog.release.infrastructure.ReleaseRepository;
-import org.omt.labelmanager.catalog.release.infrastructure.TrackArtistRepository;
-import org.omt.labelmanager.catalog.release.infrastructure.TrackEntity;
-import org.omt.labelmanager.catalog.release.infrastructure.TrackRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -26,22 +22,19 @@ class ReleaseQueryApiImpl implements ReleaseQueryApi {
 
     private final ReleaseRepository releaseRepository;
     private final LabelQueryApi labelQueryFacade;
-    private final TrackRepository trackRepository;
     private final ReleaseArtistRepository releaseArtistRepository;
-    private final TrackArtistRepository trackArtistRepository;
+    private final BuildTracksUseCase buildTracks;
 
     ReleaseQueryApiImpl(
             ReleaseRepository releaseRepository,
             LabelQueryApi labelQueryFacade,
-            TrackRepository trackRepository,
             ReleaseArtistRepository releaseArtistRepository,
-            TrackArtistRepository trackArtistRepository
+            BuildTracksUseCase buildTracks
     ) {
         this.releaseRepository = releaseRepository;
         this.labelQueryFacade = labelQueryFacade;
-        this.trackRepository = trackRepository;
         this.releaseArtistRepository = releaseArtistRepository;
-        this.trackArtistRepository = trackArtistRepository;
+        this.buildTracks = buildTracks;
     }
 
     public Optional<Release> findById(Long id) {
@@ -84,25 +77,12 @@ class ReleaseQueryApiImpl implements ReleaseQueryApi {
                         releaseEntity.getId()
                 );
 
-        List<TrackEntity> trackEntities =
-                trackRepository.findByReleaseIdOrderByPosition(
-                        releaseEntity.getId()
-                );
-        List<Track> tracks = trackEntities.stream()
-                .map(this::buildTrack)
-                .toList();
+        List<Track> tracks = buildTracks.buildTracksForRelease(
+                releaseEntity.getId()
+        );
 
         return ReleaseMapper.fromEntity(
                 releaseEntity, artistIds, tracks
         );
-    }
-
-    private Track buildTrack(TrackEntity trackEntity) {
-        List<Long> artistIds =
-                trackArtistRepository.findArtistIdsByTrackId(
-                        trackEntity.getId()
-                );
-
-        return TrackMapper.fromEntity(trackEntity, artistIds);
     }
 }

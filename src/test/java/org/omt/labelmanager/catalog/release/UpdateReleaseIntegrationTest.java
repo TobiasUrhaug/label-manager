@@ -57,7 +57,8 @@ public class UpdateReleaseIntegrationTest extends AbstractIntegrationTest {
                 List.of(artist1.getId()),
                 "Original Track",
                 TrackDuration.parse("3:00"),
-                1
+                1,
+                List.of()
         );
 
         releaseCommandApi.createRelease(
@@ -77,13 +78,15 @@ public class UpdateReleaseIntegrationTest extends AbstractIntegrationTest {
                 List.of(artist1.getId(), artist2.getId()),
                 "Updated Track 1",
                 TrackDuration.parse("4:00"),
-                1
+                1,
+                List.of()
         );
         var newTrack2 = new TrackInput(
                 List.of(artist2.getId()),
                 "Updated Track 2",
                 TrackDuration.parse("5:30"),
-                2
+                2,
+                List.of()
         );
 
         releaseCommandApi.updateRelease(

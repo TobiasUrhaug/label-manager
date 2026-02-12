@@ -280,6 +280,37 @@ class CreateReleaseUseCase {
 }
 ```
 
+**CRITICAL: Repository Injection Rules**
+
+Use cases should ONLY inject:
+- ✅ Repositories from their own module (same package namespace)
+- ✅ QueryApi/CommandApi interfaces from other modules
+- ❌ NEVER inject repositories from other modules/bounded contexts
+
+```java
+// ❌ WRONG - Violates encapsulation
+@Service
+class RegisterSaleUseCase {
+    private final SaleRepository saleRepo;  // ✅ Own module
+    private final DistributorRepository distributorRepo;  // ❌ Other module
+    private final AllocationRepository allocationRepo;  // ❌ Other module
+}
+
+// ✅ CORRECT - Uses public APIs
+@Service
+class RegisterSaleUseCase {
+    private final SaleRepository saleRepo;  // ✅ Own module
+    private final DistributorQueryApi distributorQuery;  // ✅ Via API
+    private final AllocationCommandApi allocationCommand;  // ✅ Via API
+}
+```
+
+**Why this matters:**
+- Repositories are implementation details that should remain encapsulated
+- APIs provide stable contracts that can evolve independently
+- Direct repository access couples modules tightly and prevents refactoring
+- APIs allow modules to enforce business rules and maintain invariants
+
 **In controllers**, if you need data from multiple modules, fetch them separately:
 ```java
 @GetMapping("/{id}")
@@ -312,6 +343,73 @@ Note: Shared infrastructure (cross-cutting concerns like security, storage) live
 
 - PostgreSQL (production and tests via TestContainers)
 - Flyway migrations in `src/main/resources/db/migration/`
+
+### JavaScript and Frontend
+
+**CRITICAL: Never inline JavaScript in templates**
+
+JavaScript must be in separate `.js` files with corresponding tests. Inlining JavaScript in Thymeleaf templates is bad practice:
+- ❌ Hard to test
+- ❌ No syntax checking or IDE support
+- ❌ Difficult to debug
+- ❌ Violates separation of concerns
+- ❌ Cannot be cached separately
+
+**File structure:**
+```
+src/main/resources/static/js/
+├── sale-form.js           # JavaScript modules
+└── ...
+
+src/test/js/
+├── sale-form.test.js      # Vitest unit tests
+└── ...
+```
+
+**Guidelines:**
+1. **Extract to modules**: All JavaScript logic goes in `.js` files in `src/main/resources/static/js/`
+2. **Write tests**: Every `.js` file needs a corresponding `.test.js` file with Vitest tests
+3. **Keep templates clean**: Templates should only contain HTML/Thymeleaf and minimal inline event handlers (e.g., `onclick="functionName()"`)
+4. **Use ES6 modules**: Export/import functions for testability
+5. **Run tests**: Use `npm run test` for JavaScript unit tests
+
+**Example - WRONG:**
+```html
+<!-- ❌ Don't do this -->
+<script th:inline="javascript">
+    function addLineItem() {
+        // 50 lines of untested inline JavaScript
+    }
+</script>
+```
+
+**Example - CORRECT:**
+```html
+<!-- ✅ Template: register.html -->
+<script src="/js/sale-form.js"></script>
+<button onclick="SaleForm.addLineItem()">Add Item</button>
+```
+
+```javascript
+// ✅ src/main/resources/static/js/sale-form.js
+export const SaleForm = {
+    addLineItem() {
+        // Implementation
+    }
+};
+```
+
+```javascript
+// ✅ src/test/js/sale-form.test.js
+import { describe, it, expect } from 'vitest';
+import { SaleForm } from '../../../main/resources/static/js/sale-form.js';
+
+describe('SaleForm', () => {
+    it('adds a line item', () => {
+        // Test implementation
+    });
+});
+```
 
 ## Testing Strategy
 

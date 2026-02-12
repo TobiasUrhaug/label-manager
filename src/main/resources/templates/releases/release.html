@@ -62,7 +62,16 @@
                 <tbody>
                     <tr th:each="track : ${tracks}">
                         <td th:text="${track.position()}">1</td>
-                        <td th:text="${#strings.listJoin(track.artists().![artistName], ', ')}">Artist Name</td>
+                        <td>
+                            <span th:text="${#strings.listJoin(track.artists().![artistName], ', ')}">Artist Name</span>
+                            <span th:if="${!track.remixers().isEmpty()}" class="text-muted">
+                                (remixed by
+                                <span th:each="remixer, iterStat : ${track.remixers()}">
+                                    <a th:href="@{/artists/{id}(id=${remixer.id()})}"
+                                       th:text="${remixer.artistName()}">Remixer</a><span th:if="${!iterStat.last}">, </span>
+                                </span>)
+                            </span>
+                        </td>
                         <td th:text="${track.name()}">Track Name</td>
                         <td th:text="${track.duration().formatted()}">3:30</td>
                     </tr>

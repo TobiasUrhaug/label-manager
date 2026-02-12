@@ -73,7 +73,8 @@ public class CreateReleaseForm {
                             TrackDuration.parse(
                                     track.getDuration()
                             ),
-                            i + 1
+                            i + 1,
+                            track.getRemixerIds()
                     );
                 })
                 .toList();
@@ -83,6 +84,7 @@ public class CreateReleaseForm {
         private List<Long> artistIds = new ArrayList<>();
         private String name;
         private String duration;
+        private List<Long> remixerIds = new ArrayList<>();
 
         public List<Long> getArtistIds() {
             return artistIds;
@@ -106,6 +108,14 @@ public class CreateReleaseForm {
 
         public void setDuration(String duration) {
             this.duration = duration;
+        }
+
+        public List<Long> getRemixerIds() {
+            return remixerIds;
+        }
+
+        public void setRemixerIds(List<Long> remixerIds) {
+            this.remixerIds = remixerIds;
         }
     }
 }

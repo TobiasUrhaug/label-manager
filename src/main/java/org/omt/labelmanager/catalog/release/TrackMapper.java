@@ -7,13 +7,18 @@ import org.omt.labelmanager.catalog.release.infrastructure.TrackEntity;
 
 public class TrackMapper {
 
-    public static Track fromEntity(TrackEntity entity, List<Long> artistIds) {
+    public static Track fromEntity(
+            TrackEntity entity,
+            List<Long> artistIds,
+            List<Long> remixerIds
+    ) {
         return new Track(
                 entity.getId(),
                 artistIds,
                 entity.getName(),
                 TrackDuration.ofSeconds(entity.getDurationSeconds()),
-                entity.getPosition()
+                entity.getPosition(),
+                remixerIds
         );
     }
 }
