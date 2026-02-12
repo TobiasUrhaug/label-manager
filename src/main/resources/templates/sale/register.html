@@ -39,7 +39,7 @@
 
                 <div class="d-flex align-items-center justify-content-between mb-3">
                     <h5 class="mb-0">Line Items</h5>
-                    <button type="button" class="btn btn-outline-primary btn-sm" onclick="SaleForm.addLineItem()">
+                    <button type="button" id="addLineItemBtn" class="btn btn-outline-primary btn-sm">
                         + Add Line Item
                     </button>
                 </div>
@@ -106,20 +106,29 @@
     </div>
 
     <script type="module" th:inline="javascript">
-        /*<![CDATA[*/
-        import { SaleForm } from '/js/sale-form.js';
+    import { SaleForm } from '/js/sale-form.js';
 
-        document.addEventListener('DOMContentLoaded', function() {
-            const releases = /*[[${releases}]]*/ [];
-            const formats = /*[[${formats}]]*/ [];
+    document.addEventListener('DOMContentLoaded', function() {
+        const releases = /*[[${releases}]]*/ [];
+        const formats = /*[[${formats}]]*/ [];
 
-            SaleForm.initialize(releases, formats);
-            console.log('SaleForm initialized with', releases.length, 'releases and', formats.length, 'formats');
+        SaleForm.initialize(releases, formats);
+        console.log('SaleForm initialized with', releases.length, 'releases and', formats.length, 'formats');
 
-            // Make SaleForm globally available for onclick handlers
-            window.SaleForm = SaleForm;
-        });
-        /*]]>*/
+        // Make SaleForm globally available
+        window.SaleForm = SaleForm;
+
+        // Attach click handler for Add Line Item button
+        const addButton = document.getElementById('addLineItemBtn');
+        if (addButton) {
+            addButton.addEventListener('click', () => {
+                console.log('Add Line Item button clicked');
+                SaleForm.addLineItem();
+            });
+        } else {
+            console.error('Add Line Item button not found');
+        }
+    });
     </script>
 </main>
 </html>

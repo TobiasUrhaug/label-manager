@@ -149,6 +149,3 @@ export const SaleForm = {
         return div.innerHTML;
     }
 };
-
-// Make globally available
-window.SaleForm = SaleForm;

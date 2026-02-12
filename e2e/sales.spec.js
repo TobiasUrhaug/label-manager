@@ -36,6 +36,19 @@ async function registerAndLogin(page, email = uniqueEmail(), password = 'passwor
 test.describe('Sales Registration', () => {
 
   test('can register sale with multiple line items for different releases', async ({ page }) => {
+    // Setup: Listen for console logs and errors
+    const consoleLogs = [];
+    const consoleErrors = [];
+    page.on('console', msg => {
+      if (msg.type() === 'error') {
+        consoleErrors.push(msg.text());
+      }
+      consoleLogs.push(`[${msg.type()}] ${msg.text()}`);
+    });
+    page.on('pageerror', error => {
+      consoleErrors.push(error.message);
+    });
+
     // Setup: Login
     await registerAndLogin(page);
 
@@ -135,13 +148,51 @@ test.describe('Sales Registration', () => {
     await firstLineItem.locator('input.quantity-input').fill('5');
     await firstLineItem.locator('input.price-input').fill('15.00');
 
+    // Check if SaleForm is available on window
+    const salesFormDebug = await page.evaluate(() => {
+      return {
+        saleFormAvailable: typeof window.SaleForm !== 'undefined',
+        releases: window.SaleForm?.releases,
+        formats: window.SaleForm?.formats
+      };
+    });
+    console.log('SaleForm debug:', salesFormDebug);
+
     // Click "Add Line Item" button
     const addLineItemButton = page.locator('button').filter({ hasText: '+ Add Line Item' });
     await expect(addLineItemButton).toBeVisible();
+
+    console.log('Clicking Add Line Item button...');
+
+    // Try calling the function directly to see if it works
+    const directCallResult = await page.evaluate(() => {
+      try {
+        const container = document.getElementById('lineItemsContainer');
+        const beforeCount = container?.querySelectorAll('.line-item').length || 0;
+
+        // Note: SaleForm is in module scope, not on window
+        // window.SaleForm.addLineItem();
+
+        const afterCount = container?.querySelectorAll('.line-item').length || 0;
+        return { beforeCount, afterCount, containerExists: !!container };
+      } catch (error) {
+        return { error: error.message };
+      }
+    });
+    console.log('Direct call result:', directCallResult);
+
     await addLineItemButton.click();
 
     // Wait a bit for JavaScript to execute
     await page.waitForTimeout(500);
+
+    // Log console messages if anything went wrong
+    if (consoleLogs.length > 0) {
+      console.log('Browser console logs:', consoleLogs);
+    }
+    if (consoleErrors.length > 0) {
+      console.log('Browser console errors:', consoleErrors);
+    }
 
     // Verify second line item appears
     const lineItems = page.locator('.line-item');

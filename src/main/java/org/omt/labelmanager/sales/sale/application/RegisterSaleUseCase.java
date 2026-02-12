@@ -57,6 +57,7 @@ class RegisterSaleUseCase {
 
     @Transactional
     public Sale execute(
+
             Long labelId,
             LocalDate saleDate,
             ChannelType channel,
