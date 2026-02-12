@@ -18,7 +18,7 @@ export function buildTrackRowHtml(index, artists, trackData = null) {
 
   return `
     <div class="row g-2 align-items-end">
-      <div class="col-md-4">
+      <div class="col-md-3">
         <label class="form-label">Artist</label>
         <div class="input-group">
           <select class="form-select track-artist-select" data-testid="track-artist-select">
@@ -28,11 +28,21 @@ export function buildTrackRowHtml(index, artists, trackData = null) {
           <button class="btn btn-outline-secondary btn-sm add-track-artist-btn" type="button">+</button>
         </div>
       </div>
-      <div class="col-md-4">
+      <div class="col-md-3">
+        <label class="form-label">Remixer (optional)</label>
+        <div class="input-group">
+          <select class="form-select track-remixer-select" data-testid="track-remixer-select">
+            <option value="">Select...</option>
+            ${buildArtistOptions(artists)}
+          </select>
+          <button class="btn btn-outline-secondary btn-sm add-track-remixer-btn" type="button">+</button>
+        </div>
+      </div>
+      <div class="col-md-3">
         <label class="form-label">Name</label>
         <input type="text" class="form-control" name="tracks[${index}].name" value="${escapeAttr(nameValue)}" data-testid="track-name-input" required>
       </div>
-      <div class="col-md-3">
+      <div class="col-md-2">
         <label class="form-label">Duration</label>
         <input type="text" class="form-control" name="tracks[${index}].duration" placeholder="MM:SS" pattern="[0-9]+:[0-5][0-9]" value="${durationValue}" data-testid="track-duration-input" required>
       </div>
@@ -42,6 +52,8 @@ export function buildTrackRowHtml(index, artists, trackData = null) {
     </div>
     <div class="track-artist-tags d-flex flex-wrap gap-1 mt-2"></div>
     <div class="track-artist-inputs"></div>
+    <div class="track-remixer-tags d-flex flex-wrap gap-1 mt-2"></div>
+    <div class="track-remixer-inputs"></div>
   `;
 }
 

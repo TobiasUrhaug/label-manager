@@ -105,17 +105,19 @@
         </div>
     </div>
 
-    <!-- Hidden data from server -->
-    <div id="serverData" style="display:none"
-         th:data-releases="${#jackson.writeValueAsString(releases)}"
-         th:data-formats="${#jackson.writeValueAsString(formats)}"></div>
-
     <!-- JavaScript logic -->
     <script>
-        // Get server data from hidden div
-        const serverDataEl = document.getElementById('serverData');
-        const releases = JSON.parse(serverDataEl.dataset.releases || '[]');
-        const formats = JSON.parse(serverDataEl.dataset.formats || '[]');
+        // Server data - hardcoded from Thymeleaf
+        const releases = [
+            /*[# th:each="r : ${releases}"]*/
+            {id: /*[[${r.id}]]*/ 0, name: /*[[${r.name}]]*/ ''}/*[(${!rStat.last} ? ',' : '')] */
+            /*[/]*/
+        ];
+        const formats = [
+            /*[# th:each="f : ${formats}"]*/
+            /*[[${f}]]*/ ''/*[(${!fStat.last} ? ',' : '')] */
+            /*[/]*/
+        ];
 
         // TODO: Extract to /js/sale-form.js once module loading issue is resolved
         const SaleForm = {
