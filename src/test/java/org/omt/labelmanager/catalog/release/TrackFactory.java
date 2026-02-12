@@ -30,6 +30,7 @@ public final class TrackFactory {
         private TrackDuration duration =
                 TrackDuration.ofSeconds(180);
         private Integer position = 1;
+        private List<Long> remixerIds = new ArrayList<>();
 
         private Builder() {
         }
@@ -69,9 +70,19 @@ public final class TrackFactory {
             return this;
         }
 
+        public Builder remixerIds(List<Long> remixerIds) {
+            this.remixerIds = remixerIds;
+            return this;
+        }
+
+        public Builder remixerId(Long remixerId) {
+            this.remixerIds = List.of(remixerId);
+            return this;
+        }
+
         public Track build() {
             return new Track(
-                    id, artistIds, name, duration, position
+                    id, artistIds, name, duration, position, remixerIds
             );
         }
     }

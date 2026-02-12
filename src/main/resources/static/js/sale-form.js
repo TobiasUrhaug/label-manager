@@ -45,7 +45,7 @@ export const SaleForm = {
                 <div class="row">
                     <div class="col-md-4">
                         <label for="lineItems${index}.releaseId" class="form-label">Release*</label>
-                        <select class="form-select"
+                        <select class="form-select release-select"
                                 id="lineItems${index}.releaseId"
                                 name="lineItems[${index}].releaseId"
                                 required>
@@ -55,7 +55,7 @@ export const SaleForm = {
                     </div>
                     <div class="col-md-2">
                         <label for="lineItems${index}.format" class="form-label">Format*</label>
-                        <select class="form-select"
+                        <select class="form-select format-select"
                                 id="lineItems${index}.format"
                                 name="lineItems[${index}].format"
                                 required>
@@ -65,14 +65,14 @@ export const SaleForm = {
                     </div>
                     <div class="col-md-3">
                         <label for="lineItems${index}.quantity" class="form-label">Quantity*</label>
-                        <input type="number" class="form-control"
+                        <input type="number" class="form-control quantity-input"
                                id="lineItems${index}.quantity"
                                name="lineItems[${index}].quantity"
                                min="1" required>
                     </div>
                     <div class="col-md-3">
                         <label for="lineItems${index}.unitPrice" class="form-label">Unit Price*</label>
-                        <input type="number" class="form-control"
+                        <input type="number" class="form-control price-input"
                                id="lineItems${index}.unitPrice"
                                name="lineItems[${index}].unitPrice"
                                step="0.01" min="0" required>

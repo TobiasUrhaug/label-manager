@@ -51,7 +51,8 @@ public class TrackRemixerIntegrationTest extends AbstractIntegrationTest {
                 List.of(artist.id()),
                 "Test Track",
                 TrackDuration.parse("3:30"),
-                1
+                1,
+                List.of()
         );
 
         releaseCommandApi.createRelease(
@@ -84,7 +85,8 @@ public class TrackRemixerIntegrationTest extends AbstractIntegrationTest {
                 List.of(artist.id()),
                 "Test Track",
                 TrackDuration.parse("3:30"),
-                1
+                1,
+                List.of()
         );
 
         releaseCommandApi.createRelease(
@@ -117,7 +119,8 @@ public class TrackRemixerIntegrationTest extends AbstractIntegrationTest {
                 List.of(artist.id()),
                 "Test Track",
                 TrackDuration.parse("3:30"),
-                1
+                1,
+                List.of()
         );
 
         releaseCommandApi.createRelease(
@@ -156,7 +159,8 @@ public class TrackRemixerIntegrationTest extends AbstractIntegrationTest {
                 List.of(artist.id()),
                 "Test Track",
                 TrackDuration.parse("3:30"),
-                1
+                1,
+                List.of()
         );
 
         releaseCommandApi.createRelease(
@@ -192,7 +196,8 @@ public class TrackRemixerIntegrationTest extends AbstractIntegrationTest {
                 List.of(artist.id()),
                 "Test Track",
                 TrackDuration.parse("3:30"),
-                1
+                1,
+                List.of()
         );
 
         releaseCommandApi.createRelease(

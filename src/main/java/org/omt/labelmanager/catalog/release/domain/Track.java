@@ -7,6 +7,7 @@ public record Track(
         List<Long> artistIds,
         String name,
         TrackDuration duration,
-        Integer position
+        Integer position,
+        List<Long> remixerIds
 ) {
 }

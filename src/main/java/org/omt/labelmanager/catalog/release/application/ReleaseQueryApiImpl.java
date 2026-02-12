@@ -102,7 +102,8 @@ class ReleaseQueryApiImpl implements ReleaseQueryApi {
                 trackArtistRepository.findArtistIdsByTrackId(
                         trackEntity.getId()
                 );
+        List<Long> remixerIds = List.of();
 
-        return TrackMapper.fromEntity(trackEntity, artistIds);
+        return TrackMapper.fromEntity(trackEntity, artistIds, remixerIds);
     }
 }

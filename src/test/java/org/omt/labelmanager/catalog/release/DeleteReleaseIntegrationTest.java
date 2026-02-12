@@ -47,7 +47,8 @@ public class DeleteReleaseIntegrationTest extends AbstractIntegrationTest {
                 List.of(artistId),
                 "Track To Delete",
                 TrackDuration.parse("2:00"),
-                1
+                1,
+                List.of()
         );
 
         releaseCommandApi.createRelease(

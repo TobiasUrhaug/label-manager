@@ -45,7 +45,8 @@ public class CreateReleaseIntegrationTest extends AbstractIntegrationTest {
                 List.of(artistId),
                 "Test Track",
                 TrackDuration.parse("3:30"),
-                1
+                1,
+                List.of()
         );
 
         releaseCommandApi.createRelease(

@@ -44,7 +44,8 @@ public class ReleaseTestHelper {
                         List.of(artistId),
                         "Default Track",
                         TrackDuration.ofSeconds(180),
-                        1
+                        1,
+                        List.of()
                 )),
                 Set.of(ReleaseFormat.DIGITAL)
         );
