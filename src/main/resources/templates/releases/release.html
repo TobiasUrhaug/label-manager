@@ -209,7 +209,9 @@
                                     <thead>
                                         <tr class="table-secondary">
                                             <th>Channel</th>
-                                            <th class="text-end">Quantity</th>
+                                            <th class="text-end">Allocation</th>
+                                            <th class="text-end">Sold</th>
+                                            <th class="text-end">Remaining</th>
                                             <th>Date</th>
                                         </tr>
                                     </thead>
@@ -217,6 +219,8 @@
                                         <tr th:each="alloc : ${runWithAlloc.allocations()}">
                                             <td th:text="${alloc.channelName()}">Direct Sales</td>
                                             <td class="text-end" th:text="${alloc.quantity()}">100</td>
+                                            <td class="text-end" th:text="${alloc.unitsSold()}">10</td>
+                                            <td class="text-end" th:text="${alloc.unitsRemaining()}">90</td>
                                             <td th:text="${#temporals.format(alloc.allocatedAt(), 'yyyy-MM-dd HH:mm')}">2025-01-15 10:00</td>
                                         </tr>
                                     </tbody>

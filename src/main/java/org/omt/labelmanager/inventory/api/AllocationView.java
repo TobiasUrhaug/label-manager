@@ -6,6 +6,8 @@ public record AllocationView(
         Long id,
         String channelName,
         int quantity,
+        int unitsSold,
+        int unitsRemaining,
         Instant allocatedAt
 ) {
 }
