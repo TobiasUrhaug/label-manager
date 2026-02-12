@@ -4,13 +4,12 @@ import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import org.omt.labelmanager.catalog.label.api.LabelQueryApi;
 import org.omt.labelmanager.catalog.release.api.ReleaseQueryApi;
+import org.omt.labelmanager.distribution.distributor.api.DistributorQueryApi;
 import org.omt.labelmanager.distribution.distributor.domain.ChannelType;
-import org.omt.labelmanager.distribution.distributor.infrastructure.DistributorRepository;
-import org.omt.labelmanager.inventory.allocation.ChannelAllocationRepository;
+import org.omt.labelmanager.inventory.allocation.api.AllocationCommandApi;
+import org.omt.labelmanager.inventory.api.InventoryMovementCommandApi;
 import org.omt.labelmanager.inventory.domain.MovementType;
-import org.omt.labelmanager.inventory.infrastructure.persistence.InventoryMovementEntity;
-import org.omt.labelmanager.inventory.infrastructure.persistence.InventoryMovementRepository;
-import org.omt.labelmanager.inventory.productionrun.infrastructure.ProductionRunRepository;
+import org.omt.labelmanager.inventory.productionrun.api.ProductionRunQueryApi;
 import org.omt.labelmanager.sales.sale.domain.Sale;
 import org.omt.labelmanager.sales.sale.domain.SaleLineItem;
 import org.omt.labelmanager.sales.sale.domain.SaleLineItemInput;
@@ -21,9 +20,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
-import java.time.Instant;
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -35,27 +32,27 @@ class RegisterSaleUseCase {
     private final SaleRepository saleRepository;
     private final LabelQueryApi labelQueryApi;
     private final ReleaseQueryApi releaseQueryApi;
-    private final DistributorRepository distributorRepository;
-    private final ProductionRunRepository productionRunRepository;
-    private final ChannelAllocationRepository channelAllocationRepository;
-    private final InventoryMovementRepository inventoryMovementRepository;
+    private final DistributorQueryApi distributorQueryApi;
+    private final ProductionRunQueryApi productionRunQueryApi;
+    private final AllocationCommandApi allocationCommandApi;
+    private final InventoryMovementCommandApi inventoryMovementCommandApi;
 
     RegisterSaleUseCase(
             SaleRepository saleRepository,
             LabelQueryApi labelQueryApi,
             ReleaseQueryApi releaseQueryApi,
-            DistributorRepository distributorRepository,
-            ProductionRunRepository productionRunRepository,
-            ChannelAllocationRepository channelAllocationRepository,
-            InventoryMovementRepository inventoryMovementRepository
+            DistributorQueryApi distributorQueryApi,
+            ProductionRunQueryApi productionRunQueryApi,
+            AllocationCommandApi allocationCommandApi,
+            InventoryMovementCommandApi inventoryMovementCommandApi
     ) {
         this.saleRepository = saleRepository;
         this.labelQueryApi = labelQueryApi;
         this.releaseQueryApi = releaseQueryApi;
-        this.distributorRepository = distributorRepository;
-        this.productionRunRepository = productionRunRepository;
-        this.channelAllocationRepository = channelAllocationRepository;
-        this.inventoryMovementRepository = inventoryMovementRepository;
+        this.distributorQueryApi = distributorQueryApi;
+        this.productionRunQueryApi = productionRunQueryApi;
+        this.allocationCommandApi = allocationCommandApi;
+        this.inventoryMovementCommandApi = inventoryMovementCommandApi;
     }
 
     @Transactional
@@ -75,7 +72,7 @@ class RegisterSaleUseCase {
         }
 
         // 2. Validate releases and find DIRECT distributor
-        var directDistributor = distributorRepository
+        var directDistributor = distributorQueryApi
                 .findByLabelIdAndChannelType(labelId, ChannelType.DIRECT)
                 .orElseThrow(() -> new EntityNotFoundException(
                         "DIRECT distributor not found for label: " + labelId
@@ -95,7 +92,7 @@ class RegisterSaleUseCase {
             validateAndProcessLineItem(
                     lineItemInput,
                     labelId,
-                    directDistributor.getId(),
+                    directDistributor.id(),
                     saleEntity
             );
         }
@@ -129,39 +126,13 @@ class RegisterSaleUseCase {
         }
 
         // Find most recent production run for this release/format
-        var productionRun = productionRunRepository
-                .findTopByReleaseIdAndFormatOrderByManufacturingDateDesc(
-                        lineItemInput.releaseId(),
-                        lineItemInput.format()
-                )
+        var productionRun = productionRunQueryApi
+                .findMostRecent(lineItemInput.releaseId(), lineItemInput.format())
                 .orElseThrow(() -> new EntityNotFoundException(
                         "No production run found for release "
                                 + lineItemInput.releaseId()
                                 + " and format " + lineItemInput.format()
                 ));
-
-        // Find allocation for DIRECT distributor
-        var allocation = channelAllocationRepository
-                .findByProductionRunIdAndDistributorId(
-                        productionRun.getId(),
-                        directDistributorId
-                )
-                .orElseThrow(() -> new EntityNotFoundException(
-                        "No allocation found for production run "
-                                + productionRun.getId()
-                                + " and DIRECT distributor"
-                ));
-
-        // Validate sufficient inventory
-        if (allocation.getQuantity() < lineItemInput.quantity()) {
-            throw new IllegalStateException(
-                    "Insufficient inventory for release "
-                            + lineItemInput.releaseId()
-                            + " format " + lineItemInput.format()
-                            + ": available=" + allocation.getQuantity()
-                            + ", requested=" + lineItemInput.quantity()
-            );
-        }
 
         // Create line item entity
         var lineItemEntity = new SaleLineItemEntity(
@@ -173,20 +144,21 @@ class RegisterSaleUseCase {
         );
         saleEntity.addLineItem(lineItemEntity);
 
-        // Reduce allocation
-        allocation.reduceQuantity(lineItemInput.quantity());
-        channelAllocationRepository.save(allocation);
+        // Reduce allocation (validates sufficient inventory)
+        allocationCommandApi.reduceAllocation(
+                productionRun.id(),
+                directDistributorId,
+                lineItemInput.quantity()
+        );
 
         // Create inventory movement record
-        var movement = new InventoryMovementEntity(
-                productionRun.getId(),
+        inventoryMovementCommandApi.recordMovement(
+                productionRun.id(),
                 directDistributorId,
                 -lineItemInput.quantity(),  // Negative for outbound
                 MovementType.SALE,
-                Instant.now(),
-                null  // Reference ID will be set after sale is saved
+                null  // Reference ID could be set to sale ID if needed
         );
-        inventoryMovementRepository.save(movement);
 
         log.debug("Processed line item: release={}, format={}, quantity={}",
                 lineItemInput.releaseId(),

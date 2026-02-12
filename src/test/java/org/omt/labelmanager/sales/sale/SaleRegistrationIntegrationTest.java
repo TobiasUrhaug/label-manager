@@ -211,7 +211,7 @@ class SaleRegistrationIntegrationTest extends AbstractIntegrationTest {
                         lineItems
                 ))
                 .isInstanceOf(IllegalStateException.class)
-                .hasMessageContaining("Insufficient inventory");
+                .hasMessageContaining("Insufficient quantity");
     }
 
     @Test
