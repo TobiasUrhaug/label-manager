@@ -107,17 +107,18 @@
 
     <!-- JavaScript logic -->
     <script>
-        // Server data - hardcoded from Thymeleaf
-        const releases = [
-            /*[# th:each="r : ${releases}"]*/
-            {id: /*[[${r.id}]]*/ 0, name: /*[[${r.name}]]*/ ''}/*[(${!rStat.last} ? ',' : '')] */
-            /*[/]*/
-        ];
-        const formats = [
-            /*[# th:each="f : ${formats}"]*/
-            /*[[${f}]]*/ ''/*[(${!fStat.last} ? ',' : '')] */
-            /*[/]*/
-        ];
+        // TODO: Get real data from Thymeleaf model
+        // For now, extract from the existing select options in the first line item
+        const firstReleaseSelect = document.querySelector('.release-select');
+        const firstFormatSelect = document.querySelector('.format-select');
+
+        const releases = Array.from(firstReleaseSelect?.options || [])
+            .filter(opt => opt.value)
+            .map(opt => ({id: parseInt(opt.value), name: opt.text}));
+
+        const formats = Array.from(firstFormatSelect?.options || [])
+            .filter(opt => opt.value)
+            .map(opt => opt.value);
 
         // TODO: Extract to /js/sale-form.js once module loading issue is resolved
         const SaleForm = {

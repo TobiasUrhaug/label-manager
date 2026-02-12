@@ -153,6 +153,78 @@ test.describe('Critical Paths', () => {
     await expect(page.getByText('First Track')).toBeVisible();
   });
 
+  test('can create release with track remixers', async ({ page }) => {
+    await registerAndLogin(page);
+
+    // Create a label first
+    await page.getByTestId('create-label-button').click();
+    await page.getByTestId('label-name-input').fill('Remix Label');
+    await Promise.all([
+      page.waitForURL('/dashboard'),
+      page.getByTestId('create-label-submit').click(),
+    ]);
+
+    // Create main artist
+    await page.getByTestId('create-artist-button').click();
+    await page.getByTestId('artist-name-input').fill('Original Artist');
+    await Promise.all([
+      page.waitForURL('/dashboard'),
+      page.getByTestId('create-artist-submit').click(),
+    ]);
+
+    // Create remixer
+    await page.getByTestId('create-artist-button').click();
+    await page.getByTestId('artist-name-input').fill('Cool Remixer');
+    await Promise.all([
+      page.waitForURL('/dashboard'),
+      page.getByTestId('create-artist-submit').click(),
+    ]);
+
+    // Go to label page
+    await page.getByTestId('label-link').filter({ hasText: 'Remix Label' }).click();
+    await expect(page.locator('h1')).toContainText('Remix Label');
+
+    // Open create release modal
+    await page.getByTestId('create-release-button').click();
+    await expect(page.getByTestId('create-release-modal')).toBeVisible();
+
+    // Fill release details
+    await page.getByTestId('release-name-input').fill('Remix EP');
+    await page.getByTestId('release-date-input').fill('2024-07-01');
+
+    // Select release artist
+    await page.getByTestId('release-artist-select').selectOption({ label: 'Original Artist' });
+
+    // Select format
+    await page.getByTestId('format-digital').check();
+
+    // Fill track details
+    await page.getByTestId('track-name-input').fill('Dance Track');
+    await page.getByTestId('track-duration-input').fill('4:20');
+
+    // Select track artist
+    await page.getByTestId('track-artist-select').selectOption({ label: 'Original Artist' });
+
+    // Select track remixer
+    await page.getByTestId('track-remixer-select').selectOption({ label: 'Cool Remixer' });
+
+    // Submit
+    await Promise.all([
+      page.waitForURL(/\/labels\/\d+$/),
+      page.getByTestId('create-release-submit').click(),
+    ]);
+
+    // Click on release
+    await page.getByText('Remix EP').click();
+
+    // Verify release details including remixer
+    await expect(page.locator('h1')).toContainText('Remix EP');
+    await expect(page.getByText('Dance Track')).toBeVisible();
+    await expect(page.getByText(/remixed by/i)).toBeVisible();
+    // Check remixer appears as a link (not just in dropdown)
+    await expect(page.getByRole('link', { name: 'Cool Remixer' })).toBeVisible();
+  });
+
   test('cannot access other users label', async ({ browser }) => {
     // User 1 creates a label
     const context1 = await browser.newContext();
