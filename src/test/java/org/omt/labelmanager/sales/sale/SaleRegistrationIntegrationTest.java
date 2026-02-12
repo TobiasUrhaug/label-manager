@@ -62,11 +62,11 @@ class SaleRegistrationIntegrationTest extends AbstractIntegrationTest {
         channelAllocationRepository.deleteAll();
         productionRunRepository.deleteAll();
 
-        // Create label (which auto-creates DIRECT distributor)
-        var label = labelTestHelper.createLabel("Test Label");
+        // Create label with DIRECT distributor
+        var label = labelTestHelper.createLabelWithDirectDistributor("Test Label");
         labelId = label.id();
 
-        // Find the DIRECT distributor
+        // Get the DIRECT distributor
         var directDistributor = distributorRepository
                 .findByLabelIdAndChannelType(labelId, ChannelType.DIRECT)
                 .orElseThrow();
@@ -238,7 +238,7 @@ class SaleRegistrationIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     void registerSale_withReleaseFromDifferentLabel_throwsException() {
-        var otherLabel = labelTestHelper.createLabel("Other Label");
+        var otherLabel = labelTestHelper.createLabelWithDirectDistributor("Other Label");
         var otherReleaseId = releaseTestHelper.createReleaseEntity(
                 "Other Release",
                 otherLabel.id()
