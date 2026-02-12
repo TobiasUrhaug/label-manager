@@ -37,44 +37,58 @@
                               th:field="*{notes}"></textarea>
                 </div>
 
-                <h5 class="mb-3">Line Items</h5>
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <h5 class="mb-0">Line Items</h5>
+                    <button type="button" class="btn btn-outline-primary btn-sm" onclick="SaleForm.addLineItem()">
+                        + Add Line Item
+                    </button>
+                </div>
 
-                <div th:each="item, stat : *{lineItems}" class="card mb-3">
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-4">
-                                <label th:for="'lineItems' + ${stat.index} + '.releaseId'" class="form-label">Release*</label>
-                                <select class="form-select"
-                                        th:field="*{lineItems[__${stat.index}__].releaseId}"
-                                        required>
-                                    <option value="">Select release...</option>
-                                    <option th:each="release : ${releases}"
-                                            th:value="${release.id}"
-                                            th:text="${release.name}">Release Name</option>
-                                </select>
+                <div id="lineItemsContainer">
+                    <div th:each="item, stat : *{lineItems}" class="card mb-3 line-item">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <strong>Item <span class="item-number" th:text="${stat.index + 1}">1</span></strong>
+                                <button type="button" class="btn btn-outline-danger btn-sm remove-item"
+                                        onclick="SaleForm.removeLineItem(this)" th:if="${stat.index > 0}">
+                                    Remove
+                                </button>
                             </div>
-                            <div class="col-md-2">
-                                <label th:for="'lineItems' + ${stat.index} + '.format'" class="form-label">Format*</label>
-                                <select class="form-select"
-                                        th:field="*{lineItems[__${stat.index}__].format}"
-                                        required>
-                                    <option value="">Select...</option>
-                                    <option th:each="format : ${formats}"
-                                            th:value="${format}"
-                                            th:text="${format}">VINYL</option>
-                                </select>
-                            </div>
-                            <div class="col-md-3">
-                                <label th:for="'lineItems' + ${stat.index} + '.quantity'" class="form-label">Quantity*</label>
-                                <input type="number" class="form-control"
-                                       th:field="*{lineItems[__${stat.index}__].quantity}"
-                                       min="1" required>
-                            </div>
-                            <div class="col-md-3">
-                                <label th:for="'lineItems' + ${stat.index} + '.unitPrice'" class="form-label">Unit Price*</label>
-                                <input type="number" class="form-control"
-                                       th:field="*{lineItems[__${stat.index}__].unitPrice}"
-                                       step="0.01" min="0" required>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <label th:for="'lineItems' + ${stat.index} + '.releaseId'" class="form-label">Release*</label>
+                                    <select class="form-select release-select"
+                                            th:field="*{lineItems[__${stat.index}__].releaseId}"
+                                            required>
+                                        <option value="">Select release...</option>
+                                        <option th:each="release : ${releases}"
+                                                th:value="${release.id}"
+                                                th:text="${release.name}">Release Name</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-2">
+                                    <label th:for="'lineItems' + ${stat.index} + '.format'" class="form-label">Format*</label>
+                                    <select class="form-select format-select"
+                                            th:field="*{lineItems[__${stat.index}__].format}"
+                                            required>
+                                        <option value="">Select...</option>
+                                        <option th:each="format : ${formats}"
+                                                th:value="${format}"
+                                                th:text="${format}">VINYL</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label th:for="'lineItems' + ${stat.index} + '.quantity'" class="form-label">Quantity*</label>
+                                    <input type="number" class="form-control quantity-input"
+                                           th:field="*{lineItems[__${stat.index}__].quantity}"
+                                           min="1" required>
+                                </div>
+                                <div class="col-md-3">
+                                    <label th:for="'lineItems' + ${stat.index} + '.unitPrice'" class="form-label">Unit Price*</label>
+                                    <input type="number" class="form-control price-input"
+                                           th:field="*{lineItems[__${stat.index}__].unitPrice}"
+                                           step="0.01" min="0" required>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -90,5 +104,22 @@
             </form>
         </div>
     </div>
+
+    <script type="module" th:inline="javascript">
+        /*<![CDATA[*/
+        import { SaleForm } from '/js/sale-form.js';
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const releases = /*[[${releases}]]*/ [];
+            const formats = /*[[${formats}]]*/ [];
+
+            SaleForm.initialize(releases, formats);
+            console.log('SaleForm initialized with', releases.length, 'releases and', formats.length, 'formats');
+
+            // Make SaleForm globally available for onclick handlers
+            window.SaleForm = SaleForm;
+        });
+        /*]]>*/
+    </script>
 </main>
 </html>
