@@ -20,7 +20,7 @@ import java.util.List;
 
 @Entity
 @Table(name = "sale")
-class SaleEntity {
+public class SaleEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

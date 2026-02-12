@@ -7,7 +7,7 @@ import org.springframework.data.repository.query.Param;
 import java.math.BigDecimal;
 import java.util.List;
 
-interface SaleRepository extends JpaRepository<SaleEntity, Long> {
+public interface SaleRepository extends JpaRepository<SaleEntity, Long> {
 
     List<SaleEntity> findByLabelIdOrderBySaleDateDesc(Long labelId);
 

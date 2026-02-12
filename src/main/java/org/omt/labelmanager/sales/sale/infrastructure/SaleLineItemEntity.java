@@ -17,7 +17,7 @@ import java.math.BigDecimal;
 
 @Entity
 @Table(name = "sale_line_item")
-class SaleLineItemEntity {
+public class SaleLineItemEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
