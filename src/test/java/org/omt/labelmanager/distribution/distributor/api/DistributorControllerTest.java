@@ -67,20 +67,20 @@ class DistributorControllerTest {
     }
 
     @Test
-    void addDistributor_worksWithRetailType() throws Exception {
+    void addDistributor_worksWithRecordStoreType() throws Exception {
         mockMvc
                 .perform(post("/labels/1/distributors")
                         .with(user(testUser))
                         .with(csrf())
                         .param("name", "Local Record Shop")
-                        .param("channelType", "RETAIL"))
+                        .param("channelType", "RECORD_STORE"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/labels/1"));
 
         verify(distributorCRUDHandler).createDistributor(
                 eq(1L),
                 eq("Local Record Shop"),
-                eq(ChannelType.RETAIL)
+                eq(ChannelType.RECORD_STORE)
         );
     }
 
