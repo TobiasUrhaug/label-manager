@@ -280,6 +280,37 @@ class CreateReleaseUseCase {
 }
 ```
 
+**CRITICAL: Repository Injection Rules**
+
+Use cases should ONLY inject:
+- ✅ Repositories from their own module (same package namespace)
+- ✅ QueryApi/CommandApi interfaces from other modules
+- ❌ NEVER inject repositories from other modules/bounded contexts
+
+```java
+// ❌ WRONG - Violates encapsulation
+@Service
+class RegisterSaleUseCase {
+    private final SaleRepository saleRepo;  // ✅ Own module
+    private final DistributorRepository distributorRepo;  // ❌ Other module
+    private final AllocationRepository allocationRepo;  // ❌ Other module
+}
+
+// ✅ CORRECT - Uses public APIs
+@Service
+class RegisterSaleUseCase {
+    private final SaleRepository saleRepo;  // ✅ Own module
+    private final DistributorQueryApi distributorQuery;  // ✅ Via API
+    private final AllocationCommandApi allocationCommand;  // ✅ Via API
+}
+```
+
+**Why this matters:**
+- Repositories are implementation details that should remain encapsulated
+- APIs provide stable contracts that can evolve independently
+- Direct repository access couples modules tightly and prevents refactoring
+- APIs allow modules to enforce business rules and maintain invariants
+
 **In controllers**, if you need data from multiple modules, fetch them separately:
 ```java
 @GetMapping("/{id}")
