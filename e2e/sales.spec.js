@@ -148,7 +148,14 @@ test.describe('Sales Registration', () => {
     await firstLineItem.locator('input.quantity-input').fill('5');
     await firstLineItem.locator('input.price-input').fill('15.00');
 
-    // Check if SaleForm is available on window
+    // Wait for SaleForm to be initialized (it happens in DOMContentLoaded)
+    await page.waitForFunction(() => {
+      return window.SaleForm &&
+             window.SaleForm.releases &&
+             window.SaleForm.releases.length > 0;
+    }, { timeout: 5000 });
+
+    // Check if SaleForm is available and initialized
     const salesFormDebug = await page.evaluate(() => {
       return {
         saleFormAvailable: typeof window.SaleForm !== 'undefined',
