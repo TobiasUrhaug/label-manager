@@ -49,7 +49,7 @@ class DistributorPersistenceIntegrationTest extends AbstractIntegrationTest {
 
         var otherLabel = labelTestHelper.createLabel("Other Label");
         distributorRepository.save(
-                new DistributorEntity(otherLabel.id(), "Record Shop", ChannelType.RETAIL));
+                new DistributorEntity(otherLabel.id(), "Record Shop", ChannelType.RECORD_STORE));
 
         var channelsForLabel = distributorRepository.findByLabelId(labelId);
 
