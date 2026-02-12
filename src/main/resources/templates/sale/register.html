@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: page(title='Register Sale', content=~{::main})}">
+<main>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Register Sale - <span th:text="${label.name}">Label Name</span></h1>
+        <a th:href="@{/labels/{id}/sales(id=${label.id})}" class="btn btn-outline-secondary">Cancel</a>
+    </div>
+
+    <div th:if="${errorMessage}" class="alert alert-danger" role="alert">
+        <strong>Error:</strong> <span th:text="${errorMessage}">Error message</span>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <form th:action="@{/labels/{id}/sales(id=${label.id})}" method="post" th:object="${form}">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="saleDate" class="form-label">Sale Date*</label>
+                        <input type="date" class="form-control" id="saleDate"
+                               th:field="*{saleDate}" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="channel" class="form-label">Channel*</label>
+                        <select class="form-select" id="channel" th:field="*{channel}" required>
+                            <option value="">Select channel...</option>
+                            <option th:each="channelType : ${channels}"
+                                    th:value="${channelType}"
+                                    th:text="${channelType}">EVENT</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="notes" class="form-label">Notes</label>
+                    <textarea class="form-control" id="notes" rows="2"
+                              th:field="*{notes}"></textarea>
+                </div>
+
+                <h5 class="mb-3">Line Items</h5>
+
+                <div th:each="item, stat : *{lineItems}" class="card mb-3">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <label th:for="'lineItems' + ${stat.index} + '.releaseId'" class="form-label">Release*</label>
+                                <select class="form-select"
+                                        th:field="*{lineItems[__${stat.index}__].releaseId}"
+                                        required>
+                                    <option value="">Select release...</option>
+                                    <option th:each="release : ${releases}"
+                                            th:value="${release.id}"
+                                            th:text="${release.name}">Release Name</option>
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <label th:for="'lineItems' + ${stat.index} + '.format'" class="form-label">Format*</label>
+                                <select class="form-select"
+                                        th:field="*{lineItems[__${stat.index}__].format}"
+                                        required>
+                                    <option value="">Select...</option>
+                                    <option th:each="format : ${formats}"
+                                            th:value="${format}"
+                                            th:text="${format}">VINYL</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label th:for="'lineItems' + ${stat.index} + '.quantity'" class="form-label">Quantity*</label>
+                                <input type="number" class="form-control"
+                                       th:field="*{lineItems[__${stat.index}__].quantity}"
+                                       min="1" required>
+                            </div>
+                            <div class="col-md-3">
+                                <label th:for="'lineItems' + ${stat.index} + '.unitPrice'" class="form-label">Unit Price*</label>
+                                <input type="number" class="form-control"
+                                       th:field="*{lineItems[__${stat.index}__].unitPrice}"
+                                       step="0.01" min="0" required>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary">Register Sale</button>
+                    <a th:href="@{/labels/{id}/sales(id=${label.id})}" class="btn btn-outline-secondary">Cancel</a>
+                </div>
+
+                <!-- CSRF token -->
+                <input type="hidden" th:if="${_csrf}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+            </form>
+        </div>
+    </div>
+</main>
+</html>
