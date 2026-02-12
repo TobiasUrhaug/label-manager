@@ -264,4 +264,69 @@ class SaleRegistrationIntegrationTest extends AbstractIntegrationTest {
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("does not belong to label");
     }
+
+    @Test
+    void registerSale_withNoAllocation_throwsHelpfulException() {
+        // Create a second production run without any allocation
+        var unallocatedProductionRun = productionRunRepository.save(
+                new ProductionRunEntity(
+                        releaseId,
+                        ReleaseFormat.CD,
+                        "CD pressing",
+                        "Plant B",
+                        LocalDate.of(2025, 2, 1),
+                        100
+                ));
+
+        var lineItems = List.of(
+                new SaleLineItemInput(
+                        releaseId,
+                        ReleaseFormat.CD,
+                        5,
+                        Money.of(new BigDecimal("12.00"))
+                )
+        );
+
+        assertThatThrownBy(() ->
+                saleCommandApi.registerSale(
+                        labelId,
+                        LocalDate.of(2026, 2, 12),
+                        ChannelType.EVENT,
+                        null,
+                        lineItems
+                ))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("No inventory allocated")
+                .hasMessageContaining("Test Release")
+                .hasMessageContaining("CD")
+                .hasMessageContaining(
+                        "allocate inventory from the production run to your DIRECT"
+                );
+    }
+
+    @Test
+    void registerSale_withNoProductionRun_throwsHelpfulException() {
+        var lineItems = List.of(
+                new SaleLineItemInput(
+                        releaseId,
+                        ReleaseFormat.CD,  // No production run for CD format
+                        5,
+                        Money.of(new BigDecimal("12.00"))
+                )
+        );
+
+        assertThatThrownBy(() ->
+                saleCommandApi.registerSale(
+                        labelId,
+                        LocalDate.of(2026, 2, 12),
+                        ChannelType.EVENT,
+                        null,
+                        lineItems
+                ))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("No production run found")
+                .hasMessageContaining("Test Release")
+                .hasMessageContaining("CD")
+                .hasMessageContaining("create a production run");
+    }
 }

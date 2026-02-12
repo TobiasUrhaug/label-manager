@@ -87,6 +87,7 @@ public class SaleController {
             model.addAttribute("releases", releases);
             model.addAttribute("formats", ReleaseFormat.values());
             model.addAttribute("channels", ChannelType.values());
+            model.addAttribute("form", form);
             model.addAttribute("errorMessage", e.getMessage());
 
             return "sale/register";

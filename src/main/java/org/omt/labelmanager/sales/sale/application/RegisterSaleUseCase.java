@@ -129,10 +129,11 @@ class RegisterSaleUseCase {
         // Find most recent production run for this release/format
         var productionRun = productionRunQueryApi
                 .findMostRecent(lineItemInput.releaseId(), lineItemInput.format())
-                .orElseThrow(() -> new EntityNotFoundException(
-                        "No production run found for release "
-                                + lineItemInput.releaseId()
-                                + " and format " + lineItemInput.format()
+                .orElseThrow(() -> new IllegalStateException(
+                        "No production run found for release '" + release.name()
+                                + "' (" + lineItemInput.format() + "). "
+                                + "Please create a production run for this release and format "
+                                + "before registering sales."
                 ));
 
         // Create line item entity
@@ -146,11 +147,20 @@ class RegisterSaleUseCase {
         saleEntity.addLineItem(lineItemEntity);
 
         // Reduce allocation (validates sufficient inventory)
-        allocationCommandApi.reduceAllocation(
-                productionRun.id(),
-                directDistributorId,
-                lineItemInput.quantity()
-        );
+        try {
+            allocationCommandApi.reduceAllocation(
+                    productionRun.id(),
+                    directDistributorId,
+                    lineItemInput.quantity()
+            );
+        } catch (EntityNotFoundException e) {
+            throw new IllegalStateException(
+                    "No inventory allocated for release '" + release.name()
+                            + "' (" + lineItemInput.format() + "). "
+                            + "Please allocate inventory from the production run to your "
+                            + "DIRECT sales channel before registering sales."
+            );
+        }
 
         // Create inventory movement record
         inventoryMovementCommandApi.recordMovement(
