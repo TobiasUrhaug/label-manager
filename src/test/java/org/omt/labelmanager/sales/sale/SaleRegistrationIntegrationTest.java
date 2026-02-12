@@ -127,7 +127,7 @@ class SaleRegistrationIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    void registerSale_reducesInventoryAllocation() {
+    void registerSale_incrementsUnitsSold() {
         var initialAllocation = channelAllocationRepository
                 .findByProductionRunIdAndDistributorId(
                         productionRunId,
@@ -135,6 +135,7 @@ class SaleRegistrationIntegrationTest extends AbstractIntegrationTest {
                 )
                 .orElseThrow();
         var initialQuantity = initialAllocation.getQuantity();
+        var initialUnitsSold = initialAllocation.getUnitsSold();
 
         var lineItems = List.of(
                 new SaleLineItemInput(
@@ -160,8 +161,10 @@ class SaleRegistrationIntegrationTest extends AbstractIntegrationTest {
                 )
                 .orElseThrow();
 
-        assertThat(updatedAllocation.getQuantity())
-                .isEqualTo(initialQuantity - 10);
+        // Quantity (original allocation) should remain unchanged
+        assertThat(updatedAllocation.getQuantity()).isEqualTo(initialQuantity);
+        // Units sold should increase
+        assertThat(updatedAllocation.getUnitsSold()).isEqualTo(initialUnitsSold + 10);
     }
 
     @Test

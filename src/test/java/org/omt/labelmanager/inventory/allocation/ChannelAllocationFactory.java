@@ -24,6 +24,7 @@ public final class ChannelAllocationFactory {
         private Long productionRunId = 1L;
         private Long distributorId = 1L;
         private int quantity = 100;
+        private int unitsSold = 0;
         private Instant allocatedAt = Instant.parse("2025-01-15T10:00:00Z");
 
         private Builder() {
@@ -49,6 +50,11 @@ public final class ChannelAllocationFactory {
             return this;
         }
 
+        public Builder unitsSold(int unitsSold) {
+            this.unitsSold = unitsSold;
+            return this;
+        }
+
         public Builder allocatedAt(Instant allocatedAt) {
             this.allocatedAt = allocatedAt;
             return this;
@@ -60,6 +66,7 @@ public final class ChannelAllocationFactory {
                     productionRunId,
                     distributorId,
                     quantity,
+                    unitsSold,
                     allocatedAt
             );
         }

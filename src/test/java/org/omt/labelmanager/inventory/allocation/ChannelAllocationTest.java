@@ -18,6 +18,7 @@ class ChannelAllocationTest {
                 .productionRunId(10L)
                 .distributorId(5L)
                 .quantity(200)
+                .unitsSold(30)
                 .allocatedAt(allocatedAt)
                 .build();
 
@@ -25,6 +26,27 @@ class ChannelAllocationTest {
         assertThat(allocation.productionRunId()).isEqualTo(10L);
         assertThat(allocation.distributorId()).isEqualTo(5L);
         assertThat(allocation.quantity()).isEqualTo(200);
+        assertThat(allocation.unitsSold()).isEqualTo(30);
         assertThat(allocation.allocatedAt()).isEqualTo(allocatedAt);
+    }
+
+    @Test
+    void shouldCalculateUnitsRemaining() {
+        ChannelAllocation allocation = aChannelAllocation()
+                .quantity(200)
+                .unitsSold(30)
+                .build();
+
+        assertThat(allocation.unitsRemaining()).isEqualTo(170);
+    }
+
+    @Test
+    void shouldCalculateUnitsRemainingWhenNothingSold() {
+        ChannelAllocation allocation = aChannelAllocation()
+                .quantity(200)
+                .unitsSold(0)
+                .build();
+
+        assertThat(allocation.unitsRemaining()).isEqualTo(200);
     }
 }

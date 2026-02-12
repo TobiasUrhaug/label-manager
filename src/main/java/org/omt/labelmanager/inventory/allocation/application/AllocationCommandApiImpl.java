@@ -25,7 +25,7 @@ class AllocationCommandApiImpl implements AllocationCommandApi {
                                 + " and distributor " + distributorId
                 ));
 
-        allocation.reduceQuantity(quantity);
+        allocation.incrementUnitsSold(quantity);
         repository.save(allocation);
     }
 }
