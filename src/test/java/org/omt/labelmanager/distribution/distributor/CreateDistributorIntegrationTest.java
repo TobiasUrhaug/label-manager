@@ -58,13 +58,13 @@ public class CreateDistributorIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    void createDistributor_worksWithRetailType() {
+    void createDistributor_worksWithRecordStoreType() {
         var distributor = distributorCommandApi.createDistributor(
                 labelId,
                 "Local Record Shop",
-                ChannelType.RETAIL
+                ChannelType.RECORD_STORE
         );
 
-        assertThat(distributor.channelType()).isEqualTo(ChannelType.RETAIL);
+        assertThat(distributor.channelType()).isEqualTo(ChannelType.RECORD_STORE);
     }
 }
