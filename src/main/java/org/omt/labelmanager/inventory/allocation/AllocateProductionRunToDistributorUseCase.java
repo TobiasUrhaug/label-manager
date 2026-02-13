@@ -3,7 +3,7 @@ package org.omt.labelmanager.inventory.allocation;
 import org.omt.labelmanager.inventory.domain.MovementType;
 import org.omt.labelmanager.inventory.infrastructure.persistence.InventoryMovementEntity;
 import org.omt.labelmanager.inventory.infrastructure.persistence.InventoryMovementRepository;
-import org.omt.labelmanager.inventory.productionrun.infrastructure.ProductionRunRepository;
+import org.omt.labelmanager.inventory.productionrun.api.ProductionRunQueryApi;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -19,16 +19,16 @@ public class AllocateProductionRunToDistributorUseCase {
 
     private final ChannelAllocationRepository channelAllocationRepository;
     private final InventoryMovementRepository inventoryMovementRepository;
-    private final ProductionRunRepository productionRunRepository;
+    private final ProductionRunQueryApi productionRunQueryApi;
 
     public AllocateProductionRunToDistributorUseCase(
             ChannelAllocationRepository channelAllocationRepository,
             InventoryMovementRepository inventoryMovementRepository,
-            ProductionRunRepository productionRunRepository
+            ProductionRunQueryApi productionRunQueryApi
     ) {
         this.channelAllocationRepository = channelAllocationRepository;
         this.inventoryMovementRepository = inventoryMovementRepository;
-        this.productionRunRepository = productionRunRepository;
+        this.productionRunQueryApi = productionRunQueryApi;
     }
 
     @Transactional
@@ -72,7 +72,7 @@ public class AllocateProductionRunToDistributorUseCase {
     }
 
     private void validateQuantityIsAvailable(Long productionRunId, int quantity) {
-        int manufactured = getManufacturedQuantity(productionRunId);
+        int manufactured = productionRunQueryApi.getManufacturedQuantity(productionRunId);
         int allocated = channelAllocationRepository.sumQuantityByProductionRunId(productionRunId);
         int unallocated = manufactured - allocated;
 
@@ -85,11 +85,5 @@ public class AllocateProductionRunToDistributorUseCase {
             );
             throw new InsufficientInventoryException(quantity, unallocated);
         }
-    }
-
-    private int getManufacturedQuantity(Long productionRunId) {
-        return productionRunRepository.findById(productionRunId)
-                .map(run -> run.getQuantity())
-                .orElse(0);
     }
 }

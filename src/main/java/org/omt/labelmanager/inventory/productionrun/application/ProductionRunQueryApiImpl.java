@@ -3,6 +3,7 @@ package org.omt.labelmanager.inventory.productionrun.application;
 import org.omt.labelmanager.catalog.release.domain.ReleaseFormat;
 import org.omt.labelmanager.inventory.productionrun.api.ProductionRunQueryApi;
 import org.omt.labelmanager.inventory.productionrun.domain.ProductionRun;
+import org.omt.labelmanager.inventory.productionrun.infrastructure.ProductionRunEntity;
 import org.omt.labelmanager.inventory.productionrun.infrastructure.ProductionRunRepository;
 import org.springframework.stereotype.Service;
 
@@ -30,5 +31,12 @@ class ProductionRunQueryApiImpl implements ProductionRunQueryApi {
         return repository
                 .findTopByReleaseIdAndFormatOrderByManufacturingDateDesc(releaseId, format)
                 .map(ProductionRun::fromEntity);
+    }
+
+    @Override
+    public int getManufacturedQuantity(Long productionRunId) {
+        return repository.findById(productionRunId)
+                .map(ProductionRunEntity::getQuantity)
+                .orElse(0);
     }
 }
