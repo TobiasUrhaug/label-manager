@@ -1,8 +1,7 @@
 package org.omt.labelmanager.inventory.allocation;
 
+import org.omt.labelmanager.inventory.api.InventoryMovementCommandApi;
 import org.omt.labelmanager.inventory.domain.MovementType;
-import org.omt.labelmanager.inventory.infrastructure.persistence.InventoryMovementEntity;
-import org.omt.labelmanager.inventory.infrastructure.persistence.InventoryMovementRepository;
 import org.omt.labelmanager.inventory.productionrun.api.ProductionRunQueryApi;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,16 +17,16 @@ public class AllocateProductionRunToDistributorUseCase {
             LoggerFactory.getLogger(AllocateProductionRunToDistributorUseCase.class);
 
     private final ChannelAllocationRepository channelAllocationRepository;
-    private final InventoryMovementRepository inventoryMovementRepository;
+    private final InventoryMovementCommandApi inventoryMovementCommandApi;
     private final ProductionRunQueryApi productionRunQueryApi;
 
     public AllocateProductionRunToDistributorUseCase(
             ChannelAllocationRepository channelAllocationRepository,
-            InventoryMovementRepository inventoryMovementRepository,
+            InventoryMovementCommandApi inventoryMovementCommandApi,
             ProductionRunQueryApi productionRunQueryApi
     ) {
         this.channelAllocationRepository = channelAllocationRepository;
-        this.inventoryMovementRepository = inventoryMovementRepository;
+        this.inventoryMovementCommandApi = inventoryMovementCommandApi;
         this.productionRunQueryApi = productionRunQueryApi;
     }
 
@@ -45,28 +44,22 @@ public class AllocateProductionRunToDistributorUseCase {
         );
 
         validateQuantityIsAvailable(productionRunId, quantity);
-
-        Instant now = Instant.now();
-
         ChannelAllocationEntity allocationEntity = new ChannelAllocationEntity(
                 productionRunId,
                 distributorId,
                 quantity,
-                now
+                Instant.now()
         );
         allocationEntity = channelAllocationRepository.save(allocationEntity);
         log.debug("Allocation created with id {}", allocationEntity.getId());
 
-        InventoryMovementEntity movementEntity = new InventoryMovementEntity(
+        inventoryMovementCommandApi.recordMovement(
                 productionRunId,
                 distributorId,
                 quantity,
                 MovementType.ALLOCATION,
-                now,
                 allocationEntity.getId()
         );
-        inventoryMovementRepository.save(movementEntity);
-        log.debug("Movement record created for allocation {}", allocationEntity.getId());
 
         return ChannelAllocation.fromEntity(allocationEntity);
     }
