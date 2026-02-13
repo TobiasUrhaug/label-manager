@@ -6,6 +6,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.omt.labelmanager.inventory.allocation.application.CreateAllocationUseCase;
 import org.omt.labelmanager.inventory.allocation.domain.ChannelAllocation;
 import org.omt.labelmanager.inventory.allocation.domain.InsufficientInventoryException;
 import org.omt.labelmanager.inventory.allocation.api.AllocationCommandApi;
@@ -27,7 +28,7 @@ class AllocateProductionRunToDistributorUseCaseTest {
     private ProductionRunQueryApi productionRunQueryApi;
 
     @InjectMocks
-    private AllocateProductionRunToDistributorUseCase useCase;
+    private CreateAllocationUseCase useCase;
 
     private static final Long PRODUCTION_RUN_ID = 1L;
     private static final Long DISTRIBUTOR_ID = 2L;
@@ -54,7 +55,7 @@ class AllocateProductionRunToDistributorUseCaseTest {
                 .validateQuantityIsAvailable(PRODUCTION_RUN_ID, QUANTITY);
 
         assertThatThrownBy(() ->
-                useCase.invoke(PRODUCTION_RUN_ID, DISTRIBUTOR_ID, QUANTITY))
+                useCase.execute(PRODUCTION_RUN_ID, DISTRIBUTOR_ID, QUANTITY))
                 .isInstanceOf(InsufficientInventoryException.class);
     }
 
@@ -66,7 +67,7 @@ class AllocateProductionRunToDistributorUseCaseTest {
                 QUANTITY
         )).thenReturn(expectedAllocation);
 
-        var result = useCase.invoke(PRODUCTION_RUN_ID, DISTRIBUTOR_ID, QUANTITY);
+        var result = useCase.execute(PRODUCTION_RUN_ID, DISTRIBUTOR_ID, QUANTITY);
 
         assertThat(result).isEqualTo(expectedAllocation);
     }

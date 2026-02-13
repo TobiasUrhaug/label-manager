@@ -2,6 +2,7 @@ package org.omt.labelmanager.inventory.allocation;
 
 import org.junit.jupiter.api.Test;
 import org.omt.labelmanager.identity.application.AppUserDetails;
+import org.omt.labelmanager.inventory.allocation.application.CreateAllocationUseCase;
 import org.omt.labelmanager.inventory.allocation.domain.InsufficientInventoryException;
 import org.omt.labelmanager.inventory.allocation.api.AllocationController;
 import org.omt.labelmanager.test.TestSecurityConfig;
@@ -27,7 +28,7 @@ class AllocationControllerTest {
     private MockMvc mockMvc;
 
     @MockitoBean
-    private AllocateProductionRunToDistributorUseCase allocateProductionRunToDistributorUseCase;
+    private CreateAllocationUseCase allocateProductionRunToDistributorUseCase;
 
     private final AppUserDetails testUser =
             new AppUserDetails(1L, "test@example.com", "password", "Test User");
@@ -43,13 +44,13 @@ class AllocationControllerTest {
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/labels/1/releases/2"));
 
-        verify(allocateProductionRunToDistributorUseCase).invoke(eq(3L), eq(5L), eq(100));
+        verify(allocateProductionRunToDistributorUseCase).execute(eq(3L), eq(5L), eq(100));
     }
 
     @Test
     void addAllocation_addsFlashErrorOnInsufficientInventory() throws Exception {
         doThrow(new InsufficientInventoryException(200, 100))
-                .when(allocateProductionRunToDistributorUseCase).invoke(anyLong(), anyLong(), anyInt());
+                .when(allocateProductionRunToDistributorUseCase).execute(anyLong(), anyLong(), anyInt());
 
         mockMvc
                 .perform(post("/labels/1/releases/2/production-runs/3/allocations")
@@ -65,7 +66,7 @@ class AllocationControllerTest {
     @Test
     void addAllocation_flashErrorContainsExceptionMessage() throws Exception {
         doThrow(new InsufficientInventoryException(200, 50))
-                .when(allocateProductionRunToDistributorUseCase).invoke(anyLong(), anyLong(), anyInt());
+                .when(allocateProductionRunToDistributorUseCase).execute(anyLong(), anyLong(), anyInt());
 
         mockMvc
                 .perform(post("/labels/1/releases/2/production-runs/3/allocations")

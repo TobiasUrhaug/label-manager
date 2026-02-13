@@ -2,6 +2,7 @@ package org.omt.labelmanager.inventory.allocation;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.omt.labelmanager.inventory.allocation.application.CreateAllocationUseCase;
 import org.omt.labelmanager.inventory.allocation.domain.ChannelAllocation;
 import org.omt.labelmanager.inventory.allocation.domain.InsufficientInventoryException;
 import org.omt.labelmanager.inventory.allocation.infrastructure.ChannelAllocationRepository;
@@ -61,7 +62,7 @@ class AllocateProductionRunToDistributorUseCaseIntegrationTest {
     }
 
     @Autowired
-    private AllocateProductionRunToDistributorUseCase allocateProductionRunToDistributorUseCase;
+    private CreateAllocationUseCase allocateProductionRunToDistributorUseCase;
 
     @Autowired
     private ChannelAllocationRepository channelAllocationRepository;
@@ -113,7 +114,7 @@ class AllocateProductionRunToDistributorUseCaseIntegrationTest {
 
     @Test
     void createsAllocationAndMovement() {
-        var allocation = allocateProductionRunToDistributorUseCase.invoke(productionRunId, distributorId, 100);
+        var allocation = allocateProductionRunToDistributorUseCase.execute(productionRunId, distributorId, 100);
 
         assertThat(allocation.id()).isNotNull();
         assertThat(allocation.productionRunId()).isEqualTo(productionRunId);
@@ -130,9 +131,9 @@ class AllocateProductionRunToDistributorUseCaseIntegrationTest {
 
     @Test
     void allowsMultipleAllocationsUpToManufacturedQuantity() {
-        allocateProductionRunToDistributorUseCase.invoke(productionRunId, distributorId, 200);
-        allocateProductionRunToDistributorUseCase.invoke(productionRunId, distributorId, 200);
-        var thirdAllocation = allocateProductionRunToDistributorUseCase.invoke(productionRunId, distributorId, 100);
+        allocateProductionRunToDistributorUseCase.execute(productionRunId, distributorId, 200);
+        allocateProductionRunToDistributorUseCase.execute(productionRunId, distributorId, 200);
+        var thirdAllocation = allocateProductionRunToDistributorUseCase.execute(productionRunId, distributorId, 100);
 
         assertThat(thirdAllocation.quantity()).isEqualTo(100);
         assertThat(channelAllocationRepository.sumQuantityByProductionRunId(productionRunId))
@@ -141,10 +142,10 @@ class AllocateProductionRunToDistributorUseCaseIntegrationTest {
 
     @Test
     void throwsExceptionWhenOverAllocating() {
-        allocateProductionRunToDistributorUseCase.invoke(productionRunId, distributorId, 400);
+        allocateProductionRunToDistributorUseCase.execute(productionRunId, distributorId, 400);
 
         assertThatThrownBy(() ->
-                allocateProductionRunToDistributorUseCase.invoke(productionRunId, distributorId, 200))
+                allocateProductionRunToDistributorUseCase.execute(productionRunId, distributorId, 200))
                 .isInstanceOf(InsufficientInventoryException.class)
                 .hasMessageContaining("requested 200")
                 .hasMessageContaining("only 100 available");
@@ -153,7 +154,7 @@ class AllocateProductionRunToDistributorUseCaseIntegrationTest {
     @Test
     void throwsExceptionWhenAllocatingMoreThanTotal() {
         assertThatThrownBy(() ->
-                allocateProductionRunToDistributorUseCase.invoke(productionRunId, distributorId, 600))
+                allocateProductionRunToDistributorUseCase.execute(productionRunId, distributorId, 600))
                 .isInstanceOf(InsufficientInventoryException.class)
                 .hasMessageContaining("requested 600")
                 .hasMessageContaining("only 500 available");
@@ -161,10 +162,10 @@ class AllocateProductionRunToDistributorUseCaseIntegrationTest {
 
     @Test
     void exceptionContainsRequestedAndAvailableQuantities() {
-        allocateProductionRunToDistributorUseCase.invoke(productionRunId, distributorId, 450);
+        allocateProductionRunToDistributorUseCase.execute(productionRunId, distributorId, 450);
 
         try {
-            allocateProductionRunToDistributorUseCase.invoke(productionRunId, distributorId, 100);
+            allocateProductionRunToDistributorUseCase.execute(productionRunId, distributorId, 100);
         } catch (InsufficientInventoryException ex) {
             assertThat(ex.getRequested()).isEqualTo(100);
             assertThat(ex.getAvailable()).isEqualTo(50);

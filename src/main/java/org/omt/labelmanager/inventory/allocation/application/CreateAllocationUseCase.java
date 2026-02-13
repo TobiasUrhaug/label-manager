@@ -1,4 +1,4 @@
-package org.omt.labelmanager.inventory.allocation;
+package org.omt.labelmanager.inventory.allocation.application;
 
 import org.omt.labelmanager.inventory.allocation.domain.ChannelAllocation;
 import org.omt.labelmanager.inventory.allocation.api.AllocationCommandApi;
@@ -9,15 +9,15 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-public class AllocateProductionRunToDistributorUseCase {
+public class CreateAllocationUseCase {
 
     private static final Logger log =
-            LoggerFactory.getLogger(AllocateProductionRunToDistributorUseCase.class);
+            LoggerFactory.getLogger(CreateAllocationUseCase.class);
 
     private final AllocationCommandApi allocationCommandApi;
     private final ProductionRunQueryApi productionRunQueryApi;
 
-    public AllocateProductionRunToDistributorUseCase(
+    CreateAllocationUseCase(
             AllocationCommandApi allocationCommandApi,
             ProductionRunQueryApi productionRunQueryApi
     ) {
@@ -26,7 +26,7 @@ public class AllocateProductionRunToDistributorUseCase {
     }
 
     @Transactional
-    public ChannelAllocation invoke(
+    public ChannelAllocation execute(
             Long productionRunId,
             Long distributorId,
             int quantity
