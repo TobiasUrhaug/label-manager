@@ -1,6 +1,5 @@
 package org.omt.labelmanager.inventory.allocation.application;
 
-import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import org.omt.labelmanager.inventory.allocation.domain.ChannelAllocation;
 import org.omt.labelmanager.inventory.allocation.infrastructure.ChannelAllocationEntity;
@@ -22,27 +21,21 @@ class AllocationCommandApiImpl implements AllocationCommandApi {
 
     private final ChannelAllocationRepository repository;
     private final InventoryMovementCommandApi inventoryMovementCommandApi;
+    private final ReduceAllocationUseCase reduceAllocation;
 
     AllocationCommandApiImpl(
             ChannelAllocationRepository repository,
-            InventoryMovementCommandApi inventoryMovementCommandApi
+            InventoryMovementCommandApi inventoryMovementCommandApi,
+            ReduceAllocationUseCase reduceAllocation
     ) {
         this.repository = repository;
         this.inventoryMovementCommandApi = inventoryMovementCommandApi;
+        this.reduceAllocation = reduceAllocation;
     }
 
     @Override
-    @Transactional
     public void reduceAllocation(Long productionRunId, Long distributorId, int quantity) {
-        var allocation = repository
-                .findByProductionRunIdAndDistributorId(productionRunId, distributorId)
-                .orElseThrow(() -> new EntityNotFoundException(
-                        "No allocation found for production run " + productionRunId
-                                + " and distributor " + distributorId
-                ));
-
-        allocation.incrementUnitsSold(quantity);
-        repository.save(allocation);
+        reduceAllocation.execute(productionRunId, distributorId, quantity);
     }
 
     @Override
