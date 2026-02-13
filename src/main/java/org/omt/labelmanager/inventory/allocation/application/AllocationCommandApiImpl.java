@@ -6,6 +6,8 @@ import org.omt.labelmanager.inventory.allocation.ChannelAllocation;
 import org.omt.labelmanager.inventory.allocation.ChannelAllocationEntity;
 import org.omt.labelmanager.inventory.allocation.ChannelAllocationRepository;
 import org.omt.labelmanager.inventory.allocation.api.AllocationCommandApi;
+import org.omt.labelmanager.inventory.api.InventoryMovementCommandApi;
+import org.omt.labelmanager.inventory.domain.MovementType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -19,9 +21,14 @@ class AllocationCommandApiImpl implements AllocationCommandApi {
             LoggerFactory.getLogger(AllocationCommandApiImpl.class);
 
     private final ChannelAllocationRepository repository;
+    private final InventoryMovementCommandApi inventoryMovementCommandApi;
 
-    AllocationCommandApiImpl(ChannelAllocationRepository repository) {
+    AllocationCommandApiImpl(
+            ChannelAllocationRepository repository,
+            InventoryMovementCommandApi inventoryMovementCommandApi
+    ) {
         this.repository = repository;
+        this.inventoryMovementCommandApi = inventoryMovementCommandApi;
     }
 
     @Override
@@ -39,6 +46,7 @@ class AllocationCommandApiImpl implements AllocationCommandApi {
     }
 
     @Override
+    @Transactional
     public ChannelAllocation createAllocation(Long productionRunId, Long distributorId, int quantity) {
         ChannelAllocationEntity allocationEntity = new ChannelAllocationEntity(
                 productionRunId,
@@ -48,6 +56,16 @@ class AllocationCommandApiImpl implements AllocationCommandApi {
         );
         allocationEntity = repository.save(allocationEntity);
         log.debug("Allocation created with id {}", allocationEntity.getId());
-        return ChannelAllocation.fromEntity(allocationEntity);
+
+        ChannelAllocation allocation = ChannelAllocation.fromEntity(allocationEntity);
+        inventoryMovementCommandApi.recordMovement(
+                productionRunId,
+                distributorId,
+                quantity,
+                MovementType.ALLOCATION,
+                allocation.id()
+        );
+
+        return allocation;
     }
 }
