@@ -1,41 +1,30 @@
-package org.omt.labelmanager.inventory.allocation;
+package org.omt.labelmanager.inventory.allocation.application;
 
+import org.omt.labelmanager.inventory.allocation.api.AllocationQueryApi;
 import org.omt.labelmanager.inventory.allocation.domain.ChannelAllocation;
 import org.omt.labelmanager.inventory.allocation.infrastructure.ChannelAllocationRepository;
-import org.omt.labelmanager.inventory.productionrun.infrastructure.ProductionRunRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
-public class AllocationQueryService {
+class AllocationQueryApiImpl implements AllocationQueryApi {
 
     private final ChannelAllocationRepository channelAllocationRepository;
-    private final ProductionRunRepository productionRunRepository;
 
-    public AllocationQueryService(
-            ChannelAllocationRepository channelAllocationRepository,
-            ProductionRunRepository productionRunRepository
-    ) {
+    AllocationQueryApiImpl(ChannelAllocationRepository channelAllocationRepository) {
         this.channelAllocationRepository = channelAllocationRepository;
-        this.productionRunRepository = productionRunRepository;
     }
 
+    @Override
     public List<ChannelAllocation> getAllocationsForProductionRun(Long productionRunId) {
         return channelAllocationRepository.findByProductionRunId(productionRunId).stream()
                 .map(ChannelAllocation::fromEntity)
                 .toList();
     }
 
+    @Override
     public int getTotalAllocated(Long productionRunId) {
         return channelAllocationRepository.sumQuantityByProductionRunId(productionRunId);
-    }
-
-    public int getUnallocatedQuantity(Long productionRunId) {
-        int manufactured = productionRunRepository.findById(productionRunId)
-                .map(run -> run.getQuantity())
-                .orElse(0);
-        int allocated = getTotalAllocated(productionRunId);
-        return manufactured - allocated;
     }
 }

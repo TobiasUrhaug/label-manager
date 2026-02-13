@@ -24,12 +24,4 @@ public interface AllocationQueryApi {
      * @return total allocated quantity
      */
     int getTotalAllocated(Long productionRunId);
-
-    /**
-     * Get the unallocated quantity for a specific production run.
-     *
-     * @param productionRunId the production run
-     * @return unallocated quantity
-     */
-    int getUnallocatedQuantity(Long productionRunId);
 }

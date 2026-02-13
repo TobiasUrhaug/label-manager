@@ -1,7 +1,7 @@
 package org.omt.labelmanager.inventory.productionrun.application;
 
 import org.omt.labelmanager.catalog.release.domain.ReleaseFormat;
-import org.omt.labelmanager.inventory.allocation.AllocationQueryService;
+import org.omt.labelmanager.inventory.allocation.api.AllocationQueryApi;
 import org.omt.labelmanager.inventory.allocation.domain.InsufficientInventoryException;
 import org.omt.labelmanager.inventory.productionrun.api.ProductionRunQueryApi;
 import org.omt.labelmanager.inventory.productionrun.domain.ProductionRun;
@@ -21,9 +21,9 @@ class ProductionRunQueryApiImpl implements ProductionRunQueryApi {
             LoggerFactory.getLogger(ProductionRunQueryApiImpl.class);
 
     private final ProductionRunRepository repository;
-    private final AllocationQueryService allocationQueryService;
+    private final AllocationQueryApi allocationQueryService;
 
-    ProductionRunQueryApiImpl(ProductionRunRepository repository, AllocationQueryService allocationQueryService) {
+    ProductionRunQueryApiImpl(ProductionRunRepository repository, AllocationQueryApi allocationQueryService) {
         this.repository = repository;
         this.allocationQueryService = allocationQueryService;
     }

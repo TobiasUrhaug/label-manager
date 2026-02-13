@@ -9,7 +9,7 @@ import org.omt.labelmanager.finance.cost.domain.Cost;
 import org.omt.labelmanager.finance.cost.api.CostQueryApi;
 import org.omt.labelmanager.finance.cost.domain.CostType;
 import org.omt.labelmanager.identity.application.AppUserDetails;
-import org.omt.labelmanager.inventory.allocation.AllocationQueryService;
+import org.omt.labelmanager.inventory.allocation.api.AllocationQueryApi;
 import org.omt.labelmanager.inventory.allocation.domain.ChannelAllocation;
 import org.omt.labelmanager.inventory.api.AllocationView;
 import org.omt.labelmanager.inventory.api.ProductionRunWithAllocation;
@@ -45,7 +45,7 @@ public class ReleaseController {
     private final ArtistQueryApi artistQueryApi;
     private final CostQueryApi costQueryFacade;
     private final ProductionRunQueryApi productionRunQueryApi;
-    private final AllocationQueryService allocationQueryService;
+    private final AllocationQueryApi allocationQueryService;
     private final DistributorQueryApi distributorQueryApi;
 
     public ReleaseController(
@@ -54,7 +54,7 @@ public class ReleaseController {
             ArtistQueryApi artistQueryApi,
             CostQueryApi costQueryFacade,
             ProductionRunQueryApi productionRunQueryApi,
-            AllocationQueryService allocationQueryService,
+            AllocationQueryApi allocationQueryService,
             DistributorQueryApi distributorQueryApi
     ) {
         this.releaseCommandApi = releaseCommandApi;
@@ -259,14 +259,12 @@ public class ReleaseController {
                                 alloc.allocatedAt()
                         ))
                         .toList();
+        int totalAllocated = allocationQueryService.getTotalAllocated(run.id());
+        int unallocated = run.quantity() - totalAllocated;
         return new ProductionRunWithAllocation(
                 run,
-                allocationQueryService.getTotalAllocated(
-                        run.id()
-                ),
-                allocationQueryService.getUnallocatedQuantity(
-                        run.id()
-                ),
+                totalAllocated,
+                unallocated,
                 allocationViews
         );
     }

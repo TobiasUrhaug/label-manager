@@ -10,7 +10,7 @@ import org.omt.labelmanager.catalog.label.LabelFactory;
 import org.omt.labelmanager.catalog.label.api.LabelQueryApi;
 import org.omt.labelmanager.finance.cost.api.CostQueryApi;
 import org.omt.labelmanager.identity.application.AppUserDetails;
-import org.omt.labelmanager.inventory.allocation.AllocationQueryService;
+import org.omt.labelmanager.inventory.allocation.api.AllocationQueryApi;
 import org.omt.labelmanager.inventory.productionrun.api.ProductionRunQueryApi;
 import org.omt.labelmanager.distribution.distributor.api.DistributorQueryApi;
 import org.omt.labelmanager.test.TestSecurityConfig;
@@ -58,7 +58,7 @@ class ReleaseControllerTest {
     private ProductionRunQueryApi productionRunQueryService;
 
     @MockitoBean
-    private AllocationQueryService allocationQueryService;
+    private AllocationQueryApi allocationQueryService;
 
     @MockitoBean
     private DistributorQueryApi distributorQueryService;
