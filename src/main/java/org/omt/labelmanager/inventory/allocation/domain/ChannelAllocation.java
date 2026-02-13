@@ -1,6 +1,6 @@
 package org.omt.labelmanager.inventory.allocation.domain;
 
-import org.omt.labelmanager.inventory.allocation.ChannelAllocationEntity;
+import org.omt.labelmanager.inventory.allocation.infrastructure.ChannelAllocationEntity;
 
 import java.time.Instant;
 

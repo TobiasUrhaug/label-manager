@@ -1,6 +1,5 @@
-package org.omt.labelmanager.inventory.productionrun.application;
+package org.omt.labelmanager.inventory.productionrun;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.omt.labelmanager.AbstractIntegrationTest;
 import org.omt.labelmanager.catalog.label.LabelTestHelper;
@@ -8,7 +7,6 @@ import org.omt.labelmanager.catalog.release.ReleaseTestHelper;
 import org.omt.labelmanager.catalog.release.domain.ReleaseFormat;
 import org.omt.labelmanager.inventory.productionrun.api.ProductionRunCommandApi;
 import org.omt.labelmanager.inventory.productionrun.api.ProductionRunQueryApi;
-import org.omt.labelmanager.inventory.productionrun.infrastructure.ProductionRunRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.time.LocalDate;
@@ -24,27 +22,17 @@ class QueryProductionRunIntegrationTest extends AbstractIntegrationTest {
     private ProductionRunCommandApi commandApi;
 
     @Autowired
-    private ProductionRunRepository repository;
-
-    @Autowired
     private ReleaseTestHelper releaseTestHelper;
 
     @Autowired
     private LabelTestHelper labelTestHelper;
 
-    private Long releaseId;
-
-    @BeforeEach
-    void setUp() {
-        repository.deleteAll();
-
-        var label = labelTestHelper.createLabel("Test Label");
-        releaseId = releaseTestHelper.createReleaseEntity(
-                "Test Release", label.id());
-    }
-
     @Test
     void findByReleaseId_returnsAllProductionRunsForRelease() {
+        var label = labelTestHelper.createLabel("Test Label");
+        Long releaseId = releaseTestHelper.createReleaseEntity(
+                "Test Release", label.id());
+
         commandApi.createProductionRun(
                 releaseId,
                 ReleaseFormat.VINYL,
@@ -86,6 +74,10 @@ class QueryProductionRunIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     void findByReleaseId_returnsEmptyListWhenNoProductionRuns() {
+        var label = labelTestHelper.createLabel("Test Label");
+        Long releaseId = releaseTestHelper.createReleaseEntity(
+                "Test Release", label.id());
+
         var runs = queryApi.findByReleaseId(releaseId);
 
         assertThat(runs).isEmpty();
@@ -93,6 +85,10 @@ class QueryProductionRunIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     void findMostRecent_returnsMostRecentProductionRunForFormat() {
+        var label = labelTestHelper.createLabel("Test Label");
+        Long releaseId = releaseTestHelper.createReleaseEntity(
+                "Test Release", label.id());
+
         commandApi.createProductionRun(
                 releaseId,
                 ReleaseFormat.VINYL,
@@ -131,6 +127,10 @@ class QueryProductionRunIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     void findMostRecent_returnsEmptyWhenNoMatchingFormat() {
+        var label = labelTestHelper.createLabel("Test Label");
+        Long releaseId = releaseTestHelper.createReleaseEntity(
+                "Test Release", label.id());
+
         commandApi.createProductionRun(
                 releaseId,
                 ReleaseFormat.VINYL,
@@ -147,6 +147,10 @@ class QueryProductionRunIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     void findMostRecent_returnsEmptyWhenNoProductionRuns() {
+        var label = labelTestHelper.createLabel("Test Label");
+        Long releaseId = releaseTestHelper.createReleaseEntity(
+                "Test Release", label.id());
+
         var mostRecent = queryApi.findMostRecent(releaseId, ReleaseFormat.VINYL);
 
         assertThat(mostRecent).isEmpty();
@@ -154,6 +158,10 @@ class QueryProductionRunIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     void findMostRecent_distinguishesBetweenFormats() {
+        var label = labelTestHelper.createLabel("Test Label");
+        Long releaseId = releaseTestHelper.createReleaseEntity(
+                "Test Release", label.id());
+
         var vinylRun = commandApi.createProductionRun(
                 releaseId,
                 ReleaseFormat.VINYL,
@@ -185,6 +193,10 @@ class QueryProductionRunIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     void getManufacturedQuantity_returnsQuantityForExistingProductionRun() {
+        var label = labelTestHelper.createLabel("Test Label");
+        Long releaseId = releaseTestHelper.createReleaseEntity(
+                "Test Release", label.id());
+
         var productionRun = commandApi.createProductionRun(
                 releaseId,
                 ReleaseFormat.VINYL,

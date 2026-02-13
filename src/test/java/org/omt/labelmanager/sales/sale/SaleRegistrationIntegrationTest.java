@@ -12,8 +12,8 @@ import org.omt.labelmanager.distribution.distributor.infrastructure.DistributorE
 import org.omt.labelmanager.distribution.distributor.infrastructure.DistributorRepository;
 import org.omt.labelmanager.finance.domain.shared.Money;
 import org.omt.labelmanager.inventory.allocation.domain.ChannelAllocation;
-import org.omt.labelmanager.inventory.allocation.ChannelAllocationEntity;
-import org.omt.labelmanager.inventory.allocation.ChannelAllocationRepository;
+import org.omt.labelmanager.inventory.allocation.infrastructure.ChannelAllocationEntity;
+import org.omt.labelmanager.inventory.allocation.infrastructure.ChannelAllocationRepository;
 import org.omt.labelmanager.inventory.domain.MovementType;
 import org.omt.labelmanager.inventory.infrastructure.persistence.InventoryMovementRepository;
 import org.omt.labelmanager.inventory.productionrun.infrastructure.ProductionRunEntity;

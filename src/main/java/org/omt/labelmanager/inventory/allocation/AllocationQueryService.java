@@ -1,6 +1,7 @@
 package org.omt.labelmanager.inventory.allocation;
 
 import org.omt.labelmanager.inventory.allocation.domain.ChannelAllocation;
+import org.omt.labelmanager.inventory.allocation.infrastructure.ChannelAllocationRepository;
 import org.omt.labelmanager.inventory.productionrun.infrastructure.ProductionRunRepository;
 import org.springframework.stereotype.Service;
 

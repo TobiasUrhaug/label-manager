@@ -1,4 +1,4 @@
-package org.omt.labelmanager.inventory.allocation;
+package org.omt.labelmanager.inventory.allocation.infrastructure;
 
 import jakarta.persistence.*;
 
