@@ -7,6 +7,7 @@ import org.omt.labelmanager.inventory.allocation.infrastructure.ChannelAllocatio
 import org.omt.labelmanager.inventory.allocation.api.AllocationCommandApi;
 import org.omt.labelmanager.inventory.api.InventoryMovementCommandApi;
 import org.omt.labelmanager.inventory.domain.MovementType;
+import org.omt.labelmanager.inventory.productionrun.api.ProductionRunQueryApi;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -22,15 +23,18 @@ class AllocationCommandApiImpl implements AllocationCommandApi {
     private final ChannelAllocationRepository repository;
     private final InventoryMovementCommandApi inventoryMovementCommandApi;
     private final ReduceAllocationUseCase reduceAllocation;
+    private final ProductionRunQueryApi productionRunQueryApi;
 
     AllocationCommandApiImpl(
             ChannelAllocationRepository repository,
             InventoryMovementCommandApi inventoryMovementCommandApi,
-            ReduceAllocationUseCase reduceAllocation
+            ReduceAllocationUseCase reduceAllocation,
+            ProductionRunQueryApi productionRunQueryApi
     ) {
         this.repository = repository;
         this.inventoryMovementCommandApi = inventoryMovementCommandApi;
         this.reduceAllocation = reduceAllocation;
+        this.productionRunQueryApi = productionRunQueryApi;
     }
 
     @Override
@@ -41,6 +45,8 @@ class AllocationCommandApiImpl implements AllocationCommandApi {
     @Override
     @Transactional
     public ChannelAllocation createAllocation(Long productionRunId, Long distributorId, int quantity) {
+        productionRunQueryApi.validateQuantityIsAvailable(productionRunId, quantity);
+
         ChannelAllocationEntity allocationEntity = new ChannelAllocationEntity(
                 productionRunId,
                 distributorId,

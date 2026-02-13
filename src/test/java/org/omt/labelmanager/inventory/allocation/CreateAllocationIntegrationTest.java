@@ -2,7 +2,8 @@ package org.omt.labelmanager.inventory.allocation;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.omt.labelmanager.inventory.allocation.application.CreateAllocationUseCase;
+import org.omt.labelmanager.AbstractIntegrationTest;
+import org.omt.labelmanager.inventory.allocation.api.AllocationCommandApi;
 import org.omt.labelmanager.inventory.allocation.domain.ChannelAllocation;
 import org.omt.labelmanager.inventory.allocation.domain.InsufficientInventoryException;
 import org.omt.labelmanager.inventory.allocation.infrastructure.ChannelAllocationRepository;
@@ -17,52 +18,16 @@ import org.omt.labelmanager.distribution.distributor.infrastructure.DistributorR
 import org.omt.labelmanager.inventory.productionrun.infrastructure.ProductionRunEntity;
 import org.omt.labelmanager.inventory.productionrun.infrastructure.ProductionRunRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
-import org.testcontainers.containers.MinIOContainer;
-import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.time.LocalDate;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-@Testcontainers
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-class AllocateProductionRunToDistributorUseCaseIntegrationTest {
-
-    private static final String MINIO_ACCESS_KEY = "minioadmin";
-    private static final String MINIO_SECRET_KEY = "minioadmin";
-
-    @Container
-    static PostgreSQLContainer<?> postgres =
-            new PostgreSQLContainer<>("postgres:16-alpine")
-                    .withDatabaseName("testdb")
-                    .withUsername("test")
-                    .withPassword("test");
-
-    @Container
-    static MinIOContainer minIO = new MinIOContainer("minio/minio:latest")
-            .withUserName(MINIO_ACCESS_KEY)
-            .withPassword(MINIO_SECRET_KEY);
-
-    @DynamicPropertySource
-    static void containerProperties(DynamicPropertyRegistry registry) {
-        registry.add("spring.datasource.url", postgres::getJdbcUrl);
-        registry.add("spring.datasource.username", postgres::getUsername);
-        registry.add("spring.datasource.password", postgres::getPassword);
-        registry.add("storage.s3.endpoint", minIO::getS3URL);
-        registry.add("storage.s3.bucket", () -> "costs");
-        registry.add("storage.s3.region", () -> "us-east-1");
-        registry.add("storage.s3.access-key", () -> MINIO_ACCESS_KEY);
-        registry.add("storage.s3.secret-key", () -> MINIO_SECRET_KEY);
-    }
+class CreateAllocationIntegrationTest extends AbstractIntegrationTest {
 
     @Autowired
-    private CreateAllocationUseCase allocateProductionRunToDistributorUseCase;
+    private AllocationCommandApi allocationCommandApi;
 
     @Autowired
     private ChannelAllocationRepository channelAllocationRepository;
@@ -114,7 +79,7 @@ class AllocateProductionRunToDistributorUseCaseIntegrationTest {
 
     @Test
     void createsAllocationAndMovement() {
-        var allocation = allocateProductionRunToDistributorUseCase.execute(productionRunId, distributorId, 100);
+        var allocation = allocationCommandApi.createAllocation(productionRunId, distributorId, 100);
 
         assertThat(allocation.id()).isNotNull();
         assertThat(allocation.productionRunId()).isEqualTo(productionRunId);
@@ -131,9 +96,9 @@ class AllocateProductionRunToDistributorUseCaseIntegrationTest {
 
     @Test
     void allowsMultipleAllocationsUpToManufacturedQuantity() {
-        allocateProductionRunToDistributorUseCase.execute(productionRunId, distributorId, 200);
-        allocateProductionRunToDistributorUseCase.execute(productionRunId, distributorId, 200);
-        var thirdAllocation = allocateProductionRunToDistributorUseCase.execute(productionRunId, distributorId, 100);
+        allocationCommandApi.createAllocation(productionRunId, distributorId, 200);
+        allocationCommandApi.createAllocation(productionRunId, distributorId, 200);
+        var thirdAllocation = allocationCommandApi.createAllocation(productionRunId, distributorId, 100);
 
         assertThat(thirdAllocation.quantity()).isEqualTo(100);
         assertThat(channelAllocationRepository.sumQuantityByProductionRunId(productionRunId))
@@ -142,10 +107,10 @@ class AllocateProductionRunToDistributorUseCaseIntegrationTest {
 
     @Test
     void throwsExceptionWhenOverAllocating() {
-        allocateProductionRunToDistributorUseCase.execute(productionRunId, distributorId, 400);
+        allocationCommandApi.createAllocation(productionRunId, distributorId, 400);
 
         assertThatThrownBy(() ->
-                allocateProductionRunToDistributorUseCase.execute(productionRunId, distributorId, 200))
+                allocationCommandApi.createAllocation(productionRunId, distributorId, 200))
                 .isInstanceOf(InsufficientInventoryException.class)
                 .hasMessageContaining("requested 200")
                 .hasMessageContaining("only 100 available");
@@ -154,7 +119,7 @@ class AllocateProductionRunToDistributorUseCaseIntegrationTest {
     @Test
     void throwsExceptionWhenAllocatingMoreThanTotal() {
         assertThatThrownBy(() ->
-                allocateProductionRunToDistributorUseCase.execute(productionRunId, distributorId, 600))
+                allocationCommandApi.createAllocation(productionRunId, distributorId, 600))
                 .isInstanceOf(InsufficientInventoryException.class)
                 .hasMessageContaining("requested 600")
                 .hasMessageContaining("only 500 available");
@@ -162,10 +127,10 @@ class AllocateProductionRunToDistributorUseCaseIntegrationTest {
 
     @Test
     void exceptionContainsRequestedAndAvailableQuantities() {
-        allocateProductionRunToDistributorUseCase.execute(productionRunId, distributorId, 450);
+        allocationCommandApi.createAllocation(productionRunId, distributorId, 450);
 
         try {
-            allocateProductionRunToDistributorUseCase.execute(productionRunId, distributorId, 100);
+            allocationCommandApi.createAllocation(productionRunId, distributorId, 100);
         } catch (InsufficientInventoryException ex) {
             assertThat(ex.getRequested()).isEqualTo(100);
             assertThat(ex.getAvailable()).isEqualTo(50);
