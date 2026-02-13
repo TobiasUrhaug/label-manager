@@ -1,6 +1,5 @@
 package org.omt.labelmanager.inventory.allocation.api;
 
-import org.omt.labelmanager.inventory.allocation.application.CreateAllocationUseCase;
 import org.omt.labelmanager.inventory.allocation.domain.InsufficientInventoryException;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -13,12 +12,10 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 @RequestMapping("/labels/{labelId}/releases/{releaseId}/production-runs/{runId}/allocations")
 public class AllocationController {
 
-    private final CreateAllocationUseCase allocateUseCase;
+    private final AllocationCommandApi allocationCommandApi;
 
-    public AllocationController(
-            CreateAllocationUseCase allocateUseCase
-    ) {
-        this.allocateUseCase = allocateUseCase;
+    public AllocationController(AllocationCommandApi allocationCommandApi) {
+        this.allocationCommandApi = allocationCommandApi;
     }
 
     @PostMapping
@@ -30,7 +27,7 @@ public class AllocationController {
             RedirectAttributes redirectAttributes
     ) {
         try {
-            allocateUseCase.execute(
+            allocationCommandApi.createAllocation(
                     runId,
                     form.getDistributorId(),
                     form.getQuantity()
