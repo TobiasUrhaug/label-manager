@@ -19,6 +19,8 @@ public interface SaleCommandApi {
      * @param saleDate the date of the sale
      * @param channel the sales channel (EVENT, DIRECT, etc.)
      * @param notes optional notes about the sale
+     * @param distributorId the distributor (required for non-DIRECT channels, null
+     *        for DIRECT)
      * @param lineItems the items sold
      * @return the created sale
      */
@@ -27,6 +29,7 @@ public interface SaleCommandApi {
             LocalDate saleDate,
             ChannelType channel,
             String notes,
+            Long distributorId,
             List<SaleLineItemInput> lineItems
     );
 }

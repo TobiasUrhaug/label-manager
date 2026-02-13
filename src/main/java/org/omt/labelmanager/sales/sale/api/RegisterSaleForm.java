@@ -15,6 +15,7 @@ public class RegisterSaleForm {
 
     private LocalDate saleDate;
     private ChannelType channel;
+    private Long distributorId;
     private String notes;
     private List<SaleLineItemForm> lineItems = new ArrayList<>();
 
@@ -45,6 +46,14 @@ public class RegisterSaleForm {
 
     public void setChannel(ChannelType channel) {
         this.channel = channel;
+    }
+
+    public Long getDistributorId() {
+        return distributorId;
+    }
+
+    public void setDistributorId(Long distributorId) {
+        this.distributorId = distributorId;
     }
 
     public String getNotes() {

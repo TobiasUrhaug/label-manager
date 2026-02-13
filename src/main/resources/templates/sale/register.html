@@ -15,18 +15,30 @@
         <div class="card-body">
             <form th:action="@{/labels/{id}/sales(id=${label.id})}" method="post" th:object="${form}">
                 <div class="row mb-3">
-                    <div class="col-md-6">
+                    <div class="col-md-4">
                         <label for="saleDate" class="form-label">Sale Date*</label>
                         <input type="date" class="form-control" id="saleDate"
                                th:field="*{saleDate}" required>
                     </div>
-                    <div class="col-md-6">
+                    <div class="col-md-4">
                         <label for="channel" class="form-label">Channel*</label>
                         <select class="form-select" id="channel" th:field="*{channel}" required>
                             <option value="">Select channel...</option>
                             <option th:each="channelType : ${channels}"
                                     th:value="${channelType}"
                                     th:text="${channelType}">EVENT</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4" id="distributorFieldContainer" style="display: none;">
+                        <label for="distributorId" class="form-label">Distributor*</label>
+                        <select class="form-select" id="distributorId" th:field="*{distributorId}">
+                            <option value="">Select distributor...</option>
+                            <option th:each="distributor : ${distributors}"
+                                    th:value="${distributor.id}"
+                                    th:text="${distributor.name}"
+                                    th:attr="data-channel-type=${distributor.channelType}">
+                                Distributor Name
+                            </option>
                         </select>
                     </div>
                 </div>
@@ -274,6 +286,49 @@
             } else {
                 console.error('Add Line Item button not found');
             }
+
+            // Handle channel selection and distributor dropdown
+            const channelSelect = document.getElementById('channel');
+            const distributorContainer = document.getElementById('distributorFieldContainer');
+            const distributorSelect = document.getElementById('distributorId');
+
+            function updateDistributorField() {
+                const selectedChannel = channelSelect.value;
+
+                if (selectedChannel === 'DIRECT' || selectedChannel === '') {
+                    // Hide distributor field for DIRECT sales or when no channel selected
+                    distributorContainer.style.display = 'none';
+                    distributorSelect.removeAttribute('required');
+                    distributorSelect.value = '';
+                } else {
+                    // Show distributor field and filter options by channel type
+                    distributorContainer.style.display = 'block';
+                    distributorSelect.setAttribute('required', 'required');
+
+                    // Filter distributor options by channel type
+                    const options = distributorSelect.querySelectorAll('option');
+                    options.forEach(option => {
+                        if (option.value === '') {
+                            option.style.display = 'block';
+                        } else {
+                            const channelType = option.getAttribute('data-channel-type');
+                            if (channelType === selectedChannel) {
+                                option.style.display = 'block';
+                            } else {
+                                option.style.display = 'none';
+                                if (option.selected) {
+                                    distributorSelect.value = '';
+                                }
+                            }
+                        }
+                    });
+                }
+            }
+
+            channelSelect.addEventListener('change', updateDistributorField);
+
+            // Initialize on page load
+            updateDistributorField();
         });
         /*]]>*/
     </script>

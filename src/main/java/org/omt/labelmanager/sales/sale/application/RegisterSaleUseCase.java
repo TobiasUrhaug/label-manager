@@ -57,11 +57,11 @@ class RegisterSaleUseCase {
 
     @Transactional
     public Sale execute(
-
             Long labelId,
             LocalDate saleDate,
             ChannelType channel,
             String notes,
+            Long distributorId,
             List<SaleLineItemInput> lineItems
     ) {
         log.info("Registering sale for label {} with {} line items",
@@ -72,12 +72,12 @@ class RegisterSaleUseCase {
             throw new EntityNotFoundException("Label not found: " + labelId);
         }
 
-        // 2. Validate releases and find DIRECT distributor
-        var directDistributor = distributorQueryApi
-                .findByLabelIdAndChannelType(labelId, ChannelType.DIRECT)
-                .orElseThrow(() -> new EntityNotFoundException(
-                        "DIRECT distributor not found for label: " + labelId
-                ));
+        // 2. Determine which distributor to use
+        Long targetDistributorId = determineDistributor(
+                labelId,
+                channel,
+                distributorId
+        );
 
         // 3. Create sale entity
         var saleEntity = new SaleEntity(
@@ -93,7 +93,7 @@ class RegisterSaleUseCase {
             validateAndProcessLineItem(
                     lineItemInput,
                     labelId,
-                    directDistributor.id(),
+                    targetDistributorId,
                     saleEntity
             );
         }
@@ -105,6 +105,49 @@ class RegisterSaleUseCase {
                 savedSale.getId(), savedSale.getTotalAmount());
 
         return convertToSale(savedSale);
+    }
+
+    private Long determineDistributor(
+            Long labelId,
+            ChannelType channel,
+            Long distributorId
+    ) {
+        if (channel == ChannelType.DIRECT) {
+            // For DIRECT sales, auto-select the DIRECT distributor
+            return distributorQueryApi
+                    .findByLabelIdAndChannelType(labelId, ChannelType.DIRECT)
+                    .orElseThrow(() -> new EntityNotFoundException(
+                            "DIRECT distributor not found for label: " + labelId
+                    ))
+                    .id();
+        }
+
+        // For non-DIRECT sales, distributorId is required
+        if (distributorId == null) {
+            throw new IllegalArgumentException(
+                    "Distributor must be specified for " + channel + " sales"
+            );
+        }
+
+        // Validate distributor exists and matches channel type
+        var distributor = distributorQueryApi
+                .findByLabelId(labelId)
+                .stream()
+                .filter(d -> d.id().equals(distributorId))
+                .findFirst()
+                .orElseThrow(() -> new EntityNotFoundException(
+                        "Distributor not found: " + distributorId
+                ));
+
+        if (distributor.channelType() != channel) {
+            throw new IllegalArgumentException(
+                    "Distributor '" + distributor.name()
+                            + "' (type: " + distributor.channelType()
+                            + ") does not match channel type: " + channel
+            );
+        }
+
+        return distributorId;
     }
 
     private void validateAndProcessLineItem(
@@ -146,6 +189,16 @@ class RegisterSaleUseCase {
         );
         saleEntity.addLineItem(lineItemEntity);
 
+        // Find distributor name for error messages
+        var distributor = distributorQueryApi
+                .findByLabelId(labelId)
+                .stream()
+                .filter(d -> d.id().equals(directDistributorId))
+                .findFirst()
+                .orElseThrow(() -> new EntityNotFoundException(
+                        "Distributor not found: " + directDistributorId
+                ));
+
         // Reduce allocation (validates sufficient inventory)
         try {
             allocationCommandApi.reduceAllocation(
@@ -156,9 +209,10 @@ class RegisterSaleUseCase {
         } catch (EntityNotFoundException e) {
             throw new IllegalStateException(
                     "No inventory allocated for release '" + release.name()
-                            + "' (" + lineItemInput.format() + "). "
-                            + "Please allocate inventory from the production run to your "
-                            + "DIRECT sales channel before registering sales."
+                            + "' (" + lineItemInput.format() + ") "
+                            + "to distributor '" + distributor.name() + "'. "
+                            + "Please allocate inventory from the production run "
+                            + "before registering sales."
             );
         }
 

@@ -4,6 +4,7 @@ import jakarta.persistence.EntityNotFoundException;
 import org.omt.labelmanager.catalog.label.api.LabelQueryApi;
 import org.omt.labelmanager.catalog.release.api.ReleaseQueryApi;
 import org.omt.labelmanager.catalog.release.domain.ReleaseFormat;
+import org.omt.labelmanager.distribution.distributor.api.DistributorQueryApi;
 import org.omt.labelmanager.distribution.distributor.domain.ChannelType;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -20,17 +21,20 @@ public class SaleController {
     private final SaleQueryApi saleQueryApi;
     private final LabelQueryApi labelQueryApi;
     private final ReleaseQueryApi releaseQueryApi;
+    private final DistributorQueryApi distributorQueryApi;
 
     public SaleController(
             SaleCommandApi saleCommandApi,
             SaleQueryApi saleQueryApi,
             LabelQueryApi labelQueryApi,
-            ReleaseQueryApi releaseQueryApi
+            ReleaseQueryApi releaseQueryApi,
+            DistributorQueryApi distributorQueryApi
     ) {
         this.saleCommandApi = saleCommandApi;
         this.saleQueryApi = saleQueryApi;
         this.labelQueryApi = labelQueryApi;
         this.releaseQueryApi = releaseQueryApi;
+        this.distributorQueryApi = distributorQueryApi;
     }
 
     @GetMapping
@@ -52,9 +56,11 @@ public class SaleController {
         var label = labelQueryApi.findById(labelId)
                 .orElseThrow(() -> new EntityNotFoundException("Label not found"));
         var releases = releaseQueryApi.getReleasesForLabel(labelId);
+        var distributors = distributorQueryApi.findByLabelId(labelId);
 
         model.addAttribute("label", label);
         model.addAttribute("releases", releases);
+        model.addAttribute("distributors", distributors);
         model.addAttribute("formats", ReleaseFormat.values());
         model.addAttribute("channels", ChannelType.values());
         model.addAttribute("form", new RegisterSaleForm());
@@ -74,17 +80,20 @@ public class SaleController {
                     form.getSaleDate(),
                     form.getChannel(),
                     form.getNotes(),
+                    form.getDistributorId(),
                     form.toLineItemInputs()
             );
 
             return "redirect:/labels/" + labelId + "/sales";
-        } catch (IllegalStateException e) {
+        } catch (IllegalStateException | IllegalArgumentException e) {
             var label = labelQueryApi.findById(labelId)
                     .orElseThrow(() -> new EntityNotFoundException("Label not found"));
             var releases = releaseQueryApi.getReleasesForLabel(labelId);
+            var distributors = distributorQueryApi.findByLabelId(labelId);
 
             model.addAttribute("label", label);
             model.addAttribute("releases", releases);
+            model.addAttribute("distributors", distributors);
             model.addAttribute("formats", ReleaseFormat.values());
             model.addAttribute("channels", ChannelType.values());
             model.addAttribute("form", form);

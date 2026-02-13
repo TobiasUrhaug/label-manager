@@ -7,6 +7,8 @@ import org.omt.labelmanager.catalog.label.LabelTestHelper;
 import org.omt.labelmanager.catalog.release.ReleaseTestHelper;
 import org.omt.labelmanager.catalog.release.domain.ReleaseFormat;
 import org.omt.labelmanager.distribution.distributor.domain.ChannelType;
+import org.omt.labelmanager.distribution.distributor.domain.Distributor;
+import org.omt.labelmanager.distribution.distributor.infrastructure.DistributorEntity;
 import org.omt.labelmanager.distribution.distributor.infrastructure.DistributorRepository;
 import org.omt.labelmanager.finance.domain.shared.Money;
 import org.omt.labelmanager.inventory.allocation.ChannelAllocationEntity;
@@ -111,15 +113,16 @@ class SaleRegistrationIntegrationTest extends AbstractIntegrationTest {
         var sale = saleCommandApi.registerSale(
                 labelId,
                 LocalDate.of(2026, 2, 12),
-                ChannelType.EVENT,
+                ChannelType.DIRECT,
                 "Concert at venue X",
+                null,
                 lineItems
         );
 
         assertThat(sale.id()).isNotNull();
         assertThat(sale.labelId()).isEqualTo(labelId);
         assertThat(sale.saleDate()).isEqualTo(LocalDate.of(2026, 2, 12));
-        assertThat(sale.channel()).isEqualTo(ChannelType.EVENT);
+        assertThat(sale.channel()).isEqualTo(ChannelType.DIRECT);
         assertThat(sale.notes()).isEqualTo("Concert at venue X");
         assertThat(sale.lineItems()).hasSize(1);
         assertThat(sale.totalAmount().amount())
@@ -149,7 +152,8 @@ class SaleRegistrationIntegrationTest extends AbstractIntegrationTest {
         saleCommandApi.registerSale(
                 labelId,
                 LocalDate.of(2026, 2, 12),
-                ChannelType.EVENT,
+                ChannelType.DIRECT,
+                null,
                 null,
                 lineItems
         );
@@ -181,7 +185,8 @@ class SaleRegistrationIntegrationTest extends AbstractIntegrationTest {
         saleCommandApi.registerSale(
                 labelId,
                 LocalDate.of(2026, 2, 12),
-                ChannelType.EVENT,
+                ChannelType.DIRECT,
+                null,
                 null,
                 lineItems
         );
@@ -209,7 +214,8 @@ class SaleRegistrationIntegrationTest extends AbstractIntegrationTest {
                 saleCommandApi.registerSale(
                         labelId,
                         LocalDate.of(2026, 2, 12),
-                        ChannelType.EVENT,
+                        ChannelType.DIRECT,
+                        null,
                         null,
                         lineItems
                 ))
@@ -232,7 +238,8 @@ class SaleRegistrationIntegrationTest extends AbstractIntegrationTest {
                 saleCommandApi.registerSale(
                         labelId,
                         LocalDate.of(2026, 2, 12),
-                        ChannelType.EVENT,
+                        ChannelType.DIRECT,
+                        null,
                         null,
                         lineItems
                 ))
@@ -260,7 +267,8 @@ class SaleRegistrationIntegrationTest extends AbstractIntegrationTest {
                 saleCommandApi.registerSale(
                         labelId,
                         LocalDate.of(2026, 2, 12),
-                        ChannelType.EVENT,
+                        ChannelType.DIRECT,
+                        null,
                         null,
                         lineItems
                 ))
@@ -294,7 +302,8 @@ class SaleRegistrationIntegrationTest extends AbstractIntegrationTest {
                 saleCommandApi.registerSale(
                         labelId,
                         LocalDate.of(2026, 2, 12),
-                        ChannelType.EVENT,
+                        ChannelType.DIRECT,
+                        null,
                         null,
                         lineItems
                 ))
@@ -303,7 +312,7 @@ class SaleRegistrationIntegrationTest extends AbstractIntegrationTest {
                 .hasMessageContaining("Test Release")
                 .hasMessageContaining("CD")
                 .hasMessageContaining(
-                        "allocate inventory from the production run to your DIRECT"
+                        "allocate inventory from the production run"
                 );
     }
 
@@ -322,7 +331,8 @@ class SaleRegistrationIntegrationTest extends AbstractIntegrationTest {
                 saleCommandApi.registerSale(
                         labelId,
                         LocalDate.of(2026, 2, 12),
-                        ChannelType.EVENT,
+                        ChannelType.DIRECT,
+                        null,
                         null,
                         lineItems
                 ))
@@ -331,5 +341,183 @@ class SaleRegistrationIntegrationTest extends AbstractIntegrationTest {
                 .hasMessageContaining("Test Release")
                 .hasMessageContaining("CD")
                 .hasMessageContaining("create a production run");
+    }
+
+    @Test
+    void registerDirectSale_autoSelectsDirectDistributor() {
+        var lineItems = List.of(
+                new SaleLineItemInput(
+                        releaseId,
+                        ReleaseFormat.VINYL,
+                        5,
+                        Money.of(new BigDecimal("15.00"))
+                )
+        );
+
+        var sale = saleCommandApi.registerSale(
+                labelId,
+                LocalDate.of(2026, 2, 12),
+                ChannelType.DIRECT,
+                null,
+                null,  // No distributorId needed for DIRECT sales
+                lineItems
+        );
+
+        assertThat(sale.channel()).isEqualTo(ChannelType.DIRECT);
+
+        // Verify DIRECT distributor allocation was updated
+        var updatedAllocation = channelAllocationRepository
+                .findByProductionRunIdAndDistributorId(
+                        productionRunId,
+                        directDistributorId
+                )
+                .orElseThrow();
+        assertThat(updatedAllocation.getUnitsSold()).isEqualTo(5);
+    }
+
+    @Test
+    void registerDistributorSale_updatesCorrectDistributorAllocation() {
+        // Create a DISTRIBUTOR type distributor
+        var distributorEntity = distributorRepository.save(
+                new DistributorEntity(
+                        labelId,
+                        "Big Cartel",
+                        ChannelType.DISTRIBUTOR
+                ));
+        Long distributorId = distributorEntity.getId();
+
+        // Allocate inventory to this distributor
+        channelAllocationRepository.save(
+                new ChannelAllocationEntity(
+                        productionRunId,
+                        distributorId,
+                        30,
+                        Instant.now()
+                ));
+
+        var lineItems = List.of(
+                new SaleLineItemInput(
+                        releaseId,
+                        ReleaseFormat.VINYL,
+                        10,
+                        Money.of(new BigDecimal("12.00"))
+                )
+        );
+
+        var sale = saleCommandApi.registerSale(
+                labelId,
+                LocalDate.of(2026, 2, 12),
+                ChannelType.DISTRIBUTOR,
+                "Sale via Big Cartel",
+                distributorId,
+                lineItems
+        );
+
+        assertThat(sale.channel()).isEqualTo(ChannelType.DISTRIBUTOR);
+
+        // Verify the DISTRIBUTOR's allocation was updated, NOT the DIRECT
+        var distributorAllocation = channelAllocationRepository
+                .findByProductionRunIdAndDistributorId(productionRunId, distributorId)
+                .orElseThrow();
+        assertThat(distributorAllocation.getUnitsSold()).isEqualTo(10);
+
+        // Verify DIRECT allocation was NOT touched
+        var directAllocation = channelAllocationRepository
+                .findByProductionRunIdAndDistributorId(
+                        productionRunId,
+                        directDistributorId
+                )
+                .orElseThrow();
+        assertThat(directAllocation.getUnitsSold()).isEqualTo(0);
+    }
+
+    @Test
+    void registerSale_withMismatchedChannelType_throwsException() {
+        // Create a RECORD_STORE distributor
+        var recordStoreEntity = distributorRepository.save(
+                new DistributorEntity(
+                        labelId,
+                        "Cool Records",
+                        ChannelType.RECORD_STORE
+                ));
+
+        var lineItems = List.of(
+                new SaleLineItemInput(
+                        releaseId,
+                        ReleaseFormat.VINYL,
+                        5,
+                        Money.of(new BigDecimal("15.00"))
+                )
+        );
+
+        // Try to register DISTRIBUTOR sale but provide RECORD_STORE distributor
+        assertThatThrownBy(() ->
+                saleCommandApi.registerSale(
+                        labelId,
+                        LocalDate.of(2026, 2, 12),
+                        ChannelType.DISTRIBUTOR,
+                        null,
+                        recordStoreEntity.getId(),
+                        lineItems
+                ))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("does not match channel type");
+    }
+
+    @Test
+    void registerNonDirectSale_withoutDistributorId_throwsException() {
+        var lineItems = List.of(
+                new SaleLineItemInput(
+                        releaseId,
+                        ReleaseFormat.VINYL,
+                        5,
+                        Money.of(new BigDecimal("15.00"))
+                )
+        );
+
+        assertThatThrownBy(() ->
+                saleCommandApi.registerSale(
+                        labelId,
+                        LocalDate.of(2026, 2, 12),
+                        ChannelType.DISTRIBUTOR,
+                        null,
+                        null,  // Missing distributorId
+                        lineItems
+                ))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Distributor must be specified");
+    }
+
+    @Test
+    void registerDistributorSale_withNoAllocation_throwsHelpfulException() {
+        // Create distributor WITHOUT allocation
+        var distributorEntity = distributorRepository.save(
+                new DistributorEntity(
+                        labelId,
+                        "Unallocated Distributor",
+                        ChannelType.DISTRIBUTOR
+                ));
+
+        var lineItems = List.of(
+                new SaleLineItemInput(
+                        releaseId,
+                        ReleaseFormat.VINYL,
+                        5,
+                        Money.of(new BigDecimal("15.00"))
+                )
+        );
+
+        assertThatThrownBy(() ->
+                saleCommandApi.registerSale(
+                        labelId,
+                        LocalDate.of(2026, 2, 12),
+                        ChannelType.DISTRIBUTOR,
+                        null,
+                        distributorEntity.getId(),
+                        lineItems
+                ))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("No inventory allocated")
+                .hasMessageContaining("Unallocated Distributor");
     }
 }

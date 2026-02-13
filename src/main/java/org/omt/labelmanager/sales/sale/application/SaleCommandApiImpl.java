@@ -24,8 +24,16 @@ class SaleCommandApiImpl implements SaleCommandApi {
             LocalDate saleDate,
             ChannelType channel,
             String notes,
+            Long distributorId,
             List<SaleLineItemInput> lineItems
     ) {
-        return registerSale.execute(labelId, saleDate, channel, notes, lineItems);
+        return registerSale.execute(
+                labelId,
+                saleDate,
+                channel,
+                notes,
+                distributorId,
+                lineItems
+        );
     }
 }
