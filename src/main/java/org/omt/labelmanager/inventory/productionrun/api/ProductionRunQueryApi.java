@@ -20,4 +20,14 @@ public interface ProductionRunQueryApi {
      * Get the quantity manufactured for this production run
      */
     int getManufacturedQuantity(Long productionRunId);
+
+    /**
+     * Validates that the requested quantity is available for allocation from a production run.
+     * Checks that unallocated inventory (manufactured minus already allocated) is sufficient.
+     *
+     * @param productionRunId the production run to check inventory for
+     * @param quantity the quantity requested for allocation
+     * @throws InsufficientInventoryException if requested quantity exceeds unallocated inventory
+     */
+    void validateQuantityIsAvailable(Long productionRunId, int quantity);
 }
