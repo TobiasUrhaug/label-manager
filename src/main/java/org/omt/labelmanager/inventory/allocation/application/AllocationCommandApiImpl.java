@@ -2,7 +2,7 @@ package org.omt.labelmanager.inventory.allocation.application;
 
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
-import org.omt.labelmanager.inventory.allocation.ChannelAllocation;
+import org.omt.labelmanager.inventory.allocation.domain.ChannelAllocation;
 import org.omt.labelmanager.inventory.allocation.ChannelAllocationEntity;
 import org.omt.labelmanager.inventory.allocation.ChannelAllocationRepository;
 import org.omt.labelmanager.inventory.allocation.api.AllocationCommandApi;

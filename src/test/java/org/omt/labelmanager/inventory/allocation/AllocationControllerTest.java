@@ -2,6 +2,7 @@ package org.omt.labelmanager.inventory.allocation;
 
 import org.junit.jupiter.api.Test;
 import org.omt.labelmanager.identity.application.AppUserDetails;
+import org.omt.labelmanager.inventory.allocation.domain.InsufficientInventoryException;
 import org.omt.labelmanager.inventory.allocation.api.AllocationController;
 import org.omt.labelmanager.test.TestSecurityConfig;
 import org.springframework.beans.factory.annotation.Autowired;

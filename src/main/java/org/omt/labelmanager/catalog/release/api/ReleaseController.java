@@ -10,7 +10,7 @@ import org.omt.labelmanager.finance.cost.api.CostQueryApi;
 import org.omt.labelmanager.finance.cost.domain.CostType;
 import org.omt.labelmanager.identity.application.AppUserDetails;
 import org.omt.labelmanager.inventory.allocation.AllocationQueryService;
-import org.omt.labelmanager.inventory.allocation.ChannelAllocation;
+import org.omt.labelmanager.inventory.allocation.domain.ChannelAllocation;
 import org.omt.labelmanager.inventory.api.AllocationView;
 import org.omt.labelmanager.inventory.api.ProductionRunWithAllocation;
 import org.omt.labelmanager.inventory.productionrun.api.ProductionRunQueryApi;

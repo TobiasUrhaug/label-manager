@@ -1,5 +1,6 @@
 package org.omt.labelmanager.inventory.allocation;
 
+import org.omt.labelmanager.inventory.allocation.domain.ChannelAllocation;
 import org.omt.labelmanager.inventory.allocation.api.AllocationCommandApi;
 import org.omt.labelmanager.inventory.productionrun.api.ProductionRunQueryApi;
 import org.slf4j.Logger;

@@ -2,7 +2,7 @@ package org.omt.labelmanager.inventory.productionrun.application;
 
 import org.omt.labelmanager.catalog.release.domain.ReleaseFormat;
 import org.omt.labelmanager.inventory.allocation.AllocationQueryService;
-import org.omt.labelmanager.inventory.allocation.InsufficientInventoryException;
+import org.omt.labelmanager.inventory.allocation.domain.InsufficientInventoryException;
 import org.omt.labelmanager.inventory.productionrun.api.ProductionRunQueryApi;
 import org.omt.labelmanager.inventory.productionrun.domain.ProductionRun;
 import org.omt.labelmanager.inventory.productionrun.infrastructure.ProductionRunEntity;

@@ -1,6 +1,6 @@
 package org.omt.labelmanager.inventory.allocation.api;
 
-import org.omt.labelmanager.inventory.allocation.ChannelAllocation;
+import org.omt.labelmanager.inventory.allocation.domain.ChannelAllocation;
 
 /**
  * Public API for allocation command operations.
