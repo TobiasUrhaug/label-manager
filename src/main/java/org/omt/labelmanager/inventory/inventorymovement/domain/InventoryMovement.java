@@ -1,7 +1,8 @@
-package org.omt.labelmanager.inventory.domain;
+package org.omt.labelmanager.inventory.inventorymovement.domain;
 
 import java.time.Instant;
-import org.omt.labelmanager.inventory.infrastructure.persistence.InventoryMovementEntity;
+import org.omt.labelmanager.inventory.domain.MovementType;
+import org.omt.labelmanager.inventory.inventorymovement.infrastructure.InventoryMovementEntity;
 
 public record InventoryMovement(
         Long id,

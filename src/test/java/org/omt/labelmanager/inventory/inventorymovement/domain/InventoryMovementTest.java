@@ -1,11 +1,12 @@
-package org.omt.labelmanager.inventory.domain;
+package org.omt.labelmanager.inventory.inventorymovement.domain;
 
 import org.junit.jupiter.api.Test;
+import org.omt.labelmanager.inventory.domain.MovementType;
 
 import java.time.Instant;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.omt.labelmanager.inventory.domain.InventoryMovementFactory.anInventoryMovement;
+import static org.omt.labelmanager.inventory.inventorymovement.domain.InventoryMovementFactory.anInventoryMovement;
 
 class InventoryMovementTest {
 

@@ -1,7 +1,8 @@
-package org.omt.labelmanager.inventory.domain;
+package org.omt.labelmanager.inventory.inventorymovement.domain;
 
 import java.time.Instant;
 import java.util.concurrent.atomic.AtomicLong;
+import org.omt.labelmanager.inventory.domain.MovementType;
 
 public final class InventoryMovementFactory {
 

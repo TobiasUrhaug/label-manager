@@ -1,4 +1,4 @@
-package org.omt.labelmanager.inventory.infrastructure.persistence;
+package org.omt.labelmanager.inventory.inventorymovement.infrastructure;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

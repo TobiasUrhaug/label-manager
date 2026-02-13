@@ -15,7 +15,7 @@ import org.omt.labelmanager.inventory.allocation.domain.ChannelAllocation;
 import org.omt.labelmanager.inventory.allocation.infrastructure.ChannelAllocationEntity;
 import org.omt.labelmanager.inventory.allocation.infrastructure.ChannelAllocationRepository;
 import org.omt.labelmanager.inventory.domain.MovementType;
-import org.omt.labelmanager.inventory.infrastructure.persistence.InventoryMovementRepository;
+import org.omt.labelmanager.inventory.inventorymovement.infrastructure.InventoryMovementRepository;
 import org.omt.labelmanager.inventory.productionrun.infrastructure.ProductionRunEntity;
 import org.omt.labelmanager.inventory.productionrun.infrastructure.ProductionRunRepository;
 import org.omt.labelmanager.sales.sale.api.SaleCommandApi;

@@ -1,4 +1,4 @@
-package org.omt.labelmanager.inventory.api;
+package org.omt.labelmanager.inventory.inventorymovement.api;
 
 import org.omt.labelmanager.inventory.domain.MovementType;
 
