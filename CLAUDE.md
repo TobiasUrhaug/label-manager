@@ -250,6 +250,123 @@ Use cases represent discrete business operations. Follow these guidelines:
 - Use cases can depend on other use cases within the same module
 - For cross-cutting concerns, create shared services in the `infrastructure` bounded context
 
+**Encapsulating side effects:**
+- When an operation always requires side effects, encapsulate them in the module
+- Example: Creating an allocation should automatically record an inventory movement
+- The module's CommandApi implementation should handle all required side effects
+- This prevents callers from forgetting required steps and enforces business invariants
+
+```java
+// ✅ GOOD - Side effects encapsulated in module
+@Service
+class AllocationCommandApiImpl implements AllocationCommandApi {
+    private final AllocationRepository repository;
+    private final InventoryMovementCommandApi inventoryMovementApi;
+
+    @Override
+    @Transactional
+    public ChannelAllocation createAllocation(
+            Long productionRunId,
+            Long distributorId,
+            int quantity
+    ) {
+        // Create the allocation
+        var entity = repository.save(new AllocationEntity(...));
+        var allocation = ChannelAllocation.fromEntity(entity);
+
+        // Automatically record the movement (required side effect)
+        inventoryMovementApi.recordMovement(
+                productionRunId,
+                distributorId,
+                quantity,
+                MovementType.ALLOCATION,
+                allocation.id()
+        );
+
+        return allocation;
+    }
+}
+
+// ❌ BAD - Caller must remember side effects
+@Service
+public class AllocateUseCase {
+    public ChannelAllocation invoke(...) {
+        var allocation = allocationApi.createAllocation(...);
+        inventoryMovementApi.recordMovement(...);  // Easy to forget!
+        return allocation;
+    }
+}
+```
+
+#### Domain Objects with Business Logic
+
+Domain objects should contain business rules, not just be data carriers. Put business logic in domain objects when:
+- The logic operates on the domain object's own data
+- The logic is a business rule or invariant about the domain concept
+- The logic doesn't require external dependencies (repositories, APIs)
+
+**Example - Rich domain object:**
+```java
+public record ProductionRun(
+        Long id,
+        Long releaseId,
+        ReleaseFormat format,
+        String description,
+        String manufacturer,
+        LocalDate manufacturingDate,
+        int quantity
+) {
+    // Business rule: Can this production run allocate the requested quantity?
+    public boolean canAllocate(int requestedQuantity, int currentlyAllocated) {
+        int available = quantity - currentlyAllocated;
+        return requestedQuantity <= available;
+    }
+
+    public int getAvailableQuantity(int currentlyAllocated) {
+        return quantity - currentlyAllocated;
+    }
+}
+```
+
+**What belongs in domain objects:**
+- ✅ Business rules and invariants
+- ✅ Calculations using the object's data
+- ✅ Validation logic
+- ✅ Derived values and computed properties
+
+**What stays in application layer:**
+- ❌ Logging (infrastructure concern)
+- ❌ Exception handling (application decision)
+- ❌ Orchestration across modules
+- ❌ Side effects (persistence, external calls)
+
+**Usage in application layer:**
+```java
+@Service
+class ProductionRunQueryApiImpl implements ProductionRunQueryApi {
+    @Override
+    public void validateQuantityIsAvailable(Long productionRunId, int quantity) {
+        ProductionRun productionRun = repository.findById(productionRunId)
+                .map(ProductionRun::fromEntity)
+                .orElseThrow(...);
+
+        int allocated = allocationQueryService.getTotalAllocated(productionRunId);
+
+        // Domain enforces business rule, application handles infrastructure
+        if (!productionRun.canAllocate(quantity, allocated)) {
+            log.warn(...);  // Logging stays in application layer
+            throw new InsufficientInventoryException(...);
+        }
+    }
+}
+```
+
+**Benefits:**
+- Domain logic is testable without mocking
+- Business rules are explicit and discoverable
+- Application layer focuses on orchestration
+- Domain objects are intention-revealing
+
 #### Inter-Module Communication
 
 When one module needs to interact with another, depend on the public APIs:
@@ -438,6 +555,63 @@ Follow the testing pyramid. Each layer owns specific responsibilities—avoid du
 ./gradlew test --tests "*Test" -x "*IntegrationTest" -x "*SystemTest"
 npm run test
 ```
+
+#### Writing Behavior-Focused Unit Tests
+
+**Prefer testing behavior over implementation.** Focus on outcomes, not method calls.
+
+**Good - Behavior-focused:**
+```java
+@Test
+void throwsException_whenProductionRunCannotAllocate() {
+    // Setup: validation will fail
+    doThrow(new InsufficientInventoryException(200, 50))
+        .when(productionRunQueryApi)
+        .validateQuantityIsAvailable(PRODUCTION_RUN_ID, QUANTITY);
+
+    // Assert: exception propagates (behavior)
+    assertThatThrownBy(() -> useCase.invoke(...))
+        .isInstanceOf(InsufficientInventoryException.class);
+}
+
+@Test
+void createsAllocation_whenQuantityIsAvailable() {
+    // Setup: allocation succeeds
+    when(allocationCommandApi.createAllocation(...))
+        .thenReturn(expectedAllocation);
+
+    // Assert: correct result returned (behavior)
+    var result = useCase.invoke(...);
+    assertThat(result).isEqualTo(expectedAllocation);
+}
+```
+
+**Bad - Implementation-focused:**
+```java
+@Test
+void invoke_callsValidationAndCreatesAllocation() {
+    useCase.invoke(...);
+
+    // Verifying implementation details, not behavior
+    verify(productionRunQueryApi).validateQuantityIsAvailable(...);
+    verify(allocationCommandApi).createAllocation(...);
+    verifyNoMoreInteractions(allocationCommandApi);
+}
+```
+
+**Guidelines:**
+- ✅ Test observable outcomes (return values, exceptions thrown)
+- ✅ Setup mocks to return test data or throw exceptions
+- ✅ Assert on results and behavior
+- ❌ Avoid excessive `verify()` calls on mocks
+- ❌ Don't test that methods were called unless that's the actual requirement
+- ❌ Don't use `verifyNoMoreInteractions()` unless there's a specific reason
+
+**Why?**
+- Behavior tests are less brittle - they don't break when refactoring internals
+- They're easier to read - clear setup → action → assert pattern
+- They focus on what matters - does it work correctly?
+- They don't couple tests to implementation details
 
 ### Controller Tests
 
