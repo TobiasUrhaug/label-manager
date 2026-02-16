@@ -2,6 +2,44 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Development Workflow
+
+This project uses a multi-role workflow with Claude Code. Each role has a dedicated profile in `.claude/profiles/`.
+
+```
+Analyst → Architect → Developer → Reviewer → PR
+```
+
+| Step | Profile | Reads | Produces |
+|------|---------|-------|----------|
+| 1 | `analyst.md` | User input | `requirements.md` |
+| 2 | `architect.md` | `requirements.md` | `spec.md`, `tasks.md` |
+| 3 | `developer.md` | `tasks.md`, `spec.md` | Code on feature branch |
+| 4 | `reviewer.md` | Code, `spec.md`, `tasks.md` | `comments.md` |
+
+Steps 3–4 iterate until the reviewer approves. The user then opens a PR.
+
+### Feature Folder Structure
+
+All workflow artifacts for a feature live in `.claude/features/<feature-name>/`:
+
+```
+.claude/features/<feature-name>/
+  requirements.md
+  spec.md
+  tasks.md
+  comments.md
+```
+
+### Switching Profiles
+
+```bash
+claude --system-prompt "$(cat .claude/profiles/analyst.md)"
+claude --system-prompt "$(cat .claude/profiles/architect.md)"
+claude --system-prompt "$(cat .claude/profiles/developer.md)"
+claude --system-prompt "$(cat .claude/profiles/reviewer.md)"
+```
+
 ## Build and Test Commands
 
 ```bash
