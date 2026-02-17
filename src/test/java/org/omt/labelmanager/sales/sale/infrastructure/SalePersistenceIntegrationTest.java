@@ -7,9 +7,8 @@ import org.omt.labelmanager.AbstractIntegrationTest;
 import org.omt.labelmanager.catalog.label.LabelTestHelper;
 import org.omt.labelmanager.catalog.release.ReleaseTestHelper;
 import org.omt.labelmanager.catalog.release.domain.ReleaseFormat;
+import org.omt.labelmanager.distribution.distributor.DistributorTestHelper;
 import org.omt.labelmanager.distribution.distributor.domain.ChannelType;
-import org.omt.labelmanager.distribution.distributor.infrastructure.DistributorEntity;
-import org.omt.labelmanager.distribution.distributor.infrastructure.DistributorRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.math.BigDecimal;
@@ -29,7 +28,7 @@ class SalePersistenceIntegrationTest extends AbstractIntegrationTest {
     private ReleaseTestHelper releaseTestHelper;
 
     @Autowired
-    private DistributorRepository distributorRepository;
+    private DistributorTestHelper distributorTestHelper;
 
     private Long labelId;
     private Long releaseId;
@@ -44,10 +43,10 @@ class SalePersistenceIntegrationTest extends AbstractIntegrationTest {
 
         releaseId = releaseTestHelper.createReleaseEntity("Test Release", labelId);
 
-        var distributor = distributorRepository.save(
-                new DistributorEntity(labelId, "Test Distributor", ChannelType.DIRECT)
+        var distributor = distributorTestHelper.createDistributor(
+                labelId, "Test Distributor", ChannelType.DIRECT
         );
-        distributorId = distributor.getId();
+        distributorId = distributor.id();
     }
 
     @Test

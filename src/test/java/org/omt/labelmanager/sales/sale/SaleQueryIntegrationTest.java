@@ -9,24 +9,22 @@ import org.omt.labelmanager.AbstractIntegrationTest;
 import org.omt.labelmanager.catalog.label.LabelTestHelper;
 import org.omt.labelmanager.catalog.release.ReleaseTestHelper;
 import org.omt.labelmanager.catalog.release.domain.ReleaseFormat;
+import org.omt.labelmanager.distribution.distributor.DistributorTestHelper;
+import org.omt.labelmanager.distribution.distributor.api.DistributorQueryApi;
 import org.omt.labelmanager.distribution.distributor.domain.ChannelType;
-import org.omt.labelmanager.distribution.distributor.infrastructure.DistributorEntity;
-import org.omt.labelmanager.distribution.distributor.infrastructure.DistributorRepository;
 import org.omt.labelmanager.finance.domain.shared.Money;
 import org.omt.labelmanager.inventory.allocation.api.AllocationCommandApi;
-import org.omt.labelmanager.inventory.allocation.infrastructure.ChannelAllocationRepository;
-import org.omt.labelmanager.inventory.inventorymovement.infrastructure.InventoryMovementRepository;
-import org.omt.labelmanager.inventory.productionrun.infrastructure.ProductionRunEntity;
-import org.omt.labelmanager.inventory.productionrun.infrastructure.ProductionRunRepository;
+import org.omt.labelmanager.inventory.productionrun.ProductionRunTestHelper;
 import org.omt.labelmanager.sales.sale.api.SaleCommandApi;
 import org.omt.labelmanager.sales.sale.api.SaleQueryApi;
 import org.omt.labelmanager.sales.sale.domain.Sale;
 import org.omt.labelmanager.sales.sale.domain.SaleLineItemInput;
-import org.omt.labelmanager.sales.sale.infrastructure.SaleRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+@Transactional
 class SaleQueryIntegrationTest extends AbstractIntegrationTest {
 
     @Autowired
@@ -36,25 +34,19 @@ class SaleQueryIntegrationTest extends AbstractIntegrationTest {
     private SaleQueryApi saleQueryApi;
 
     @Autowired
-    private SaleRepository saleRepository;
-
-    @Autowired
     private LabelTestHelper labelTestHelper;
 
     @Autowired
     private ReleaseTestHelper releaseTestHelper;
 
     @Autowired
-    private ProductionRunRepository productionRunRepository;
+    private ProductionRunTestHelper productionRunTestHelper;
 
     @Autowired
-    private DistributorRepository distributorRepository;
+    private DistributorTestHelper distributorTestHelper;
 
     @Autowired
-    private ChannelAllocationRepository channelAllocationRepository;
-
-    @Autowired
-    private InventoryMovementRepository inventoryMovementRepository;
+    private DistributorQueryApi distributorQueryApi;
 
     @Autowired
     private AllocationCommandApi allocationCommandApi;
@@ -67,31 +59,26 @@ class SaleQueryIntegrationTest extends AbstractIntegrationTest {
 
     @BeforeEach
     void setUp() {
-        inventoryMovementRepository.deleteAll();
-        channelAllocationRepository.deleteAll();
-        productionRunRepository.deleteAll();
-        saleRepository.deleteAll();
-
         var label = labelTestHelper.createLabelWithDirectDistributor("Query Test Label");
         labelId = label.id();
 
-        directDistributorId = distributorRepository
+        directDistributorId = distributorQueryApi
                 .findByLabelIdAndChannelType(labelId, ChannelType.DIRECT)
                 .orElseThrow()
-                .getId();
+                .id();
 
-        var externalDistributor = distributorRepository.save(
-                new DistributorEntity(labelId, "External Distributor", ChannelType.DISTRIBUTOR)
+        var externalDistributor = distributorTestHelper.createDistributor(
+                labelId, "External Distributor", ChannelType.DISTRIBUTOR
         );
-        externalDistributorId = externalDistributor.getId();
+        externalDistributorId = externalDistributor.id();
 
         releaseId = releaseTestHelper.createReleaseEntity("Query Test Release", labelId);
 
-        var productionRun = productionRunRepository.save(new ProductionRunEntity(
+        var productionRun = productionRunTestHelper.createProductionRun(
                 releaseId, ReleaseFormat.VINYL, "First pressing", "Plant A",
                 LocalDate.of(2025, 1, 1), 200
-        ));
-        productionRunId = productionRun.getId();
+        );
+        productionRunId = productionRun.id();
 
         allocationCommandApi.createAllocation(productionRunId, directDistributorId, 80);
         allocationCommandApi.createAllocation(productionRunId, externalDistributorId, 80);
@@ -172,19 +159,34 @@ class SaleQueryIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    void getSalesForProductionRun_returnsSalesOrderedByDateDescending() {
+        registerDirectSaleOnDate(5, LocalDate.of(2026, 1, 10));
+        registerDirectSaleOnDate(3, LocalDate.of(2026, 3, 5));
+        registerDirectSaleOnDate(7, LocalDate.of(2026, 2, 20));
+
+        List<Sale> sales = saleQueryApi.getSalesForProductionRun(productionRunId);
+
+        assertThat(sales).hasSize(3);
+        assertThat(sales.get(0).saleDate()).isEqualTo(LocalDate.of(2026, 3, 5));
+        assertThat(sales.get(1).saleDate()).isEqualTo(LocalDate.of(2026, 2, 20));
+        assertThat(sales.get(2).saleDate()).isEqualTo(LocalDate.of(2026, 1, 10));
+    }
+
+    @Test
     void getSalesForProductionRun_excludesSalesForOtherProductionRuns() {
         // Create a second release + production run on a different label
         var otherLabel = labelTestHelper.createLabelWithDirectDistributor("Other Label");
         var otherReleaseId = releaseTestHelper.createReleaseEntity("Other Release", otherLabel.id());
-        var otherDirectDistributorId = distributorRepository
+        var otherDirectDistributorId = distributorQueryApi
                 .findByLabelIdAndChannelType(otherLabel.id(), ChannelType.DIRECT)
                 .orElseThrow()
-                .getId();
-        var otherProductionRun = productionRunRepository.save(new ProductionRunEntity(
-                otherReleaseId, ReleaseFormat.VINYL, "Other pressing", "Plant B",
-                LocalDate.of(2025, 1, 1), 50
-        ));
-        allocationCommandApi.createAllocation(otherProductionRun.getId(), otherDirectDistributorId, 50);
+                .id();
+        var otherProductionRun = productionRunTestHelper.createProductionRun(
+                otherReleaseId, ReleaseFormat.VINYL, 50
+        );
+        allocationCommandApi.createAllocation(
+                otherProductionRun.id(), otherDirectDistributorId, 50
+        );
 
         // Sale for our production run
         registerDirectSale(5);
@@ -208,18 +210,18 @@ class SaleQueryIntegrationTest extends AbstractIntegrationTest {
         // Sale against the first pressing (findMostRecent picks productionRunId)
         registerDirectSale(5);
 
-        // Create a repress of the same release+format with a later date
-        var repress = productionRunRepository.save(new ProductionRunEntity(
+        // Create a repress of the same release+format with a later manufacturing date
+        var repress = productionRunTestHelper.createProductionRun(
                 releaseId, ReleaseFormat.VINYL, "Second pressing", "Plant A",
                 LocalDate.of(2026, 6, 1), 100
-        ));
-        allocationCommandApi.createAllocation(repress.getId(), directDistributorId, 100);
+        );
+        allocationCommandApi.createAllocation(repress.id(), directDistributorId, 100);
 
         // Sale against the repress (findMostRecent now returns the repress)
         registerDirectSale(3);
 
         List<Sale> salesForFirstPressing = saleQueryApi.getSalesForProductionRun(productionRunId);
-        List<Sale> salesForRepress = saleQueryApi.getSalesForProductionRun(repress.getId());
+        List<Sale> salesForRepress = saleQueryApi.getSalesForProductionRun(repress.id());
 
         assertThat(salesForFirstPressing).hasSize(1);
         assertThat(salesForRepress).hasSize(1);

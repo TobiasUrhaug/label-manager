@@ -1,6 +1,6 @@
 package org.omt.labelmanager.sales.sale.application;
 
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import org.omt.labelmanager.finance.domain.shared.Money;
 import org.omt.labelmanager.sales.sale.api.SaleQueryApi;
 import org.omt.labelmanager.sales.sale.domain.Sale;
