@@ -249,7 +249,7 @@
 
 ---
 
-- [ ] **TASK-014: Implement UpdateSaleUseCase**
+- [x] **TASK-014: Implement UpdateSaleUseCase**
   - **Context**: Editing a sale requires reversing old inventory movements and applying
     new ones, then updating the sale entity.
   - **Scope**:
@@ -272,7 +272,7 @@
 
 ---
 
-- [ ] **TASK-015: Implement DeleteSaleUseCase**
+- [x] **TASK-015: Implement DeleteSaleUseCase**
   - **Context**: Deleting a sale must remove movements and the sale entity.
   - **Scope**:
     - Create `DeleteSaleUseCase`:
