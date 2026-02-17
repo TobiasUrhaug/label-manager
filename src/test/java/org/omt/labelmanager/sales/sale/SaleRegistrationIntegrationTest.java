@@ -451,6 +451,21 @@ class SaleRegistrationIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    void registerSale_withEmptyLineItems_throwsException() {
+        assertThatThrownBy(() ->
+                saleCommandApi.registerSale(
+                        labelId,
+                        LocalDate.of(2026, 2, 12),
+                        ChannelType.DIRECT,
+                        null,
+                        null,
+                        List.of()
+                ))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("at least one line item");
+    }
+
+    @Test
     void registerNonDirectSale_withoutDistributorId_throwsException() {
         var lineItems = List.of(
                 new SaleLineItemInput(

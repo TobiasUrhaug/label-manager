@@ -1,6 +1,6 @@
 package org.omt.labelmanager.inventory.allocation.application;
 
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import java.time.Instant;
 import org.omt.labelmanager.inventory.allocation.api.AllocationCommandApi;
 import org.omt.labelmanager.inventory.allocation.domain.ChannelAllocation;

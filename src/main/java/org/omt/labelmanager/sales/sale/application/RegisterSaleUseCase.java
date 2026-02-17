@@ -1,7 +1,7 @@
 package org.omt.labelmanager.sales.sale.application;
 
 import jakarta.persistence.EntityNotFoundException;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.util.List;
 import org.omt.labelmanager.catalog.label.api.LabelQueryApi;
@@ -68,6 +68,10 @@ class RegisterSaleUseCase {
             Long distributorId,
             List<SaleLineItemInput> lineItems
     ) {
+        if (lineItems == null || lineItems.isEmpty()) {
+            throw new IllegalArgumentException("Sale must contain at least one line item");
+        }
+
         log.info("Registering sale for label {} with {} line items",
                 labelId, lineItems.size());
 
