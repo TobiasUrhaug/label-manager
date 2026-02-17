@@ -288,7 +288,7 @@
 
 ---
 
-- [ ] **TASK-016: Add edit and delete endpoints to SaleController**
+- [x] **TASK-016: Add edit and delete endpoints to SaleController**
   - **Context**: The controller needs GET and POST endpoints for editing, and a POST
     endpoint for deletion.
   - **Scope**:
