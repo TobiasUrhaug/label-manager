@@ -3,12 +3,15 @@ package org.omt.labelmanager.sales.sale.application;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import org.omt.labelmanager.catalog.label.api.LabelQueryApi;
 import org.omt.labelmanager.inventory.InsufficientInventoryException;
 import org.omt.labelmanager.catalog.release.api.ReleaseQueryApi;
 import org.omt.labelmanager.distribution.distributor.api.DistributorQueryApi;
 import org.omt.labelmanager.distribution.distributor.domain.ChannelType;
+import org.omt.labelmanager.distribution.distributor.domain.Distributor;
 import org.omt.labelmanager.inventory.allocation.api.AllocationQueryApi;
 import org.omt.labelmanager.inventory.domain.LocationType;
 import org.omt.labelmanager.inventory.domain.MovementType;
@@ -81,8 +84,8 @@ class RegisterSaleUseCase {
             throw new EntityNotFoundException("Label not found: " + labelId);
         }
 
-        // 2. Determine which distributor to use
-        Long targetDistributorId = determineDistributor(labelId, channel, distributorId);
+        // 2. Determine which distributor to use (fetched once; passed down to avoid re-querying)
+        Distributor distributor = determineDistributor(labelId, channel, distributorId);
 
         // 3. Create sale entity
         var saleEntity = new SaleEntity(
@@ -93,26 +96,27 @@ class RegisterSaleUseCase {
                 lineItems.getFirst().unitPrice().currency()
         );
 
-        // 4. Process each line item
+        // 4. Validate each line item and cache its production run ID for step 6
+        Map<SaleLineItemInput, Long> productionRunIds = new LinkedHashMap<>();
         for (var lineItemInput : lineItems) {
-            validateAndAddLineItem(lineItemInput, labelId, targetDistributorId, saleEntity);
+            Long productionRunId = validateAndAddLineItem(
+                    lineItemInput, labelId, distributor, saleEntity
+            );
+            productionRunIds.put(lineItemInput, productionRunId);
         }
 
         // 5. Save sale
         var savedSale = saleRepository.save(saleEntity);
 
         // 6. Record SALE movements (after save so saleId is available as referenceId)
-        for (var lineItemInput : lineItems) {
-            var productionRun = productionRunQueryApi
-                    .findMostRecent(lineItemInput.releaseId(), lineItemInput.format())
-                    .orElseThrow();
+        for (var entry : productionRunIds.entrySet()) {
             inventoryMovementCommandApi.recordMovement(
-                    productionRun.id(),
+                    entry.getValue(),
                     LocationType.DISTRIBUTOR,
-                    targetDistributorId,
+                    distributor.id(),
                     LocationType.EXTERNAL,
                     null,
-                    lineItemInput.quantity(),
+                    entry.getKey().quantity(),
                     MovementType.SALE,
                     savedSale.getId()
             );
@@ -124,7 +128,7 @@ class RegisterSaleUseCase {
         return convertToSale(savedSale);
     }
 
-    private Long determineDistributor(
+    private Distributor determineDistributor(
             Long labelId,
             ChannelType channel,
             Long distributorId
@@ -134,8 +138,7 @@ class RegisterSaleUseCase {
                     .findByLabelIdAndChannelType(labelId, ChannelType.DIRECT)
                     .orElseThrow(() -> new EntityNotFoundException(
                             "DIRECT distributor not found for label: " + labelId
-                    ))
-                    .id();
+                    ));
         }
 
         if (distributorId == null) {
@@ -161,13 +164,18 @@ class RegisterSaleUseCase {
             );
         }
 
-        return distributorId;
+        return distributor;
     }
 
-    private void validateAndAddLineItem(
+    /**
+     * Validates the line item and adds it to the sale entity.
+     *
+     * @return the production run ID for this line item (cached by caller for movement recording)
+     */
+    private Long validateAndAddLineItem(
             SaleLineItemInput lineItemInput,
             Long labelId,
-            Long targetDistributorId,
+            Distributor distributor,
             SaleEntity saleEntity
     ) {
         var release = releaseQueryApi.findById(lineItemInput.releaseId())
@@ -191,19 +199,10 @@ class RegisterSaleUseCase {
                                 + "before registering sales."
                 ));
 
-        var distributor = distributorQueryApi
-                .findByLabelId(labelId)
-                .stream()
-                .filter(d -> d.id().equals(targetDistributorId))
-                .findFirst()
-                .orElseThrow(() -> new EntityNotFoundException(
-                        "Distributor not found: " + targetDistributorId
-                ));
-
         boolean hasAllocation = allocationQueryApi
                 .getAllocationsForProductionRun(productionRun.id())
                 .stream()
-                .anyMatch(a -> a.distributorId().equals(targetDistributorId));
+                .anyMatch(a -> a.distributorId().equals(distributor.id()));
 
         if (!hasAllocation) {
             throw new IllegalStateException(
@@ -216,7 +215,7 @@ class RegisterSaleUseCase {
         }
 
         int available = inventoryMovementQueryApi.getCurrentInventory(
-                productionRun.id(), targetDistributorId
+                productionRun.id(), distributor.id()
         );
         if (available < lineItemInput.quantity()) {
             throw new InsufficientInventoryException(lineItemInput.quantity(), available);
@@ -234,6 +233,8 @@ class RegisterSaleUseCase {
                 lineItemInput.releaseId(),
                 lineItemInput.format(),
                 lineItemInput.quantity());
+
+        return productionRun.id();
     }
 
     private Sale convertToSale(SaleEntity entity) {
