@@ -1,5 +1,6 @@
 package org.omt.labelmanager.sales.sale.application;
 
+import jakarta.persistence.EntityNotFoundException;
 import org.omt.labelmanager.inventory.domain.MovementType;
 import org.omt.labelmanager.inventory.inventorymovement.api.InventoryMovementCommandApi;
 import org.omt.labelmanager.sales.sale.infrastructure.SaleRepository;
@@ -28,9 +29,11 @@ class DeleteSaleUseCase {
     public void execute(Long saleId) {
         log.info("Deleting sale {}", saleId);
 
-        // Reverse inventory movements before removing the sale
-        inventoryMovementCommandApi.deleteMovementsByReference(MovementType.SALE, saleId);
+        if (!saleRepository.existsById(saleId)) {
+            throw new EntityNotFoundException("Sale not found: " + saleId);
+        }
 
+        inventoryMovementCommandApi.deleteMovementsByReference(MovementType.SALE, saleId);
         saleRepository.deleteById(saleId);
 
         log.info("Sale {} deleted successfully", saleId);

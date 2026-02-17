@@ -9,34 +9,44 @@
 
 ## Summary
 
-This is a re-review covering the four Phase 3 commits (TASK-010 through TASK-013):
+This is a re-review covering the two Phase 4 commits (TASK-014 and TASK-015):
 
 | Commit | Scope |
 |--------|-------|
-| `3c0b11c` | V27 migration — add `distributor_id` to sale table |
-| `5db9188` | Add `distributorId` to `SaleEntity` and `Sale` domain record |
-| `d075ed6` | Add `getSalesForDistributor` and `getSalesForProductionRun` to `SaleQueryApi` |
-| `c7a0e69` | Mark TASK-010 through TASK-013 complete in tasks.md |
+| `6c892ca` | Implement `UpdateSaleUseCase` and `DeleteSaleUseCase`; extract `SaleLineItemProcessor` and `SaleConverter` |
+| `a1eaccc` | `SaleDeleteIntegrationTest` |
 
 **Previous review items — status:**
 
 | ID | Status | Notes |
 |----|--------|-------|
-| R-001 empty-list crash | ✅ Resolved | Guard added at top of `execute()` |
-| R-002 wrong exception type | ✅ Resolved | `InsufficientInventoryException` now used and tested |
-| R-003 redundant production run lookup | ✅ Resolved | Cached in `LinkedHashMap` and reused in step 6 |
-| R-004 per-line-item distributor re-lookup | ✅ Resolved | `determineDistributor` returns `Distributor` object; passed down |
-| R-005 double scan in `getCurrentInventoryByDistributor` | ✅ Resolved | Balanced with a single `toMap` pass, then filtered |
-| R-006 mixed `@Transactional` imports | ✅ Resolved | `SaleQueryApiImpl` now uses `org.springframework.transaction.annotation.Transactional` |
-| R-007 `tasks.md` not updated | ✅ Resolved | TASK-001 through TASK-013 all marked `[x]` |
-| R-008 fully-qualified `Stream` usage | ✅ Resolved | `import java.util.stream.Stream` added |
-| R-009 flaky ordering test (nice-to-have) | 🔵 Deferred | Not addressed; carried forward as a suggestion |
-| R-010 duplicate API methods (nice-to-have) | 🔵 Deferred | Not addressed; carried forward as a suggestion |
+| R-001 empty-list crash | ✅ Resolved | |
+| R-002 wrong exception type | ✅ Resolved | |
+| R-003 redundant production run lookup | ✅ Resolved | |
+| R-004 per-line-item distributor re-lookup | ✅ Resolved | |
+| R-005 double scan in `getCurrentInventoryByDistributor` | ✅ Resolved | |
+| R-006 mixed `@Transactional` imports | ✅ Resolved | Spring annotation throughout |
+| R-007 `tasks.md` not updated | ✅ Resolved | |
+| R-008 fully-qualified `Stream` usage | ✅ Resolved | |
+| R-009 flaky ordering in `QueryMovementIntegrationTest` | 🔵 Deferred | Carried forward |
+| R-010 duplicate API methods | 🔵 Deferred | Carried forward |
+| R-011 `getSalesForProductionRun` wrong join | ✅ Resolved | Now joins through `inventory_movement`; repressing test added |
+| R-012 test module boundary violations | ✅ Resolved | `DistributorTestHelper` introduced and used throughout |
+| R-013 missing ordering test for `getSalesForProductionRun` | ✅ Resolved | Test added |
+| R-014 V27 silent fallback UPDATE | 🔵 Deferred | Not addressed; carried forward |
+| R-015 updateSale omits distributorId/channel | ✅ Resolved | Documented as intentionally immutable (Javadoc on interface + use case) |
+| R-016 DeleteSaleUseCase missing existence check | ✅ Resolved | Added existsById check + EntityNotFoundException + new test |
 
-The V27 migration is careful and well-commented. The `distributorId` wiring through
-entity → domain record → `RegisterSaleUseCase` is correct and the `SaleQueryIntegrationTest`
-is thorough on distributor filtering and cross-label isolation. One significant correctness
-bug in the `getSalesForProductionRun` query needs to be fixed before Phase 4 builds on top of it.
+The implementation shows strong design thinking. Extracting `SaleLineItemProcessor` and
+`SaleConverter` as shared application-layer components cleanly eliminates the duplication
+that would otherwise have existed between `RegisterSaleUseCase`, `UpdateSaleUseCase`, and
+`SaleQueryApiImpl`. The inventory restoration logic — deleting old movements before
+re-validating new quantities — is implemented correctly and specifically tested. Both use
+cases follow the established patterns (package-private `@Service`, Spring `@Transactional`).
+
+Two items need attention before TASK-016 builds on this: a spec deviation in the `updateSale`
+API signature that will constrain the edit form design, and a missing existence check in
+`DeleteSaleUseCase` that could produce confusing behaviour at the HTTP layer.
 
 ---
 
@@ -44,108 +54,95 @@ bug in the `getSalesForProductionRun` query needs to be fixed before Phase 4 bui
 
 ### 🔴 Must Fix (Blockers)
 
-#### R-011: `getSalesForProductionRun` query is semantically wrong for labels with multiple pressings
-
-- **File:** `src/main/java/org/omt/labelmanager/sales/sale/infrastructure/SaleRepository.java`, lines 19–30
-- **Category:** Correctness
-- **Description:** The native SQL joins `sale_line_item` to `production_run` via
-  `release_id + format`, then filters by `pr.id = :productionRunId`. This means: find all
-  sales that have a line item with the same `release_id + format` as the requested production
-  run. But if a label has had **multiple production runs** for the same release and format (a
-  first pressing in 2020, id=5, and a repress in 2022, id=7), then
-  `getSalesForProductionRun(7)` will also return all sales from the 2020 pressing — because
-  their line items share the same `release_id + format` and the JOIN matches production run 7.
-
-  Represses are a routine business event for indie labels. The query is correct only for the
-  degenerate case where every release has exactly one production run per format.
-
-  The correct source of truth for "which production run does this sale belong to?" is the
-  `inventory_movement` table: every SALE movement records `production_run_id` as the FK.
-  The fix is to join through movements:
-
-  ```sql
-  SELECT DISTINCT s.*
-  FROM sale s
-  JOIN inventory_movement im
-    ON im.reference_id = s.id
-    AND im.movement_type = 'SALE'
-  WHERE im.production_run_id = :productionRunId
-  ORDER BY s.sale_date DESC
-  ```
-
-- **Suggestion:** Replace the current native query with the movement-based join above. Add a
-  test that creates two production runs for the same release+format, records a sale against
-  each, and verifies that `getSalesForProductionRun(runA)` returns only the sale for run A.
+_None._
 
 ---
 
 ### 🟡 Should Fix
 
-#### R-006 (carry-forward): `SaleQueryApiImpl` still uses `jakarta.transaction.Transactional`
+#### R-015: `updateSale` omits `distributorId` and `channel` from the spec contract
 
-- **File:** `src/main/java/org/omt/labelmanager/sales/sale/application/SaleQueryApiImpl.java`, line 3
-- **Category:** Consistency
-- **Description:** The previous review flagged mixed `@Transactional` import styles in the
-  codebase. `RegisterSaleUseCase` was corrected to use
-  `org.springframework.transaction.annotation.Transactional`. But in the same commit
-  (`d075ed6`) that added `@Transactional` annotations to all list methods in
-  `SaleQueryApiImpl`, the class still imports `jakarta.transaction.Transactional`. The
-  inconsistency is still present.
-- **Suggestion:** Change line 3 to `import org.springframework.transaction.annotation.Transactional;`
-  and verify the rest of the project follows suit.
+- **File:** `src/main/java/org/omt/labelmanager/sales/sale/api/SaleCommandApi.java`, lines 46–51
+- **Category:** Spec deviation
+- **Description:** The spec (section 4, API Contracts) defines `updateSale` as:
 
----
+  ```java
+  void updateSale(
+      Long saleId, LocalDate saleDate, ChannelType channel,
+      String notes, Long distributorId, List<SaleLineItemInput> lineItems
+  );
+  ```
 
-#### R-012: `SaleQueryIntegrationTest` bypasses module APIs to set up test data
+  The current implementation accepts only `saleId`, `saleDate`, `notes`, and `lineItems`.
+  This means the distributor and channel type on a sale are permanently fixed at registration
+  time — the edit form (TASK-016) will have no way to change them.
 
-- **File:** `src/test/java/org/omt/labelmanager/sales/sale/SaleQueryIntegrationTest.java`, lines 16–31 (imports), 54–100 (`@BeforeEach`)
-- **Category:** Architecture / DDD compliance
-- **Description:** The test directly injects and uses infrastructure classes from four other
-  modules:
-  - `DistributorRepository`, `DistributorEntity` (distribution module)
-  - `ProductionRunRepository`, `ProductionRunEntity` (inventory/productionrun module)
-  - `ChannelAllocationRepository` (inventory/allocation module)
-  - `InventoryMovementRepository` (inventory/inventorymovement module)
+  Whether this is intentional or not matters: if a user attributed a sale to the wrong
+  distributor, they cannot correct it without deleting and re-creating the sale. If the
+  deliberate limitation is acceptable, it needs to be documented; if not, the parameters
+  need to be added.
 
-  A `ProductionRunTestHelper` already exists in the test tree and is not used. CLAUDE.md
-  states that modules should expose test helpers in `src/test/java` for exactly this reason,
-  and that "repository injection from other modules" violates encapsulation even in tests.
+  Note: returning `Sale` instead of `void` (as the spec says) is a _good_ deviation —
+  it makes the caller's life easier and the method more consistent with `registerSale`.
+  That part is fine.
 
-  Directly calling `distributorRepository.save(new DistributorEntity(...))` bypasses any
-  business rules the distributor module might enforce and couples the test to infrastructure
-  internals that can change.
+- **Suggestion:** Decide on the correct behaviour, then do one of:
+  1. **Accept the simplification:** Add a Javadoc note to `updateSale` (and to the use case)
+     explaining that the distributor and channel are immutable after creation and why.
+  2. **Implement the full spec:** Add `channel` and `distributorId` to the signature.
+     `UpdateSaleUseCase` would need to re-run the `determineDistributor` logic from
+     `RegisterSaleUseCase` (which could be extracted into a shared helper), update the
+     entity's `distributorId`, and use the new distributor when recording movements.
 
-  The same issue affects `SalePersistenceIntegrationTest` (commit `5db9188`), which also
-  wires `DistributorRepository` directly to supply the new mandatory `distributorId` field.
-
-- **Suggestion:**
-  1. Use the existing `ProductionRunTestHelper` to create production run fixtures.
-  2. Create a `DistributorTestHelper` (mirroring `LabelTestHelper`) in
-     `src/test/java/org/omt/labelmanager/distribution/distributor/` that wraps
-     `DistributorRepository` and exposes `createDistributor(Long labelId, String name,
-     ChannelType channelType)`.
-  3. Use the test helper (or `DistributorCommandApi`, if it exposes create) everywhere a
-     distributor fixture is needed in tests outside the distributor module.
-  4. Drop the direct `InventoryMovementRepository.deleteAll()` / `ChannelAllocationRepository.deleteAll()`
-     calls in `@BeforeEach` — prefer using `@Transactional` + rollback on each test, or scope
-     the cleanup to the specific data created in that test.
+  Either path is fine, but it must be resolved before TASK-016 designs the edit form.
 
 ---
 
-#### R-013: `getSalesForProductionRun` has no ordering test
+#### R-016: `DeleteSaleUseCase` does not verify the sale exists
 
-- **File:** `src/test/java/org/omt/labelmanager/sales/sale/SaleQueryIntegrationTest.java`
-- **Category:** Test gap
-- **Description:** The TASK-013 acceptance criteria doesn't explicitly require an ordering
-  test for `getSalesForProductionRun`, but the `SaleQueryApi` Javadoc states "ordered by
-  date (newest first)" and the spec lists all list methods as returning results in that order.
-  `getSalesForDistributor` has a dedicated ordering test
-  (`getSalesForDistributor_returnsSalesOrderedByDateDescending`); `getSalesForProductionRun`
-  does not. The query has `ORDER BY s.sale_date DESC` so it will work, but the ordering is
-  untested.
-- **Suggestion:** Once R-011 is fixed and the query is rewritten, add an ordering test similar
-  to the one for `getSalesForDistributor`. Create two sales against the same production run on
-  different dates and assert the result order.
+- **File:** `src/main/java/org/omt/labelmanager/sales/sale/application/DeleteSaleUseCase.java`, lines 28–36
+- **Category:** Robustness / Consistency
+- **Description:** `DeleteSaleUseCase.execute(Long saleId)` calls
+  `deleteMovementsByReference(SALE, saleId)` then `saleRepository.deleteById(saleId)`
+  without first checking whether the sale exists. Compare this to `UpdateSaleUseCase`, which
+  begins with:
+
+  ```java
+  var saleEntity = saleRepository.findById(saleId)
+          .orElseThrow(() -> new EntityNotFoundException("Sale not found: " + saleId));
+  ```
+
+  The inconsistency creates two problems:
+
+  1. **Silent success on double-delete.** In Spring Data JPA 3.x+, `deleteById` is a no-op
+     when the entity is not found. A caller that tries to delete an already-deleted (or
+     never-existing) sale gets no feedback. The TASK-016 controller will need to handle
+     the "sale not found" case, and a silent no-op makes that harder.
+  2. **Confusing movement deletion.** If `saleId` is garbage, `deleteMovementsByReference`
+     runs against non-existent reference data. It deletes nothing, so there is no data
+     corruption — but the sequence of a successful `deleteMovementsByReference` followed by
+     a silent `deleteById` no-op is not what the spec describes ("1. Load existing sale.").
+
+- **Suggestion:** Load the entity first, consistent with the update use case:
+
+  ```java
+  @Transactional
+  public void execute(Long saleId) {
+      log.info("Deleting sale {}", saleId);
+
+      if (!saleRepository.existsById(saleId)) {
+          throw new EntityNotFoundException("Sale not found: " + saleId);
+      }
+
+      inventoryMovementCommandApi.deleteMovementsByReference(MovementType.SALE, saleId);
+      saleRepository.deleteById(saleId);
+
+      log.info("Sale {} deleted successfully", saleId);
+  }
+  ```
+
+  Add a test case `deleteSale_withNonExistentSale_throwsException` to
+  `SaleDeleteIntegrationTest`.
 
 ---
 
@@ -154,59 +151,105 @@ bug in the `getSalesForProductionRun` query needs to be fixed before Phase 4 bui
 #### R-009 (carry-forward): Potential flaky ordering in `QueryMovementIntegrationTest`
 
 - **File:** `src/test/java/org/omt/labelmanager/inventory/inventorymovement/QueryMovementIntegrationTest.java`
-- **Description:** Same as previous review. The `getMovementsForProductionRun_returnsMovementsNewestFirst`
-  test relies on two sequential `Instant.now()` calls producing distinct timestamps. On a fast
-  machine or in CI with a frozen clock, both calls may land in the same millisecond, making the
-  sort order arbitrary.
+- **Description:** Same as previous review. Two sequential `Instant.now()` calls may produce
+  identical timestamps on a fast machine or in CI.
 - **Suggestion:** Inject a `Clock` into `RecordMovementUseCase` and set distinct instants in
-  tests, or add explicit `Thread.sleep(10)` between the two record calls (simple but fragile).
+  the test, or add a `Thread.sleep(10)` between record calls.
+
+---
 
 #### R-010 (carry-forward): `findByProductionRunId` and `getMovementsForProductionRun` are duplicates
 
 - **File:** `src/main/java/org/omt/labelmanager/inventory/inventorymovement/api/InventoryMovementQueryApi.java`
-- **Description:** Same as previous review. Two names for one operation on the public API.
-  The Javadoc already acknowledges the alias relationship.
+- **Description:** Two names for one operation on the public API.
 - **Suggestion:** Deprecate `findByProductionRunId` and migrate callers over time.
 
-#### R-014: V27 fallback UPDATE could silently corrupt data in production
+---
 
-- **File:** `src/main/resources/db/migration/V27__add_distributor_id_to_sale.sql`, lines 27–33
-- **Description:** The third UPDATE assigns the label's DIRECT distributor to any sale row
-  still lacking a `distributor_id` after the first two passes. The commit message explains
-  this handles "dev data predating the referenceId feature" — a reasonable pragmatic decision.
-  However, if this migration were ever run against a production database with DISTRIBUTOR-channel
-  sales that have no movement records for any reason (manual deletion, ETL import, etc.), those
-  sales would silently receive an incorrect `distributor_id`. There is no warning, log, or
-  assertion that the rows being updated by the fallback should actually be zero in a clean
-  production environment.
-- **Suggestion:** Add a comment to the fallback UPDATE warning that this should affect zero
-  rows in production, and optionally add a `DO $$ ... ASSERT ... $$` block that logs a WARNING
-  if the fallback touches any rows, so an operator is alerted during deployment.
+#### R-014 (carry-forward): V27 fallback UPDATE could silently corrupt data in production
+
+- **File:** `src/main/resources/db/migration/V27__add_distributor_id_to_sale.sql`
+- **Description:** Same as previous review. The third UPDATE silently assigns the DIRECT
+  distributor to any sale still lacking a `distributor_id` after the first two passes,
+  with no warning that this should affect zero rows in production.
+- **Suggestion:** Add an inline comment warning that the fallback should affect zero rows in
+  production.
+
+---
+
+#### R-017: `SaleEditIntegrationTest` only covers DIRECT-channel sales
+
+- **File:** `src/test/java/org/omt/labelmanager/sales/sale/SaleEditIntegrationTest.java`
+- **Description:** All four tests in `SaleEditIntegrationTest` use `ChannelType.DIRECT` and
+  `directDistributorId`. `UpdateSaleUseCase` reads the distributor ID from the persisted
+  entity — the same logic applies regardless of channel, so the tests pass. But a
+  DISTRIBUTOR-channel sale goes through a different code path in `RegisterSaleUseCase`
+  (`determineDistributor` returns a non-DIRECT distributor), and that state is what the
+  update use case inherits.
+
+  Having at least one test covering a DISTRIBUTOR-channel sale being edited would confirm the
+  distributor is correctly preserved on update and the DISTRIBUTOR-sourced movements are
+  correctly replaced.
+
+- **Suggestion:** Add a fifth test (or expand `SaleQueryIntegrationTest`'s setup which
+  already has `externalDistributorId`) that:
+  1. Registers a DISTRIBUTOR-channel sale.
+  2. Edits the line item quantity.
+  3. Asserts the updated inventory uses the external distributor's balance.
+
+---
+
+#### R-018: "No allocation" error path untested in the edit flow
+
+- **File:** `src/main/java/org/omt/labelmanager/sales/sale/application/SaleLineItemProcessor.java`, lines 82–95
+- **Description:** `SaleLineItemProcessor.validateAndAdd` throws `IllegalStateException` when
+  no allocation exists for the distributor. This path is shared by both register and update
+  flows. Integration tests exist for the register flow (from earlier phases), but neither
+  `SaleEditIntegrationTest` nor `SaleDeleteIntegrationTest` tests the scenario where a sale
+  is edited to include a line item with no backing allocation.
+
+  In practice, existing sales will have an allocation (the original registration validated it),
+  so this can only happen if the allocation is somehow removed between registration and edit —
+  an edge case, but the error path is there and untested.
+
+- **Suggestion:** A single test in `SaleEditIntegrationTest` would be sufficient:
+  create a sale for release A, then edit it to include a new release B that has no
+  allocation, and assert that `IllegalStateException` is thrown. This also serves as
+  documentation of the intended error behaviour.
 
 ---
 
 ### ✅ What's Done Well
 
-- **V27 migration structure is solid.** The three-stage backfill (DIRECT channel → movement
-  lookup → fallback) is well-sequenced and commented. Adding the column nullable, filling it,
-  then applying NOT NULL is the correct pattern for adding required columns to a live table.
+- **`SaleLineItemProcessor` and `SaleConverter` extraction is excellent.** Pulling shared
+  validation-and-mutation logic into `SaleLineItemProcessor` and entity→domain mapping into
+  `SaleConverter` eliminates the code duplication that would otherwise have existed across
+  `RegisterSaleUseCase`, `UpdateSaleUseCase`, and `SaleQueryApiImpl`. Both are correctly
+  package-private `@Service`s — visible only within the `application` sub-package, not to
+  callers outside the module.
 
-- **`determineDistributor` refactoring is clean.** The previous commit fetched the `Distributor`
-  object once in `determineDistributor` and passed it as a full object to `validateAndAddLineItem`,
-  eliminating the per-line-item lookup from R-004. The code is easier to follow as a result.
+- **Inventory restoration logic is correctly ordered and tested.** `UpdateSaleUseCase` deletes
+  old movements _before_ calling `lineItemProcessor.validateAndAdd`, which means
+  `getCurrentInventory` sees the full restored balance during re-validation. This is the
+  subtle-but-correct order, and `updateSale_restoresInventoryBeforeValidating_allowingLargerQuantity`
+  specifically tests it with a quantity that would fail if the order were wrong (selling 75
+  when only 70 remain — succeeds because the old 10-unit sale is reversed first).
 
-- **`RegisterSaleUseCase` now uses `InsufficientInventoryException` and Spring's
-  `@Transactional`.** Both R-001 and R-002 from the previous review are cleanly resolved.
-  The integration test assertion now checks for the correct exception type.
+- **`SaleDeleteIntegrationTest` tests three orthogonal properties.** Rather than one
+  monolithic test, the three tests check: (1) the entity is gone, (2) current inventory is
+  restored, (3) the SALE-type movements with the matching referenceId are specifically
+  removed. Each assertion stands alone and would catch a different class of bug.
 
-- **`SaleQueryIntegrationTest` distributor filtering and isolation tests.** The tests cover
-  the important isolation case (`getSalesForDistributor` returns only the right distributor's
-  sales), the empty list case, the `distributorId` persistence on registration, and cross-label
-  isolation in `getSalesForProductionRun`. These are exactly the edge cases that matter.
+- **`UpdateSaleUseCase.execute()` is clearly commented.** The numbered step comments match
+  the spec's delete-then-re-record flow and make the intent obvious to a future reader.
 
-- **`SaleQueryApiImpl` list methods are now `@Transactional`.** Adding transactions to all
-  list-returning methods that stream line items (a `@OneToMany` lazy-loaded collection) is the
-  right call to avoid `LazyInitializationException` in callers outside a transaction boundary.
+- **`SaleCommandApiImpl` wiring is clean.** Three use cases, three delegating methods,
+  no logic — exactly the intended pattern.
+
+- **Test helpers are used correctly throughout both new test classes.** No repository
+  injection from other modules; `LabelTestHelper`, `ReleaseTestHelper`,
+  `ProductionRunTestHelper`, and `DistributorQueryApi` (via the label helper's
+  `createLabelWithDirectDistributor`) provide all necessary fixtures.
 
 ---
 
@@ -214,11 +257,12 @@ bug in the `getSalesForProductionRun` query needs to be fixed before Phase 4 bui
 
 **Changes Requested.**
 
-- R-011 (`getSalesForProductionRun` query) is a correctness bug that will silently return
-  wrong data for any label with multiple production runs for the same release and format.
-  Fix it and add the matching repress scenario test before Phase 4 builds on this query.
+- R-015 (`updateSale` spec deviation) is the higher-priority item: TASK-016 will design the
+  edit form against this API. The decision — immutable distributor/channel, or editable —
+  must be made and reflected in the interface before that task begins.
 
-- R-012 (test module boundary violations) and R-013 (missing ordering test) should be
-  addressed at the same time since the test file needs rework anyway.
+- R-016 (`DeleteSaleUseCase` missing existence check) is a one-method fix with one new test.
+  Do it in the same pass.
 
-- R-006 (jakarta import) is a one-liner — fold it into the same commit.
+Both are contained within the `sales/sale` module. Once resolved, the implementation is ready
+for TASK-016.

@@ -1,7 +1,9 @@
 package org.omt.labelmanager.sales.sale;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import jakarta.persistence.EntityNotFoundException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
@@ -112,6 +114,13 @@ class SaleDeleteIntegrationTest extends AbstractIntegrationTest {
                 .anyMatch(m -> m.movementType() == MovementType.SALE
                         && m.referenceId().equals(sale.id()));
         assertThat(hasSaleMovement).isFalse();
+    }
+
+    @Test
+    void deleteSale_withNonExistentSale_throwsException() {
+        assertThatThrownBy(() -> saleCommandApi.deleteSale(999_999L))
+                .isInstanceOf(EntityNotFoundException.class)
+                .hasMessageContaining("999999");
     }
 
     // ── helpers ──────────────────────────────────────────────────────────────

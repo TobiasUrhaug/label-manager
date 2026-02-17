@@ -42,6 +42,11 @@ class UpdateSaleUseCase {
         this.saleConverter = saleConverter;
     }
 
+    /**
+     * Updates a sale's date, notes, and line items. The distributor and channel type are
+     * immutable after registration — they are read from the persisted entity. If the wrong
+     * distributor was used, delete the sale and register a new one.
+     */
     @Transactional
     public Sale execute(
             Long saleId,
