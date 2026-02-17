@@ -90,6 +90,7 @@ class RegisterSaleUseCase {
         // 3. Create sale entity
         var saleEntity = new SaleEntity(
                 labelId,
+                distributor.id(),
                 saleDate,
                 channel,
                 notes,
@@ -258,6 +259,7 @@ class RegisterSaleUseCase {
         return new Sale(
                 entity.getId(),
                 entity.getLabelId(),
+                entity.getDistributorId(),
                 entity.getSaleDate(),
                 entity.getChannel(),
                 entity.getNotes(),

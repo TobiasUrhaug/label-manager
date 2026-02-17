@@ -57,6 +57,7 @@ class SaleQueryApiImpl implements SaleQueryApi {
         return new Sale(
                 entity.getId(),
                 entity.getLabelId(),
+                entity.getDistributorId(),
                 entity.getSaleDate(),
                 entity.getChannel(),
                 entity.getNotes(),

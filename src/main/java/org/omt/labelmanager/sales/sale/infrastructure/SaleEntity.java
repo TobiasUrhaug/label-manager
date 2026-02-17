@@ -29,6 +29,9 @@ public class SaleEntity {
     @Column(name = "label_id", nullable = false)
     private Long labelId;
 
+    @Column(name = "distributor_id", nullable = false)
+    private Long distributorId;
+
     @Column(name = "sale_date", nullable = false)
     private LocalDate saleDate;
 
@@ -60,12 +63,14 @@ public class SaleEntity {
 
     public SaleEntity(
             Long labelId,
+            Long distributorId,
             LocalDate saleDate,
             ChannelType channel,
             String notes,
             String currency
     ) {
         this.labelId = labelId;
+        this.distributorId = distributorId;
         this.saleDate = saleDate;
         this.channel = channel;
         this.notes = notes;
@@ -91,6 +96,10 @@ public class SaleEntity {
 
     public Long getLabelId() {
         return labelId;
+    }
+
+    public Long getDistributorId() {
+        return distributorId;
     }
 
     public LocalDate getSaleDate() {
