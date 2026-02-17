@@ -9,20 +9,34 @@
 
 ## Summary
 
-This review covers the three commits on the branch:
+This is a re-review covering the four Phase 3 commits (TASK-010 through TASK-013):
 
 | Commit | Scope |
 |--------|-------|
-| `812ff26` | Add `LocationType` enum |
-| `4f3db36` | Phase 1 — Refactor `InventoryMovement` to bidirectional model |
-| `842d619` | Phase 2 — Remove `unitsSold` from `ChannelAllocation` |
+| `3c0b11c` | V27 migration — add `distributor_id` to sale table |
+| `5db9188` | Add `distributorId` to `SaleEntity` and `Sale` domain record |
+| `d075ed6` | Add `getSalesForDistributor` and `getSalesForProductionRun` to `SaleQueryApi` |
+| `c7a0e69` | Mark TASK-010 through TASK-013 complete in tasks.md |
 
-The Phase 1 and Phase 2 core implementations are **solid**. The bidirectional movement model is
-well-designed, migration V25 is careful and correct, and the integration tests are comprehensive.
-The one Phase 3 piece that snuck in (`RegisterSaleUseCase` validation update) is mostly
-right but has two real issues that need addressing before moving forward.
+**Previous review items — status:**
 
-One blocker, three clear should-fixes.
+| ID | Status | Notes |
+|----|--------|-------|
+| R-001 empty-list crash | ✅ Resolved | Guard added at top of `execute()` |
+| R-002 wrong exception type | ✅ Resolved | `InsufficientInventoryException` now used and tested |
+| R-003 redundant production run lookup | ✅ Resolved | Cached in `LinkedHashMap` and reused in step 6 |
+| R-004 per-line-item distributor re-lookup | ✅ Resolved | `determineDistributor` returns `Distributor` object; passed down |
+| R-005 double scan in `getCurrentInventoryByDistributor` | ✅ Resolved | Balanced with a single `toMap` pass, then filtered |
+| R-006 mixed `@Transactional` imports | ✅ Resolved | `SaleQueryApiImpl` now uses `org.springframework.transaction.annotation.Transactional` |
+| R-007 `tasks.md` not updated | ✅ Resolved | TASK-001 through TASK-013 all marked `[x]` |
+| R-008 fully-qualified `Stream` usage | ✅ Resolved | `import java.util.stream.Stream` added |
+| R-009 flaky ordering test (nice-to-have) | 🔵 Deferred | Not addressed; carried forward as a suggestion |
+| R-010 duplicate API methods (nice-to-have) | 🔵 Deferred | Not addressed; carried forward as a suggestion |
+
+The V27 migration is careful and well-commented. The `distributorId` wiring through
+entity → domain record → `RegisterSaleUseCase` is correct and the `SaleQueryIntegrationTest`
+is thorough on distributor filtering and cross-label isolation. One significant correctness
+bug in the `getSalesForProductionRun` query needs to be fixed before Phase 4 builds on top of it.
 
 ---
 
@@ -30,216 +44,181 @@ One blocker, three clear should-fixes.
 
 ### 🔴 Must Fix (Blockers)
 
-#### R-001: `lineItems.getFirst()` crashes with no message on empty input
-- **File:** `src/main/java/org/omt/labelmanager/sales/sale/application/RegisterSaleUseCase.java`, line 88
-- **Category:** Correctness / robustness
-- **Description:** The sale entity constructor call uses `lineItems.getFirst().unitPrice().currency()`
-  to derive the currency. If `lineItems` is empty, this throws a bare `NoSuchElementException`
-  instead of a helpful validation error. The caller (controller) has no indication of what went
-  wrong. A multi-item sale where currency is mixed also silently ignores the mismatch — the
-  currency from the first line item wins.
-- **Suggestion:** Add an explicit guard at the top of `execute()`:
-  ```java
-  if (lineItems == null || lineItems.isEmpty()) {
-      throw new IllegalArgumentException("Sale must contain at least one line item");
-  }
+#### R-011: `getSalesForProductionRun` query is semantically wrong for labels with multiple pressings
+
+- **File:** `src/main/java/org/omt/labelmanager/sales/sale/infrastructure/SaleRepository.java`, lines 19–30
+- **Category:** Correctness
+- **Description:** The native SQL joins `sale_line_item` to `production_run` via
+  `release_id + format`, then filters by `pr.id = :productionRunId`. This means: find all
+  sales that have a line item with the same `release_id + format` as the requested production
+  run. But if a label has had **multiple production runs** for the same release and format (a
+  first pressing in 2020, id=5, and a repress in 2022, id=7), then
+  `getSalesForProductionRun(7)` will also return all sales from the 2020 pressing — because
+  their line items share the same `release_id + format` and the JOIN matches production run 7.
+
+  Represses are a routine business event for indie labels. The query is correct only for the
+  degenerate case where every release has exactly one production run per format.
+
+  The correct source of truth for "which production run does this sale belong to?" is the
+  `inventory_movement` table: every SALE movement records `production_run_id` as the FK.
+  The fix is to join through movements:
+
+  ```sql
+  SELECT DISTINCT s.*
+  FROM sale s
+  JOIN inventory_movement im
+    ON im.reference_id = s.id
+    AND im.movement_type = 'SALE'
+  WHERE im.production_run_id = :productionRunId
+  ORDER BY s.sale_date DESC
   ```
-  Optionally also validate that all line items share the same currency before accepting the sale.
+
+- **Suggestion:** Replace the current native query with the movement-based join above. Add a
+  test that creates two production runs for the same release+format, records a sale against
+  each, and verifies that `getSalesForProductionRun(runA)` returns only the sale for run A.
 
 ---
 
 ### 🟡 Should Fix
 
-#### R-002: Wrong exception type for insufficient inventory — spec requires `InsufficientInventoryException`
-- **File:** `src/main/java/org/omt/labelmanager/sales/sale/application/RegisterSaleUseCase.java`, lines 216–220
-- **Category:** Correctness / spec compliance
-- **Description:** TASK-012 and spec section 3.4 both require throwing `InsufficientInventoryException`
-  when `getCurrentInventory(productionRunId, distributorId) < requestedQuantity`. The
-  implementation throws a plain `IllegalStateException` instead:
-  ```java
-  throw new IllegalStateException(
-      "Insufficient quantity: available=" + available + ", requested=" + lineItemInput.quantity()
-  );
-  ```
-  Callers (controller, system tests) that want to differentiate an inventory error from a
-  generic business rule violation cannot do so. The test in `SaleRegistrationIntegrationTest`
-  only checks for `IllegalStateException`, so it will pass today — but this is testing the
-  wrong contract.
-- **Suggestion:** Either reuse the existing `InsufficientInventoryException` from
-  `inventory.allocation.domain` (if it belongs there generically) or, more correctly, move /
-  create a shared `InsufficientInventoryException` in `org.omt.labelmanager.inventory` (the
-  bounded context root) so both the allocation and sale modules can use it. Update the
-  integration test assertion to check `InsufficientInventoryException`.
+#### R-006 (carry-forward): `SaleQueryApiImpl` still uses `jakarta.transaction.Transactional`
 
-#### R-003: Redundant production-run lookup in step 6 — bare `.orElseThrow()` with no message
-- **File:** `src/main/java/org/omt/labelmanager/sales/sale/application/RegisterSaleUseCase.java`, lines 100–103
-- **Category:** Readability / robustness
-- **Description:** After `validateAndAddLineItem` has already fetched and validated the
-  production run for every line item (step 4), step 6 fetches it a second time:
-  ```java
-  var productionRun = productionRunQueryApi
-          .findMostRecent(lineItemInput.releaseId(), lineItemInput.format())
-          .orElseThrow();   // no message
-  ```
-  This is N extra DB round-trips (one per line item), and the `.orElseThrow()` with no argument
-  would produce an undiagnosable `NoSuchElementException` if something went wrong between steps 4
-  and 6 (e.g., a concurrent deletion). In practice this never fires, but it's bad defensive
-  programming.
-- **Suggestion:** Cache the `productionRunId` values during step 4 (e.g., build a
-  `Map<SaleLineItemInput, Long> productionRunIds` as you iterate), then use the cached IDs in
-  step 6. No second query needed and no ambiguous `orElseThrow`.
+- **File:** `src/main/java/org/omt/labelmanager/sales/sale/application/SaleQueryApiImpl.java`, line 3
+- **Category:** Consistency
+- **Description:** The previous review flagged mixed `@Transactional` import styles in the
+  codebase. `RegisterSaleUseCase` was corrected to use
+  `org.springframework.transaction.annotation.Transactional`. But in the same commit
+  (`d075ed6`) that added `@Transactional` annotations to all list methods in
+  `SaleQueryApiImpl`, the class still imports `jakarta.transaction.Transactional`. The
+  inconsistency is still present.
+- **Suggestion:** Change line 3 to `import org.springframework.transaction.annotation.Transactional;`
+  and verify the rest of the project follows suit.
 
-#### R-004: Per-line-item distributor lookup just to get the name for an error message
-- **File:** `src/main/java/org/omt/labelmanager/sales/sale/application/RegisterSaleUseCase.java`, lines 189–196
-- **Category:** Performance / readability
-- **Description:** Inside `validateAndAddLineItem`, for every line item the code calls
-  `distributorQueryApi.findByLabelId(labelId)` and streams through all distributors to find
-  `targetDistributorId`. This is the same distributor already fully validated and resolved in
-  `determineDistributor`. The only reason it's being fetched again is to get the distributor
-  name for the error message on line 207. This results in one extra `findByLabelId` round-trip
-  per line item, and each call loads the entire distributor list.
-- **Suggestion:** Pass the distributor name (or the `Distributor` object itself) down from
-  `execute()` to `validateAndAddLineItem`. `determineDistributor` can be widened to return the
-  full `Distributor` rather than just the `Long` ID, since all the information is already
-  fetched there.
+---
 
-#### R-005: `getCurrentInventoryByDistributor` computes inbound/outbound twice per distributor
-- **File:** `src/main/java/org/omt/labelmanager/inventory/inventorymovement/application/InventoryMovementQueryApiImpl.java`, lines 67–81
-- **Category:** Readability / minor performance
-- **Description:** The `filter` step and the `toMap` value step both call `sumQuantityTo` and
-  `sumQuantityFrom` for the same distributor ID. For N distributors this means 4N scans over
-  the same `movements` list. Each `sumQuantityTo/From` call is an O(M) scan, so it's O(4NM)
-  instead of O(2NM).
-  ```java
-  .filter(id -> {
-      int inbound  = sumQuantityTo(...);   // 1st scan
-      int outbound = sumQuantityFrom(...); // 2nd scan
-      return (inbound - outbound) > 0;
-  })
-  .collect(Collectors.toMap(id -> id, id -> {
-      int inbound  = sumQuantityTo(...);   // 3rd scan (repeated!)
-      int outbound = sumQuantityFrom(...); // 4th scan (repeated!)
-      return inbound - outbound;
-  }));
-  ```
-- **Suggestion:** Compute the balance in a single pass first (e.g. collect to a
-  `Map<Long, Integer>` of `distributorId → balance`), then filter out zeroes:
-  ```java
-  return distributorIds.stream()
-          .collect(Collectors.toMap(
-                  id -> id,
-                  id -> sumQuantityTo(movements, LocationType.DISTRIBUTOR, id)
-                          - sumQuantityFrom(movements, LocationType.DISTRIBUTOR, id)
-          ))
-          .entrySet().stream()
-          .filter(e -> e.getValue() > 0)
-          .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-  ```
+#### R-012: `SaleQueryIntegrationTest` bypasses module APIs to set up test data
 
-#### R-006: Mixed `@Transactional` annotation imports
-- **Files:** `AllocationCommandApiImpl.java` line 4, `RegisterSaleUseCase.java` line 3 (jakarta) vs `RecordMovementUseCase.java` line 12, `DeleteMovementsUseCase.java` line 8 (Spring)
-- **Category:** Correctness (subtle) / consistency
-- **Description:** The branch mixes two `@Transactional` annotations:
-  - `jakarta.transaction.Transactional` — in `AllocationCommandApiImpl` and `RegisterSaleUseCase`
-  - `org.springframework.transaction.annotation.Transactional` — in `RecordMovementUseCase` and `DeleteMovementsUseCase`
+- **File:** `src/test/java/org/omt/labelmanager/sales/sale/SaleQueryIntegrationTest.java`, lines 16–31 (imports), 54–100 (`@BeforeEach`)
+- **Category:** Architecture / DDD compliance
+- **Description:** The test directly injects and uses infrastructure classes from four other
+  modules:
+  - `DistributorRepository`, `DistributorEntity` (distribution module)
+  - `ProductionRunRepository`, `ProductionRunEntity` (inventory/productionrun module)
+  - `ChannelAllocationRepository` (inventory/allocation module)
+  - `InventoryMovementRepository` (inventory/inventorymovement module)
 
-  With Spring Boot's JPA autoconfiguration both annotations work, but they have different
-  propagation semantics around `rollbackOn`. Jakarta `@Transactional` does not roll back on
-  unchecked exceptions by default in all containers; Spring's annotation always rolls back on
-  `RuntimeException`. In practice with Spring Boot this difference is negligible, but mixing
-  them creates confusion and makes the intent harder to read.
-- **Suggestion:** Standardise on `org.springframework.transaction.annotation.Transactional`
-  throughout. It's the conventional choice in a Spring Boot project and has clearer rollback
-  semantics.
+  A `ProductionRunTestHelper` already exists in the test tree and is not used. CLAUDE.md
+  states that modules should expose test helpers in `src/test/java` for exactly this reason,
+  and that "repository injection from other modules" violates encapsulation even in tests.
 
-#### R-007: `tasks.md` not updated — all tasks still marked `[ ] To do`
-- **File:** `.claude/features/sales-recording-distributor/tasks.md`
-- **Category:** Workflow
-- **Description:** Three commits completing Phase 1 and Phase 2 have landed, but every task in
-  `tasks.md` is still `[ ] To do`. This breaks the ability to use the task list as a progress
-  tracker and makes it unclear exactly which tasks the next developer (or reviewer) can depend on.
-- **Suggestion:** Mark TASK-001 through TASK-009 as `[x] Done`. TASK-012 (RegisterSaleUseCase
-  movement validation) is partially done — mark it `[~] In progress` with a note that the
-  `InsufficientInventoryException` type and the `distributorId` persistence are outstanding.
+  Directly calling `distributorRepository.save(new DistributorEntity(...))` bypasses any
+  business rules the distributor module might enforce and couples the test to infrastructure
+  internals that can change.
+
+  The same issue affects `SalePersistenceIntegrationTest` (commit `5db9188`), which also
+  wires `DistributorRepository` directly to supply the new mandatory `distributorId` field.
+
+- **Suggestion:**
+  1. Use the existing `ProductionRunTestHelper` to create production run fixtures.
+  2. Create a `DistributorTestHelper` (mirroring `LabelTestHelper`) in
+     `src/test/java/org/omt/labelmanager/distribution/distributor/` that wraps
+     `DistributorRepository` and exposes `createDistributor(Long labelId, String name,
+     ChannelType channelType)`.
+  3. Use the test helper (or `DistributorCommandApi`, if it exposes create) everywhere a
+     distributor fixture is needed in tests outside the distributor module.
+  4. Drop the direct `InventoryMovementRepository.deleteAll()` / `ChannelAllocationRepository.deleteAll()`
+     calls in `@BeforeEach` — prefer using `@Transactional` + rollback on each test, or scope
+     the cleanup to the specific data created in that test.
+
+---
+
+#### R-013: `getSalesForProductionRun` has no ordering test
+
+- **File:** `src/test/java/org/omt/labelmanager/sales/sale/SaleQueryIntegrationTest.java`
+- **Category:** Test gap
+- **Description:** The TASK-013 acceptance criteria doesn't explicitly require an ordering
+  test for `getSalesForProductionRun`, but the `SaleQueryApi` Javadoc states "ordered by
+  date (newest first)" and the spec lists all list methods as returning results in that order.
+  `getSalesForDistributor` has a dedicated ordering test
+  (`getSalesForDistributor_returnsSalesOrderedByDateDescending`); `getSalesForProductionRun`
+  does not. The query has `ORDER BY s.sale_date DESC` so it will work, but the ordering is
+  untested.
+- **Suggestion:** Once R-011 is fixed and the query is rewritten, add an ordering test similar
+  to the one for `getSalesForDistributor`. Create two sales against the same production run on
+  different dates and assert the result order.
 
 ---
 
 ### 🟢 Suggestions (Nice to Have)
 
-#### R-008: Fully-qualified `java.util.stream.Stream.builder()` inside a lambda — add import
-- **File:** `src/main/java/org/omt/labelmanager/inventory/inventorymovement/application/InventoryMovementQueryApiImpl.java`, lines 54–63
-- **Description:** The implementation uses the fully-qualified class name inline:
-  ```java
-  java.util.stream.Stream.Builder<Long> ids = java.util.stream.Stream.builder();
-  ```
-  This is the only place in the class where this is done. The imports section already pulls in
-  `java.util.stream.Collectors` — `Stream` is just missing. It's a minor readability issue.
-- **Suggestion:** Add `import java.util.stream.Stream;` and use `Stream.builder()`.
+#### R-009 (carry-forward): Potential flaky ordering in `QueryMovementIntegrationTest`
 
-#### R-009: Potential flaky ordering test in `QueryMovementIntegrationTest`
-- **File:** `src/test/java/org/omt/labelmanager/inventory/inventorymovement/QueryMovementIntegrationTest.java`, lines 136–145
-- **Description:** `getMovementsForProductionRun_returnsMovementsNewestFirst` relies on
-  `recordAllocation` and `recordSale` being given distinct `Instant.now()` values so that the
-  sort order is deterministic. On a fast machine (or in CI with frozen clocks), two sequential
-  `Instant.now()` calls within the same millisecond will produce equal timestamps, and the
-  sort order becomes arbitrary. This could produce a spurious failure.
-- **Suggestion:** Either add a `Thread.sleep(1)` between the two record calls (simple but
-  fragile), or — better — inject a controllable `Clock` into `RecordMovementUseCase` and set
-  distinct instants in tests.
+- **File:** `src/test/java/org/omt/labelmanager/inventory/inventorymovement/QueryMovementIntegrationTest.java`
+- **Description:** Same as previous review. The `getMovementsForProductionRun_returnsMovementsNewestFirst`
+  test relies on two sequential `Instant.now()` calls producing distinct timestamps. On a fast
+  machine or in CI with a frozen clock, both calls may land in the same millisecond, making the
+  sort order arbitrary.
+- **Suggestion:** Inject a `Clock` into `RecordMovementUseCase` and set distinct instants in
+  tests, or add explicit `Thread.sleep(10)` between the two record calls (simple but fragile).
 
-#### R-010: `findByProductionRunId` and `getMovementsForProductionRun` are duplicates on the public API
-- **File:** `src/main/java/org/omt/labelmanager/inventory/inventorymovement/api/InventoryMovementQueryApi.java`, lines 19 and 29
-- **Description:** The API exposes two methods that return identical results. The Javadoc on
-  `getMovementsForProductionRun` says it is an "alias" for `findByProductionRunId`. Two names
-  for one operation makes callers unsure which to use and forces implementors to maintain both
-  forever. The spec keeps `findByProductionRunId` as "existing" and adds
-  `getMovementsForProductionRun` as new, but there's no reason both need to live on the
-  public contract.
-- **Suggestion:** Deprecate `findByProductionRunId` in the interface Javadoc
-  (`@deprecated use getMovementsForProductionRun`) and migrate internal callers. Remove it
-  in a later cleanup commit.
+#### R-010 (carry-forward): `findByProductionRunId` and `getMovementsForProductionRun` are duplicates
+
+- **File:** `src/main/java/org/omt/labelmanager/inventory/inventorymovement/api/InventoryMovementQueryApi.java`
+- **Description:** Same as previous review. Two names for one operation on the public API.
+  The Javadoc already acknowledges the alias relationship.
+- **Suggestion:** Deprecate `findByProductionRunId` and migrate callers over time.
+
+#### R-014: V27 fallback UPDATE could silently corrupt data in production
+
+- **File:** `src/main/resources/db/migration/V27__add_distributor_id_to_sale.sql`, lines 27–33
+- **Description:** The third UPDATE assigns the label's DIRECT distributor to any sale row
+  still lacking a `distributor_id` after the first two passes. The commit message explains
+  this handles "dev data predating the referenceId feature" — a reasonable pragmatic decision.
+  However, if this migration were ever run against a production database with DISTRIBUTOR-channel
+  sales that have no movement records for any reason (manual deletion, ETL import, etc.), those
+  sales would silently receive an incorrect `distributor_id`. There is no warning, log, or
+  assertion that the rows being updated by the fallback should actually be zero in a clean
+  production environment.
+- **Suggestion:** Add a comment to the fallback UPDATE warning that this should affect zero
+  rows in production, and optionally add a `DO $$ ... ASSERT ... $$` block that logs a WARNING
+  if the fallback touches any rows, so an operator is alerted during deployment.
 
 ---
 
 ### ✅ What's Done Well
 
-- **Migration V25 is excellent.** The sequence — add columns nullable, backfill existing rows
-  with correct data, then add NOT NULL constraints, drop the old index *before* dropping the
-  column, then create new indexes — is textbook. No data is at risk and the migration is
-  re-runnable-safe with `DROP INDEX IF EXISTS`.
+- **V27 migration structure is solid.** The three-stage backfill (DIRECT channel → movement
+  lookup → fallback) is well-sequenced and commented. Adding the column nullable, filling it,
+  then applying NOT NULL is the correct pattern for adding required columns to a live table.
 
-- **Bidirectional movement model design.** The `(fromLocationType, fromLocationId,
-  toLocationType, toLocationId, quantity)` model is significantly cleaner than the signed
-  `quantityDelta` approach. All quantities are positive, direction is explicit, and the
-  standard patterns table in the Javadoc makes the API instantly understandable.
+- **`determineDistributor` refactoring is clean.** The previous commit fetched the `Distributor`
+  object once in `determineDistributor` and passed it as a full object to `validateAndAddLineItem`,
+  eliminating the per-line-item lookup from R-004. The code is easier to follow as a result.
 
-- **Side-effect encapsulation in `AllocationCommandApiImpl`.** Recording the ALLOCATION
-  movement inside `createAllocation` (not left to callers) is exactly the pattern the CLAUDE.md
-  prescribes. The allocation ID is correctly used as `referenceId`, making movements traceable
-  to their source.
+- **`RegisterSaleUseCase` now uses `InsufficientInventoryException` and Spring's
+  `@Transactional`.** Both R-001 and R-002 from the previous review are cleanly resolved.
+  The integration test assertion now checks for the correct exception type.
 
-- **`DeleteMovementsUseCase` and `RecordMovementUseCase` are focused and correct.** Each does
-  exactly one thing. `DeleteMovementsUseCase` is properly `@Transactional` and delegates to the
-  repository derived query — no logic to get wrong.
+- **`SaleQueryIntegrationTest` distributor filtering and isolation tests.** The tests cover
+  the important isolation case (`getSalesForDistributor` returns only the right distributor's
+  sales), the empty list case, the `distributorId` persistence on registration, and cross-label
+  isolation in `getSalesForProductionRun`. These are exactly the edge cases that matter.
 
-- **Movement recording AFTER save in `RegisterSaleUseCase` (step 6).** Recording SALE movements
-  after `saleRepository.save()` returns a real `saleId` as `referenceId` is the correct design.
-  The whole method is `@Transactional`, so a failure in step 6 rolls back the entire sale.
-
-- **Integration test coverage.** `SaleRegistrationIntegrationTest` covers all the important
-  cases: happy path, insufficient inventory, wrong label, no production run, no allocation,
-  channel-type mismatch, missing distributor ID. `QueryMovementIntegrationTest` covers all four
-  query methods with meaningful assertions, including the zero-inventory exclusion.
-  `RecordMovementIntegrationTest` directly verifies the delete-by-reference semantics.
-
-- **`InventoryMovementPersistenceIntegrationTest.deletesMovementWhenProductionRunDeleted`.**
-  Testing the cascade-delete behaviour via the production run is a smart edge case to cover —
-  it validates the DB schema constraint, not just the Java layer.
+- **`SaleQueryApiImpl` list methods are now `@Transactional`.** Adding transactions to all
+  list-returning methods that stream line items (a `@OneToMany` lazy-loaded collection) is the
+  right call to avoid `LazyInitializationException` in callers outside a transaction boundary.
 
 ---
 
 ## Verdict
 
-**Changes Requested.** Address R-001 (empty-list crash) and R-002 (wrong exception type) before
-proceeding to Phase 3. R-003 and R-004 should be fixed at the same time since they're both in
-`RegisterSaleUseCase` and Phase 3 will touch that file anyway. R-006 and R-007 are quick wins.
+**Changes Requested.**
+
+- R-011 (`getSalesForProductionRun` query) is a correctness bug that will silently return
+  wrong data for any label with multiple production runs for the same release and format.
+  Fix it and add the matching repress scenario test before Phase 4 builds on this query.
+
+- R-012 (test module boundary violations) and R-013 (missing ordering test) should be
+  addressed at the same time since the test file needs rework anyway.
+
+- R-006 (jakarta import) is a one-liner — fold it into the same commit.
