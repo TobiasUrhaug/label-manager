@@ -84,6 +84,24 @@ public class SaleEntity {
         recalculateTotal();
     }
 
+    /**
+     * Removes all line items from this sale. Used when editing a sale to replace
+     * the existing line items with a new set. Orphan removal on the OneToMany
+     * relationship ensures the cleared items are deleted from the database.
+     */
+    public void clearLineItems() {
+        lineItems.clear();
+        this.totalAmount = BigDecimal.ZERO;
+    }
+
+    public void setSaleDate(LocalDate saleDate) {
+        this.saleDate = saleDate;
+    }
+
+    public void setNotes(String notes) {
+        this.notes = notes;
+    }
+
     private void recalculateTotal() {
         this.totalAmount = lineItems.stream()
                 .map(SaleLineItemEntity::getLineTotal)
