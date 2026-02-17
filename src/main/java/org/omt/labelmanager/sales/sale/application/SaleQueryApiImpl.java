@@ -23,8 +23,25 @@ class SaleQueryApiImpl implements SaleQueryApi {
     }
 
     @Override
+    @Transactional
     public List<Sale> getSalesForLabel(Long labelId) {
         return saleRepository.findByLabelIdOrderBySaleDateDesc(labelId).stream()
+                .map(this::convertToSale)
+                .toList();
+    }
+
+    @Override
+    @Transactional
+    public List<Sale> getSalesForDistributor(Long distributorId) {
+        return saleRepository.findByDistributorIdOrderBySaleDateDesc(distributorId).stream()
+                .map(this::convertToSale)
+                .toList();
+    }
+
+    @Override
+    @Transactional
+    public List<Sale> getSalesForProductionRun(Long productionRunId) {
+        return saleRepository.findByProductionRunIdOrderBySaleDateDesc(productionRunId).stream()
                 .map(this::convertToSale)
                 .toList();
     }
