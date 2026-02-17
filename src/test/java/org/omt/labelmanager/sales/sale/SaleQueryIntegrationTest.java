@@ -203,6 +203,28 @@ class SaleQueryIntegrationTest extends AbstractIntegrationTest {
         assertThat(sales.getFirst().labelId()).isEqualTo(labelId);
     }
 
+    @Test
+    void getSalesForProductionRun_separatesRepressingsWithSameReleaseAndFormat() {
+        // Sale against the first pressing (findMostRecent picks productionRunId)
+        registerDirectSale(5);
+
+        // Create a repress of the same release+format with a later date
+        var repress = productionRunRepository.save(new ProductionRunEntity(
+                releaseId, ReleaseFormat.VINYL, "Second pressing", "Plant A",
+                LocalDate.of(2026, 6, 1), 100
+        ));
+        allocationCommandApi.createAllocation(repress.getId(), directDistributorId, 100);
+
+        // Sale against the repress (findMostRecent now returns the repress)
+        registerDirectSale(3);
+
+        List<Sale> salesForFirstPressing = saleQueryApi.getSalesForProductionRun(productionRunId);
+        List<Sale> salesForRepress = saleQueryApi.getSalesForProductionRun(repress.getId());
+
+        assertThat(salesForFirstPressing).hasSize(1);
+        assertThat(salesForRepress).hasSize(1);
+    }
+
     // ── helpers ──────────────────────────────────────────────────────────────
 
     private Sale registerDirectSale(int quantity) {
