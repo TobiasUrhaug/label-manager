@@ -15,7 +15,7 @@
 
 ---
 
-- [ ] **TASK-001: Add LocationType enum**
+- [x] **TASK-001: Add LocationType enum**
   - **Context**: The new movement model needs a type to distinguish between WAREHOUSE,
     DISTRIBUTOR, and EXTERNAL as inventory locations.
   - **Scope**: Create `org.omt.labelmanager.inventory.domain.LocationType` enum with values
@@ -28,7 +28,7 @@
 
 ---
 
-- [ ] **TASK-002: Write migration V25 — refactor inventory_movement table**
+- [x] **TASK-002: Write migration V25 — refactor inventory_movement table**
   - **Context**: The DB schema must change before the Java code. The migration adds the new
     bidirectional columns, migrates existing ALLOCATION and SALE records, and drops the old
     columns.
@@ -49,7 +49,7 @@
 
 ---
 
-- [ ] **TASK-003: Refactor InventoryMovementEntity**
+- [x] **TASK-003: Refactor InventoryMovementEntity**
   - **Context**: The JPA entity must reflect the new schema.
   - **Scope**: Update `InventoryMovementEntity` — replace `distributorId` and `quantityDelta`
     fields with `fromLocationType` (LocationType), `fromLocationId` (Long nullable),
@@ -63,7 +63,7 @@
 
 ---
 
-- [ ] **TASK-004: Refactor InventoryMovement domain record**
+- [x] **TASK-004: Refactor InventoryMovement domain record**
   - **Context**: The public domain record exposed via the API must match the new entity.
   - **Scope**: Update `InventoryMovement` record — replace `distributorId` and `quantityDelta`
     with the four new location fields and `quantity`. Update `fromEntity()` factory method.
@@ -76,7 +76,7 @@
 
 ---
 
-- [ ] **TASK-005: Refactor InventoryMovementCommandApi and RecordMovementUseCase**
+- [x] **TASK-005: Refactor InventoryMovementCommandApi and RecordMovementUseCase**
   - **Context**: The command API signature must change to accept the new bidirectional
     parameters. A new `deleteMovementsByReference` method is needed for edit/delete flows.
   - **Scope**:
@@ -98,7 +98,7 @@
 
 ---
 
-- [ ] **TASK-006: Extend InventoryMovementQueryApi with inventory calculation methods**
+- [x] **TASK-006: Extend InventoryMovementQueryApi with inventory calculation methods**
   - **Context**: Current inventory at any location is calculated by summing movements.
     These new query methods are needed by the sale/return validation logic and the inventory
     visibility views.
@@ -121,7 +121,7 @@
 
 ---
 
-- [ ] **TASK-007: Update AllocationCommandApiImpl to use new movement API**
+- [x] **TASK-007: Update AllocationCommandApiImpl to use new movement API**
   - **Context**: `AllocationCommandApiImpl.createAllocation()` currently calls
     `inventoryMovementCommandApi.recordMovement(...)` with the old signature. It must use
     the new bidirectional signature: `from=WAREHOUSE, to=DISTRIBUTOR(distributorId)`.
@@ -143,7 +143,7 @@
 
 ---
 
-- [ ] **TASK-008: Write migration V26 — drop units_sold from channel_allocation**
+- [x] **TASK-008: Write migration V26 — drop units_sold from channel_allocation**
   - **Context**: The DB column is no longer used.
   - **Scope**: `V26__remove_units_sold_from_channel_allocation.sql` —
     `ALTER TABLE channel_allocation DROP COLUMN units_sold`.
@@ -155,7 +155,7 @@
 
 ---
 
-- [ ] **TASK-009: Remove unitsSold from ChannelAllocationEntity, ChannelAllocation, and AllocationCommandApi**
+- [x] **TASK-009: Remove unitsSold from ChannelAllocationEntity, ChannelAllocation, and AllocationCommandApi**
   - **Context**: After the migration, the Java layer must be updated to remove all traces of
     `unitsSold`.
   - **Scope**:
@@ -207,7 +207,11 @@
 
 ---
 
-- [ ] **TASK-012: Update RegisterSaleUseCase to validate via movements and use new movement API**
+- [~] **TASK-012: Update RegisterSaleUseCase to validate via movements and use new movement API**
+  - **Note (in progress):** Inventory validation via `getCurrentInventory` and SALE movement
+    recording with the new bidirectional API are done. `InsufficientInventoryException` is now
+    thrown correctly (moved to `org.omt.labelmanager.inventory` — R-002). Outstanding: persist
+    `distributorId` on `SaleEntity` (requires TASK-010/011 migrations first).
   - **Context**: Inventory validation previously used `reduceAllocation()` (now removed).
     It must now use `InventoryMovementQueryApi.getCurrentInventory()`. The movement call must
     use the new bidirectional API. The sale's `distributorId` must be persisted.
