@@ -177,7 +177,7 @@
 
 ---
 
-- [ ] **TASK-010: Write migration V27 — add distributor_id to sale**
+- [x] **TASK-010: Write migration V27 — add distributor_id to sale**
   - **Context**: The sale entity must explicitly store which distributor made the sale.
   - **Scope**: `V27__add_distributor_id_to_sale.sql`:
     - Add `distributor_id` column (nullable initially).
@@ -193,7 +193,7 @@
 
 ---
 
-- [ ] **TASK-011: Add distributorId to SaleEntity and Sale domain record**
+- [x] **TASK-011: Add distributorId to SaleEntity and Sale domain record**
   - **Context**: Java model must reflect the new column.
   - **Scope**:
     - Add `distributorId` field to `SaleEntity` (getter, constructor).
@@ -207,11 +207,7 @@
 
 ---
 
-- [~] **TASK-012: Update RegisterSaleUseCase to validate via movements and use new movement API**
-  - **Note (in progress):** Inventory validation via `getCurrentInventory` and SALE movement
-    recording with the new bidirectional API are done. `InsufficientInventoryException` is now
-    thrown correctly (moved to `org.omt.labelmanager.inventory` — R-002). Outstanding: persist
-    `distributorId` on `SaleEntity` (requires TASK-010/011 migrations first).
+- [x] **TASK-012: Update RegisterSaleUseCase to validate via movements and use new movement API**
   - **Context**: Inventory validation previously used `reduceAllocation()` (now removed).
     It must now use `InventoryMovementQueryApi.getCurrentInventory()`. The movement call must
     use the new bidirectional API. The sale's `distributorId` must be persisted.
@@ -233,7 +229,7 @@
 
 ---
 
-- [ ] **TASK-013: Add getSalesForDistributor and getSalesForProductionRun to SaleQueryApi**
+- [x] **TASK-013: Add getSalesForDistributor and getSalesForProductionRun to SaleQueryApi**
   - **Context**: Sales history views on the distributor page and release page need these queries.
   - **Scope**:
     - Add `findByDistributorId` and `findByProductionRunId` queries to `SaleRepository`.
