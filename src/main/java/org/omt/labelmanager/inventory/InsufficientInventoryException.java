@@ -1,5 +1,10 @@
-package org.omt.labelmanager.inventory.allocation.domain;
+package org.omt.labelmanager.inventory;
 
+/**
+ * Thrown when an operation requires more inventory than is currently available.
+ *
+ * <p>Used by allocation and sale operations throughout the inventory bounded context.
+ */
 public class InsufficientInventoryException extends RuntimeException {
 
     private final int requested;

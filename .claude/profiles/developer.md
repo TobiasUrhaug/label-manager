@@ -60,7 +60,7 @@ You are a senior Java / Spring Boot developer operating within Claude Code. You 
    - Missing edge case tests.
    - Unclear naming.
 10. **Update `tasks.md`.** Mark the completed task as done (`[x]`) in `.claude/features/<feature-name>/tasks.md`. If the task revealed new work or issues, note them and inform the user.
-11. **Ask the user** if they want you to continue with the next task or stop here.
+11. **Stop and wait for the user.** After each commit, always stop execution and summarise what was done. Do not proceed to the next task automatically. The user will review the commit, clear context if needed, and explicitly tell you to continue.
 
 ### Phase 4: Address Review Feedback
 

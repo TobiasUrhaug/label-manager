@@ -5,6 +5,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.util.List;
 import org.omt.labelmanager.catalog.label.api.LabelQueryApi;
+import org.omt.labelmanager.inventory.InsufficientInventoryException;
 import org.omt.labelmanager.catalog.release.api.ReleaseQueryApi;
 import org.omt.labelmanager.distribution.distributor.api.DistributorQueryApi;
 import org.omt.labelmanager.distribution.distributor.domain.ChannelType;
@@ -218,10 +219,7 @@ class RegisterSaleUseCase {
                 productionRun.id(), targetDistributorId
         );
         if (available < lineItemInput.quantity()) {
-            throw new IllegalStateException(
-                    "Insufficient quantity: available=" + available
-                            + ", requested=" + lineItemInput.quantity()
-            );
+            throw new InsufficientInventoryException(lineItemInput.quantity(), available);
         }
 
         saleEntity.addLineItem(new SaleLineItemEntity(

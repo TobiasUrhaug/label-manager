@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Test;
 import org.omt.labelmanager.AbstractIntegrationTest;
 import org.omt.labelmanager.inventory.allocation.api.AllocationCommandApi;
 import org.omt.labelmanager.inventory.allocation.domain.ChannelAllocation;
-import org.omt.labelmanager.inventory.allocation.domain.InsufficientInventoryException;
+import org.omt.labelmanager.inventory.InsufficientInventoryException;
 import org.omt.labelmanager.inventory.allocation.infrastructure.ChannelAllocationRepository;
 import org.omt.labelmanager.catalog.release.domain.ReleaseFormat;
 import org.omt.labelmanager.catalog.release.ReleaseTestHelper;

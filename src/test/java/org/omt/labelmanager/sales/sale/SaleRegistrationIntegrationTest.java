@@ -14,6 +14,7 @@ import org.omt.labelmanager.distribution.distributor.domain.ChannelType;
 import org.omt.labelmanager.distribution.distributor.infrastructure.DistributorEntity;
 import org.omt.labelmanager.distribution.distributor.infrastructure.DistributorRepository;
 import org.omt.labelmanager.finance.domain.shared.Money;
+import org.omt.labelmanager.inventory.InsufficientInventoryException;
 import org.omt.labelmanager.inventory.allocation.api.AllocationCommandApi;
 import org.omt.labelmanager.inventory.allocation.infrastructure.ChannelAllocationEntity;
 import org.omt.labelmanager.inventory.allocation.infrastructure.ChannelAllocationRepository;
@@ -217,8 +218,8 @@ class SaleRegistrationIntegrationTest extends AbstractIntegrationTest {
                         null,
                         lineItems
                 ))
-                .isInstanceOf(IllegalStateException.class)
-                .hasMessageContaining("Insufficient quantity");
+                .isInstanceOf(InsufficientInventoryException.class)
+                .hasMessageContaining("Insufficient inventory");
     }
 
     @Test
