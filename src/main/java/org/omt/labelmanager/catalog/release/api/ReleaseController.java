@@ -254,8 +254,6 @@ public class ReleaseController {
                                         distributors
                                 ),
                                 alloc.quantity(),
-                                alloc.unitsSold(),
-                                alloc.unitsRemaining(),
                                 alloc.allocatedAt()
                         ))
                         .toList();
