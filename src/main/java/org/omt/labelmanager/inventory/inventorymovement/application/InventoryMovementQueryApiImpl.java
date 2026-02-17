@@ -3,6 +3,7 @@ package org.omt.labelmanager.inventory.inventorymovement.application;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.omt.labelmanager.inventory.domain.LocationType;
 import org.omt.labelmanager.inventory.inventorymovement.api.InventoryMovementQueryApi;
 import org.omt.labelmanager.inventory.inventorymovement.domain.InventoryMovement;
@@ -51,7 +52,7 @@ class InventoryMovementQueryApiImpl implements InventoryMovementQueryApi {
         // Collect all distinct distributor IDs that appear in any movement
         var distributorIds = movements.stream()
                 .flatMap(m -> {
-                    java.util.stream.Stream.Builder<Long> ids = java.util.stream.Stream.builder();
+                    Stream.Builder<Long> ids = Stream.builder();
                     if (m.fromLocationType() == LocationType.DISTRIBUTOR
                             && m.fromLocationId() != null) {
                         ids.add(m.fromLocationId());
@@ -65,20 +66,14 @@ class InventoryMovementQueryApiImpl implements InventoryMovementQueryApi {
                 .collect(Collectors.toSet());
 
         return distributorIds.stream()
-                .filter(id -> {
-                    int inbound = sumQuantityTo(movements, LocationType.DISTRIBUTOR, id);
-                    int outbound = sumQuantityFrom(movements, LocationType.DISTRIBUTOR, id);
-                    return (inbound - outbound) > 0;
-                })
                 .collect(Collectors.toMap(
                         id -> id,
-                        id -> {
-                            int inbound = sumQuantityTo(movements, LocationType.DISTRIBUTOR, id);
-                            int outbound = sumQuantityFrom(
-                                    movements, LocationType.DISTRIBUTOR, id);
-                            return inbound - outbound;
-                        }
-                ));
+                        id -> sumQuantityTo(movements, LocationType.DISTRIBUTOR, id)
+                                - sumQuantityFrom(movements, LocationType.DISTRIBUTOR, id)
+                ))
+                .entrySet().stream()
+                .filter(e -> e.getValue() > 0)
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 
     private List<InventoryMovement> movementsFor(Long productionRunId) {
