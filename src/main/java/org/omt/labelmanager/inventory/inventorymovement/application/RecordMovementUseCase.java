@@ -1,6 +1,7 @@
 package org.omt.labelmanager.inventory.inventorymovement.application;
 
 import java.time.Instant;
+import org.omt.labelmanager.inventory.domain.LocationType;
 import org.omt.labelmanager.inventory.domain.MovementType;
 import org.omt.labelmanager.inventory.inventorymovement.infrastructure.InventoryMovementEntity;
 import org.omt.labelmanager.inventory.inventorymovement.infrastructure.InventoryMovementRepository;
@@ -23,24 +24,33 @@ class RecordMovementUseCase {
     @Transactional
     public void execute(
             Long productionRunId,
-            Long distributorId,
-            int quantityDelta,
+            LocationType fromLocationType,
+            Long fromLocationId,
+            LocationType toLocationType,
+            Long toLocationId,
+            int quantity,
             MovementType movementType,
             Long referenceId
     ) {
         var movement = new InventoryMovementEntity(
                 productionRunId,
-                distributorId,
-                quantityDelta,
+                fromLocationType,
+                fromLocationId,
+                toLocationType,
+                toLocationId,
+                quantity,
                 movementType,
                 Instant.now(),
                 referenceId
         );
         repository.save(movement);
         log.debug(
-                "Movement record created for production run {} and distributor {}",
-                productionRunId,
-                distributorId
+                "Recorded {} movement of {} units for production run {} "
+                + "(from {} {} → to {} {}), referenceId={}",
+                movementType, quantity, productionRunId,
+                fromLocationType, fromLocationId,
+                toLocationType, toLocationId,
+                referenceId
         );
     }
 }

@@ -192,12 +192,17 @@ class SaleRegistrationIntegrationTest extends AbstractIntegrationTest {
                 lineItems
         );
 
-        var movements = inventoryMovementRepository.findByProductionRunId(productionRunId);
+        var movements = inventoryMovementRepository
+                .findByProductionRunIdOrderByOccurredAtDesc(productionRunId);
 
         assertThat(movements).hasSize(1);
         assertThat(movements.getFirst().getMovementType()).isEqualTo(MovementType.SALE);
-        assertThat(movements.getFirst().getQuantityDelta()).isEqualTo(-5);
-        assertThat(movements.getFirst().getDistributorId()).isEqualTo(directDistributorId);
+        assertThat(movements.getFirst().getFromLocationType()).isEqualTo(
+                org.omt.labelmanager.inventory.domain.LocationType.DISTRIBUTOR);
+        assertThat(movements.getFirst().getFromLocationId()).isEqualTo(directDistributorId);
+        assertThat(movements.getFirst().getToLocationType()).isEqualTo(
+                org.omt.labelmanager.inventory.domain.LocationType.EXTERNAL);
+        assertThat(movements.getFirst().getQuantity()).isEqualTo(5);
     }
 
     @Test

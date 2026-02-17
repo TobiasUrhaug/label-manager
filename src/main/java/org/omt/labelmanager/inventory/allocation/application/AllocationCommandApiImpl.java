@@ -5,8 +5,9 @@ import org.omt.labelmanager.inventory.allocation.domain.ChannelAllocation;
 import org.omt.labelmanager.inventory.allocation.infrastructure.ChannelAllocationEntity;
 import org.omt.labelmanager.inventory.allocation.infrastructure.ChannelAllocationRepository;
 import org.omt.labelmanager.inventory.allocation.api.AllocationCommandApi;
-import org.omt.labelmanager.inventory.inventorymovement.api.InventoryMovementCommandApi;
+import org.omt.labelmanager.inventory.domain.LocationType;
 import org.omt.labelmanager.inventory.domain.MovementType;
+import org.omt.labelmanager.inventory.inventorymovement.api.InventoryMovementCommandApi;
 import org.omt.labelmanager.inventory.productionrun.api.ProductionRunQueryApi;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,6 +60,9 @@ class AllocationCommandApiImpl implements AllocationCommandApi {
         ChannelAllocation allocation = ChannelAllocation.fromEntity(allocationEntity);
         inventoryMovementCommandApi.recordMovement(
                 productionRunId,
+                LocationType.WAREHOUSE,
+                null,
+                LocationType.DISTRIBUTOR,
                 distributorId,
                 quantity,
                 MovementType.ALLOCATION,

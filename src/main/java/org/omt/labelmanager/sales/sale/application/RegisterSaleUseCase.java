@@ -7,8 +7,9 @@ import org.omt.labelmanager.catalog.release.api.ReleaseQueryApi;
 import org.omt.labelmanager.distribution.distributor.api.DistributorQueryApi;
 import org.omt.labelmanager.distribution.distributor.domain.ChannelType;
 import org.omt.labelmanager.inventory.allocation.api.AllocationCommandApi;
-import org.omt.labelmanager.inventory.inventorymovement.api.InventoryMovementCommandApi;
+import org.omt.labelmanager.inventory.domain.LocationType;
 import org.omt.labelmanager.inventory.domain.MovementType;
+import org.omt.labelmanager.inventory.inventorymovement.api.InventoryMovementCommandApi;
 import org.omt.labelmanager.inventory.productionrun.api.ProductionRunQueryApi;
 import org.omt.labelmanager.sales.sale.domain.Sale;
 import org.omt.labelmanager.sales.sale.domain.SaleLineItem;
@@ -216,13 +217,16 @@ class RegisterSaleUseCase {
             );
         }
 
-        // Create inventory movement record
+        // Create inventory movement record (SALE: distributor → external)
         inventoryMovementCommandApi.recordMovement(
                 productionRun.id(),
+                LocationType.DISTRIBUTOR,
                 directDistributorId,
-                -lineItemInput.quantity(),  // Negative for outbound
+                LocationType.EXTERNAL,
+                null,
+                lineItemInput.quantity(),
                 MovementType.SALE,
-                null  // Reference ID could be set to sale ID if needed
+                null  // referenceId will be set properly in TASK-012 (sale ID)
         );
 
         log.debug("Processed line item: release={}, format={}, quantity={}",
