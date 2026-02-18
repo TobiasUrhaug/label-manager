@@ -9,6 +9,7 @@ import org.omt.labelmanager.catalog.release.api.ReleaseQueryApi;
 import org.omt.labelmanager.catalog.release.domain.ReleaseFormat;
 import org.omt.labelmanager.distribution.distributor.api.DistributorQueryApi;
 import org.omt.labelmanager.distribution.distributor.domain.Distributor;
+import org.omt.labelmanager.inventory.InsufficientInventoryException;
 import org.omt.labelmanager.sales.distributor_return.domain.DistributorReturn;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -89,7 +90,8 @@ public class ReturnController {
             );
 
             return "redirect:/labels/" + labelId + "/returns";
-        } catch (IllegalStateException | IllegalArgumentException e) {
+        } catch (IllegalStateException | IllegalArgumentException
+                | InsufficientInventoryException e) {
             var label = labelQueryApi.findById(labelId)
                     .orElseThrow(() -> new EntityNotFoundException("Label not found"));
             var releases = releaseQueryApi.getReleasesForLabel(labelId);
@@ -177,7 +179,8 @@ public class ReturnController {
                     form.toLineItemInputs()
             );
             return "redirect:/labels/" + labelId + "/returns/" + returnId;
-        } catch (IllegalStateException | IllegalArgumentException e) {
+        } catch (IllegalStateException | IllegalArgumentException
+                | InsufficientInventoryException e) {
             var label = labelQueryApi.findById(labelId)
                     .orElseThrow(() -> new EntityNotFoundException("Label not found"));
             var distributorReturn = returnQueryApi.findById(returnId)

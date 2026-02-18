@@ -7,6 +7,7 @@ import org.omt.labelmanager.catalog.release.api.ReleaseQueryApi;
 import org.omt.labelmanager.catalog.release.domain.ReleaseFormat;
 import org.omt.labelmanager.distribution.distributor.api.DistributorQueryApi;
 import org.omt.labelmanager.distribution.distributor.domain.ChannelType;
+import org.omt.labelmanager.inventory.InsufficientInventoryException;
 import org.omt.labelmanager.sales.sale.domain.Sale;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -87,7 +88,8 @@ public class SaleController {
             );
 
             return "redirect:/labels/" + labelId + "/sales";
-        } catch (IllegalStateException | IllegalArgumentException e) {
+        } catch (IllegalStateException | IllegalArgumentException
+                | InsufficientInventoryException e) {
             var label = labelQueryApi.findById(labelId)
                     .orElseThrow(() -> new EntityNotFoundException("Label not found"));
             var releases = releaseQueryApi.getReleasesForLabel(labelId);
@@ -167,7 +169,8 @@ public class SaleController {
                     form.toLineItemInputs()
             );
             return "redirect:/labels/" + labelId + "/sales/" + updated.id();
-        } catch (IllegalStateException | IllegalArgumentException e) {
+        } catch (IllegalStateException | IllegalArgumentException
+                | InsufficientInventoryException e) {
             var label = labelQueryApi.findById(labelId)
                     .orElseThrow(() -> new EntityNotFoundException("Label not found"));
             var sale = saleQueryApi.findById(saleId)

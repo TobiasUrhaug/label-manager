@@ -31,6 +31,7 @@ import org.omt.labelmanager.distribution.distributor.api.DistributorQueryApi;
 import org.omt.labelmanager.distribution.distributor.domain.ChannelType;
 import org.omt.labelmanager.finance.domain.shared.Money;
 import org.omt.labelmanager.identity.application.AppUserDetails;
+import org.omt.labelmanager.inventory.InsufficientInventoryException;
 import org.omt.labelmanager.sales.sale.domain.Sale;
 import org.omt.labelmanager.sales.sale.domain.SaleLineItem;
 import org.omt.labelmanager.test.TestSecurityConfig;
@@ -180,7 +181,7 @@ class SaleControllerTest {
 
     @Test
     void submitEdit_reRendersFormWithErrorOnInsufficientInventory() throws Exception {
-        doThrow(new IllegalStateException("Insufficient inventory"))
+        doThrow(new InsufficientInventoryException(999, 0))
                 .when(saleCommandApi).updateSale(anyLong(), any(), any(), any());
 
         mockMvc

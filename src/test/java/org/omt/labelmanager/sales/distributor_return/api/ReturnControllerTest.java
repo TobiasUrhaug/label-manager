@@ -31,6 +31,7 @@ import org.omt.labelmanager.distribution.distributor.api.DistributorQueryApi;
 import org.omt.labelmanager.distribution.distributor.domain.ChannelType;
 import org.omt.labelmanager.distribution.distributor.domain.Distributor;
 import org.omt.labelmanager.identity.application.AppUserDetails;
+import org.omt.labelmanager.inventory.InsufficientInventoryException;
 import org.omt.labelmanager.sales.distributor_return.domain.DistributorReturn;
 import org.omt.labelmanager.sales.distributor_return.domain.ReturnLineItem;
 import org.omt.labelmanager.test.TestSecurityConfig;
@@ -194,7 +195,7 @@ class ReturnControllerTest {
 
     @Test
     void registerReturn_reRendersFormWithErrorOnInsufficientInventory() throws Exception {
-        doThrow(new IllegalStateException("Insufficient inventory"))
+        doThrow(new InsufficientInventoryException(999, 0))
                 .when(returnCommandApi).registerReturn(any(), any(), any(), any(), any());
 
         mockMvc
@@ -306,7 +307,7 @@ class ReturnControllerTest {
 
     @Test
     void submitEdit_reRendersFormWithErrorOnInsufficientInventory() throws Exception {
-        doThrow(new IllegalStateException("Insufficient inventory"))
+        doThrow(new InsufficientInventoryException(999, 0))
                 .when(returnCommandApi).updateReturn(anyLong(), any(), any(), any());
 
         mockMvc
