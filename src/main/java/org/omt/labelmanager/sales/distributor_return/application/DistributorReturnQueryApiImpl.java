@@ -23,7 +23,7 @@ class DistributorReturnQueryApiImpl implements DistributorReturnQueryApi {
     }
 
     @Override
-    @Transactional
+    @Transactional(readOnly = true)
     public List<DistributorReturn> getReturnsForLabel(Long labelId) {
         return returnRepository.findByLabelIdOrderByReturnDateDesc(labelId)
                 .stream()
@@ -32,7 +32,7 @@ class DistributorReturnQueryApiImpl implements DistributorReturnQueryApi {
     }
 
     @Override
-    @Transactional
+    @Transactional(readOnly = true)
     public List<DistributorReturn> getReturnsForDistributor(Long distributorId) {
         return returnRepository.findByDistributorIdOrderByReturnDateDesc(distributorId)
                 .stream()
@@ -41,7 +41,7 @@ class DistributorReturnQueryApiImpl implements DistributorReturnQueryApi {
     }
 
     @Override
-    @Transactional
+    @Transactional(readOnly = true)
     public Optional<DistributorReturn> findById(Long returnId) {
         return returnRepository.findById(returnId)
                 .map(returnConverter::toReturn);

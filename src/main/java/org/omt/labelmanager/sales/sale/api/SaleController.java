@@ -213,7 +213,7 @@ public class SaleController {
                                 item.quantity(),
                                 item.unitPrice().amount()
                         ))
-                        .collect(java.util.stream.Collectors.toList())
+                        .toList()
         );
         return form;
     }
