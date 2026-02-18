@@ -1,5 +1,6 @@
 package org.omt.labelmanager.infrastructure.web;
 
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.ui.Model;
@@ -21,6 +22,16 @@ public class GlobalExceptionHandler {
             return "error/404";
         }
         throw exception;
+    }
+
+    @ExceptionHandler(EntityNotFoundException.class)
+    public String handleEntityNotFound(
+            EntityNotFoundException exception,
+            Model model,
+            HttpServletResponse response) {
+        response.setStatus(HttpStatus.NOT_FOUND.value());
+        model.addAttribute("message", exception.getMessage());
+        return "error/404";
     }
 }
 

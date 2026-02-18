@@ -46,6 +46,7 @@ public class DistributorController {
         var label = labelQueryApi.findById(labelId)
                 .orElseThrow(() -> new EntityNotFoundException("Label not found"));
         var distributor = distributorQueryApi.findById(distributorId)
+                .filter(d -> d.labelId().equals(labelId))
                 .orElseThrow(() -> new EntityNotFoundException("Distributor not found"));
         var sales = saleQueryApi.getSalesForDistributor(distributorId);
         var returns = returnQueryApi.getReturnsForDistributor(distributorId);

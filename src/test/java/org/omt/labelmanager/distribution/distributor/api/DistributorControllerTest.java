@@ -159,6 +159,19 @@ class DistributorControllerTest {
     }
 
     @Test
+    void showDistributor_returnsNotFoundWhenDistributorBelongsToAnotherLabel() throws Exception {
+        var label = LabelFactory.aLabel().id(1L).build();
+        var distributorFromAnotherLabel = DistributorFactory.aDistributor()
+                .id(99L).labelId(2L).build();
+
+        when(labelQueryApi.findById(1L)).thenReturn(Optional.of(label));
+        when(distributorQueryApi.findById(99L)).thenReturn(Optional.of(distributorFromAnotherLabel));
+
+        mockMvc.perform(get("/labels/1/distributors/99").with(user(testUser)))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
     void showDistributor_returnsEmptyListsWhenNoActivity() throws Exception {
         var label = LabelFactory.aLabel().id(1L).build();
         var distributor = DistributorFactory.aDistributor().id(5L).labelId(1L).build();
