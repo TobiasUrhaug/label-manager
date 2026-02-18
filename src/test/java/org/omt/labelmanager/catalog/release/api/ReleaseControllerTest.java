@@ -1,33 +1,5 @@
 package org.omt.labelmanager.catalog.release.api;
 
-import java.time.LocalDate;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import org.junit.jupiter.api.Test;
-import org.omt.labelmanager.inventory.api.ProductionRunWithAllocation;
-import org.omt.labelmanager.catalog.artist.api.ArtistQueryApi;
-import org.omt.labelmanager.catalog.artist.domain.ArtistFactory;
-import org.omt.labelmanager.catalog.label.LabelFactory;
-import org.omt.labelmanager.catalog.label.api.LabelQueryApi;
-import org.omt.labelmanager.catalog.release.ReleaseFactory;
-import org.omt.labelmanager.catalog.release.TrackFactory;
-import org.omt.labelmanager.catalog.release.domain.ReleaseFormat;
-import org.omt.labelmanager.distribution.distributor.api.DistributorQueryApi;
-import org.omt.labelmanager.finance.cost.api.CostQueryApi;
-import org.omt.labelmanager.identity.application.AppUserDetails;
-import org.omt.labelmanager.inventory.allocation.api.AllocationQueryApi;
-import org.omt.labelmanager.inventory.inventorymovement.api.InventoryMovementQueryApi;
-import org.omt.labelmanager.inventory.productionrun.api.ProductionRunQueryApi;
-import org.omt.labelmanager.inventory.productionrun.domain.ProductionRunFactory;
-import org.omt.labelmanager.test.TestSecurityConfig;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
-import org.springframework.context.annotation.Import;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.test.web.servlet.MockMvc;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -40,6 +12,34 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
+
+import java.time.LocalDate;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import org.junit.jupiter.api.Test;
+import org.omt.labelmanager.catalog.artist.api.ArtistQueryApi;
+import org.omt.labelmanager.catalog.artist.domain.ArtistFactory;
+import org.omt.labelmanager.catalog.label.LabelFactory;
+import org.omt.labelmanager.catalog.label.api.LabelQueryApi;
+import org.omt.labelmanager.catalog.release.ReleaseFactory;
+import org.omt.labelmanager.catalog.release.TrackFactory;
+import org.omt.labelmanager.catalog.release.domain.ReleaseFormat;
+import org.omt.labelmanager.distribution.distributor.api.DistributorQueryApi;
+import org.omt.labelmanager.finance.cost.api.CostQueryApi;
+import org.omt.labelmanager.identity.application.AppUserDetails;
+import org.omt.labelmanager.inventory.allocation.api.AllocationQueryApi;
+import org.omt.labelmanager.inventory.api.ProductionRunWithAllocation;
+import org.omt.labelmanager.inventory.inventorymovement.api.InventoryMovementQueryApi;
+import org.omt.labelmanager.inventory.productionrun.api.ProductionRunQueryApi;
+import org.omt.labelmanager.inventory.productionrun.domain.ProductionRunFactory;
+import org.omt.labelmanager.test.TestSecurityConfig;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.context.annotation.Import;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest(ReleaseController.class)
 @Import(TestSecurityConfig.class)

@@ -232,6 +232,86 @@
         </div>
     </div>
 
+    <h2 class="h4 mt-4 mb-3">Inventory Status</h2>
+    <div th:if="${productionRuns.isEmpty()}" class="text-muted mb-4">
+        No production runs recorded yet.
+    </div>
+    <div th:each="runWithAlloc : ${productionRuns}" class="card mb-3">
+        <div class="card-header">
+            <strong th:text="${runWithAlloc.productionRun().format()}">VINYL</strong>
+            <span th:if="${runWithAlloc.productionRun().description()}"
+                  class="text-muted ms-2"
+                  th:text="${runWithAlloc.productionRun().description()}">Original pressing</span>
+        </div>
+        <div class="card-body">
+            <div class="d-flex gap-4 mb-3">
+                <div>
+                    <div class="text-muted small">Manufactured</div>
+                    <div class="fw-bold"
+                         th:text="${runWithAlloc.productionRun().quantity()}">500</div>
+                </div>
+                <div>
+                    <div class="text-muted small">Warehouse</div>
+                    <div class="fw-bold"
+                         th:text="${runWithAlloc.warehouseInventory()}">300</div>
+                </div>
+            </div>
+
+            <table th:if="${!runWithAlloc.distributorInventories().isEmpty()}"
+                   class="table table-sm mb-3">
+                <thead>
+                    <tr class="table-secondary">
+                        <th>Distributor</th>
+                        <th class="text-end">Allocated</th>
+                        <th class="text-end">Current</th>
+                        <th class="text-end">Sold</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="inv : ${runWithAlloc.distributorInventories()}">
+                        <td th:text="${inv.name()}">Direct Sales</td>
+                        <td class="text-end" th:text="${inv.allocated()}">100</td>
+                        <td class="text-end" th:text="${inv.current()}">75</td>
+                        <td class="text-end" th:text="${inv.sold()}">25</td>
+                    </tr>
+                </tbody>
+            </table>
+            <p th:if="${runWithAlloc.distributorInventories().isEmpty()}"
+               class="text-muted small">No allocations recorded yet.</p>
+
+            <details>
+                <summary class="small text-muted mb-2">
+                    Movement history
+                    (<span th:text="${runWithAlloc.movements().size()}">0</span> entries)
+                </summary>
+                <table th:if="${!runWithAlloc.movements().isEmpty()}"
+                       class="table table-sm table-striped mt-2">
+                    <thead>
+                        <tr class="table-light">
+                            <th>Date</th>
+                            <th>Type</th>
+                            <th>From</th>
+                            <th>To</th>
+                            <th class="text-end">Qty</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="m : ${runWithAlloc.movements()}">
+                            <td th:text="${#temporals.format(m.occurredAt(), 'yyyy-MM-dd HH:mm')}">
+                                2025-01-15 10:00</td>
+                            <td th:text="${m.movementType()}">ALLOCATION</td>
+                            <td th:text="${m.fromLocation()}">Warehouse</td>
+                            <td th:text="${m.toLocation()}">Direct Sales</td>
+                            <td class="text-end" th:text="${m.quantity()}">100</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <p th:if="${runWithAlloc.movements().isEmpty()}"
+                   class="text-muted small mt-2">No movements recorded yet.</p>
+            </details>
+        </div>
+    </div>
+
     <!-- Add Production Run Modal -->
     <div class="modal fade" id="addProductionRunModal" tabindex="-1"
          aria-labelledby="addProductionRunModalLabel" aria-hidden="true">
