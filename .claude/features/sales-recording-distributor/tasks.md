@@ -312,7 +312,7 @@
 
 ---
 
-- [ ] **TASK-017: Write migration V28 — create distributor_return tables**
+- [x] **TASK-017: Write migration V28 — create distributor_return tables**
   - **Context**: Persistence layer for the new return module.
   - **Scope**: `V28__create_distributor_return_tables.sql` — creates `distributor_return`
     and `distributor_return_line_item` tables with all indexes (see spec section 9).
@@ -324,7 +324,7 @@
 
 ---
 
-- [ ] **TASK-018: Create Return domain model and infrastructure**
+- [x] **TASK-018: Create Return domain model and infrastructure**
   - **Context**: Domain records and JPA entities for the return module.
   - **Scope**:
     - `DistributorReturn.java` — public record with `id, labelId, distributorId, returnDate,
@@ -343,7 +343,7 @@
 
 ---
 
-- [ ] **TASK-019: Implement RegisterReturnUseCase and DistributorReturnCommandApi**
+- [x] **TASK-019: Implement RegisterReturnUseCase and DistributorReturnCommandApi**
   - **Context**: Core business logic for registering a return. For each line item, validates
     that the distributor has sufficient current inventory, then records RETURN movements.
   - **Scope**:
@@ -369,7 +369,7 @@
 
 ---
 
-- [ ] **TASK-020: Implement UpdateReturnUseCase and DeleteReturnUseCase**
+- [x] **TASK-020: Implement UpdateReturnUseCase and DeleteReturnUseCase**
   - **Context**: Edit/delete for returns mirrors the sale edit/delete pattern.
   - **Scope**:
     - `UpdateReturnUseCase`:
@@ -390,7 +390,7 @@
 
 ---
 
-- [ ] **TASK-021: Implement DistributorReturnQueryApi**
+- [x] **TASK-021: Implement DistributorReturnQueryApi**
   - **Context**: Query methods needed by the controller and history views.
   - **Scope**:
     - `DistributorReturnQueryApi` — `getReturnsForLabel(Long labelId)`,
