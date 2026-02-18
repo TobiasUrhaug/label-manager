@@ -483,7 +483,7 @@
 
 ---
 
-- [ ] **TASK-025: Add sales and returns to distributor detail page**
+- [x] **TASK-025: Add sales and returns to distributor detail page**
   - **Context**: Label managers want to see a distributor's full sales and return history
     from the distributor detail page.
   - **Scope**:
@@ -502,7 +502,7 @@
 
 ---
 
-- [ ] **TASK-026: Add sales history to release detail page**
+- [x] **TASK-026: Add sales history to release detail page**
   - **Context**: Label managers want to see how well a specific release is selling across
     all distributors.
   - **Scope**:
