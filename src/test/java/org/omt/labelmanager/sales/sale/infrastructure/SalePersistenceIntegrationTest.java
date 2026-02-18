@@ -7,6 +7,7 @@ import org.omt.labelmanager.AbstractIntegrationTest;
 import org.omt.labelmanager.catalog.label.LabelTestHelper;
 import org.omt.labelmanager.catalog.release.ReleaseTestHelper;
 import org.omt.labelmanager.catalog.release.domain.ReleaseFormat;
+import org.omt.labelmanager.distribution.distributor.DistributorTestHelper;
 import org.omt.labelmanager.distribution.distributor.domain.ChannelType;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -26,8 +27,12 @@ class SalePersistenceIntegrationTest extends AbstractIntegrationTest {
     @Autowired
     private ReleaseTestHelper releaseTestHelper;
 
+    @Autowired
+    private DistributorTestHelper distributorTestHelper;
+
     private Long labelId;
     private Long releaseId;
+    private Long distributorId;
 
     @BeforeEach
     void setUp() {
@@ -37,6 +42,11 @@ class SalePersistenceIntegrationTest extends AbstractIntegrationTest {
         labelId = label.id();
 
         releaseId = releaseTestHelper.createReleaseEntity("Test Release", labelId);
+
+        var distributor = distributorTestHelper.createDistributor(
+                labelId, "Test Distributor", ChannelType.DIRECT
+        );
+        distributorId = distributor.id();
     }
 
     @Test
@@ -45,6 +55,7 @@ class SalePersistenceIntegrationTest extends AbstractIntegrationTest {
         var saleDate = LocalDate.of(2026, 2, 12);
         var sale = new SaleEntity(
                 labelId,
+                distributorId,
                 saleDate,
                 ChannelType.EVENT,
                 "Concert at venue X",
@@ -65,6 +76,7 @@ class SalePersistenceIntegrationTest extends AbstractIntegrationTest {
         var retrieved = saleRepository.findById(saved.getId());
         assertThat(retrieved).isPresent();
         assertThat(retrieved.get().getLabelId()).isEqualTo(labelId);
+        assertThat(retrieved.get().getDistributorId()).isEqualTo(distributorId);
         assertThat(retrieved.get().getSaleDate()).isEqualTo(saleDate);
         assertThat(retrieved.get().getChannel()).isEqualTo(ChannelType.EVENT);
         assertThat(retrieved.get().getNotes()).isEqualTo("Concert at venue X");
@@ -77,6 +89,7 @@ class SalePersistenceIntegrationTest extends AbstractIntegrationTest {
     void findsByLabelIdOrderedByDate() {
         var sale1 = new SaleEntity(
                 labelId,
+                distributorId,
                 LocalDate.of(2026, 1, 15),
                 ChannelType.EVENT,
                 "Sale 1",
@@ -94,6 +107,7 @@ class SalePersistenceIntegrationTest extends AbstractIntegrationTest {
 
         var sale2 = new SaleEntity(
                 labelId,
+                distributorId,
                 LocalDate.of(2026, 2, 20),
                 ChannelType.DIRECT,
                 "Sale 2",
@@ -120,6 +134,7 @@ class SalePersistenceIntegrationTest extends AbstractIntegrationTest {
     void sumsTotalAmountByLabelId() {
         var sale1 = new SaleEntity(
                 labelId,
+                distributorId,
                 LocalDate.of(2026, 1, 15),
                 ChannelType.EVENT,
                 "Sale 1",
@@ -137,6 +152,7 @@ class SalePersistenceIntegrationTest extends AbstractIntegrationTest {
 
         var sale2 = new SaleEntity(
                 labelId,
+                distributorId,
                 LocalDate.of(2026, 2, 20),
                 ChannelType.DIRECT,
                 "Sale 2",
@@ -168,6 +184,7 @@ class SalePersistenceIntegrationTest extends AbstractIntegrationTest {
     void cascadeDeletesLineItems() {
         var sale = new SaleEntity(
                 labelId,
+                distributorId,
                 LocalDate.of(2026, 2, 12),
                 ChannelType.EVENT,
                 "Sale with items",

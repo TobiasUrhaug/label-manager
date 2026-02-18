@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Test;
 import org.omt.labelmanager.AbstractIntegrationTest;
 import org.omt.labelmanager.inventory.allocation.api.AllocationCommandApi;
 import org.omt.labelmanager.inventory.allocation.domain.ChannelAllocation;
-import org.omt.labelmanager.inventory.allocation.domain.InsufficientInventoryException;
+import org.omt.labelmanager.inventory.InsufficientInventoryException;
 import org.omt.labelmanager.inventory.allocation.infrastructure.ChannelAllocationRepository;
 import org.omt.labelmanager.catalog.release.domain.ReleaseFormat;
 import org.omt.labelmanager.catalog.release.ReleaseTestHelper;
@@ -87,9 +87,15 @@ class CreateAllocationIntegrationTest extends AbstractIntegrationTest {
         assertThat(allocation.quantity()).isEqualTo(100);
         assertThat(allocation.allocatedAt()).isNotNull();
 
-        var movements = inventoryMovementRepository.findByProductionRunId(productionRunId);
+        var movements = inventoryMovementRepository
+                .findByProductionRunIdOrderByOccurredAtDesc(productionRunId);
         assertThat(movements).hasSize(1);
-        assertThat(movements.get(0).getQuantityDelta()).isEqualTo(100);
+        assertThat(movements.get(0).getFromLocationType()).isEqualTo(
+                org.omt.labelmanager.inventory.domain.LocationType.WAREHOUSE);
+        assertThat(movements.get(0).getToLocationType()).isEqualTo(
+                org.omt.labelmanager.inventory.domain.LocationType.DISTRIBUTOR);
+        assertThat(movements.get(0).getToLocationId()).isEqualTo(distributorId);
+        assertThat(movements.get(0).getQuantity()).isEqualTo(100);
         assertThat(movements.get(0).getMovementType()).isEqualTo(MovementType.ALLOCATION);
         assertThat(movements.get(0).getReferenceId()).isEqualTo(allocation.id());
     }

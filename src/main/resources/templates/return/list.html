@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: page(title='Returns - ' + ${label.name}, content=~{::main})}">
+<main>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Returns - <span th:text="${label.name}">Label Name</span></h1>
+        <div class="d-flex gap-2">
+            <a th:href="@{/labels/{id}/returns/new(id=${label.id})}" class="btn btn-primary">
+                Register Return
+            </a>
+            <a th:href="@{/labels/{id}(id=${label.id})}" class="btn btn-outline-secondary">
+                Back to Label
+            </a>
+        </div>
+    </div>
+
+    <div th:if="${#lists.isEmpty(returns)}" class="alert alert-info">
+        No returns registered yet. Click "Register Return" to add one.
+    </div>
+
+    <div th:if="${not #lists.isEmpty(returns)}" class="card">
+        <div class="card-body">
+            <table class="table table-hover mb-0">
+                <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Distributor</th>
+                    <th>Items</th>
+                    <th></th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="ret : ${returns}">
+                    <td th:text="${#temporals.format(ret.returnDate, 'MMM dd, yyyy')}">
+                        Jan 15, 2026
+                    </td>
+                    <td th:text="${distributorNames[ret.distributorId]}">
+                        Distributor Name
+                    </td>
+                    <td th:text="${#lists.size(ret.lineItems)}">0</td>
+                    <td>
+                        <a th:href="@{/labels/{labelId}/returns/{returnId}(
+                                labelId=${label.id},returnId=${ret.id})}"
+                           class="btn btn-sm btn-outline-primary">View</a>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</main>
+</html>

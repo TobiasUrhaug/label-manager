@@ -9,6 +9,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.time.Instant;
+import org.omt.labelmanager.inventory.domain.LocationType;
 import org.omt.labelmanager.inventory.domain.MovementType;
 
 @Entity
@@ -22,11 +23,22 @@ public class InventoryMovementEntity {
     @Column(name = "production_run_id", nullable = false)
     private Long productionRunId;
 
-    @Column(name = "distributor_id", nullable = false)
-    private Long distributorId;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "from_location_type", nullable = false)
+    private LocationType fromLocationType;
 
-    @Column(name = "quantity_delta", nullable = false)
-    private int quantityDelta;
+    @Column(name = "from_location_id")
+    private Long fromLocationId;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "to_location_type", nullable = false)
+    private LocationType toLocationType;
+
+    @Column(name = "to_location_id")
+    private Long toLocationId;
+
+    @Column(name = "quantity", nullable = false)
+    private int quantity;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "movement_type", nullable = false)
@@ -43,15 +55,21 @@ public class InventoryMovementEntity {
 
     public InventoryMovementEntity(
             Long productionRunId,
-            Long distributorId,
-            int quantityDelta,
+            LocationType fromLocationType,
+            Long fromLocationId,
+            LocationType toLocationType,
+            Long toLocationId,
+            int quantity,
             MovementType movementType,
             Instant occurredAt,
             Long referenceId
     ) {
         this.productionRunId = productionRunId;
-        this.distributorId = distributorId;
-        this.quantityDelta = quantityDelta;
+        this.fromLocationType = fromLocationType;
+        this.fromLocationId = fromLocationId;
+        this.toLocationType = toLocationType;
+        this.toLocationId = toLocationId;
+        this.quantity = quantity;
         this.movementType = movementType;
         this.occurredAt = occurredAt;
         this.referenceId = referenceId;
@@ -65,12 +83,24 @@ public class InventoryMovementEntity {
         return productionRunId;
     }
 
-    public Long getDistributorId() {
-        return distributorId;
+    public LocationType getFromLocationType() {
+        return fromLocationType;
     }
 
-    public int getQuantityDelta() {
-        return quantityDelta;
+    public Long getFromLocationId() {
+        return fromLocationId;
+    }
+
+    public LocationType getToLocationType() {
+        return toLocationType;
+    }
+
+    public Long getToLocationId() {
+        return toLocationId;
+    }
+
+    public int getQuantity() {
+        return quantity;
     }
 
     public MovementType getMovementType() {

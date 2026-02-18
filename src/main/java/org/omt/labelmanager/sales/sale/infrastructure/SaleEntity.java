@@ -29,6 +29,9 @@ public class SaleEntity {
     @Column(name = "label_id", nullable = false)
     private Long labelId;
 
+    @Column(name = "distributor_id", nullable = false)
+    private Long distributorId;
+
     @Column(name = "sale_date", nullable = false)
     private LocalDate saleDate;
 
@@ -60,12 +63,14 @@ public class SaleEntity {
 
     public SaleEntity(
             Long labelId,
+            Long distributorId,
             LocalDate saleDate,
             ChannelType channel,
             String notes,
             String currency
     ) {
         this.labelId = labelId;
+        this.distributorId = distributorId;
         this.saleDate = saleDate;
         this.channel = channel;
         this.notes = notes;
@@ -77,6 +82,24 @@ public class SaleEntity {
         lineItems.add(item);
         item.setSale(this);
         recalculateTotal();
+    }
+
+    /**
+     * Removes all line items from this sale. Used when editing a sale to replace
+     * the existing line items with a new set. Orphan removal on the OneToMany
+     * relationship ensures the cleared items are deleted from the database.
+     */
+    public void clearLineItems() {
+        lineItems.clear();
+        this.totalAmount = BigDecimal.ZERO;
+    }
+
+    public void setSaleDate(LocalDate saleDate) {
+        this.saleDate = saleDate;
+    }
+
+    public void setNotes(String notes) {
+        this.notes = notes;
     }
 
     private void recalculateTotal() {
@@ -91,6 +114,10 @@ public class SaleEntity {
 
     public Long getLabelId() {
         return labelId;
+    }
+
+    public Long getDistributorId() {
+        return distributorId;
     }
 
     public LocalDate getSaleDate() {

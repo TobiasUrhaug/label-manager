@@ -21,9 +21,6 @@ public class ChannelAllocationEntity {
     @Column(nullable = false)
     private int quantity;
 
-    @Column(name = "units_sold", nullable = false)
-    private int unitsSold;
-
     @Column(name = "allocated_at", nullable = false)
     private Instant allocatedAt;
 
@@ -39,7 +36,6 @@ public class ChannelAllocationEntity {
         this.productionRunId = productionRunId;
         this.distributorId = distributorId;
         this.quantity = quantity;
-        this.unitsSold = 0;
         this.allocatedAt = allocatedAt;
     }
 
@@ -59,25 +55,7 @@ public class ChannelAllocationEntity {
         return quantity;
     }
 
-    public int getUnitsSold() {
-        return unitsSold;
-    }
-
     public Instant getAllocatedAt() {
         return allocatedAt;
-    }
-
-    public void incrementUnitsSold(int amount) {
-        if (amount < 0) {
-            throw new IllegalArgumentException("Amount must be positive");
-        }
-        int unitsRemaining = this.quantity - this.unitsSold;
-        if (unitsRemaining < amount) {
-            throw new IllegalStateException(
-                    "Insufficient quantity: available=" + unitsRemaining
-                            + ", requested=" + amount
-            );
-        }
-        this.unitsSold += amount;
     }
 }

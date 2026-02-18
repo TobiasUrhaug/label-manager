@@ -11,6 +11,11 @@ public interface DistributorQueryApi {
     List<Distributor> findByLabelId(Long labelId);
 
     /**
+     * Find a distributor by its ID.
+     */
+    Optional<Distributor> findById(Long distributorId);
+
+    /**
      * Find a distributor by label and channel type.
      * Commonly used to find a label's DIRECT distributor.
      */

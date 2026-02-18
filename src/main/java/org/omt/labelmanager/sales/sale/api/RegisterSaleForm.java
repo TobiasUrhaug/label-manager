@@ -1,12 +1,10 @@
 package org.omt.labelmanager.sales.sale.api;
 
-import org.omt.labelmanager.distribution.distributor.domain.ChannelType;
-import org.omt.labelmanager.sales.sale.domain.SaleLineItemInput;
-
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
+import org.omt.labelmanager.distribution.distributor.domain.ChannelType;
+import org.omt.labelmanager.sales.sale.domain.SaleLineItemInput;
 
 /**
  * Form backing bean for registering a sale.
@@ -27,7 +25,7 @@ public class RegisterSaleForm {
     public List<SaleLineItemInput> toLineItemInputs() {
         return lineItems.stream()
                 .map(SaleLineItemForm::toInput)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     // Getters and setters

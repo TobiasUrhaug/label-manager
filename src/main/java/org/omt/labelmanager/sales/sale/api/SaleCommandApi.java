@@ -1,11 +1,10 @@
 package org.omt.labelmanager.sales.sale.api;
 
+import java.time.LocalDate;
+import java.util.List;
 import org.omt.labelmanager.distribution.distributor.domain.ChannelType;
 import org.omt.labelmanager.sales.sale.domain.Sale;
 import org.omt.labelmanager.sales.sale.domain.SaleLineItemInput;
-
-import java.time.LocalDate;
-import java.util.List;
 
 /**
  * Public API for sale command operations.
@@ -32,4 +31,33 @@ public interface SaleCommandApi {
             Long distributorId,
             List<SaleLineItemInput> lineItems
     );
+
+    /**
+     * Update an existing sale. Replaces all line items and adjusts inventory movements
+     * accordingly. Old movements are reversed before new inventory is validated,
+     * so the full allocated quantity is available for re-validation.
+     *
+     * <p><strong>Note on immutability:</strong> The distributor and channel type are fixed
+     * at registration time and cannot be changed via this method. If a sale was attributed
+     * to the wrong distributor or channel, delete the sale and register a new one.</p>
+     *
+     * @param saleId the ID of the sale to update
+     * @param saleDate the new sale date
+     * @param notes updated notes (may be null)
+     * @param lineItems the new line items (must not be empty)
+     * @return the updated sale
+     */
+    Sale updateSale(
+            Long saleId,
+            LocalDate saleDate,
+            String notes,
+            List<SaleLineItemInput> lineItems
+    );
+
+    /**
+     * Delete a sale and reverse all its inventory movements.
+     *
+     * @param saleId the ID of the sale to delete
+     */
+    void deleteSale(Long saleId);
 }
