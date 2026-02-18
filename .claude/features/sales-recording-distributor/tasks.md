@@ -405,7 +405,7 @@
 
 ---
 
-- [ ] **TASK-022: Create ReturnController and templates**
+- [x] **TASK-022: Create ReturnController and templates**
   - **Context**: HTTP layer for the return module with full CRUD flows.
   - **Scope**:
     - `ReturnController` with endpoints:
