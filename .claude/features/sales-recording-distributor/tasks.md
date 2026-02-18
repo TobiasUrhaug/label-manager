@@ -454,7 +454,7 @@
 
 ---
 
-- [ ] **TASK-024: Add inventory status section to release detail page**
+- [x] **TASK-024: Add inventory status section to release detail page**
   - **Context**: Label managers need to see where inventory is located directly from the
     release page.
   - **Scope**: Update `ReleaseController.showRelease(...)` to fetch and pass to the model:
