@@ -3,7 +3,6 @@ package org.omt.labelmanager.sales.distributor_return.api;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 import org.omt.labelmanager.sales.distributor_return.domain.ReturnLineItemInput;
 
 /**
@@ -22,7 +21,7 @@ public class EditReturnForm {
     public List<ReturnLineItemInput> toLineItemInputs() {
         return lineItems.stream()
                 .map(ReturnLineItemForm::toInput)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     // Getters and setters

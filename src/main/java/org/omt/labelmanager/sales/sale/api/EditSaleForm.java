@@ -3,7 +3,6 @@ package org.omt.labelmanager.sales.sale.api;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 import org.omt.labelmanager.sales.sale.domain.SaleLineItemInput;
 
 /**
@@ -24,7 +23,7 @@ public class EditSaleForm {
     public List<SaleLineItemInput> toLineItemInputs() {
         return lineItems.stream()
                 .map(SaleLineItemForm::toInput)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     // Getters and setters

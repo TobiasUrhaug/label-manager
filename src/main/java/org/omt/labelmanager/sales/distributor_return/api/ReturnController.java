@@ -231,7 +231,7 @@ public class ReturnController {
                                 item.format(),
                                 item.quantity()
                         ))
-                        .collect(Collectors.toList())
+                        .toList()
         );
         return form;
     }
