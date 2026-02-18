@@ -30,6 +30,8 @@ import org.omt.labelmanager.inventory.inventorymovement.api.InventoryMovementQue
 import org.omt.labelmanager.inventory.inventorymovement.domain.InventoryMovement;
 import org.omt.labelmanager.inventory.productionrun.api.ProductionRunQueryApi;
 import org.omt.labelmanager.inventory.productionrun.domain.ProductionRun;
+import org.omt.labelmanager.sales.sale.api.SaleQueryApi;
+import org.omt.labelmanager.sales.sale.domain.Sale;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -60,6 +62,7 @@ public class ReleaseController {
     private final AllocationQueryApi allocationQueryService;
     private final DistributorQueryApi distributorQueryApi;
     private final InventoryMovementQueryApi inventoryMovementQueryApi;
+    private final SaleQueryApi saleQueryApi;
 
     public ReleaseController(
             ReleaseCommandApi releaseCommandApi,
@@ -69,7 +72,8 @@ public class ReleaseController {
             ProductionRunQueryApi productionRunQueryApi,
             AllocationQueryApi allocationQueryService,
             DistributorQueryApi distributorQueryApi,
-            InventoryMovementQueryApi inventoryMovementQueryApi
+            InventoryMovementQueryApi inventoryMovementQueryApi,
+            SaleQueryApi saleQueryApi
     ) {
         this.releaseCommandApi = releaseCommandApi;
         this.releaseQueryApi = releaseQueryApi;
@@ -79,6 +83,7 @@ public class ReleaseController {
         this.allocationQueryService = allocationQueryService;
         this.distributorQueryApi = distributorQueryApi;
         this.inventoryMovementQueryApi = inventoryMovementQueryApi;
+        this.saleQueryApi = saleQueryApi;
     }
 
     @PostMapping
@@ -126,6 +131,11 @@ public class ReleaseController {
         List<ReleaseFormat> physicalFormats = Arrays.stream(ReleaseFormat.values())
                 .filter(ReleaseFormat::isPhysical)
                 .toList();
+        List<ReleaseSaleView> releaseSales =
+                buildReleaseSales(productionRuns, distributors);
+        int totalUnitsSold = releaseSales.stream()
+                .mapToInt(ReleaseSaleView::totalUnits)
+                .sum();
 
         model.addAttribute("name", release.name());
         model.addAttribute("labelId", labelId);
@@ -141,6 +151,8 @@ public class ReleaseController {
         model.addAttribute("productionRuns", productionRunsWithAllocation);
         model.addAttribute("physicalFormats", physicalFormats);
         model.addAttribute("distributors", distributors);
+        model.addAttribute("releaseSales", releaseSales);
+        model.addAttribute("totalUnitsSold", totalUnitsSold);
 
         return "/releases/release";
     }
@@ -296,5 +308,33 @@ public class ReleaseController {
                 .findFirst()
                 .map(Distributor::name)
                 .orElse("Unknown");
+    }
+
+    /**
+     * Collects all sales across every production run of the release, sorted by date descending,
+     * and enriches each with the resolved distributor name.
+     */
+    private List<ReleaseSaleView> buildReleaseSales(
+            List<ProductionRun> productionRuns,
+            List<Distributor> distributors
+    ) {
+        return productionRuns.stream()
+                .flatMap(run -> saleQueryApi.getSalesForProductionRun(run.id()).stream())
+                .map(sale -> toReleaseSaleView(sale, distributors))
+                .sorted(Comparator.comparing(ReleaseSaleView::saleDate).reversed())
+                .toList();
+    }
+
+    private ReleaseSaleView toReleaseSaleView(Sale sale, List<Distributor> distributors) {
+        int totalUnits = sale.lineItems().stream()
+                .mapToInt(item -> item.quantity())
+                .sum();
+        return new ReleaseSaleView(
+                sale.id(),
+                sale.saleDate(),
+                findDistributorName(sale.distributorId(), distributors),
+                totalUnits,
+                sale.totalAmount()
+        );
     }
 }

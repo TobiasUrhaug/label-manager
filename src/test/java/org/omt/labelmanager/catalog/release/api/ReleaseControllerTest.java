@@ -13,6 +13,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
@@ -27,8 +28,10 @@ import org.omt.labelmanager.catalog.release.ReleaseFactory;
 import org.omt.labelmanager.catalog.release.TrackFactory;
 import org.omt.labelmanager.catalog.release.domain.ReleaseFormat;
 import org.omt.labelmanager.distribution.distributor.api.DistributorQueryApi;
+import org.omt.labelmanager.distribution.distributor.domain.ChannelType;
 import org.omt.labelmanager.distribution.distributor.domain.DistributorFactory;
 import org.omt.labelmanager.finance.cost.api.CostQueryApi;
+import org.omt.labelmanager.finance.domain.shared.Money;
 import org.omt.labelmanager.identity.application.AppUserDetails;
 import org.omt.labelmanager.inventory.allocation.api.AllocationQueryApi;
 import org.omt.labelmanager.inventory.allocation.domain.ChannelAllocationFactory;
@@ -36,6 +39,9 @@ import org.omt.labelmanager.inventory.api.ProductionRunWithAllocation;
 import org.omt.labelmanager.inventory.inventorymovement.api.InventoryMovementQueryApi;
 import org.omt.labelmanager.inventory.productionrun.api.ProductionRunQueryApi;
 import org.omt.labelmanager.inventory.productionrun.domain.ProductionRunFactory;
+import org.omt.labelmanager.sales.sale.api.SaleQueryApi;
+import org.omt.labelmanager.sales.sale.domain.Sale;
+import org.omt.labelmanager.sales.sale.domain.SaleLineItem;
 import org.omt.labelmanager.test.TestSecurityConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
@@ -76,6 +82,9 @@ class ReleaseControllerTest {
 
     @MockitoBean
     private InventoryMovementQueryApi inventoryMovementQueryApi;
+
+    @MockitoBean
+    private SaleQueryApi saleQueryApi;
 
     private final AppUserDetails testUser =
             new AppUserDetails(1L, "test@example.com", "password", "Test User");
@@ -240,5 +249,43 @@ class ReleaseControllerTest {
                 org.mockito.ArgumentMatchers.anyList(),
                 org.mockito.ArgumentMatchers.anySet()
         );
+    }
+
+    @Test
+    void release_populatesReleaseSalesAcrossProductionRuns() throws Exception {
+        var release = ReleaseFactory.aRelease().id(4L).labelId(1L).build();
+        var productionRun = ProductionRunFactory.aProductionRun()
+                .id(10L).releaseId(4L).quantity(500).build();
+        var distributor = DistributorFactory.aDistributor()
+                .id(1L).name("Cargo Records").channelType(ChannelType.DISTRIBUTOR).build();
+        var lineItem = new SaleLineItem(1L, 4L,
+                org.omt.labelmanager.catalog.release.domain.ReleaseFormat.VINYL,
+                30, Money.of(BigDecimal.valueOf(15)), Money.of(BigDecimal.valueOf(450)));
+        var sale = new Sale(10L, 1L, 1L, LocalDate.of(2026, 1, 10),
+                ChannelType.DISTRIBUTOR, null, List.of(lineItem),
+                Money.of(BigDecimal.valueOf(450)));
+
+        when(releaseQueryFacade.findById(4L)).thenReturn(Optional.of(release));
+        when(productionRunQueryService.findByReleaseId(4L)).thenReturn(List.of(productionRun));
+        when(distributorQueryService.findByLabelId(1L)).thenReturn(List.of(distributor));
+        when(inventoryMovementQueryApi.getCurrentInventoryByDistributor(10L))
+                .thenReturn(Map.of());
+        when(inventoryMovementQueryApi.getMovementsForProductionRun(10L)).thenReturn(List.of());
+        when(saleQueryApi.getSalesForProductionRun(10L)).thenReturn(List.of(sale));
+
+        var result = mockMvc.perform(get("/labels/1/releases/4").with(user(testUser)))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        @SuppressWarnings("unchecked")
+        var releaseSales = (List<ReleaseSaleView>) result.getModelAndView()
+                .getModel().get("releaseSales");
+        assertThat(releaseSales).hasSize(1);
+        assertThat(releaseSales.get(0).distributorName()).isEqualTo("Cargo Records");
+        assertThat(releaseSales.get(0).totalUnits()).isEqualTo(30);
+        assertThat(releaseSales.get(0).totalRevenue().amount())
+                .isEqualByComparingTo(BigDecimal.valueOf(450));
+
+        assertThat(result.getModelAndView().getModel().get("totalUnitsSold")).isEqualTo(30);
     }
 }

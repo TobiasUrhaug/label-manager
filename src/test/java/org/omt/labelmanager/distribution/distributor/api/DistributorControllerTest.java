@@ -70,7 +70,8 @@ class DistributorControllerTest {
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/labels/1"));
 
-        verify(distributorCRUDHandler).createDistributor(eq(1L), eq("Bandcamp"), eq(ChannelType.DIRECT));
+        verify(distributorCRUDHandler)
+                .createDistributor(eq(1L), eq("Bandcamp"), eq(ChannelType.DIRECT));
     }
 
     @Test
