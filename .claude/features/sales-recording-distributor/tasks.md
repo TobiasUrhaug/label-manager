@@ -435,7 +435,7 @@
 
 ---
 
-- [ ] **TASK-023: Add getCurrentInventoryByDistributor and getMovementsForProductionRun to query API**
+- [x] **TASK-023: Add getCurrentInventoryByDistributor and getMovementsForProductionRun to query API**
   - **Context**: The release detail page needs per-distributor inventory breakdown and movement
     history. `getCurrentInventoryByDistributor` was deferred from TASK-006 as it wasn't yet
     needed.
