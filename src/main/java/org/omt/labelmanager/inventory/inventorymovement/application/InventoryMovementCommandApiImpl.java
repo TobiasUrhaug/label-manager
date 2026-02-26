@@ -1,12 +1,13 @@
 package org.omt.labelmanager.inventory.inventorymovement.application;
 
-import org.omt.labelmanager.inventory.domain.LocationType;
+import org.omt.labelmanager.inventory.domain.InventoryLocation;
 import org.omt.labelmanager.inventory.domain.MovementType;
 import org.omt.labelmanager.inventory.inventorymovement.api.InventoryMovementCommandApi;
 import org.springframework.stereotype.Service;
 
 @Service
-class InventoryMovementCommandApiImpl implements InventoryMovementCommandApi {
+class InventoryMovementCommandApiImpl
+        implements InventoryMovementCommandApi {
 
     private final RecordMovementUseCase recordMovement;
     private final DeleteMovementsUseCase deleteMovements;
@@ -22,20 +23,16 @@ class InventoryMovementCommandApiImpl implements InventoryMovementCommandApi {
     @Override
     public void recordMovement(
             Long productionRunId,
-            LocationType fromLocationType,
-            Long fromLocationId,
-            LocationType toLocationType,
-            Long toLocationId,
+            InventoryLocation from,
+            InventoryLocation to,
             int quantity,
             MovementType movementType,
             Long referenceId
     ) {
         recordMovement.execute(
                 productionRunId,
-                fromLocationType,
-                fromLocationId,
-                toLocationType,
-                toLocationId,
+                from,
+                to,
                 quantity,
                 movementType,
                 referenceId
@@ -43,7 +40,9 @@ class InventoryMovementCommandApiImpl implements InventoryMovementCommandApi {
     }
 
     @Override
-    public void deleteMovementsByReference(MovementType movementType, Long referenceId) {
+    public void deleteMovementsByReference(
+            MovementType movementType, Long referenceId
+    ) {
         deleteMovements.execute(movementType, referenceId);
     }
 }

@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Map;
 import org.omt.labelmanager.distribution.distributor.api.DistributorQueryApi;
 import org.omt.labelmanager.distribution.distributor.domain.Distributor;
-import org.omt.labelmanager.inventory.domain.LocationType;
+import org.omt.labelmanager.inventory.domain.InventoryLocation;
 import org.omt.labelmanager.inventory.domain.MovementType;
 import org.omt.labelmanager.inventory.inventorymovement.api.InventoryMovementCommandApi;
 import org.omt.labelmanager.sales.sale.domain.Sale;
@@ -94,10 +94,8 @@ class UpdateSaleUseCase {
         for (var entry : productionRunIds.entrySet()) {
             inventoryMovementCommandApi.recordMovement(
                     entry.getValue(),
-                    LocationType.DISTRIBUTOR,
-                    distributorId,
-                    LocationType.EXTERNAL,
-                    null,
+                    InventoryLocation.distributor(distributorId),
+                    InventoryLocation.external(),
                     entry.getKey().quantity(),
                     MovementType.SALE,
                     savedSale.getId()

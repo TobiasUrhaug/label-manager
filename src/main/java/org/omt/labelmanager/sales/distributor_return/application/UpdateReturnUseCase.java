@@ -5,7 +5,7 @@ import java.time.LocalDate;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import org.omt.labelmanager.inventory.domain.LocationType;
+import org.omt.labelmanager.inventory.domain.InventoryLocation;
 import org.omt.labelmanager.inventory.domain.MovementType;
 import org.omt.labelmanager.inventory.inventorymovement.api.InventoryMovementCommandApi;
 import org.omt.labelmanager.sales.distributor_return.domain.ReturnLineItemInput;
@@ -82,10 +82,8 @@ class UpdateReturnUseCase {
         for (var entry : productionRunIds.entrySet()) {
             inventoryMovementCommandApi.recordMovement(
                     entry.getValue(),
-                    LocationType.DISTRIBUTOR,
-                    distributorId,
-                    LocationType.WAREHOUSE,
-                    null,
+                    InventoryLocation.distributor(distributorId),
+                    InventoryLocation.warehouse(),
                     entry.getKey().quantity(),
                     MovementType.RETURN,
                     returnId

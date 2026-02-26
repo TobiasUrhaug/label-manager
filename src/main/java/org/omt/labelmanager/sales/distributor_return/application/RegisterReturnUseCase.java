@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Map;
 import org.omt.labelmanager.catalog.label.api.LabelQueryApi;
 import org.omt.labelmanager.distribution.distributor.api.DistributorQueryApi;
-import org.omt.labelmanager.inventory.domain.LocationType;
+import org.omt.labelmanager.inventory.domain.InventoryLocation;
 import org.omt.labelmanager.inventory.domain.MovementType;
 import org.omt.labelmanager.inventory.inventorymovement.api.InventoryMovementCommandApi;
 import org.omt.labelmanager.sales.distributor_return.domain.DistributorReturn;
@@ -94,10 +94,8 @@ class RegisterReturnUseCase {
         for (var entry : productionRunIds.entrySet()) {
             inventoryMovementCommandApi.recordMovement(
                     entry.getValue(),
-                    LocationType.DISTRIBUTOR,
-                    distributorId,
-                    LocationType.WAREHOUSE,
-                    null,
+                    InventoryLocation.distributor(distributorId),
+                    InventoryLocation.warehouse(),
                     entry.getKey().quantity(),
                     MovementType.RETURN,
                     savedReturn.getId()

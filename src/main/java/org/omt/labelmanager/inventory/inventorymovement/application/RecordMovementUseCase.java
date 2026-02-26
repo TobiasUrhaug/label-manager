@@ -1,7 +1,7 @@
 package org.omt.labelmanager.inventory.inventorymovement.application;
 
 import java.time.Instant;
-import org.omt.labelmanager.inventory.domain.LocationType;
+import org.omt.labelmanager.inventory.domain.InventoryLocation;
 import org.omt.labelmanager.inventory.domain.MovementType;
 import org.omt.labelmanager.inventory.inventorymovement.infrastructure.InventoryMovementEntity;
 import org.omt.labelmanager.inventory.inventorymovement.infrastructure.InventoryMovementRepository;
@@ -13,7 +13,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 class RecordMovementUseCase {
 
-    private static final Logger log = LoggerFactory.getLogger(RecordMovementUseCase.class);
+    private static final Logger log =
+            LoggerFactory.getLogger(RecordMovementUseCase.class);
 
     private final InventoryMovementRepository repository;
 
@@ -24,20 +25,18 @@ class RecordMovementUseCase {
     @Transactional
     public void execute(
             Long productionRunId,
-            LocationType fromLocationType,
-            Long fromLocationId,
-            LocationType toLocationType,
-            Long toLocationId,
+            InventoryLocation from,
+            InventoryLocation to,
             int quantity,
             MovementType movementType,
             Long referenceId
     ) {
         var movement = new InventoryMovementEntity(
                 productionRunId,
-                fromLocationType,
-                fromLocationId,
-                toLocationType,
-                toLocationId,
+                from.type(),
+                from.id(),
+                to.type(),
+                to.id(),
                 quantity,
                 movementType,
                 Instant.now(),
@@ -45,12 +44,10 @@ class RecordMovementUseCase {
         );
         repository.save(movement);
         log.debug(
-                "Recorded {} movement of {} units for production run {} "
-                + "(from {} {} → to {} {}), referenceId={}",
+                "Recorded {} movement of {} units for production"
+                + " run {} ({} → {}), referenceId={}",
                 movementType, quantity, productionRunId,
-                fromLocationType, fromLocationId,
-                toLocationType, toLocationId,
-                referenceId
+                from, to, referenceId
         );
     }
 }

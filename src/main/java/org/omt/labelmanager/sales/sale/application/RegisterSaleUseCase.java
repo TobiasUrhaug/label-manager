@@ -9,7 +9,7 @@ import org.omt.labelmanager.catalog.label.api.LabelQueryApi;
 import org.omt.labelmanager.distribution.distributor.api.DistributorQueryApi;
 import org.omt.labelmanager.distribution.distributor.domain.ChannelType;
 import org.omt.labelmanager.distribution.distributor.domain.Distributor;
-import org.omt.labelmanager.inventory.domain.LocationType;
+import org.omt.labelmanager.inventory.domain.InventoryLocation;
 import org.omt.labelmanager.inventory.domain.MovementType;
 import org.omt.labelmanager.inventory.inventorymovement.api.InventoryMovementCommandApi;
 import org.omt.labelmanager.sales.sale.domain.Sale;
@@ -99,10 +99,8 @@ class RegisterSaleUseCase {
         for (var entry : productionRunIds.entrySet()) {
             inventoryMovementCommandApi.recordMovement(
                     entry.getValue(),
-                    LocationType.DISTRIBUTOR,
-                    distributor.id(),
-                    LocationType.EXTERNAL,
-                    null,
+                    InventoryLocation.distributor(distributor.id()),
+                    InventoryLocation.external(),
                     entry.getKey().quantity(),
                     MovementType.SALE,
                     savedSale.getId()
