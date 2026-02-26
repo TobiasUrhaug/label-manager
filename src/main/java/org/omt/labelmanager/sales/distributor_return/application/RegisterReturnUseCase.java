@@ -68,12 +68,11 @@ class RegisterReturnUseCase {
         }
 
         // 2. Validate distributor belongs to this label
-        distributorQueryApi.findByLabelId(labelId)
-                .stream()
-                .filter(d -> d.id().equals(distributorId))
-                .findFirst()
+        distributorQueryApi.findById(distributorId)
+                .filter(d -> d.labelId().equals(labelId))
                 .orElseThrow(() -> new EntityNotFoundException(
-                        "Distributor " + distributorId + " not found for label " + labelId
+                        "Distributor " + distributorId
+                                + " not found for label " + labelId
                 ));
 
         // 3. Create return entity

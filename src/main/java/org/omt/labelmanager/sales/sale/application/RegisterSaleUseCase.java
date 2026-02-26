@@ -135,12 +135,11 @@ class RegisterSaleUseCase {
         }
 
         var distributor = distributorQueryApi
-                .findByLabelId(labelId)
-                .stream()
-                .filter(d -> d.id().equals(distributorId))
-                .findFirst()
+                .findById(distributorId)
+                .filter(d -> d.labelId().equals(labelId))
                 .orElseThrow(() -> new EntityNotFoundException(
-                        "Distributor not found: " + distributorId
+                        "Distributor " + distributorId
+                                + " not found for label " + labelId
                 ));
 
         if (distributor.channelType() != channel) {

@@ -6,6 +6,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import org.omt.labelmanager.distribution.distributor.api.DistributorQueryApi;
+import org.omt.labelmanager.distribution.distributor.domain.Distributor;
 import org.omt.labelmanager.inventory.domain.LocationType;
 import org.omt.labelmanager.inventory.domain.MovementType;
 import org.omt.labelmanager.inventory.inventorymovement.api.InventoryMovementCommandApi;
@@ -110,11 +111,9 @@ class UpdateSaleUseCase {
     }
 
     private String resolveDistributorName(Long distributorId, Long labelId) {
-        return distributorQueryApi.findByLabelId(labelId)
-                .stream()
-                .filter(d -> d.id().equals(distributorId))
-                .findFirst()
-                .map(d -> d.name())
+        return distributorQueryApi.findById(distributorId)
+                .filter(d -> d.labelId().equals(labelId))
+                .map(Distributor::name)
                 .orElse("id=" + distributorId);
     }
 }
