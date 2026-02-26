@@ -9,15 +9,14 @@
 
 ## Summary
 
-This re-review covers five commits since the last review:
+This re-review covers four commits since the last review:
 
 | Commit | Scope |
 |--------|-------|
-| `ad41da2` | Fix R-019: catch `InsufficientInventoryException` in both controllers |
-| `bc25df3` | Fix R-020: mark TASK-017–021 as completed in `tasks.md` |
-| `53fbafb` | Fix R-021/R-022: `.toList()` in `SaleController`; `readOnly = true` in `DistributorReturnQueryApiImpl` |
-| `2a30d1a` | Chore: mark TASK-023 completed (already implemented in TASK-006) |
-| `ae419d3` + `555631f` + `a671df1` | TASK-024: inventory status data in `ReleaseController` and template |
+| `a688e2d` | Fix R-023 (full `.toList()` sweep) and R-024 (non-empty distributor inventory test) |
+| `0ca3e10` | TASK-025: sales and returns history on distributor detail page |
+| `b3d61cd` | TASK-026: sales history table on release detail page |
+| `d2f3273` | Chore: update tasks.md and comments.md |
 
 **Previous review items — status:**
 
@@ -26,16 +25,30 @@ This re-review covers five commits since the last review:
 | R-009 flaky ordering | 🔵 Deferred | Carried forward |
 | R-010 duplicate API methods | 🔵 Deferred | Carried forward |
 | R-014 V27 silent fallback UPDATE | 🔵 Deferred | Carried forward |
-| R-019 `InsufficientInventoryException` escapes controllers | ✅ Resolved | Added to all four catch clauses; controller tests updated to use the real exception type |
-| R-020 `tasks.md` not updated | ✅ Resolved | TASK-017–021 marked `[x]` |
-| R-021 inline fully-qualified `Collectors` in `SaleController` | ✅ Resolved | Replaced with `.toList()` |
-| R-022 missing `readOnly = true` in `DistributorReturnQueryApiImpl` | ✅ Resolved | All three methods updated |
+| R-023 `ReturnController.buildEditForm` `.collect(Collectors.toList())` | ✅ Resolved | Fixed in a full sweep: all four form helper classes updated |
+| R-024 Missing non-empty distributor inventory test | ✅ Resolved | `release_populatesNonEmptyDistributorInventories` covers both the allocation+inventory path and the union edge case |
+| R-025 3N queries per production run | 🔵 Deferred | Carried forward as 🟢 |
+| R-026 Missing `@Transactional(readOnly = true)` in `InventoryMovementQueryApiImpl` | 🔵 Deferred | Carried forward as 🟢 |
+| A-003 Primitive-heavy `recordMovement` signature | ✅ Resolved | Introduced `InventoryLocation` value object with `warehouse()`, `distributor(id)`, `external()` factory methods; updated all 5 call sites and 2 integration tests |
 
-R-019 was fixed comprehensively: all four handlers (`registerSale`, `submitEdit` in `SaleController`; `registerReturn`, `submitEdit` in `ReturnController`) now catch `InsufficientInventoryException`. Both controller test classes were updated to throw the real exception type, which accurately exercises the catch coverage.
+R-023 was fixed more broadly than required — the commit message notes the sweep covered
+`EditReturnForm`, `RegisterReturnForm`, `EditSaleForm`, and `RegisterSaleForm` as well as the
+originally flagged `ReturnController.buildEditForm`. The stale `Collectors` import was also
+removed from each class. Clean.
 
-The TASK-024 implementation is solid. The new view-model classes are well-designed — `DistributorInventoryView.sold()` is a textbook example of business logic in a domain object rather than in the template. `MovementHistoryView` with pre-resolved location strings is the right design for keeping templates free of API lookups. `buildDistributorInventories` correctly unions allocation-known and movement-known distributors. The `formatLocation` switch expression is exhaustive and compile-time checked.
+R-024 is solid. The test covers a distributor with both an allocation and current inventory
+(exercising `sold() = allocated - current`), plus a second distributor that appears only in
+`currentByDistributor` — exactly the union edge case on lines 264–266 of `ReleaseController`
+that was previously uncovered. Both assertions include concrete values, not just size checks.
 
-Two items should be addressed before merge: a `Collectors.toList()` holdover in `ReturnController.buildEditForm` that was missed when R-021 was fixed, and a missing controller test case for the populated-distributor path in `ReleaseControllerTest`.
+TASK-026 is clean. `ReleaseSaleView` is a well-documented, purpose-built view record.
+`buildReleaseSales` is an elegant flat-map pipeline. The template handles null revenue and the
+empty state correctly. The controller test exercises distributor name resolution, unit
+aggregation from line items, and `totalUnitsSold` computation.
+
+One issue in TASK-025 needs to be addressed before merge: `showDistributor` does not verify
+that the distributor belongs to the label in the URL, which creates a cross-tenant data
+exposure on the new page.
 
 ---
 
@@ -49,53 +62,41 @@ Two items should be addressed before merge: a `Collectors.toList()` holdover in 
 
 ### 🟡 Should Fix
 
-#### R-023: `ReturnController.buildEditForm` still uses `.collect(Collectors.toList())`
+#### R-027: `showDistributor` does not verify the distributor belongs to the label
 
-- **File:** `src/main/java/org/omt/labelmanager/sales/distributor_return/api/ReturnController.java`, line 234
-- **Category:** Consistency / Style
-- **Description:** R-021 fixed `SaleController.buildEditForm` specifically because it used the
-  older `Collectors.toList()` pattern instead of `.toList()` (Java 16+). The same pattern
-  exists in `ReturnController.buildEditForm`, which was not caught in that fix:
+- **File:** `src/main/java/org/omt/labelmanager/distribution/distributor/api/DistributorController.java`, lines 41–59
+- **Category:** Security / Data isolation
+- **Description:** The new `showDistributor` endpoint checks that the label exists and that
+  the distributor exists, but it does not verify that the distributor actually belongs to the
+  label in the URL path:
 
   ```java
-  // ReturnController.java line 234 — still old style
-  .collect(Collectors.toList())
+  var label = labelQueryApi.findById(labelId)
+          .orElseThrow(() -> new EntityNotFoundException("Label not found"));
+  var distributor = distributorQueryApi.findById(distributorId)
+          .orElseThrow(() -> new EntityNotFoundException("Distributor not found"));
+  // ← no check that distributor.labelId().equals(labelId)
+  var sales = saleQueryApi.getSalesForDistributor(distributorId);
+  var returns = returnQueryApi.getReturnsForDistributor(distributorId);
   ```
 
-  All other stream terminations in both new modules use `.toList()`. This one holdover makes
-  the `ReturnController` inconsistent with `SaleController` and the fix that was just applied.
+  An authenticated user who knows (or guesses) the ID of a distributor belonging to another
+  label can access it at `/labels/1/distributors/99`, and the controller will happily return
+  that distributor's full sales and returns history. This page is new — it did not exist before
+  this feature — and it's the first page in the application to expose sales revenue and returns
+  data for an arbitrary distributor by ID.
 
-- **Suggestion:** Replace `.collect(Collectors.toList())` with `.toList()` in
-  `ReturnController.buildEditForm`.
+  The `Distributor` domain record already carries `labelId()`, so the fix is a one-liner after
+  the lookup:
 
-  Note: `EditReturnForm.toLineItemInputs()`, `RegisterReturnForm.toLineItemInputs()`,
-  `RegisterSaleForm.toLineItemInputs()`, and `EditSaleForm.toLineItemInputs()` also use
-  `.collect(Collectors.toList())`, but those are form helper methods with a proper import and
-  were not the subject of R-021. Fixing them alongside would be a clean sweep if desired.
+  ```java
+  var distributor = distributorQueryApi.findById(distributorId)
+          .filter(d -> d.labelId().equals(labelId))
+          .orElseThrow(() -> new EntityNotFoundException("Distributor not found"));
+  ```
 
----
-
-#### R-024: `ReleaseControllerTest` missing test for non-empty distributor inventory
-
-- **File:** `src/test/java/org/omt/labelmanager/catalog/release/api/ReleaseControllerTest.java`, lines 123–147
-- **Category:** Test gap
-- **Description:** `release_populatesInventoryDataInProductionRuns` only tests the case where
-  `getCurrentInventoryByDistributor` returns an empty map, asserting that
-  `distributorInventories` is empty. This does not exercise `buildDistributorInventories`,
-  which contains the most complex new logic in TASK-024: grouping allocations by distributor,
-  taking the union with movement-known distributors, filtering to positive balances, and sorting
-  by name.
-
-  In particular, the path where a distributor appears in `currentByDistributor` but not in
-  `allocatedByDistributor` (handled by the `filter + forEach` on lines 252–254 of
-  `ReleaseController`) is completely uncovered at the controller test level.
-
-- **Suggestion:** Add a second `release_populatesInventoryDataInProductionRuns`-style test that
-  provides a non-empty `getCurrentInventoryByDistributor` result and a matching list of
-  `ChannelAllocation`s, then asserts:
-  - `productionRuns.get(0).distributorInventories()` has the expected size and entries.
-  - `DistributorInventoryView.sold()` values are correct.
-  - Entries are sorted by name.
+  A corresponding test case — verifying that accessing `/labels/1/distributors/99` where
+  distributor 99 belongs to label 2 returns 404 (or equivalent) — would complete the fix.
 
 ---
 
@@ -106,8 +107,8 @@ Two items should be addressed before merge: a `Collectors.toList()` holdover in 
 - **File:** `src/test/java/org/omt/labelmanager/inventory/inventorymovement/QueryMovementIntegrationTest.java`
 - **Description:** Two sequential `Instant.now()` calls may produce identical timestamps on a
   fast machine or in CI, making the ordering assertion non-deterministic.
-- **Suggestion:** Inject a `Clock` into `RecordMovementUseCase` and advance it between calls in
-  the test, or add a small `Thread.sleep` between record operations.
+- **Suggestion:** Inject a `Clock` into `RecordMovementUseCase` and advance it between calls
+  in the test, or add a small `Thread.sleep` between record operations.
 
 ---
 
@@ -129,36 +130,23 @@ Two items should be addressed before merge: a `Collectors.toList()` holdover in 
 
 ---
 
-#### R-025: Three identical DB queries per production run in the inventory section
+#### R-025 (carry-forward): Three identical DB queries per production run in the inventory section
 
-- **File:** `src/main/java/org/omt/labelmanager/catalog/release/api/ReleaseController.java`, lines 217–221
-- **Category:** Performance
-- **Description:** `buildProductionRunWithAllocation` calls `getWarehouseInventory`,
-  `getCurrentInventoryByDistributor`, and `getMovementsForProductionRun` in sequence. Each
-  method independently calls `movementsFor(productionRunId)` in `InventoryMovementQueryApiImpl`,
-  which issues a separate `SELECT … FROM inventory_movement WHERE production_run_id = ?` query.
-  For a release with N production runs, this generates 3N queries fetching identical data.
-
-  The spec notes this is "acceptable for the expected data volumes," and for a handful of
-  production runs it genuinely is. Worth flagging for awareness: if a label ever has a release
-  with many production runs (multiple pressings + digital), this will visibly repeat.
-
-- **Suggestion:** No action required now. If it becomes observable, a `getBulkInventoryStatus`
-  method that returns all three pieces of data in one query could consolidate this.
+- **File:** `src/main/java/org/omt/labelmanager/catalog/release/api/ReleaseController.java`, lines 229–233
+- **Description:** `getWarehouseInventory`, `getCurrentInventoryByDistributor`, and
+  `getMovementsForProductionRun` each independently issue a `SELECT … FROM inventory_movement
+  WHERE production_run_id = ?` for the same row. For N production runs this is 3N identical
+  queries. Acceptable at current scale per the spec.
+- **Suggestion:** No action required now. Note for the future.
 
 ---
 
-#### R-026: `InventoryMovementQueryApiImpl` missing `@Transactional(readOnly = true)`
+#### R-026 (carry-forward): `InventoryMovementQueryApiImpl` missing `@Transactional(readOnly = true)`
 
 - **File:** `src/main/java/org/omt/labelmanager/inventory/inventorymovement/application/InventoryMovementQueryApiImpl.java`
-- **Category:** Convention / Performance
-- **Description:** R-022 specifically filed and fixed the missing `readOnly = true` in
-  `DistributorReturnQueryApiImpl`. `InventoryMovementQueryApiImpl` is the same pattern — a
-  query-only API impl — but none of its methods have any `@Transactional` annotation at all.
-  For consistency with the rest of the codebase convention and to allow Hibernate and the
-  JDBC driver to skip unnecessary dirty-checking on reads, adding `@Transactional(readOnly = true)`
-  to all five public methods would be appropriate.
-
+- **Description:** All five public methods are read-only queries with no `@Transactional`
+  annotation. R-022 fixed the same gap in `DistributorReturnQueryApiImpl`; consistency
+  suggests applying `@Transactional(readOnly = true)` here too.
 - **Suggestion:** Add `@Transactional(readOnly = true)` to `findByProductionRunId`,
   `getMovementsForProductionRun`, `getCurrentInventory`, `getWarehouseInventory`, and
   `getCurrentInventoryByDistributor`.
@@ -167,41 +155,40 @@ Two items should be addressed before merge: a `Collectors.toList()` holdover in 
 
 ### ✅ What's Done Well
 
-- **R-019 fixed completely and correctly.** All four handlers that could surface an
-  `InsufficientInventoryException` now catch it — including `registerSale`, which was not
-  in the original bug report but was correctly identified and fixed in the same commit. The
-  corresponding controller tests now throw the real exception type (`new
-  InsufficientInventoryException(999, 0)`) rather than a generic `IllegalStateException`,
-  which accurately verifies the catch coverage rather than just testing that _something_ is
-  caught.
+- **R-023 swept comprehensively.** Rather than fixing only the one line flagged in the
+  review, the commit updated all four `toLineItemInputs()` helper methods across
+  `EditReturnForm`, `RegisterReturnForm`, `EditSaleForm`, and `RegisterSaleForm`, and removed
+  the now-unused `Collectors` import from each. The fix is applied uniformly rather than
+  leaving one straggler.
 
-- **`DistributorInventoryView.sold()` is the right abstraction.** Computing `allocated -
-  current` in the domain record rather than in the template or the controller is exactly the
-  "rich domain object" pattern described in CLAUDE.md. The Javadoc explains the formula, and
-  the template simply calls `${inv.sold()}` — the template has no arithmetic.
+- **R-024 test covers the right edge case.** `release_populatesNonEmptyDistributorInventories`
+  sets up exactly two distributors — one with an allocation and current inventory, one that
+  appears only in `currentByDistributor` — and asserts the concrete values of both entries.
+  The union path that was previously uncovered (lines 264–266 of `ReleaseController`) is now
+  exercised, and the `sold() = allocated - current = -30` assertion on Beta proves the method
+  handles the no-allocation case rather than silently returning 0.
 
-- **`MovementHistoryView` pre-resolves location names.** By converting `LocationType` +
-  `locationId` to a human-readable string in the controller (`formatLocation`) before passing
-  to the template, the template stays free of API lookups and switch logic. The `formatLocation`
-  switch expression is exhaustive (WAREHOUSE, DISTRIBUTOR, EXTERNAL) and compile-checked.
+- **`ReleaseSaleView` is a clean, self-documenting record.** The Javadoc on `totalRevenue`
+  explicitly notes it may be null when no unit price is recorded, which is the right place to
+  document that invariant. The record has no business logic and does exactly one job: carry
+  pre-resolved display data to the template.
 
-- **`buildDistributorInventories` handles the edge case.** The union of
-  `allocatedByDistributor.keySet()` and `currentByDistributor.keySet()` (lines 251–254) means
-  a distributor that has received returns after all their sales are cancelled — and therefore
-  appears in movements but no longer in allocations — still shows up in the table rather than
-  silently disappearing.
+- **`buildReleaseSales` is a readable pipeline.** `flatMap → map → sorted → toList` reads as
+  a clear data-enrichment flow. The comparator uses `.reversed()` rather than negating the
+  comparator manually, which is the idiomatically correct form.
 
-- **`<details>/<summary>` for movement history.** A clean progressive disclosure pattern. The
-  page shows the inventory summary immediately and lets the user expand movement history on
-  demand without a JavaScript toggle or a separate request.
+- **Distributor detail template aggregates units without pre-computing in the controller.**
+  `${#aggregates.sum(sale.lineItems.![quantity])}` avoids adding a `totalUnits` method to
+  `Sale` or computing it in the controller just for the template. The controller exposes the
+  domain objects directly, which is appropriate since all the necessary data is already
+  available on the object graph.
 
-- **`ProductionRunWithAllocation` extended cleanly.** Adding `warehouseInventory`,
-  `distributorInventories`, and `movements` to the record is a clean, non-breaking extension.
-  The Javadoc on the record and its new components explains the assembly intent.
+- **TASK-026 test verifies resolution end-to-end.** The test constructs a concrete `SaleLineItem`
+  with a known quantity and price, asserts the resolved `distributorName`, the computed
+  `totalUnits`, and the `totalRevenue.amount()`, and confirms `totalUnitsSold` on the model.
+  That exercises the full enrichment path in `toReleaseSaleView` without being over-specified.
 
-- **TASK-023 correctly identified as already done.** Rather than re-implementing
-  `getCurrentInventoryByDistributor`, the developer verified it was already in place from
-  TASK-006 and updated the task log accordingly. Good discipline.
+- **All controller tests pass.** `DistributorControllerTest` and `ReleaseControllerTest` green.
 
 ---
 
@@ -209,9 +196,309 @@ Two items should be addressed before merge: a `Collectors.toList()` holdover in 
 
 **Changes Requested.**
 
-- **R-023** is a one-line fix — the same `.collect(Collectors.toList())` → `.toList()`
-  replacement that was applied to `SaleController` in the last round.
-- **R-024** asks for one additional test case in `ReleaseControllerTest` covering the
-  non-empty distributor inventory path, which exercises the most complex logic added in TASK-024.
+R-027 is the only remaining item. The fix is a one-line `.filter(d -> d.labelId().equals(labelId))`
+guard in `showDistributor` after the distributor lookup, plus a controller test case that verifies
+a distributor from a different label is treated as not found. Once that is in, the branch is
+complete and ready for a PR.
 
-Both are small. Once they are addressed, Phase 6 is complete and the branch is ready for TASK-025/026 (Phase 7) or for a PR.
+---
+---
+
+# Architecture Review — Inventory, Sales & Distribution Modules
+
+**Reviewer:** Senior System Architect
+**Date:** 2026-02-26
+**Scope:** DDD design, bounded context boundaries, readability, domain richness
+**Status:** Advisory (non-blocking improvements for post-merge)
+
+---
+
+## Overall Assessment
+
+The modular architecture is well-structured. Bounded contexts are clearly delineated, modules
+communicate exclusively through public API interfaces, and the event-sourcing-lite pattern for
+inventory movements is a strong design choice. The issues below are structural improvements to
+pursue incrementally — none are merge blockers for the current feature.
+
+---
+
+## Findings
+
+### A-001: Circular dependency between `distribution` and `sales` bounded contexts
+
+- **Category:** Bounded context integrity
+- **Severity:** High (architectural)
+- **Files:**
+  - `distribution/distributor/api/DistributorController.java` — imports `SaleQueryApi` and
+    `DistributorReturnQueryApi` from the `sales` bounded context
+  - `sales/sale/application/RegisterSaleUseCase.java` — imports `DistributorQueryApi` and
+    `ChannelType` from the `distribution` bounded context
+- **Description:** The dependency graph forms a cycle:
+  ```
+  sales → distribution  (ChannelType, DistributorQueryApi)
+  distribution → sales  (SaleQueryApi, DistributorReturnQueryApi)
+  ```
+  Bounded contexts should have unidirectional dependencies. The cycle prevents either context
+  from evolving independently and makes it impossible to extract either into a separate
+  deployable unit in the future.
+- **Suggestion:** The distributor detail page's sales/returns data is a **read-side concern**.
+  Move the composition logic into a higher-level orchestrator — either a dedicated view service
+  in `infrastructure/dashboard` or a new `DistributorDetailViewController` that sits above both
+  bounded contexts. The `distribution` bounded context should have zero imports from `sales`.
+
+  For `ChannelType`, either:
+  - Move it to a shared kernel package (`org.omt.labelmanager.domain.shared`)
+  - Or duplicate the enum in each bounded context that needs it (pure DDD approach)
+
+---
+
+### A-002: `findMostRecent` is a fragile implicit production run binding
+
+- **Category:** Domain correctness
+- **Severity:** High (data integrity risk)
+- **Files:**
+  - `sales/sale/application/SaleLineItemProcessor.java`, line 73
+  - `sales/distributor_return/application/ReturnLineItemProcessor.java`, line 67
+- **Description:** Both processors resolve which production run a sale or return applies to via
+  `productionRunQueryApi.findMostRecent(releaseId, format)` — always returning the **most
+  recently manufactured** pressing. This is a hidden business assumption with a concrete risk:
+
+  1. Distributor A is allocated 100 units from pressing #1
+  2. Label creates pressing #2 (a repressing)
+  3. A sale is registered for Distributor A
+  4. `findMostRecent` resolves to pressing #2, which has no allocation for Distributor A
+  5. Sale is rejected with "No inventory allocated" even though Distributor A has 100 units
+
+  The allocation check (`SaleLineItemProcessor` lines 82–95) partially guards against this, but
+  it's confusing: the system has inventory but refuses the sale because it looked at the wrong
+  pressing.
+- **Suggestion:** Either:
+  - Make the production run explicit on line items (the user selects which pressing they're
+    selling from, or the system auto-resolves by finding the pressing that actually has an
+    allocation for the distributor)
+  - Or change the resolution logic to find the production run that has an active allocation for
+    the given distributor, rather than the most recent one globally
+
+---
+
+### A-003: Primitive-heavy `recordMovement` API signature
+
+- **Category:** Readability / API design
+- **Severity:** Medium
+- **File:** `inventory/inventorymovement/api/InventoryMovementCommandApi.java`, lines 32–41
+- **Description:** The `recordMovement` method takes 8 parameters, including two conceptual
+  pairs (`fromLocationType` + `fromLocationId`, `toLocationType` + `toLocationId`). At call
+  sites it is easy to transpose `from` and `to` arguments, and the intent is not self-evident:
+
+  ```java
+  inventoryMovementCommandApi.recordMovement(
+      entry.getValue(),           // productionRunId
+      LocationType.DISTRIBUTOR,   // fromLocationType
+      distributor.id(),           // fromLocationId
+      LocationType.EXTERNAL,      // toLocationType
+      null,                       // toLocationId
+      entry.getKey().quantity(),   // quantity
+      MovementType.SALE,          // movementType
+      savedSale.getId()           // referenceId
+  );
+  ```
+
+- **Suggestion:** Introduce an `InventoryLocation` value object:
+
+  ```java
+  public record InventoryLocation(LocationType type, Long id) {
+      public static InventoryLocation warehouse() {
+          return new InventoryLocation(WAREHOUSE, null);
+      }
+      public static InventoryLocation distributor(Long id) {
+          return new InventoryLocation(DISTRIBUTOR, id);
+      }
+      public static InventoryLocation external() {
+          return new InventoryLocation(EXTERNAL, null);
+      }
+  }
+  ```
+
+  The API then becomes:
+  ```java
+  void recordMovement(Long productionRunId, InventoryLocation from,
+      InventoryLocation to, int quantity, MovementType type, Long referenceId);
+  ```
+
+  Call sites become self-documenting:
+  ```java
+  inventoryMovementCommandApi.recordMovement(
+      productionRunId,
+      InventoryLocation.distributor(distributor.id()),
+      InventoryLocation.external(),
+      quantity,
+      MovementType.SALE,
+      savedSale.getId()
+  );
+  ```
+
+---
+
+### A-004: Duplicate validation logic in Sale and Return line item processors
+
+- **Category:** DRY / Maintainability
+- **Severity:** Medium
+- **Files:**
+  - `sales/sale/application/SaleLineItemProcessor.java`
+  - `sales/distributor_return/application/ReturnLineItemProcessor.java`
+- **Description:** These two classes share ~70% of their logic:
+  1. Validate release exists and belongs to label (identical in both)
+  2. Find most recent production run for release + format (identical in both)
+  3. Check current inventory at distributor (identical in both)
+
+  The only difference: sales also check that an allocation exists (lines 82–95 in
+  `SaleLineItemProcessor`). If the validation rules change (e.g., the production run resolution
+  from A-002), both classes must be updated in lockstep.
+- **Suggestion:** Extract an `InventoryLineItemValidator` (either in the `inventory` bounded
+  context as a public API, or as a shared helper within `sales`) that handles the common
+  three-step validation: release ownership → production run resolution → inventory sufficiency.
+  Each processor then composes it with its specific rules (allocation check for sales, nothing
+  extra for returns).
+
+---
+
+### A-005: Indirect distributor lookup loads all distributors to find one
+
+- **Category:** Readability / Performance
+- **Severity:** Medium
+- **Files:**
+  - `sales/sale/application/RegisterSaleUseCase.java`, lines 137–144
+  - `sales/distributor_return/application/RegisterReturnUseCase.java`, lines 71–77
+  - `sales/sale/application/UpdateSaleUseCase.java`, lines 112–119
+- **Description:** To find a distributor by ID and verify label ownership, the code fetches
+  **all distributors for the label** and filters in memory:
+
+  ```java
+  distributorQueryApi.findByLabelId(labelId)
+      .stream()
+      .filter(d -> d.id().equals(distributorId))
+      .findFirst()
+  ```
+
+  This appears in three separate places. `DistributorQueryApi` already exposes
+  `findById(Long)`, which returns `Optional<Distributor>` including `labelId()`.
+- **Suggestion:** Use `findById` directly and verify label ownership:
+
+  ```java
+  var distributor = distributorQueryApi.findById(distributorId)
+      .filter(d -> d.labelId().equals(labelId))
+      .orElseThrow(() -> new EntityNotFoundException(
+          "Distributor " + distributorId + " not found for label " + labelId));
+  ```
+
+  This is clearer, avoids loading unnecessary data, and matches the pattern already used in
+  `DistributorController.showDistributor` after the R-027 fix.
+
+---
+
+### A-006: `SaleRepository` native query crosses bounded context schema boundary
+
+- **Category:** Bounded context integrity
+- **Severity:** Medium
+- **File:** `sales/sale/infrastructure/SaleRepository.java`, lines 24–34
+- **Description:** The `findByProductionRunIdOrderBySaleDateDesc` query uses a native SQL JOIN
+  against the `inventory_movement` table:
+
+  ```sql
+  SELECT DISTINCT s.*
+  FROM sale s
+  JOIN inventory_movement im
+    ON im.reference_id = s.id
+    AND im.movement_type = 'SALE'
+  WHERE im.production_run_id = :productionRunId
+  ```
+
+  This means the `sales` module's repository has a hard runtime coupling to inventory's
+  database schema. If inventory's table structure or column names change, this query breaks
+  silently (no compile-time detection).
+- **Suggestion:** Mediate through the `InventoryMovementQueryApi`. Add a method like
+  `getSaleIdsForProductionRun(Long productionRunId)` to the inventory API, then use those IDs
+  to fetch sales within the sales module:
+
+  ```java
+  var saleIds = inventoryMovementQueryApi
+      .getSaleIdsForProductionRun(productionRunId);
+  return saleRepository.findAllById(saleIds);
+  ```
+
+  Alternatively, if performance is a concern, accept this as a pragmatic query optimization
+  and document the cross-schema dependency with a prominent comment.
+
+---
+
+### A-007: Anemic `Sale` and `SaleLineItem` domain records
+
+- **Category:** Domain richness
+- **Severity:** Low
+- **Files:**
+  - `sales/sale/domain/Sale.java`
+  - `sales/sale/domain/SaleLineItem.java`
+- **Description:** Both records are pure data carriers with zero business logic. Contrast with
+  `ProductionRun`, which has `canAllocate()` and `getAvailableQuantity()`. Missed
+  opportunities:
+
+  - The invariant "sale must have at least one line item" is validated in three separate use
+    cases (`RegisterSaleUseCase`, `UpdateSaleUseCase`, and implicitly by the form). This
+    belongs on the domain object.
+  - `Sale` could expose `totalQuantity()` or `itemCount()` for the templates that currently
+    compute it via SpEL aggregation.
+  - `SaleLineItem` could compute `lineTotal` from `unitPrice * quantity` rather than having
+    it pre-computed at entity-mapping time, making the derivation explicit.
+
+- **Suggestion:** Add focused business methods where they eliminate duplication:
+
+  ```java
+  public record Sale(...) {
+      public int totalQuantity() {
+          return lineItems.stream().mapToInt(SaleLineItem::quantity).sum();
+      }
+  }
+  ```
+
+  This keeps the domain records intention-revealing without adding external dependencies.
+
+---
+
+### A-008: `SaleRepository` visibility should be package-private
+
+- **Category:** Convention consistency
+- **Severity:** Low
+- **File:** `sales/sale/infrastructure/SaleRepository.java`, line 10
+- **Description:** Per the project's modular architecture conventions, repository interfaces
+  in `infrastructure/` should be package-private (no access modifier). `SaleRepository` is
+  declared `public`, leaking an implementation detail outside the module. Check other
+  repositories in the `sales` and `inventory` bounded contexts for the same issue.
+- **Suggestion:** Remove the `public` modifier. Since all consumers are within the same
+  package (use cases in `application/`), this should be a no-op change.
+- **Developer note (2026-02-26):** Not applicable with the current package structure.
+  `infrastructure/` and `application/` are separate Java packages
+  (e.g. `…sales.sale.infrastructure` vs `…sales.sale.application`), so repositories
+  *must* be `public` for the application layer to access them. This applies to all
+  repositories across the codebase (`catalog`, `inventory`, `sales`, `distribution`).
+  Fixing this would require flattening each module into a single package, which is a
+  larger structural change outside the scope of this feature.
+
+---
+
+## Priority Summary
+
+| ID | Issue | Severity | Effort |
+|----|-------|----------|--------|
+| A-001 | Circular `distribution` ↔ `sales` dependency | High | Medium |
+| A-002 | `findMostRecent` implicit production run binding | High | Medium |
+| A-003 | ~~Primitive-heavy `recordMovement` signature~~ ✅ | Medium | Small |
+| A-004 | Duplicate Sale/Return line item validation | Medium | Medium |
+| A-005 | Indirect distributor lookup via `findByLabelId` | Medium | Small |
+| A-006 | Cross-schema native query in `SaleRepository` | Medium | Small |
+| A-007 | Anemic `Sale`/`SaleLineItem` domain records | Low | Small |
+| A-008 | `SaleRepository` public visibility | Low | Trivial |
+
+**Recommended order:** A-005 and A-008 are quick wins. A-003 improves readability across many
+call sites. A-001 is the most important structural issue but requires the most coordination.
+A-002 should be addressed before the system has multiple production runs per release/format in
+real data.
