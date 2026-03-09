@@ -20,6 +20,23 @@ public interface SaleQueryApi {
     List<Sale> getSalesForLabel(Long labelId);
 
     /**
+     * Get all sales attributed to a specific distributor, ordered by date (newest first).
+     *
+     * @param distributorId the distributor ID
+     * @return list of sales
+     */
+    List<Sale> getSalesForDistributor(Long distributorId);
+
+    /**
+     * Get all sales that contain a line item from the given production run,
+     * ordered by date (newest first).
+     *
+     * @param productionRunId the production run ID
+     * @return list of sales
+     */
+    List<Sale> getSalesForProductionRun(Long productionRunId);
+
+    /**
      * Find a sale by ID.
      *
      * @param saleId the sale ID

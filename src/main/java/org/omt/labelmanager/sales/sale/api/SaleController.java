@@ -1,11 +1,14 @@
 package org.omt.labelmanager.sales.sale.api;
 
 import jakarta.persistence.EntityNotFoundException;
+import java.util.List;
 import org.omt.labelmanager.catalog.label.api.LabelQueryApi;
 import org.omt.labelmanager.catalog.release.api.ReleaseQueryApi;
 import org.omt.labelmanager.catalog.release.domain.ReleaseFormat;
 import org.omt.labelmanager.distribution.distributor.api.DistributorQueryApi;
 import org.omt.labelmanager.distribution.distributor.domain.ChannelType;
+import org.omt.labelmanager.inventory.InsufficientInventoryException;
+import org.omt.labelmanager.sales.sale.domain.Sale;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -85,7 +88,8 @@ public class SaleController {
             );
 
             return "redirect:/labels/" + labelId + "/sales";
-        } catch (IllegalStateException | IllegalArgumentException e) {
+        } catch (IllegalStateException | IllegalArgumentException
+                | InsufficientInventoryException e) {
             var label = labelQueryApi.findById(labelId)
                     .orElseThrow(() -> new EntityNotFoundException("Label not found"));
             var releases = releaseQueryApi.getReleasesForLabel(labelId);
@@ -127,5 +131,90 @@ public class SaleController {
         model.addAttribute("releaseNames", releaseNames);
 
         return "sale/detail";
+    }
+
+    @GetMapping("/{saleId}/edit")
+    public String showEditForm(
+            @PathVariable Long labelId,
+            @PathVariable Long saleId,
+            Model model
+    ) {
+        var label = labelQueryApi.findById(labelId)
+                .orElseThrow(() -> new EntityNotFoundException("Label not found"));
+        var sale = saleQueryApi.findById(saleId)
+                .orElseThrow(() -> new EntityNotFoundException("Sale not found"));
+        var releases = releaseQueryApi.getReleasesForLabel(labelId);
+
+        model.addAttribute("label", label);
+        model.addAttribute("sale", sale);
+        model.addAttribute("releases", releases);
+        model.addAttribute("formats", ReleaseFormat.values());
+        model.addAttribute("form", buildEditForm(sale));
+
+        return "sale/edit";
+    }
+
+    @PostMapping("/{saleId}")
+    public String submitEdit(
+            @PathVariable Long labelId,
+            @PathVariable Long saleId,
+            EditSaleForm form,
+            Model model
+    ) {
+        try {
+            var updated = saleCommandApi.updateSale(
+                    saleId,
+                    form.getSaleDate(),
+                    form.getNotes(),
+                    form.toLineItemInputs()
+            );
+            return "redirect:/labels/" + labelId + "/sales/" + updated.id();
+        } catch (IllegalStateException | IllegalArgumentException
+                | InsufficientInventoryException e) {
+            var label = labelQueryApi.findById(labelId)
+                    .orElseThrow(() -> new EntityNotFoundException("Label not found"));
+            var sale = saleQueryApi.findById(saleId)
+                    .orElseThrow(() -> new EntityNotFoundException("Sale not found"));
+            var releases = releaseQueryApi.getReleasesForLabel(labelId);
+
+            model.addAttribute("label", label);
+            model.addAttribute("sale", sale);
+            model.addAttribute("releases", releases);
+            model.addAttribute("formats", ReleaseFormat.values());
+            model.addAttribute("form", form);
+            model.addAttribute("errorMessage", e.getMessage());
+
+            return "sale/edit";
+        }
+    }
+
+    @PostMapping("/{saleId}/delete")
+    public String deleteSale(
+            @PathVariable Long labelId,
+            @PathVariable Long saleId
+    ) {
+        try {
+            saleCommandApi.deleteSale(saleId);
+        } catch (EntityNotFoundException ignored) {
+            // Sale already gone — redirect gracefully
+        }
+        return "redirect:/labels/" + labelId + "/sales";
+    }
+
+    private EditSaleForm buildEditForm(Sale sale) {
+        var form = new EditSaleForm();
+        form.setSaleDate(sale.saleDate());
+        form.setNotes(sale.notes());
+        form.setLineItems(
+                sale.lineItems().stream()
+                        .map(item -> new SaleLineItemForm(
+                                item.releaseId(),
+                                item.format(),
+                                item.quantity(),
+                                item.unitPrice().amount()
+                        ))
+                        .toList()
+        );
+        return form;
     }
 }

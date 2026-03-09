@@ -2,6 +2,7 @@ package org.omt.labelmanager.inventory.inventorymovement.domain;
 
 import java.time.Instant;
 import java.util.concurrent.atomic.AtomicLong;
+import org.omt.labelmanager.inventory.domain.LocationType;
 import org.omt.labelmanager.inventory.domain.MovementType;
 
 public final class InventoryMovementFactory {
@@ -23,8 +24,11 @@ public final class InventoryMovementFactory {
 
         private Long id = counter.getAndIncrement();
         private Long productionRunId = 1L;
-        private Long distributorId = 1L;
-        private int quantityDelta = 100;
+        private LocationType fromLocationType = LocationType.WAREHOUSE;
+        private Long fromLocationId = null;
+        private LocationType toLocationType = LocationType.DISTRIBUTOR;
+        private Long toLocationId = 1L;
+        private int quantity = 100;
         private MovementType movementType = MovementType.ALLOCATION;
         private Instant occurredAt = Instant.parse("2025-01-15T10:00:00Z");
         private Long referenceId = null;
@@ -42,13 +46,28 @@ public final class InventoryMovementFactory {
             return this;
         }
 
-        public Builder distributorId(Long distributorId) {
-            this.distributorId = distributorId;
+        public Builder fromLocationType(LocationType fromLocationType) {
+            this.fromLocationType = fromLocationType;
             return this;
         }
 
-        public Builder quantityDelta(int quantityDelta) {
-            this.quantityDelta = quantityDelta;
+        public Builder fromLocationId(Long fromLocationId) {
+            this.fromLocationId = fromLocationId;
+            return this;
+        }
+
+        public Builder toLocationType(LocationType toLocationType) {
+            this.toLocationType = toLocationType;
+            return this;
+        }
+
+        public Builder toLocationId(Long toLocationId) {
+            this.toLocationId = toLocationId;
+            return this;
+        }
+
+        public Builder quantity(int quantity) {
+            this.quantity = quantity;
             return this;
         }
 
@@ -71,8 +90,11 @@ public final class InventoryMovementFactory {
             return new InventoryMovement(
                     id,
                     productionRunId,
-                    distributorId,
-                    quantityDelta,
+                    fromLocationType,
+                    fromLocationId,
+                    toLocationType,
+                    toLocationId,
+                    quantity,
                     movementType,
                     occurredAt,
                     referenceId

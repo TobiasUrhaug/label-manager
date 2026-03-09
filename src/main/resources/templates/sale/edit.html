@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: page(title='Edit Sale', content=~{::main})}">
+<main>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Edit Sale - <span th:text="${label.name}">Label Name</span></h1>
+        <a th:href="@{/labels/{labelId}/sales/{saleId}(labelId=${label.id},saleId=${sale.id})}"
+           class="btn btn-outline-secondary">Cancel</a>
+    </div>
+
+    <div th:if="${errorMessage}" class="alert alert-danger" role="alert">
+        <strong>Error:</strong> <span th:text="${errorMessage}">Error message</span>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <dl class="row mb-0">
+                <dt class="col-sm-3">Channel</dt>
+                <dd class="col-sm-9" th:text="${sale.channel}">DIRECT</dd>
+            </dl>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <form th:action="@{/labels/{labelId}/sales/{saleId}(labelId=${label.id},saleId=${sale.id})}"
+                  method="post" th:object="${form}">
+
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <label for="saleDate" class="form-label">Sale Date*</label>
+                        <input type="date" class="form-control" id="saleDate"
+                               th:field="*{saleDate}" required>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="notes" class="form-label">Notes</label>
+                    <textarea class="form-control" id="notes" rows="2"
+                              th:field="*{notes}"></textarea>
+                </div>
+
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <h5 class="mb-0">Line Items</h5>
+                    <button type="button" id="addLineItemBtn" class="btn btn-outline-primary btn-sm">
+                        + Add Line Item
+                    </button>
+                </div>
+
+                <div id="lineItemsContainer">
+                    <div th:each="item, stat : *{lineItems}" class="card mb-3 line-item">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <strong>Item <span class="item-number"
+                                                   th:text="${stat.index + 1}">1</span></strong>
+                                <button type="button"
+                                        class="btn btn-outline-danger btn-sm remove-item"
+                                        onclick="SaleForm.removeLineItem(this)"
+                                        th:if="${stat.index > 0}">
+                                    Remove
+                                </button>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <label th:for="'lineItems' + ${stat.index} + '.releaseId'"
+                                           class="form-label">Release*</label>
+                                    <select class="form-select release-select"
+                                            th:field="*{lineItems[__${stat.index}__].releaseId}"
+                                            required>
+                                        <option value="">Select release...</option>
+                                        <option th:each="release : ${releases}"
+                                                th:value="${release.id}"
+                                                th:text="${release.name}">Release Name</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-2">
+                                    <label th:for="'lineItems' + ${stat.index} + '.format'"
+                                           class="form-label">Format*</label>
+                                    <select class="form-select format-select"
+                                            th:field="*{lineItems[__${stat.index}__].format}"
+                                            required>
+                                        <option value="">Select...</option>
+                                        <option th:each="format : ${formats}"
+                                                th:value="${format}"
+                                                th:text="${format}">VINYL</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label th:for="'lineItems' + ${stat.index} + '.quantity'"
+                                           class="form-label">Quantity*</label>
+                                    <input type="number" class="form-control quantity-input"
+                                           th:field="*{lineItems[__${stat.index}__].quantity}"
+                                           min="1" required>
+                                </div>
+                                <div class="col-md-3">
+                                    <label th:for="'lineItems' + ${stat.index} + '.unitPrice'"
+                                           class="form-label">Unit Price*</label>
+                                    <input type="number" class="form-control price-input"
+                                           th:field="*{lineItems[__${stat.index}__].unitPrice}"
+                                           step="0.01" min="0" required>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                    <a th:href="@{/labels/{labelId}/sales/{saleId}(labelId=${label.id},saleId=${sale.id})}"
+                       class="btn btn-outline-secondary">Cancel</a>
+                </div>
+
+                <input type="hidden" th:if="${_csrf}"
+                       th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const firstReleaseSelect = document.querySelector('.release-select');
+        const firstFormatSelect = document.querySelector('.format-select');
+
+        const releases = Array.from(firstReleaseSelect?.options || [])
+            .filter(opt => opt.value)
+            .map(opt => ({id: parseInt(opt.value), name: opt.text}));
+
+        const formats = Array.from(firstFormatSelect?.options || [])
+            .filter(opt => opt.value)
+            .map(opt => opt.value);
+
+        const SaleForm = {
+            releases: [],
+            formats: [],
+
+            initialize(releases, formats) {
+                this.releases = releases;
+                this.formats = formats;
+                this.updateItemNumbers();
+            },
+
+            addLineItem() {
+                const container = document.getElementById('lineItemsContainer');
+                const items = container.querySelectorAll('.line-item');
+                const newIndex = items.length;
+
+                const newItem = document.createElement('div');
+                newItem.className = 'card mb-3 line-item';
+                newItem.innerHTML = this.createLineItemHTML(newIndex);
+
+                container.appendChild(newItem);
+                this.updateItemNumbers();
+            },
+
+            createLineItemHTML(index) {
+                const releaseOptions = this.releases
+                    .map(r => '<option value="' + r.id + '">' + this.escapeHtml(r.name) + '</option>')
+                    .join('');
+
+                const formatOptions = this.formats
+                    .map(f => '<option value="' + f + '">' + f + '</option>')
+                    .join('');
+
+                return '' +
+                    '<div class="card-body">' +
+                        '<div class="d-flex justify-content-between align-items-center mb-2">' +
+                            '<strong>Item <span class="item-number">' + (index + 1) + '</span></strong>' +
+                            '<button type="button" class="btn btn-outline-danger btn-sm remove-item"' +
+                                ' onclick="SaleForm.removeLineItem(this)">Remove</button>' +
+                        '</div>' +
+                        '<div class="row">' +
+                            '<div class="col-md-4">' +
+                                '<label for="lineItems' + index + '.releaseId"' +
+                                    ' class="form-label">Release*</label>' +
+                                '<select class="form-select release-select"' +
+                                    ' id="lineItems' + index + '.releaseId"' +
+                                    ' name="lineItems[' + index + '].releaseId" required>' +
+                                    '<option value="">Select release...</option>' +
+                                    releaseOptions +
+                                '</select>' +
+                            '</div>' +
+                            '<div class="col-md-2">' +
+                                '<label for="lineItems' + index + '.format"' +
+                                    ' class="form-label">Format*</label>' +
+                                '<select class="form-select format-select"' +
+                                    ' id="lineItems' + index + '.format"' +
+                                    ' name="lineItems[' + index + '].format" required>' +
+                                    '<option value="">Select...</option>' +
+                                    formatOptions +
+                                '</select>' +
+                            '</div>' +
+                            '<div class="col-md-3">' +
+                                '<label for="lineItems' + index + '.quantity"' +
+                                    ' class="form-label">Quantity*</label>' +
+                                '<input type="number" class="form-control quantity-input"' +
+                                    ' id="lineItems' + index + '.quantity"' +
+                                    ' name="lineItems[' + index + '].quantity" min="1" required>' +
+                            '</div>' +
+                            '<div class="col-md-3">' +
+                                '<label for="lineItems' + index + '.unitPrice"' +
+                                    ' class="form-label">Unit Price*</label>' +
+                                '<input type="number" class="form-control price-input"' +
+                                    ' id="lineItems' + index + '.unitPrice"' +
+                                    ' name="lineItems[' + index + '].unitPrice"' +
+                                    ' step="0.01" min="0" required>' +
+                            '</div>' +
+                        '</div>' +
+                    '</div>';
+            },
+
+            removeLineItem(button) {
+                const container = document.getElementById('lineItemsContainer');
+                const items = container.querySelectorAll('.line-item');
+
+                if (items.length <= 1) {
+                    alert('At least one line item is required');
+                    return;
+                }
+
+                button.closest('.line-item').remove();
+                this.reindexLineItems();
+                this.updateItemNumbers();
+            },
+
+            reindexLineItems() {
+                const container = document.getElementById('lineItemsContainer');
+                const items = container.querySelectorAll('.line-item');
+
+                items.forEach((item, index) => {
+                    item.querySelectorAll('select').forEach(select => {
+                        const oldName = select.getAttribute('name');
+                        if (oldName) {
+                            select.setAttribute('name', oldName.replace(/\[\d+\]/, `[${index}]`));
+                            const field = oldName.match(/\.(\w+)$/)?.[1] || '';
+                            select.setAttribute('id', `lineItems${index}.${field}`);
+                        }
+                    });
+
+                    item.querySelectorAll('input[type="number"]').forEach(input => {
+                        const oldName = input.getAttribute('name');
+                        if (oldName) {
+                            input.setAttribute('name', oldName.replace(/\[\d+\]/, `[${index}]`));
+                            const field = oldName.match(/\.(\w+)$/)?.[1] || '';
+                            input.setAttribute('id', `lineItems${index}.${field}`);
+                        }
+                    });
+                });
+            },
+
+            updateItemNumbers() {
+                document.querySelectorAll('.line-item').forEach((item, index) => {
+                    const numberSpan = item.querySelector('.item-number');
+                    if (numberSpan) {
+                        numberSpan.textContent = index + 1;
+                    }
+                    const removeBtn = item.querySelector('.remove-item');
+                    if (removeBtn) {
+                        removeBtn.style.display = index === 0 ? 'none' : 'inline-block';
+                    }
+                });
+            },
+
+            escapeHtml(text) {
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            }
+        };
+
+        SaleForm.initialize(releases, formats);
+        window.SaleForm = SaleForm;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const addButton = document.getElementById('addLineItemBtn');
+            if (addButton) {
+                addButton.addEventListener('click', () => SaleForm.addLineItem());
+            }
+        });
+    </script>
+</main>
+</html>

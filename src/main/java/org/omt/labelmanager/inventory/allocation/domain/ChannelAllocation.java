@@ -9,13 +9,8 @@ public record ChannelAllocation(
         Long productionRunId,
         Long distributorId,
         int quantity,
-        int unitsSold,
         Instant allocatedAt
 ) {
-
-    public int unitsRemaining() {
-        return quantity - unitsSold;
-    }
 
     public static ChannelAllocation fromEntity(ChannelAllocationEntity entity) {
         return new ChannelAllocation(
@@ -23,7 +18,6 @@ public record ChannelAllocation(
                 entity.getProductionRunId(),
                 entity.getDistributorId(),
                 entity.getQuantity(),
-                entity.getUnitsSold(),
                 entity.getAllocatedAt()
         );
     }

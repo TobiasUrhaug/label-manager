@@ -1,5 +1,9 @@
 package org.omt.labelmanager.sales.sale;
 
+import java.math.BigDecimal;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.omt.labelmanager.AbstractIntegrationTest;
@@ -7,25 +11,21 @@ import org.omt.labelmanager.catalog.label.LabelTestHelper;
 import org.omt.labelmanager.catalog.release.ReleaseTestHelper;
 import org.omt.labelmanager.catalog.release.domain.ReleaseFormat;
 import org.omt.labelmanager.distribution.distributor.domain.ChannelType;
-import org.omt.labelmanager.distribution.distributor.domain.Distributor;
 import org.omt.labelmanager.distribution.distributor.infrastructure.DistributorEntity;
 import org.omt.labelmanager.distribution.distributor.infrastructure.DistributorRepository;
 import org.omt.labelmanager.finance.domain.shared.Money;
-import org.omt.labelmanager.inventory.allocation.domain.ChannelAllocation;
+import org.omt.labelmanager.inventory.InsufficientInventoryException;
+import org.omt.labelmanager.inventory.allocation.api.AllocationCommandApi;
 import org.omt.labelmanager.inventory.allocation.infrastructure.ChannelAllocationEntity;
 import org.omt.labelmanager.inventory.allocation.infrastructure.ChannelAllocationRepository;
 import org.omt.labelmanager.inventory.domain.MovementType;
 import org.omt.labelmanager.inventory.inventorymovement.infrastructure.InventoryMovementRepository;
+import org.omt.labelmanager.inventory.inventorymovement.api.InventoryMovementQueryApi;
 import org.omt.labelmanager.inventory.productionrun.infrastructure.ProductionRunEntity;
 import org.omt.labelmanager.inventory.productionrun.infrastructure.ProductionRunRepository;
 import org.omt.labelmanager.sales.sale.api.SaleCommandApi;
 import org.omt.labelmanager.sales.sale.domain.SaleLineItemInput;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.math.BigDecimal;
-import java.time.Instant;
-import java.time.LocalDate;
-import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -52,6 +52,12 @@ class SaleRegistrationIntegrationTest extends AbstractIntegrationTest {
 
     @Autowired
     private InventoryMovementRepository inventoryMovementRepository;
+
+    @Autowired
+    private InventoryMovementQueryApi inventoryMovementQueryApi;
+
+    @Autowired
+    private AllocationCommandApi allocationCommandApi;
 
     private Long labelId;
     private Long releaseId;
@@ -90,14 +96,8 @@ class SaleRegistrationIntegrationTest extends AbstractIntegrationTest {
                 ));
         productionRunId = productionRun.getId();
 
-        // Allocate inventory to DIRECT distributor
-        channelAllocationRepository.save(
-                new ChannelAllocationEntity(
-                        productionRunId,
-                        directDistributorId,
-                        50,
-                        Instant.now()
-                ));
+        // Allocate inventory to DIRECT distributor (records movement via API)
+        allocationCommandApi.createAllocation(productionRunId, directDistributorId, 50);
     }
 
     @Test
@@ -131,15 +131,10 @@ class SaleRegistrationIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    void registerSale_incrementsUnitsSold() {
-        var initialAllocation = channelAllocationRepository
-                .findByProductionRunIdAndDistributorId(
-                        productionRunId,
-                        directDistributorId
-                )
-                .orElseThrow();
-        var initialQuantity = initialAllocation.getQuantity();
-        var initialUnitsSold = initialAllocation.getUnitsSold();
+    void registerSale_decreasesCurrentInventory() {
+        int inventoryBefore = inventoryMovementQueryApi.getCurrentInventory(
+                productionRunId, directDistributorId
+        );
 
         var lineItems = List.of(
                 new SaleLineItemInput(
@@ -159,17 +154,11 @@ class SaleRegistrationIntegrationTest extends AbstractIntegrationTest {
                 lineItems
         );
 
-        var updatedAllocation = channelAllocationRepository
-                .findByProductionRunIdAndDistributorId(
-                        productionRunId,
-                        directDistributorId
-                )
-                .orElseThrow();
+        int inventoryAfter = inventoryMovementQueryApi.getCurrentInventory(
+                productionRunId, directDistributorId
+        );
 
-        // Quantity (original allocation) should remain unchanged
-        assertThat(updatedAllocation.getQuantity()).isEqualTo(initialQuantity);
-        // Units sold should increase
-        assertThat(updatedAllocation.getUnitsSold()).isEqualTo(initialUnitsSold + 10);
+        assertThat(inventoryAfter).isEqualTo(inventoryBefore - 10);
     }
 
     @Test
@@ -183,7 +172,7 @@ class SaleRegistrationIntegrationTest extends AbstractIntegrationTest {
                 )
         );
 
-        saleCommandApi.registerSale(
+        var sale = saleCommandApi.registerSale(
                 labelId,
                 LocalDate.of(2026, 2, 12),
                 ChannelType.DIRECT,
@@ -192,12 +181,21 @@ class SaleRegistrationIntegrationTest extends AbstractIntegrationTest {
                 lineItems
         );
 
-        var movements = inventoryMovementRepository.findByProductionRunId(productionRunId);
+        var movements = inventoryMovementRepository
+                .findByProductionRunIdOrderByOccurredAtDesc(productionRunId)
+                .stream()
+                .filter(m -> m.getMovementType() == MovementType.SALE)
+                .toList();
 
         assertThat(movements).hasSize(1);
         assertThat(movements.getFirst().getMovementType()).isEqualTo(MovementType.SALE);
-        assertThat(movements.getFirst().getQuantityDelta()).isEqualTo(-5);
-        assertThat(movements.getFirst().getDistributorId()).isEqualTo(directDistributorId);
+        assertThat(movements.getFirst().getFromLocationType()).isEqualTo(
+                org.omt.labelmanager.inventory.domain.LocationType.DISTRIBUTOR);
+        assertThat(movements.getFirst().getFromLocationId()).isEqualTo(directDistributorId);
+        assertThat(movements.getFirst().getToLocationType()).isEqualTo(
+                org.omt.labelmanager.inventory.domain.LocationType.EXTERNAL);
+        assertThat(movements.getFirst().getQuantity()).isEqualTo(5);
+        assertThat(movements.getFirst().getReferenceId()).isEqualTo(sale.id());
     }
 
     @Test
@@ -220,8 +218,8 @@ class SaleRegistrationIntegrationTest extends AbstractIntegrationTest {
                         null,
                         lineItems
                 ))
-                .isInstanceOf(IllegalStateException.class)
-                .hasMessageContaining("Insufficient quantity");
+                .isInstanceOf(InsufficientInventoryException.class)
+                .hasMessageContaining("Insufficient inventory");
     }
 
     @Test
@@ -280,7 +278,7 @@ class SaleRegistrationIntegrationTest extends AbstractIntegrationTest {
     @Test
     void registerSale_withNoAllocation_throwsHelpfulException() {
         // Create a second production run without any allocation
-        var unallocatedProductionRun = productionRunRepository.save(
+        productionRunRepository.save(
                 new ProductionRunEntity(
                         releaseId,
                         ReleaseFormat.CD,
@@ -366,14 +364,11 @@ class SaleRegistrationIntegrationTest extends AbstractIntegrationTest {
 
         assertThat(sale.channel()).isEqualTo(ChannelType.DIRECT);
 
-        // Verify DIRECT distributor allocation was updated
-        var updatedAllocation = channelAllocationRepository
-                .findByProductionRunIdAndDistributorId(
-                        productionRunId,
-                        directDistributorId
-                )
-                .orElseThrow();
-        assertThat(updatedAllocation.getUnitsSold()).isEqualTo(5);
+        // Verify DIRECT distributor inventory decreased
+        int currentInventory = inventoryMovementQueryApi.getCurrentInventory(
+                productionRunId, directDistributorId
+        );
+        assertThat(currentInventory).isEqualTo(45); // 50 allocated - 5 sold
     }
 
     @Test
@@ -387,14 +382,8 @@ class SaleRegistrationIntegrationTest extends AbstractIntegrationTest {
                 ));
         Long distributorId = distributorEntity.getId();
 
-        // Allocate inventory to this distributor
-        channelAllocationRepository.save(
-                new ChannelAllocationEntity(
-                        productionRunId,
-                        distributorId,
-                        30,
-                        Instant.now()
-                ));
+        // Allocate inventory to this distributor (via API so movements are recorded)
+        allocationCommandApi.createAllocation(productionRunId, distributorId, 30);
 
         var lineItems = List.of(
                 new SaleLineItemInput(
@@ -416,20 +405,17 @@ class SaleRegistrationIntegrationTest extends AbstractIntegrationTest {
 
         assertThat(sale.channel()).isEqualTo(ChannelType.DISTRIBUTOR);
 
-        // Verify the DISTRIBUTOR's allocation was updated, NOT the DIRECT
-        var distributorAllocation = channelAllocationRepository
-                .findByProductionRunIdAndDistributorId(productionRunId, distributorId)
-                .orElseThrow();
-        assertThat(distributorAllocation.getUnitsSold()).isEqualTo(10);
+        // Verify the DISTRIBUTOR's inventory decreased
+        int distributorInventory = inventoryMovementQueryApi.getCurrentInventory(
+                productionRunId, distributorId
+        );
+        assertThat(distributorInventory).isEqualTo(20); // 30 allocated - 10 sold
 
         // Verify DIRECT allocation was NOT touched
-        var directAllocation = channelAllocationRepository
-                .findByProductionRunIdAndDistributorId(
-                        productionRunId,
-                        directDistributorId
-                )
-                .orElseThrow();
-        assertThat(directAllocation.getUnitsSold()).isEqualTo(0);
+        int directInventory = inventoryMovementQueryApi.getCurrentInventory(
+                productionRunId, directDistributorId
+        );
+        assertThat(directInventory).isEqualTo(50); // unchanged
     }
 
     @Test
@@ -463,6 +449,21 @@ class SaleRegistrationIntegrationTest extends AbstractIntegrationTest {
                 ))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("does not match channel type");
+    }
+
+    @Test
+    void registerSale_withEmptyLineItems_throwsException() {
+        assertThatThrownBy(() ->
+                saleCommandApi.registerSale(
+                        labelId,
+                        LocalDate.of(2026, 2, 12),
+                        ChannelType.DIRECT,
+                        null,
+                        null,
+                        List.of()
+                ))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("at least one line item");
     }
 
     @Test

@@ -1,5 +1,7 @@
 package org.omt.labelmanager.inventory.inventorymovement.infrastructure;
 
+import java.time.Instant;
+import java.time.LocalDate;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.omt.labelmanager.AbstractIntegrationTest;
@@ -9,13 +11,11 @@ import org.omt.labelmanager.catalog.release.domain.ReleaseFormat;
 import org.omt.labelmanager.distribution.distributor.domain.ChannelType;
 import org.omt.labelmanager.distribution.distributor.infrastructure.DistributorEntity;
 import org.omt.labelmanager.distribution.distributor.infrastructure.DistributorRepository;
+import org.omt.labelmanager.inventory.domain.LocationType;
 import org.omt.labelmanager.inventory.domain.MovementType;
 import org.omt.labelmanager.inventory.productionrun.infrastructure.ProductionRunEntity;
 import org.omt.labelmanager.inventory.productionrun.infrastructure.ProductionRunRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.time.Instant;
-import java.time.LocalDate;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -46,18 +46,12 @@ public class InventoryMovementPersistenceIntegrationTest extends AbstractIntegra
         distributorRepository.deleteAll();
 
         var label = labelTestHelper.createLabel("Test Label");
-        Long releaseId = releaseTestHelper.createReleaseEntity(
-                "Test Release", label.id());
+        Long releaseId = releaseTestHelper.createReleaseEntity("Test Release", label.id());
 
         ProductionRunEntity productionRun = productionRunRepository.save(
                 new ProductionRunEntity(
-                        releaseId,
-                        ReleaseFormat.VINYL,
-                        "First pressing",
-                        "Plant A",
-                        LocalDate.of(2025, 1, 1),
-                        500
-                ));
+                        releaseId, ReleaseFormat.VINYL, "First pressing",
+                        "Plant A", LocalDate.of(2025, 1, 1), 500));
         productionRunId = productionRun.getId();
 
         DistributorEntity distributor = distributorRepository.save(
@@ -66,39 +60,38 @@ public class InventoryMovementPersistenceIntegrationTest extends AbstractIntegra
     }
 
     @Test
-    void savesAndRetrievesInventoryMovement() {
+    void savesAndRetrievesAllocationMovement() {
         Instant occurredAt = Instant.parse("2025-06-15T10:00:00Z");
         var entity = new InventoryMovementEntity(
                 productionRunId,
-                distributorId,
-                100,
-                MovementType.ALLOCATION,
-                occurredAt,
-                42L
+                LocationType.WAREHOUSE, null,
+                LocationType.DISTRIBUTOR, distributorId,
+                100, MovementType.ALLOCATION, occurredAt, 42L
         );
 
         var saved = inventoryMovementRepository.save(entity);
 
         var retrieved = inventoryMovementRepository.findById(saved.getId());
         assertThat(retrieved).isPresent();
-        assertThat(retrieved.get().getProductionRunId()).isEqualTo(productionRunId);
-        assertThat(retrieved.get().getDistributorId()).isEqualTo(distributorId);
-        assertThat(retrieved.get().getQuantityDelta()).isEqualTo(100);
-        assertThat(retrieved.get().getMovementType()).isEqualTo(MovementType.ALLOCATION);
-        assertThat(retrieved.get().getOccurredAt()).isEqualTo(occurredAt);
-        assertThat(retrieved.get().getReferenceId()).isEqualTo(42L);
+        var m = retrieved.get();
+        assertThat(m.getProductionRunId()).isEqualTo(productionRunId);
+        assertThat(m.getFromLocationType()).isEqualTo(LocationType.WAREHOUSE);
+        assertThat(m.getFromLocationId()).isNull();
+        assertThat(m.getToLocationType()).isEqualTo(LocationType.DISTRIBUTOR);
+        assertThat(m.getToLocationId()).isEqualTo(distributorId);
+        assertThat(m.getQuantity()).isEqualTo(100);
+        assertThat(m.getMovementType()).isEqualTo(MovementType.ALLOCATION);
+        assertThat(m.getOccurredAt()).isEqualTo(occurredAt);
+        assertThat(m.getReferenceId()).isEqualTo(42L);
     }
 
     @Test
     void savesMovementWithNullReferenceId() {
-        Instant occurredAt = Instant.now();
         var entity = new InventoryMovementEntity(
                 productionRunId,
-                distributorId,
-                -50,
-                MovementType.SALE,
-                occurredAt,
-                null
+                LocationType.DISTRIBUTOR, distributorId,
+                LocationType.EXTERNAL, null,
+                50, MovementType.SALE, Instant.now(), null
         );
 
         var saved = inventoryMovementRepository.save(entity);
@@ -112,40 +105,62 @@ public class InventoryMovementPersistenceIntegrationTest extends AbstractIntegra
     void findsByProductionRunId() {
         Instant occurredAt = Instant.now();
         inventoryMovementRepository.save(new InventoryMovementEntity(
-                productionRunId, distributorId, 100, MovementType.ALLOCATION, occurredAt, null));
+                productionRunId,
+                LocationType.WAREHOUSE, null, LocationType.DISTRIBUTOR, distributorId,
+                100, MovementType.ALLOCATION, occurredAt, null));
         inventoryMovementRepository.save(new InventoryMovementEntity(
-                productionRunId, distributorId, -20, MovementType.SALE, occurredAt, null));
+                productionRunId,
+                LocationType.DISTRIBUTOR, distributorId, LocationType.EXTERNAL, null,
+                20, MovementType.SALE, occurredAt, null));
 
-        var movements = inventoryMovementRepository.findByProductionRunId(productionRunId);
+        var movements =
+                inventoryMovementRepository.findByProductionRunIdOrderByOccurredAtDesc(
+                        productionRunId);
 
         assertThat(movements).hasSize(2);
         assertThat(movements).allMatch(m -> m.getProductionRunId().equals(productionRunId));
     }
 
     @Test
-    void findsByDistributorId() {
+    @org.springframework.transaction.annotation.Transactional
+    void deletesMovementsByReferenceId() {
         Instant occurredAt = Instant.now();
         inventoryMovementRepository.save(new InventoryMovementEntity(
-                productionRunId, distributorId, 100, MovementType.ALLOCATION, occurredAt, null));
+                productionRunId,
+                LocationType.DISTRIBUTOR, distributorId, LocationType.EXTERNAL, null,
+                30, MovementType.SALE, occurredAt, 99L));
         inventoryMovementRepository.save(new InventoryMovementEntity(
-                productionRunId, distributorId, -20, MovementType.SALE, occurredAt, null));
+                productionRunId,
+                LocationType.DISTRIBUTOR, distributorId, LocationType.EXTERNAL, null,
+                20, MovementType.SALE, occurredAt, 99L));
+        // Different referenceId — should NOT be deleted
+        inventoryMovementRepository.save(new InventoryMovementEntity(
+                productionRunId,
+                LocationType.DISTRIBUTOR, distributorId, LocationType.EXTERNAL, null,
+                10, MovementType.SALE, occurredAt, 100L));
 
-        var movements = inventoryMovementRepository.findByDistributorId(distributorId);
+        inventoryMovementRepository.deleteByMovementTypeAndReferenceId(MovementType.SALE, 99L);
 
-        assertThat(movements).hasSize(2);
-        assertThat(movements).allMatch(m -> m.getDistributorId().equals(distributorId));
+        var remaining =
+                inventoryMovementRepository.findByProductionRunIdOrderByOccurredAtDesc(
+                        productionRunId);
+        assertThat(remaining).hasSize(1);
+        assertThat(remaining.getFirst().getReferenceId()).isEqualTo(100L);
     }
 
     @Test
     void deletesMovementWhenProductionRunDeleted() {
-        Instant occurredAt = Instant.now();
         inventoryMovementRepository.save(new InventoryMovementEntity(
-                productionRunId, distributorId, 100, MovementType.ALLOCATION, occurredAt, null));
+                productionRunId,
+                LocationType.WAREHOUSE, null, LocationType.DISTRIBUTOR, distributorId,
+                100, MovementType.ALLOCATION, Instant.now(), null));
 
-        assertThat(inventoryMovementRepository.findByProductionRunId(productionRunId)).hasSize(1);
+        assertThat(inventoryMovementRepository
+                .findByProductionRunIdOrderByOccurredAtDesc(productionRunId)).hasSize(1);
 
         productionRunRepository.deleteById(productionRunId);
 
-        assertThat(inventoryMovementRepository.findByProductionRunId(productionRunId)).isEmpty();
+        assertThat(inventoryMovementRepository
+                .findByProductionRunIdOrderByOccurredAtDesc(productionRunId)).isEmpty();
     }
 }

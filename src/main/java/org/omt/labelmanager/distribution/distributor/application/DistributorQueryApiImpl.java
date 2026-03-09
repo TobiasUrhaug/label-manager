@@ -31,6 +31,17 @@ class DistributorQueryApiImpl implements DistributorQueryApi {
     }
 
     @Override
+    public Optional<Distributor> findById(Long distributorId) {
+        return repository.findById(distributorId)
+                .map(entity -> new Distributor(
+                        entity.getId(),
+                        entity.getLabelId(),
+                        entity.getName(),
+                        entity.getChannelType()
+                ));
+    }
+
+    @Override
     public Optional<Distributor> findByLabelIdAndChannelType(
             Long labelId,
             ChannelType channelType
