@@ -29,6 +29,11 @@ class ProductionRunQueryApiImpl implements ProductionRunQueryApi {
     }
 
     @Override
+    public Optional<ProductionRun> findById(Long productionRunId) {
+        return repository.findById(productionRunId).map(ProductionRun::fromEntity);
+    }
+
+    @Override
     public List<ProductionRun> findByReleaseId(Long releaseId) {
         return repository.findByReleaseId(releaseId).stream()
                 .map(ProductionRun::fromEntity)

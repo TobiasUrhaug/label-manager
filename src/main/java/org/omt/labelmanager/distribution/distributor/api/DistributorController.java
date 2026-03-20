@@ -2,6 +2,7 @@ package org.omt.labelmanager.distribution.distributor.api;
 
 import jakarta.persistence.EntityNotFoundException;
 import org.omt.labelmanager.catalog.label.api.LabelQueryApi;
+import org.omt.labelmanager.distribution.agreement.api.AgreementQueryApi;
 import org.omt.labelmanager.sales.distributor_return.api.DistributorReturnQueryApi;
 import org.omt.labelmanager.sales.sale.api.SaleQueryApi;
 import org.springframework.stereotype.Controller;
@@ -22,19 +23,22 @@ public class DistributorController {
     private final LabelQueryApi labelQueryApi;
     private final SaleQueryApi saleQueryApi;
     private final DistributorReturnQueryApi returnQueryApi;
+    private final AgreementQueryApi agreementQueryApi;
 
     public DistributorController(
             DistributorCommandApi commandApi,
             DistributorQueryApi distributorQueryApi,
             LabelQueryApi labelQueryApi,
             SaleQueryApi saleQueryApi,
-            DistributorReturnQueryApi returnQueryApi
+            DistributorReturnQueryApi returnQueryApi,
+            AgreementQueryApi agreementQueryApi
     ) {
         this.commandApi = commandApi;
         this.distributorQueryApi = distributorQueryApi;
         this.labelQueryApi = labelQueryApi;
         this.saleQueryApi = saleQueryApi;
         this.returnQueryApi = returnQueryApi;
+        this.agreementQueryApi = agreementQueryApi;
     }
 
     @GetMapping("/{distributorId}")
@@ -50,11 +54,13 @@ public class DistributorController {
                 .orElseThrow(() -> new EntityNotFoundException("Distributor not found"));
         var sales = saleQueryApi.getSalesForDistributor(distributorId);
         var returns = returnQueryApi.getReturnsForDistributor(distributorId);
+        var agreementCount = agreementQueryApi.findByDistributorId(distributorId).size();
 
         model.addAttribute("label", label);
         model.addAttribute("distributor", distributor);
         model.addAttribute("sales", sales);
         model.addAttribute("returns", returns);
+        model.addAttribute("agreementCount", agreementCount);
 
         return "distributor/detail";
     }
