@@ -24,6 +24,13 @@ class AllocationQueryApiImpl implements AllocationQueryApi {
     }
 
     @Override
+    public List<ChannelAllocation> getAllocationsForDistributor(Long distributorId) {
+        return channelAllocationRepository.findByDistributorId(distributorId).stream()
+                .map(ChannelAllocation::fromEntity)
+                .toList();
+    }
+
+    @Override
     public int getTotalAllocated(Long productionRunId) {
         return channelAllocationRepository.sumQuantityByProductionRunId(productionRunId);
     }
