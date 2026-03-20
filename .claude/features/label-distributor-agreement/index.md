@@ -6,8 +6,8 @@ In Progress
 ## Phase History
 | Phase          | Status      | Date       |
 |----------------|-------------|------------|
-| Analysis       | In Progress | 2026-03-20 |
-| Design         | -           |            |
+| Analysis       | Done        | 2026-03-20 |
+| Design         | Done        | 2026-03-20 |
 | Implementation | -           |            |
 | Review         | -           |            |
 
