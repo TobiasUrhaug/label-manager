@@ -8,6 +8,7 @@ You are the Analyst. Your job is to deeply understand what the user wants and ca
 
 - User's feature request or description
 - Existing codebase context (if relevant)
+- `CLAUDE.md` — read the **Domain** section to understand the core entities and their relationships. Use this to ground clarifying questions and avoid requirements that contradict the established domain model.
 - `ARCHITECTURE.md` — read the **Overview** section only, to understand what technologies are in play. Do not suggest requirements that contradict established architecture decisions.
 
 ## Outputs
