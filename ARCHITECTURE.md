@@ -11,6 +11,7 @@ org.omt.labelmanager/
 ├── catalog/           # Labels, releases, artists, tracks
 ├── identity/          # Users, authentication
 ├── finance/           # Costs
+├── inventory/         # Production runs, allocations, inventory movements
 └── infrastructure/    # Cross-cutting: security, storage, dashboard
 ```
 
@@ -47,7 +48,7 @@ catalog/label/
 ```
 
 **Key principles**:
-- The `api/` package contains public interfaces and controllers that define the module's contract
+- The `api/` package contains **only module contracts**: public interfaces (`CommandApi`, `QueryApi`), controllers, and form objects. It does not contain view-specific DTOs or read models assembled for Thymeleaf templates.
 - Business logic is implemented in small, focused use case classes in `application/`
 - API implementations delegate to use cases
 - All implementations (use cases, entities, repositories) remain package-private
@@ -114,7 +115,7 @@ catalog/label/
    public record Release(Long id, String name, Label label, ...) {}
    ```
 
-6. **Keep mapping methods package-private**: Methods like `fromEntity()` should be package-private:
+6. **Keep mapping methods package-private**: Methods like `fromEntity()` should be package-private. This ensures external callers cannot bypass the application layer and create domain objects directly from entities — all construction goes through the module's own use cases:
    ```java
    public record Label(...) {
        // package-private - only use cases within this module can call this
@@ -149,8 +150,8 @@ Use cases represent discrete business operations.
 - Typically 10-30 lines of code
 
 **Query operations:**
-- Simple queries (find by ID, exists check) can live directly in `QueryApiImpl`
-- Complex queries with business logic should be extracted to use cases
+- Simple queries (find by ID, exists check, find by foreign key) can live directly in `QueryApiImpl`
+- Extract to a dedicated use case when the query involves business logic, calculations across multiple repositories, or coordination with another module's API
 
 **Encapsulating side effects:**
 - When an operation always requires side effects, encapsulate them in the module
@@ -277,11 +278,56 @@ public String showRelease(@PathVariable Long id, Model model) {
 }
 ```
 
+**Composite read models (views spanning multiple modules)**
+
+When a Thymeleaf view needs data assembled from several modules, compose it in the controller — not in a service or use case. View models are presentation concerns, not domain concerns.
+
+```java
+// ✅ Controller assembles the view model from multiple module APIs
+@GetMapping("/{id}")
+public String showProductionRun(@PathVariable Long id, Model model) {
+    ProductionRun run = productionRunQuery.findById(id).orElseThrow(...);
+    List<ChannelAllocation> allocations = allocationQuery.getAllocationsForProductionRun(id);
+    int warehouseInventory = inventoryMovementQuery.getWarehouseInventory(id);
+    model.addAttribute("run", run);
+    model.addAttribute("allocations", allocations);
+    model.addAttribute("warehouseInventory", warehouseInventory);
+    return "inventory/production-run-detail";
+}
+```
+
+View-specific DTOs that exist solely to carry assembled data to a template belong in the controller's package or a sibling `web/` package — not in any module's `api/` package.
+
+**Avoid bidirectional module dependencies**
+
+If module A depends on module B, module B must not depend on module A. Bidirectional dependencies between modules signal a missing concept — either a shared domain service, or that the two modules belong in the same module.
+
+```
+// ❌ BAD - circular dependency
+productionrun → allocation (to validate available quantity)
+allocation → productionrun (to check manufactured quantity)
+
+// ✅ GOOD - introduce a domain service that both can depend on
+inventory/InventoryAvailabilityService → productionrun + allocation
+```
+
+**Exception placement**
+
+Exceptions that cross a module boundary belong in the throwing module's `api/` package — they are part of that module's public contract. Callers that catch them depend on the `api/` package they already depend on.
+
+```java
+// api/InsufficientInventoryException.java  ← part of the module's contract
+public class InsufficientInventoryException extends RuntimeException { ... }
+
+// application/SomeCommandApiImpl.java (throws it)
+// another module's Controller (catches it) — both reference the same api/ package
+```
+
 ## Layer Separation
 
 | Subdirectory | Contains | Visibility | Example |
 |--------------|----------|------------|---------|
-| `api/` | Public interfaces, controllers, forms | Public | `LabelCommandApi.java`, `LabelController.java` |
+| `api/` | Module contracts: interfaces, controllers, forms, domain exceptions | Public | `LabelCommandApi.java`, `LabelController.java`, `LabelNotFoundException.java` |
 | `application/` | Use cases, API implementations | Package-private | `CreateLabelUseCase.java`, `LabelCommandApiImpl.java` |
 | `domain/` | Domain records | Public | `Label.java` |
 | `infrastructure/` | JPA entities, repositories | Package-private | `LabelEntity.java`, `LabelRepository.java` |
