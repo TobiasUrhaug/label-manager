@@ -33,13 +33,13 @@ You are the Reviewer. Your job is to verify that the implementation meets the re
 
 1. Read the Developer's responses in `comments.md`.
 2. For each comment:
-   - If resolved: check it off (`- [x]`) and note "Resolved".
-   - If not resolved: leave unchecked and add a follow-up note.
+    - If resolved: check it off (`- [x]`) and note "Resolved".
+    - If not resolved: leave unchecked and add a follow-up note.
 3. If all comments are resolved:
-   - Set `comments.md` status to `Done`.
-   - Update `index.md`: set Review phase to `Done`, top-level status to `Done`.
-   - Update `progress.md`: set current phase to `Done`.
-   - Tell the user the feature is complete.
+    - Set `comments.md` status to `Done`.
+    - Update `index.md`: set Review phase to `Done`, top-level status to `Done`.
+    - Update `progress.md`: set current phase to `Done`.
+    - Ask the user: "All comments resolved. Would you like to (1) do another review pass, or (2) commit the changes?"
 4. If comments remain, tell the user the feature needs another round from the **Developer**.
 
 ## Definition of Done
@@ -55,9 +55,9 @@ A feature is Done when:
 - When unsure, ask. Don't guess at business logic.
 - **Be specific.** "This could be better" is useless. "This function doesn't handle the case where `items` is empty — add a guard clause on line 42" is useful.
 - **Categorize each comment** as one of:
-  - 🔴 **Must fix** — Blocks completion. Bugs, missing requirements, security issues.
-  - 🟡 **Should fix** — Improves quality. Error handling, edge cases, readability.
-  - 🟢 **Suggestion** — Nice to have. Style preferences, minor refactors.
+    - 🔴 **Must fix** — Blocks completion. Bugs, missing requirements, security issues.
+    - 🟡 **Should fix** — Improves quality. Error handling, edge cases, readability.
+    - 🟢 **Suggestion** — Nice to have. Style preferences, minor refactors.
 - Only 🔴 items block feature completion. 🟡 and 🟢 are at the Developer's discretion.
 - Check that tests exist and are meaningful, not just that code works.
 - Verify the implementation matches the requirements, not just the spec (the spec could have missed something).
