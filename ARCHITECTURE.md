@@ -11,6 +11,7 @@ org.omt.labelmanager/
 ├── catalog/           # Labels, releases, artists, tracks
 ├── identity/          # Users, authentication
 ├── finance/           # Costs
+├── distribution/      # Distributors, pricing agreements
 ├── inventory/         # Production runs, allocations, inventory movements
 └── infrastructure/    # Cross-cutting: security, storage, dashboard
 ```
@@ -50,7 +51,7 @@ catalog/release/
 ├── domain/
 │   └── Release.java                 # Public domain record
 │
-└── infrastructure/                  # public
+└── persistence/                     # public
     ├── ReleaseEntity.java           # JPA entity
     └── ReleaseRepository.java       # Spring Data repository
 ```
@@ -62,32 +63,30 @@ For CRUD-dominant modules (e.g., `label`, `artist`, `distributor`):
 ```
 catalog/label/
 ├── api/
-│   ├── LabelCommandApi.java       # Public interface (mutations) — optional, see below
-│   ├── LabelQueryApi.java         # Public interface (queries) — optional, see below
+│   ├── LabelCommandApi.java       # Public interface (mutations) — only if other modules depend on this module
+│   ├── LabelQueryApi.java         # Public interface (queries) — only if other modules depend on this module
 │   └── LabelController.java       # Public HTTP interface
 │
-├── application/                   # package-private
-│   ├── LabelCommandService.java   # Single service: implements CommandApi, handles all mutations directly
-│   └── LabelQueryService.java     # Single service: implements QueryApi, handles all queries directly
+├── persistence/                   # public
+│   ├── LabelEntity.java           # JPA entity
+│   └── LabelRepository.java       # Spring Data repository
 │
-├── domain/
-│   └── Label.java                 # Public domain record
-│
-└── infrastructure/                # public
-    ├── LabelEntity.java           # JPA entity
-    └── LabelRepository.java       # Spring Data repository
+├── Label.java                     # Public domain record
+├── LabelCommandService.java       # package-private: handles all mutations directly
+└── LabelQueryService.java         # package-private: handles all queries directly
 ```
 
 **Key differences from full structure:**
+- No separate `application/`, `domain/`, or `persistence/` sub-packages — domain records and services live flat in the module root
 - No separate `*UseCase` classes — the service handles CRUD operations directly
-- `CommandApi`/`QueryApi` interfaces are only needed if other modules depend on this module. If only the controller calls the service, skip the interfaces entirely and inject the service directly.
-- Fewer files, fewer hops, easier to navigate
+- `CommandApi`/`QueryApi` interfaces are only needed if other modules depend on this module. If only the controller calls the service, skip the interfaces entirely and inject the service directly. (Indicated by the "— only if other modules depend on this module" note in the diagram above.)
+- `persistence/` is the only sub-package besides `api/`, separating JPA artifacts from the domain record
 
 **Key principles**:
-- The `api/` package contains **only module contracts**: public interfaces (`CommandApi`, `QueryApi`), controllers, and form objects. It does not contain view-specific DTOs or read models assembled for Thymeleaf templates.
-- Business logic is implemented in small, focused use case classes in `application/`
-- API implementations delegate to use cases
-- All implementations (use cases, entities, repositories) remain package-private
+- The `api/` package is the module's public boundary: interfaces (`CommandApi`, `QueryApi`), controllers, and form objects. It does not contain view-specific DTOs or read models assembled for Thymeleaf templates.
+- The `persistence/` package contains JPA entities and Spring Data repositories — public so test helpers and shared infrastructure adapters can access them.
+- Services (`LabelCommandService`, `LabelQueryService`) are package-private and live flat in the module root alongside the domain record.
+- When a module gains non-trivial business logic, promote it to the full structure.
 
 ### Encapsulation Rules
 
@@ -151,15 +150,21 @@ catalog/label/
    public record Release(Long id, String name, Label label, ...) {}
    ```
 
-6. **Keep mapping methods package-private**: Methods like `fromEntity()` should be package-private. This ensures external callers cannot bypass the application layer and create domain objects directly from entities — all construction goes through the module's own use cases:
+6. **Entity-to-domain mapping**: Use `public static fromEntity()` on the domain record for simple mappings. Extract to a separate `*Mapper` class when the mapping requires inputs beyond the entity (e.g., assembled collections):
    ```java
+   // Simple mapping — method on the domain record
    public record Label(...) {
-       // package-private - only use cases within this module can call this
-       static Label fromEntity(LabelEntity entity) { ... }
+       public static Label fromEntity(LabelEntity entity) { ... }
+   }
+
+   // Complex mapping — separate mapper class when extra inputs are needed
+   public class ReleaseMapper {
+       public static Release fromEntity(ReleaseEntity entity, List<Long> artistIds, List<Track> tracks) { ... }
    }
    ```
+   Note: domain records depend on their module's persistence entity. This is a pragmatic trade-off accepted in this project — the alternative (a separate mapper for every module) adds boilerplate with little benefit at this scale.
 
-7. **Provide test helpers for other modules**: Create a public test helper in the test source tree:
+7. **Provide test helpers for other modules**: Create a public test helper in the test source tree. It may call `fromEntity()` directly since that method is public:
    ```java
    @Component  // in src/test/java
    public class LabelTestHelper {
@@ -188,6 +193,10 @@ Use cases represent discrete business operations. They belong in modules that us
 **Keep use cases focused:**
 - Each use case should do one thing well
 - Typically 10-30 lines of code
+
+**`@Transactional` placement:**
+- Place `@Transactional` on the use case method (or `CommandService` method in the simplified structure), not on the `CommandApiImpl`
+- `CommandApiImpl` delegates to use cases — the transaction boundary belongs with the business operation, not the delegation
 
 **Query operations:**
 - Simple queries (find by ID, exists check, find by foreign key) can live directly in `QueryApiImpl`
@@ -365,19 +374,29 @@ public class InsufficientInventoryException extends RuntimeException { ... }
 
 ## Layer Separation
 
+**Full structure** (modules with real business logic):
+
 | Subdirectory | Contains | Visibility | Example |
 |--------------|----------|------------|---------|
 | `api/` | Module contracts: interfaces, controllers, forms, domain exceptions | Public | `LabelCommandApi.java`, `LabelController.java`, `LabelNotFoundException.java` |
 | `application/` | Use cases, API implementations | Package-private | `CreateLabelUseCase.java`, `LabelCommandApiImpl.java` |
 | `domain/` | Domain records | Public | `Label.java` |
-| `infrastructure/` | JPA entities, repositories | Public | `LabelEntity.java`, `LabelRepository.java` |
+| `persistence/` | JPA entities, repositories | Public | `LabelEntity.java`, `LabelRepository.java` |
+
+**Simplified structure** (CRUD-dominant modules):
+
+| Location | Contains | Visibility | Example |
+|----------|----------|------------|---------|
+| `api/` | Module contracts: interfaces, controllers, forms, domain exceptions | Public | `LabelCommandApi.java`, `LabelController.java` |
+| `persistence/` | JPA entities, repositories | Public | `LabelEntity.java`, `LabelRepository.java` |
+| module root (flat) | Domain records, command/query services | Domain records public; services package-private | `Label.java`, `LabelCommandService.java` |
 
 Note: Shared infrastructure (cross-cutting concerns like security, storage) lives in the `infrastructure/` **bounded context**, not within individual modules.
 
 ## Database
 
 - PostgreSQL (production and tests via TestContainers)
-- Flyway migrations in `src/main/resources/db/migration/`
+- Flyway migrations in `src/main/resources/db/migration/`, named `V{n}__{description}.sql` (e.g., `V30__add_commission_type.sql`)
 
 ## JavaScript and Frontend
 
