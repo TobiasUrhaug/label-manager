@@ -6,7 +6,7 @@
         <h1 th:text="${agreement != null} ? 'Edit Pricing Agreement' : 'New Pricing Agreement'">
             Pricing Agreement
         </h1>
-        <a th:href="@{/labels/{labelId}/distributors/{distributorId}/agreements(labelId=${label.id},distributorId=${distributor.id})}"
+        <a th:href="@{/labels/{labelId}/distributors/{distributorId}(labelId=${label.id},distributorId=${distributor.id})}"
            class="btn btn-outline-secondary">Cancel</a>
     </div>
 
@@ -58,7 +58,7 @@
                             th:text="${agreement != null} ? 'Save Changes' : 'Create Agreement'">
                         Submit
                     </button>
-                    <a th:href="@{/labels/{labelId}/distributors/{distributorId}/agreements(labelId=${label.id},distributorId=${distributor.id})}"
+                    <a th:href="@{/labels/{labelId}/distributors/{distributorId}(labelId=${label.id},distributorId=${distributor.id})}"
                        class="btn btn-outline-secondary">Cancel</a>
                 </div>
 

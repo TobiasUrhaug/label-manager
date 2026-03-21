@@ -50,25 +50,9 @@ public class AgreementController {
     @GetMapping
     public String listAgreements(
             @PathVariable Long labelId,
-            @PathVariable Long distributorId,
-            Model model
+            @PathVariable Long distributorId
     ) {
-        var label = labelQueryApi.findById(labelId)
-                .orElseThrow(() -> new EntityNotFoundException("Label not found"));
-        var distributor = distributorQueryApi.findById(distributorId)
-                .filter(d -> d.labelId().equals(labelId))
-                .orElseThrow(() -> new EntityNotFoundException("Distributor not found"));
-
-        var agreements = queryApi.findByDistributorId(distributorId);
-        var enriched = agreements.stream()
-                .map(a -> enrichAgreement(a))
-                .toList();
-
-        model.addAttribute("label", label);
-        model.addAttribute("distributor", distributor);
-        model.addAttribute("agreements", enriched);
-
-        return "distributor/agreements";
+        return "redirect:/labels/" + labelId + "/distributors/" + distributorId;
     }
 
     @GetMapping("/new")
@@ -101,7 +85,7 @@ public class AgreementController {
         try {
             commandApi.create(distributorId, form.getProductionRunId(),
                     form.getUnitPrice(), form.getCommissionPercentage());
-            return "redirect:/labels/" + labelId + "/distributors/" + distributorId + "/agreements";
+            return "redirect:/labels/" + labelId + "/distributors/" + distributorId;
         } catch (DuplicateAgreementException | IllegalArgumentException e) {
             var label = labelQueryApi.findById(labelId).orElseThrow();
             var distributor = distributorQueryApi.findById(distributorId).orElseThrow();
@@ -155,7 +139,7 @@ public class AgreementController {
     ) {
         try {
             commandApi.update(id, form.getUnitPrice(), form.getCommissionPercentage());
-            return "redirect:/labels/" + labelId + "/distributors/" + distributorId + "/agreements";
+            return "redirect:/labels/" + labelId + "/distributors/" + distributorId;
         } catch (IllegalArgumentException e) {
             var label = labelQueryApi.findById(labelId).orElseThrow();
             var distributor = distributorQueryApi.findById(distributorId).orElseThrow();
@@ -177,7 +161,7 @@ public class AgreementController {
             @PathVariable Long id
     ) {
         commandApi.delete(id);
-        return "redirect:/labels/" + labelId + "/distributors/" + distributorId + "/agreements";
+        return "redirect:/labels/" + labelId + "/distributors/" + distributorId;
     }
 
     private List<AvailableProductionRunView> buildAvailableRuns(Long distributorId) {
@@ -206,8 +190,5 @@ public class AgreementController {
     private AgreementView enrichAgreement(PricingAgreement agreement) {
         var displayName = buildDisplayName(agreement.productionRunId());
         return new AgreementView(agreement, displayName);
-    }
-
-    public record AgreementView(PricingAgreement agreement, String productionRunDisplayName) {
     }
 }
