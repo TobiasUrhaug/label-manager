@@ -85,7 +85,7 @@ In Review
 ## Appendix A Tasks: Fixed-Amount Commission
 
 ### Task A: DB Migration
-- [ ] **A.1** Create `src/main/resources/db/migration/V30__add_commission_type_to_pricing_agreement.sql`:
+- [x] **A.1** Create `src/main/resources/db/migration/V30__add_commission_type_to_pricing_agreement.sql`:
   - `RENAME COLUMN commission_percentage TO commission_value`
   - `ADD COLUMN commission_type VARCHAR(20) NOT NULL DEFAULT 'PERCENTAGE'`
   - `ADD CONSTRAINT chk_commission_type CHECK (commission_type IN ('PERCENTAGE', 'FIXED_AMOUNT'))`
