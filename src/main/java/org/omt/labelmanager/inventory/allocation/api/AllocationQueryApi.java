@@ -18,6 +18,14 @@ public interface AllocationQueryApi {
     List<ChannelAllocation> getAllocationsForProductionRun(Long productionRunId);
 
     /**
+     * Get all allocations for a specific distributor.
+     *
+     * @param distributorId the distributor
+     * @return list of allocations
+     */
+    List<ChannelAllocation> getAllocationsForDistributor(Long distributorId);
+
+    /**
      * Get the total quantity allocated for a specific production run.
      *
      * @param productionRunId the production run

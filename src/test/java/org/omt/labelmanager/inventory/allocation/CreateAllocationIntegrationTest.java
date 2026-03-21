@@ -10,11 +10,11 @@ import org.omt.labelmanager.inventory.allocation.infrastructure.ChannelAllocatio
 import org.omt.labelmanager.catalog.release.domain.ReleaseFormat;
 import org.omt.labelmanager.catalog.release.ReleaseTestHelper;
 import org.omt.labelmanager.catalog.label.LabelTestHelper;
-import org.omt.labelmanager.distribution.distributor.domain.ChannelType;
+import org.omt.labelmanager.distribution.distributor.ChannelType;
 import org.omt.labelmanager.inventory.domain.MovementType;
 import org.omt.labelmanager.inventory.inventorymovement.infrastructure.InventoryMovementRepository;
-import org.omt.labelmanager.distribution.distributor.infrastructure.DistributorEntity;
-import org.omt.labelmanager.distribution.distributor.infrastructure.DistributorRepository;
+import org.omt.labelmanager.distribution.distributor.persistence.DistributorEntity;
+import org.omt.labelmanager.distribution.distributor.persistence.DistributorRepository;
 import org.omt.labelmanager.inventory.productionrun.infrastructure.ProductionRunEntity;
 import org.omt.labelmanager.inventory.productionrun.infrastructure.ProductionRunRepository;
 import org.springframework.beans.factory.annotation.Autowired;

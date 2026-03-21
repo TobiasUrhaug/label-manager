@@ -26,6 +26,7 @@ repositories {
 
 dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-thymeleaf")
+	implementation("org.springframework.boot:spring-boot-starter-validation")
 	implementation("org.springframework.boot:spring-boot-starter-webmvc")
 	implementation("org.springframework.boot:spring-boot-starter-json")
 	implementation("org.springframework.boot:spring-boot-starter-security")

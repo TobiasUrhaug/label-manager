@@ -11,6 +11,8 @@ public interface ChannelAllocationRepository extends JpaRepository<ChannelAlloca
 
     List<ChannelAllocationEntity> findByProductionRunId(Long productionRunId);
 
+    List<ChannelAllocationEntity> findByDistributorId(Long distributorId);
+
     Optional<ChannelAllocationEntity> findByProductionRunIdAndDistributorId(
             Long productionRunId,
             Long distributorId

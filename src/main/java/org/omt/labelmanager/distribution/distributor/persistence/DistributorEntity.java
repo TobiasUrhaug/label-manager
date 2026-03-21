@@ -1,4 +1,4 @@
-package org.omt.labelmanager.distribution.distributor.infrastructure;
+package org.omt.labelmanager.distribution.distributor.persistence;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -8,7 +8,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import org.omt.labelmanager.distribution.distributor.domain.ChannelType;
+import org.omt.labelmanager.distribution.distributor.ChannelType;
 
 @Entity
 @Table(name = "distributor")

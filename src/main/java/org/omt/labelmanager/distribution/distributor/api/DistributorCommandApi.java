@@ -1,7 +1,7 @@
 package org.omt.labelmanager.distribution.distributor.api;
 
-import org.omt.labelmanager.distribution.distributor.domain.ChannelType;
-import org.omt.labelmanager.distribution.distributor.domain.Distributor;
+import org.omt.labelmanager.distribution.distributor.ChannelType;
+import org.omt.labelmanager.distribution.distributor.Distributor;
 
 public interface DistributorCommandApi {
 

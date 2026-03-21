@@ -3,9 +3,9 @@ package org.omt.labelmanager.catalog.label;
 import org.omt.labelmanager.catalog.label.domain.Label;
 import org.omt.labelmanager.catalog.label.infrastructure.LabelEntity;
 import org.omt.labelmanager.catalog.label.infrastructure.LabelRepository;
-import org.omt.labelmanager.distribution.distributor.domain.ChannelType;
-import org.omt.labelmanager.distribution.distributor.infrastructure.DistributorEntity;
-import org.omt.labelmanager.distribution.distributor.infrastructure.DistributorRepository;
+import org.omt.labelmanager.distribution.distributor.ChannelType;
+import org.omt.labelmanager.distribution.distributor.persistence.DistributorEntity;
+import org.omt.labelmanager.distribution.distributor.persistence.DistributorRepository;
 import org.springframework.stereotype.Component;
 
 /**

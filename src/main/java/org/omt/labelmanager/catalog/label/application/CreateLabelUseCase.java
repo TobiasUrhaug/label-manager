@@ -9,7 +9,7 @@ import org.omt.labelmanager.catalog.label.domain.Label;
 import org.omt.labelmanager.catalog.label.infrastructure.LabelEntity;
 import org.omt.labelmanager.catalog.label.infrastructure.LabelRepository;
 import org.omt.labelmanager.distribution.distributor.api.DistributorCommandApi;
-import org.omt.labelmanager.distribution.distributor.domain.ChannelType;
+import org.omt.labelmanager.distribution.distributor.ChannelType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;

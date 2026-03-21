@@ -8,7 +8,7 @@ import org.omt.labelmanager.catalog.label.LabelTestHelper;
 import org.omt.labelmanager.catalog.release.ReleaseTestHelper;
 import org.omt.labelmanager.catalog.release.domain.ReleaseFormat;
 import org.omt.labelmanager.distribution.distributor.DistributorTestHelper;
-import org.omt.labelmanager.distribution.distributor.domain.ChannelType;
+import org.omt.labelmanager.distribution.distributor.ChannelType;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.math.BigDecimal;

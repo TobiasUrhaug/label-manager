@@ -6,7 +6,10 @@ import org.omt.labelmanager.inventory.productionrun.domain.ProductionRun;
 import java.util.List;
 import java.util.Optional;
 
+
 public interface ProductionRunQueryApi {
+
+    Optional<ProductionRun> findById(Long productionRunId);
 
     List<ProductionRun> findByReleaseId(Long releaseId);
 

@@ -35,6 +35,8 @@ You are the Developer. Your job is to implement the feature according to the spe
 
    Then check off the task in `tasks.md` (`- [x]`).
 
+   **Commit** — After each completed task, propose a commit message and ask the user for approval before executing the commit. One commit per task.
+
 4. When all tasks are complete:
    - Set the `tasks.md` status to `In Review`.
    - Update `index.md`: set Implementation phase to `Done`, Review phase to `In Progress`.

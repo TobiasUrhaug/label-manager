@@ -6,7 +6,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import org.omt.labelmanager.distribution.distributor.api.DistributorQueryApi;
-import org.omt.labelmanager.distribution.distributor.domain.Distributor;
+import org.omt.labelmanager.distribution.distributor.Distributor;
 import org.omt.labelmanager.inventory.domain.InventoryLocation;
 import org.omt.labelmanager.inventory.domain.MovementType;
 import org.omt.labelmanager.inventory.inventorymovement.api.InventoryMovementCommandApi;

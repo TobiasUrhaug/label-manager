@@ -10,7 +10,7 @@ import org.omt.labelmanager.catalog.label.LabelTestHelper;
 import org.omt.labelmanager.catalog.release.ReleaseTestHelper;
 import org.omt.labelmanager.catalog.release.domain.ReleaseFormat;
 import org.omt.labelmanager.distribution.distributor.api.DistributorQueryApi;
-import org.omt.labelmanager.distribution.distributor.domain.ChannelType;
+import org.omt.labelmanager.distribution.distributor.ChannelType;
 import org.omt.labelmanager.inventory.allocation.AllocationTestHelper;
 import org.omt.labelmanager.inventory.domain.MovementType;
 import org.omt.labelmanager.inventory.inventorymovement.api.InventoryMovementQueryApi;

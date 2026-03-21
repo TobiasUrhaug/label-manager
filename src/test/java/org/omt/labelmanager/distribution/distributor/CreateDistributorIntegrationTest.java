@@ -5,8 +5,8 @@ import org.junit.jupiter.api.Test;
 import org.omt.labelmanager.AbstractIntegrationTest;
 import org.omt.labelmanager.catalog.label.LabelTestHelper;
 import org.omt.labelmanager.distribution.distributor.api.DistributorCommandApi;
-import org.omt.labelmanager.distribution.distributor.domain.ChannelType;
-import org.omt.labelmanager.distribution.distributor.infrastructure.DistributorRepository;
+import org.omt.labelmanager.distribution.distributor.ChannelType;
+import org.omt.labelmanager.distribution.distributor.persistence.DistributorRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import static org.assertj.core.api.Assertions.assertThat;
