@@ -46,7 +46,7 @@ Draft
 - [x] **6.1** Create `AllocateForm` in `inventory/productionrun/api/`.
   - Fields: `LocationType locationType`, `Long distributorId` (nullable), `int quantity`.
 
-- [ ] **6.2** Create `CancelBandcampReservationForm` in `inventory/productionrun/api/`.
+- [x] **6.2** Create `CancelBandcampReservationForm` in `inventory/productionrun/api/`.
   - Field: `int quantity`.
 
 - [ ] **6.3** Create `AllocateController` in `inventory/productionrun/api/`.

@@ -4,10 +4,10 @@
 Implementation
 
 ## Last Completed Task
-Developer: Task 6.1 — created `AllocateForm` POJO with `locationType`, `distributorId` (nullable), and `quantity` fields.
+Developer: Task 6.2 — created `CancelBandcampReservationForm` POJO with `quantity` field.
 
 ## Next Action
-Developer: task 6.2 — create `CancelBandcampReservationForm`.
+Developer: task 6.3 — create `AllocateController`.
 
 ## Blockers
 None.
