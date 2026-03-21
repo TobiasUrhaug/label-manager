@@ -11,7 +11,7 @@ import org.omt.labelmanager.distribution.agreement.api.DuplicateAgreementExcepti
 import org.omt.labelmanager.distribution.agreement.CommissionType;
 import org.omt.labelmanager.distribution.agreement.persistence.PricingAgreementRepository;
 import org.omt.labelmanager.distribution.distributor.DistributorTestHelper;
-import org.omt.labelmanager.distribution.distributor.domain.ChannelType;
+import org.omt.labelmanager.distribution.distributor.ChannelType;
 import org.omt.labelmanager.inventory.productionrun.ProductionRunTestHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 

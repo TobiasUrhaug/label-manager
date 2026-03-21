@@ -1,4 +1,4 @@
-package org.omt.labelmanager.distribution.distributor.domain;
+package org.omt.labelmanager.distribution.distributor;
 
 import java.util.concurrent.atomic.AtomicLong;
 

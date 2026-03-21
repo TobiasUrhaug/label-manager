@@ -14,7 +14,7 @@ import org.omt.labelmanager.catalog.release.domain.Release;
 import org.omt.labelmanager.catalog.release.domain.ReleaseFormat;
 import org.omt.labelmanager.catalog.release.domain.Track;
 import org.omt.labelmanager.distribution.distributor.api.DistributorQueryApi;
-import org.omt.labelmanager.distribution.distributor.domain.Distributor;
+import org.omt.labelmanager.distribution.distributor.Distributor;
 import org.omt.labelmanager.finance.cost.api.CostQueryApi;
 import org.omt.labelmanager.finance.cost.domain.Cost;
 import org.omt.labelmanager.finance.cost.domain.CostType;

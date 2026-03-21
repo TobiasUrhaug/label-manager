@@ -1,6 +1,6 @@
-package org.omt.labelmanager.distribution.distributor.infrastructure;
+package org.omt.labelmanager.distribution.distributor.persistence;
 
-import org.omt.labelmanager.distribution.distributor.domain.ChannelType;
+import org.omt.labelmanager.distribution.distributor.ChannelType;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;

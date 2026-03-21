@@ -2,7 +2,7 @@ package org.omt.labelmanager.sales.sale.api;
 
 import java.time.LocalDate;
 import java.util.List;
-import org.omt.labelmanager.distribution.distributor.domain.ChannelType;
+import org.omt.labelmanager.distribution.distributor.ChannelType;
 import org.omt.labelmanager.sales.sale.domain.Sale;
 import org.omt.labelmanager.sales.sale.domain.SaleLineItemInput;
 

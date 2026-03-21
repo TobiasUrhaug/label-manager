@@ -1,8 +1,8 @@
 package org.omt.labelmanager.distribution.distributor;
 
 import org.omt.labelmanager.distribution.distributor.api.DistributorCommandApi;
-import org.omt.labelmanager.distribution.distributor.domain.ChannelType;
-import org.omt.labelmanager.distribution.distributor.domain.Distributor;
+import org.omt.labelmanager.distribution.distributor.ChannelType;
+import org.omt.labelmanager.distribution.distributor.Distributor;
 import org.springframework.stereotype.Component;
 
 /**

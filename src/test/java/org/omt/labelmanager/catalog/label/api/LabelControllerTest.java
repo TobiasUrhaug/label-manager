@@ -10,7 +10,7 @@ import org.omt.labelmanager.catalog.release.api.ReleaseQueryApi;
 import org.omt.labelmanager.catalog.label.LabelFactory;
 import org.omt.labelmanager.identity.application.AppUserDetails;
 import org.omt.labelmanager.distribution.distributor.api.DistributorQueryApi;
-import org.omt.labelmanager.distribution.distributor.domain.DistributorFactory;
+import org.omt.labelmanager.distribution.distributor.DistributorFactory;
 import org.omt.labelmanager.test.TestSecurityConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;

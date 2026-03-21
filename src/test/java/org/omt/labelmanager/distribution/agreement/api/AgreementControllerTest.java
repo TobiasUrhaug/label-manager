@@ -7,7 +7,7 @@ import org.omt.labelmanager.catalog.release.ReleaseFactory;
 import org.omt.labelmanager.catalog.release.api.ReleaseQueryApi;
 import org.omt.labelmanager.distribution.agreement.CommissionType;
 import org.omt.labelmanager.distribution.agreement.PricingAgreement;
-import org.omt.labelmanager.distribution.distributor.domain.DistributorFactory;
+import org.omt.labelmanager.distribution.distributor.DistributorFactory;
 import org.omt.labelmanager.distribution.distributor.api.DistributorQueryApi;
 import org.omt.labelmanager.inventory.allocation.api.AllocationQueryApi;
 import org.omt.labelmanager.inventory.allocation.domain.ChannelAllocationFactory;
