@@ -4,10 +4,10 @@
 Implementation
 
 ## Last Completed Task
-Developer: Task 6.2 — created `CancelBandcampReservationForm` POJO with `quantity` field.
+Developer: addressed Round 6 🟡 — added null `locationType` guard to `AllocateController` with test. All tests pass.
 
 ## Next Action
-Developer: task 6.3 — create `AllocateController`.
+Developer: task 7.1 — update `ProductionRunWithAllocation` view model.
 
 ## Blockers
 None.

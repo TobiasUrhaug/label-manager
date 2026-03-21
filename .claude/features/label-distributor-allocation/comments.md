@@ -88,9 +88,90 @@ All 🔴 resolved. Feature is clear to continue to task 5.1.
 
 ---
 
+## Developer Responses (Round 6)
+
+- 🟡 **null `locationType` guard**: Added `if (form.getLocationType() == null)` check in `AllocateController.allocate()` before the distributor-specific guard — flashes `"A location type must be selected"` and redirects. Added test `allocate_withNullLocationType_flashesAllocationError`. All 9 `AllocateControllerTest` tests pass.
+
+---
+
+## Developer Responses (Round 5)
+
+- 🟡 **No `quantity > 0` guard**: Added guard at the top of both `allocate()` and `cancelBandcampReservation()` — flashes an error and redirects immediately when `quantity ≤ 0`. Added corresponding tests: `allocate_withZeroQuantity_flashesAllocationError` and `cancelBandcampReservation_withZeroQuantity_flashesCancellationError`.
+
+- 🟡 **`resolveToLocation` with null `distributorId`**: Added guard in `allocate()` — if `locationType == DISTRIBUTOR && distributorId == null`, flashes `"A distributor must be selected"` and redirects. Added test: `allocate_distributorWithoutDistributorId_flashesAllocationError`. All 8 `AllocateControllerTest` tests pass.
+
+---
+
+## Review Round 6
+
+Scope: Group 6 in full — `AllocateForm` (6.1), `CancelBandcampReservationForm` (6.2), `AllocateController` + use cases (6.3), `AllocateControllerTest`, `AllocateUseCaseTest`, `CancelBandcampReservationUseCaseTest`.
+
+Note: the spec described the controller flow directly; this was superseded by an explicit architectural decision to extract `AllocateUseCase` and `CancelBandcampReservationUseCase`. Reviewed against the intent of the requirements, not the original spec flow.
+
+### 🔴 Must Fix
+
+None.
+
+### 🟡 Should Fix
+
+- [ ] **`AllocateController.java:36` — null `locationType` bypasses both guards**
+  If a POST arrives without a `locationType` parameter (or with an unrecognised value that Spring fails to bind), `form.getLocationType()` is `null`. The guard on line 36 checks `== LocationType.DISTRIBUTOR`, which is `false` for `null`, so it does not fire. `resolveToLocation` then falls through to `InventoryLocation.distributor(form.getDistributorId())` — and if `distributorId` is also absent, a movement with `toLocationType=DISTRIBUTOR, toLocationId=null` is persisted, corrupting warehouse calculations (same root cause as the Round 5 fix, different trigger). Add an explicit guard before line 36: `if (form.getLocationType() == null) { flash error; return; }`.
+
+### 🟢 Suggestions
+
+- [ ] **`AllocateUseCase.java` — no success-path log**
+  `AllocateUseCase` logs only on the rejection path. `CreateProductionRunUseCase` logs at `info` on success. Consider adding `log.info("Allocated {} units from run {} to {}", quantity, productionRunId, toLocation)` after `recordMovement` for operational visibility.
+
+- [ ] **`AllocateUseCaseTest` — no test for production run not found**
+  `AllocateUseCase.execute()` throws `IllegalArgumentException` when the production run does not exist. This path is untested. Add a test: `execute_throwsIllegalArgumentException_whenProductionRunNotFound`.
+
+- [ ] **`ProductionRunQueryApi.validateQuantityIsAvailable` — schedule removal at task 10.1**
+  After `AllocateUseCase` was introduced, the stock-check logic that lived in `validateQuantityIsAvailable` now lives in the use case. `validateQuantityIsAvailable` is still on the public API because `AllocationCommandApiImpl` calls it — but `AllocationCommandApiImpl` is deleted in task 10.1. At that point, `validateQuantityIsAvailable` should be removed from `ProductionRunQueryApi`, `ProductionRunQueryApiImpl`, and `ProductionRunQueryApiImplTest` to eliminate the duplication.
+
+### NFR Checks
+
+- **NFR-1 (no negative stock):** Both use cases are `@Transactional` — validate and record are now atomic, eliminating the TOCTOU race that existed when the controller called them separately. ✅
+- **NFR-2 (audit trail):** All movements still go through `inventoryMovementCommandApi.recordMovement`. ✅
+- **NFR-3 (safe migration):** Task 11.1 not yet started. ⏳
+
+---
+
 ## Developer Responses (Round 4)
 
 - 🟢 **Stale `@param distributorName` Javadoc**: Removed the `@param distributorName` line from `validateAndAdd` Javadoc.
+
+---
+
+## Review Round 5
+
+Scope: task 5.1 (AgreementController), 6.1 (AllocateForm), 6.2 (CancelBandcampReservationForm), 6.3 (AllocateController), 10.2 (AllocationControllerTest deleted).
+
+### Re-confirm Round 4 observation
+
+- [x] **`SaleLineItemProcessor.java:46` — stale `@param distributorName`** — Confirmed resolved. Current Javadoc at line 39–48 has no `@param distributorName`. ✅
+
+### 🔴 Must Fix
+
+None.
+
+### 🟡 Should Fix
+
+- [ ] **`AllocateController.java:43` — no guard against `quantity ≤ 0` (allocate endpoint)**
+  `validateQuantityIsAvailable(runId, quantity)` checks `quantity > available`. With `quantity = 0` the check always passes (0 ≤ any non-negative available). With a negative quantity (e.g. `-10`), it also passes and creates an ALLOCATION movement with −10 units — warehouse outbound becomes negative, inflating available stock by 10. Add a guard at the top of the handler: `if (form.getQuantity() <= 0) { redirectAttributes.addFlashAttribute("allocationError", "Quantity must be greater than zero"); return redirect; }`. Same guard needed on `cancelBandcampReservation` — a zero or negative `CancelBandcampReservationForm.quantity` passes the `quantity > held` check and records a spurious RETURN movement.
+
+- [ ] **`AllocateController.java:85` — `resolveToLocation` creates `InventoryLocation.distributor(null)` when `locationType == DISTRIBUTOR` and `distributorId` is missing**
+  If a request arrives with `locationType=DISTRIBUTOR` but no `distributorId` (e.g. JS disabled, or direct POST), `resolveToLocation` returns `InventoryLocation.distributor(null)`. The movement is then persisted with `toLocationType = DISTRIBUTOR, toLocationId = null`. `getCurrentInventoryByDistributor` silently drops this null-ID entry, but the warehouse-outbound calculation includes it, permanently inflating warehouse available stock. Add a server-side guard before calling `resolveToLocation`: if `locationType == DISTRIBUTOR && distributorId == null`, flash an error and redirect.
+
+### 🟢 Suggestions
+
+- [ ] **Round 2 carry-over — `LocationType.java:11-17` — `<ul>` still omits BANDCAMP**
+  The class-level Javadoc lists WAREHOUSE, DISTRIBUTOR, and EXTERNAL but not BANDCAMP. Minor inconsistency; no correctness impact.
+
+### NFR Checks
+
+- **NFR-1 (no negative stock):** `validateQuantityIsAvailable` correctly guards distributor and Bandcamp allocations. However, the missing `quantity > 0` guard (see 🟡 above) means a negative quantity bypasses the check and can silently inflate available stock. ⚠️ Pending 🟡 fix.
+- **NFR-2 (audit trail):** All movements go through `inventoryMovementCommandApi.recordMovement`. No direct DB writes in the new controller. ✅
+- **NFR-3 (safe migration):** Task 11.1 not yet started. ⏳
 
 ---
 

@@ -49,7 +49,7 @@ Draft
 - [x] **6.2** Create `CancelBandcampReservationForm` in `inventory/productionrun/api/`.
   - Field: `int quantity`.
 
-- [ ] **6.3** Create `AllocateController` in `inventory/productionrun/api/`.
+- [x] **6.3** Create `AllocateController` in `inventory/productionrun/api/`.
   - POST `…/production-runs/{runId}/allocations`:
     1. Call `productionRunQueryApi.validateQuantityIsAvailable(runId, form.quantity)`
     2. Build `toLocation` from form: `BANDCAMP` if `locationType == BANDCAMP`, else `InventoryLocation.distributor(form.distributorId)`
@@ -100,7 +100,7 @@ Draft
 - [ ] **10.1** Delete the entire `inventory/allocation/` package (all 9 files listed in spec).
   - Run `./gradlew build` and confirm zero compilation errors.
 
-- [ ] **10.2** Delete `AllocationControllerTest.java`.
+- [x] **10.2** Delete `AllocationControllerTest.java`. _(done early alongside 6.3 to resolve mapping conflict)_
 
 ### Group 11 — Database migration
 
