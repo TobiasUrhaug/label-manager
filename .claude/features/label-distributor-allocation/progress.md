@@ -4,10 +4,10 @@
 Implementation
 
 ## Last Completed Task
-Architect: spec.md and tasks.md written. Design phase complete.
+Reviewer: Round 1 re-review complete. All 🔴 comments resolved. One new 🟢 observation logged (LocationType `<ul>` omits BANDCAMP). Tasks 1.1–3.1 approved.
 
 ## Next Action
-Developer: start Task 1.1 — add `BANDCAMP` to `LocationType` and `InventoryLocation`.
+Developer: continue to task 4.1 — remove prior-allocation check from SaleLineItemProcessor.
 
 ## Blockers
 None.

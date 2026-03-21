@@ -27,12 +27,4 @@ public record ProductionRun(
         );
     }
 
-    public boolean canAllocate(int requestedQuantity, int currentlyAllocated) {
-        int available = quantity - currentlyAllocated;
-        return requestedQuantity <= available;
-    }
-
-    public int getAvailableQuantity(int currentlyAllocated) {
-        return quantity - currentlyAllocated;
-    }
 }

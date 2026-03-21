@@ -1,8 +1,8 @@
 package org.omt.labelmanager.inventory.productionrun.application;
 
 import org.omt.labelmanager.catalog.release.domain.ReleaseFormat;
-import org.omt.labelmanager.inventory.allocation.api.AllocationQueryApi;
 import org.omt.labelmanager.inventory.InsufficientInventoryException;
+import org.omt.labelmanager.inventory.inventorymovement.api.InventoryMovementQueryApi;
 import org.omt.labelmanager.inventory.productionrun.api.ProductionRunQueryApi;
 import org.omt.labelmanager.inventory.productionrun.domain.ProductionRun;
 import org.omt.labelmanager.inventory.productionrun.infrastructure.ProductionRunEntity;
@@ -21,11 +21,11 @@ class ProductionRunQueryApiImpl implements ProductionRunQueryApi {
             LoggerFactory.getLogger(ProductionRunQueryApiImpl.class);
 
     private final ProductionRunRepository repository;
-    private final AllocationQueryApi allocationQueryService;
+    private final InventoryMovementQueryApi inventoryMovementQueryApi;
 
-    ProductionRunQueryApiImpl(ProductionRunRepository repository, AllocationQueryApi allocationQueryService) {
+    ProductionRunQueryApiImpl(ProductionRunRepository repository, InventoryMovementQueryApi inventoryMovementQueryApi) {
         this.repository = repository;
-        this.allocationQueryService = allocationQueryService;
+        this.inventoryMovementQueryApi = inventoryMovementQueryApi;
     }
 
     @Override
@@ -62,10 +62,10 @@ class ProductionRunQueryApiImpl implements ProductionRunQueryApi {
                         "Production run not found: " + productionRunId
                 ));
 
-        int allocated = allocationQueryService.getTotalAllocated(productionRunId);
+        int warehouseDelta = inventoryMovementQueryApi.getWarehouseInventory(productionRunId);
+        int available = productionRun.quantity() + warehouseDelta;
 
-        if (!productionRun.canAllocate(quantity, allocated)) {
-            int available = productionRun.getAvailableQuantity(allocated);
+        if (quantity > available) {
             log.warn(
                     "Allocation rejected: requested {} but only {} available for run {}",
                     quantity,

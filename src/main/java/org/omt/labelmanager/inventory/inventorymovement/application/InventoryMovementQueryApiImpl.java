@@ -119,7 +119,7 @@ class InventoryMovementQueryApiImpl implements InventoryMovementQueryApi {
                 .sum();
     }
 
-    /** For WAREHOUSE (locationId=null) we match any movement to/from WAREHOUSE. */
+    /** When no specific location ID is expected (WAREHOUSE, BANDCAMP, EXTERNAL), match by type alone. */
     private boolean locationIdMatches(Long actual, Long expected) {
         if (expected == null) {
             return true;

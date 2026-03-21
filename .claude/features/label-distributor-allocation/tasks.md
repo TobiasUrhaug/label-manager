@@ -7,17 +7,17 @@ Draft
 
 ### Group 1 — Domain model: add BANDCAMP
 
-- [ ] **1.1** Add `BANDCAMP` to `LocationType` enum and `bandcamp()` factory to `InventoryLocation`.
+- [x] **1.1** Add `BANDCAMP` to `LocationType` enum and `bandcamp()` factory to `InventoryLocation`.
   - Files: `inventory/domain/LocationType.java`, `inventory/domain/InventoryLocation.java`
   - Test: add a unit test asserting `InventoryLocation.bandcamp()` has type `BANDCAMP` and null id.
 
 ### Group 2 — InventoryMovement query API extensions
 
-- [ ] **2.1** Add `getBandcampInventory(Long productionRunId)` to `InventoryMovementQueryApi` and implement in `InventoryMovementQueryApiImpl`.
+- [x] **2.1** Add `getBandcampInventory(Long productionRunId)` to `InventoryMovementQueryApi` and implement in `InventoryMovementQueryApiImpl`.
   - Implementation: `sumQuantityTo(movements, BANDCAMP, null) - sumQuantityFrom(movements, BANDCAMP, null)` — same pattern as `getWarehouseInventory()`.
   - Test (integration): given ALLOCATION 50 to Bandcamp + SALE 10 from Bandcamp → `getBandcampInventory()` = 40. Given additional RETURN 10 from Bandcamp → result = 30.
 
-- [ ] **2.2** Add `getProductionRunIdsAllocatedToDistributor(Long distributorId)` to `InventoryMovementQueryApi`, implement in `InventoryMovementQueryApiImpl`, and add the backing JPQL query to `InventoryMovementRepository`.
+- [x] **2.2** Add `getProductionRunIdsAllocatedToDistributor(Long distributorId)` to `InventoryMovementQueryApi`, implement in `InventoryMovementQueryApiImpl`, and add the backing JPQL query to `InventoryMovementRepository`.
   - Repository query: `SELECT DISTINCT m.productionRunId FROM InventoryMovementEntity m WHERE m.toLocationType = 'DISTRIBUTOR' AND m.toLocationId = :distributorId AND m.movementType = 'ALLOCATION'`
   - Test (integration): given two production runs each with an ALLOCATION movement to distributorX → method returns both run IDs. A run with only a SALE (no ALLOCATION) to the distributor is not included.
 

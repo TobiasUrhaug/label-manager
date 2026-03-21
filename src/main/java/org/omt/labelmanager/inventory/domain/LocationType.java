@@ -18,9 +18,11 @@ package org.omt.labelmanager.inventory.domain;
  *
  * <p>Standard movement patterns:
  * <pre>
- *   Allocation : WAREHOUSE       → DISTRIBUTOR(distributorId)
- *   Sale       : DISTRIBUTOR(id) → EXTERNAL
- *   Return     : DISTRIBUTOR(id) → WAREHOUSE
+ *   Allocation          : WAREHOUSE       → DISTRIBUTOR(distributorId)
+ *   Sale                : DISTRIBUTOR(id) → EXTERNAL
+ *   Return              : DISTRIBUTOR(id) → WAREHOUSE
+ *   Bandcamp reservation: WAREHOUSE       → BANDCAMP
+ *   Bandcamp cancellation: BANDCAMP       → WAREHOUSE
  * </pre>
  */
 public enum LocationType {
