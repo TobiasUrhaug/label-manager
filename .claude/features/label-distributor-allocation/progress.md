@@ -4,10 +4,10 @@
 Implementation
 
 ## Last Completed Task
-Developer: Round 3 comments addressed. Removed `distributorName` from `validateAndAdd()` and cleaned up `UpdateSaleUseCase` (removed `resolveDistributorName`, `distributorQueryApi` injection). Checked off task 3.1. Added happy-path unit test to `SaleLineItemProcessorTest`. All 365 tests pass.
+Developer: Task 6.1 — created `AllocateForm` POJO with `locationType`, `distributorId` (nullable), and `quantity` fields.
 
 ## Next Action
-Developer: fix stale `@param distributorName` Javadoc in `SaleLineItemProcessor` (🟢), then continue to task 5.1.
+Developer: task 6.2 — create `CancelBandcampReservationForm`.
 
 ## Blockers
 None.

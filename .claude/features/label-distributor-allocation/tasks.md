@@ -37,13 +37,13 @@ Draft
 
 ### Group 5 — Update AgreementController
 
-- [ ] **5.1** Replace `allocationQueryApi.getAllocationsForDistributor()` in `AgreementController.buildAvailableRuns()` with `inventoryMovementQueryApi.getProductionRunIdsAllocatedToDistributor()`.
+- [x] **5.1** Replace `allocationQueryApi.getAllocationsForDistributor()` in `AgreementController.buildAvailableRuns()` with `inventoryMovementQueryApi.getProductionRunIdsAllocatedToDistributor()`.
   - Remove `AllocationQueryApi` injection.
   - Test: update `AgreementControllerTest` — remove `AllocationQueryApi` mock, add `InventoryMovementQueryApi` mock; verify available runs are still resolved correctly.
 
 ### Group 6 — AllocateController (replaces AllocationController)
 
-- [ ] **6.1** Create `AllocateForm` in `inventory/productionrun/api/`.
+- [x] **6.1** Create `AllocateForm` in `inventory/productionrun/api/`.
   - Fields: `LocationType locationType`, `Long distributorId` (nullable), `int quantity`.
 
 - [ ] **6.2** Create `CancelBandcampReservationForm` in `inventory/productionrun/api/`.
