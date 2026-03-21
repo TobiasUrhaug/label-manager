@@ -1,13 +1,13 @@
 # Progress: label-distributor-allocation
 
 ## Current Phase
-Implementation
+Review
 
 ## Last Completed Task
-Developer: addressed Round 6 🟡 — added null `locationType` guard to `AllocateController` with test. All tests pass.
+Reviewer: Round 7 re-review complete. All 🔴 and 🟡 items resolved. Tasks 9.1, 9.2, 10.1, 11.1 remain.
 
 ## Next Action
-Developer: task 7.1 — update `ProductionRunWithAllocation` view model.
+Developer: continue with task 9.1 — update `release.html`.
 
 ## Blockers
 None.

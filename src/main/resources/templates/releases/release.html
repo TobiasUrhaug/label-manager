@@ -161,8 +161,6 @@
                         <th scope="col">Manufacturer</th>
                         <th scope="col">Date</th>
                         <th scope="col" class="text-end">Manufactured</th>
-                        <th scope="col" class="text-end">Allocated</th>
-                        <th scope="col" class="text-end">Unallocated</th>
                         <th scope="col"></th>
                     </tr>
                 </thead>
@@ -174,23 +172,11 @@
                             <td th:text="${runWithAlloc.productionRun().manufacturer()}">Record Industry</td>
                             <td th:text="${runWithAlloc.productionRun().manufacturingDate()}">2025-01-01</td>
                             <td class="text-end" th:text="${runWithAlloc.productionRun().quantity()}">500</td>
-                            <td class="text-end">
-                                <span th:text="${runWithAlloc.allocated()}">200</span>
-                                <button th:if="${!runWithAlloc.allocations().isEmpty()}"
-                                        type="button"
-                                        class="btn btn-link btn-sm p-0 ms-1"
-                                        data-bs-toggle="collapse"
-                                        th:data-bs-target="'#allocations-' + ${iterStat.index}"
-                                        aria-expanded="false">
-                                    <small>details</small>
-                                </button>
-                            </td>
-                            <td class="text-end" th:text="${runWithAlloc.unallocated()}">300</td>
                             <td class="text-nowrap">
                                 <button type="button" class="btn btn-sm btn-outline-primary allocate-btn"
-                                        th:if="${runWithAlloc.unallocated() > 0 && !distributors.isEmpty()}"
+                                        th:if="${runWithAlloc.warehouseInventory() > 0 && !distributors.isEmpty()}"
                                         th:data-run-id="${runWithAlloc.productionRun().id()}"
-                                        th:data-unallocated="${runWithAlloc.unallocated()}"
+                                        th:data-max-quantity="${runWithAlloc.warehouseInventory()}"
                                         data-bs-toggle="modal" data-bs-target="#allocateModal">Allocate</button>
                                 <form th:action="@{/labels/{labelId}/releases/{releaseId}/production-runs/{runId}(labelId=${labelId}, releaseId=${releaseId}, runId=${runWithAlloc.productionRun().id()})}"
                                       method="post"
@@ -199,28 +185,6 @@
                                     <input type="hidden" name="_method" value="delete">
                                     <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
                                 </form>
-                            </td>
-                        </tr>
-                        <tr th:if="${!runWithAlloc.allocations().isEmpty()}"
-                            class="collapse"
-                            th:id="'allocations-' + ${iterStat.index}">
-                            <td colspan="8" class="bg-light p-0">
-                                <table class="table table-sm mb-0">
-                                    <thead>
-                                        <tr class="table-secondary">
-                                            <th>Channel</th>
-                                            <th class="text-end">Allocation</th>
-                                            <th>Date</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr th:each="alloc : ${runWithAlloc.allocations()}">
-                                            <td th:text="${alloc.channelName()}">Direct Sales</td>
-                                            <td class="text-end" th:text="${alloc.quantity()}">100</td>
-                                            <td th:text="${#temporals.format(alloc.allocatedAt(), 'yyyy-MM-dd HH:mm')}">2025-01-15 10:00</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
                             </td>
                         </tr>
                     </th:block>
@@ -262,17 +226,13 @@
                 <thead>
                     <tr class="table-secondary">
                         <th>Distributor</th>
-                        <th class="text-end">Allocated</th>
                         <th class="text-end">Current</th>
-                        <th class="text-end">Sold</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr th:each="inv : ${runWithAlloc.distributorInventories()}">
                         <td th:text="${inv.name()}">Direct Sales</td>
-                        <td class="text-end" th:text="${inv.allocated()}">100</td>
                         <td class="text-end" th:text="${inv.current()}">75</td>
-                        <td class="text-end" th:text="${inv.sold()}">25</td>
                     </tr>
                 </tbody>
             </table>
@@ -455,7 +415,7 @@
                             <input type="number" class="form-control" id="allocationQuantity"
                                    name="quantity" required min="1">
                             <div class="form-text">
-                                Unallocated: <span id="allocationUnallocatedDisplay">0</span>
+                                Available: <span id="allocationUnallocatedDisplay">0</span>
                             </div>
                         </div>
                     </div>
@@ -774,13 +734,13 @@
         document.querySelectorAll('.allocate-btn').forEach(btn => {
             btn.addEventListener('click', function() {
                 const runId = this.dataset.runId;
-                const unallocated = parseInt(this.dataset.unallocated, 10);
+                const maxQuantity = parseInt(this.dataset.maxQuantity, 10);
 
                 allocateForm.action =
                     `/labels/${labelId}/releases/${releaseId}/production-runs/${runId}/allocations`;
-                allocationQuantity.max = unallocated;
+                allocationQuantity.max = maxQuantity;
                 allocationQuantity.value = '';
-                allocationUnallocatedDisplay.textContent = unallocated;
+                allocationUnallocatedDisplay.textContent = maxQuantity;
             });
         });
     });

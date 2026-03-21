@@ -1,7 +1,6 @@
 package org.omt.labelmanager.catalog.release.api;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
@@ -19,9 +18,6 @@ import org.omt.labelmanager.finance.cost.api.CostQueryApi;
 import org.omt.labelmanager.finance.cost.domain.Cost;
 import org.omt.labelmanager.finance.cost.domain.CostType;
 import org.omt.labelmanager.identity.application.AppUserDetails;
-import org.omt.labelmanager.inventory.allocation.api.AllocationQueryApi;
-import org.omt.labelmanager.inventory.allocation.domain.ChannelAllocation;
-import org.omt.labelmanager.inventory.api.AllocationView;
 import org.omt.labelmanager.inventory.api.DistributorInventoryView;
 import org.omt.labelmanager.inventory.api.MovementHistoryView;
 import org.omt.labelmanager.inventory.api.ProductionRunWithAllocation;
@@ -59,7 +55,6 @@ public class ReleaseController {
     private final ArtistQueryApi artistQueryApi;
     private final CostQueryApi costQueryFacade;
     private final ProductionRunQueryApi productionRunQueryApi;
-    private final AllocationQueryApi allocationQueryService;
     private final DistributorQueryApi distributorQueryApi;
     private final InventoryMovementQueryApi inventoryMovementQueryApi;
     private final SaleQueryApi saleQueryApi;
@@ -70,7 +65,6 @@ public class ReleaseController {
             ArtistQueryApi artistQueryApi,
             CostQueryApi costQueryFacade,
             ProductionRunQueryApi productionRunQueryApi,
-            AllocationQueryApi allocationQueryService,
             DistributorQueryApi distributorQueryApi,
             InventoryMovementQueryApi inventoryMovementQueryApi,
             SaleQueryApi saleQueryApi
@@ -80,7 +74,6 @@ public class ReleaseController {
         this.artistQueryApi = artistQueryApi;
         this.costQueryFacade = costQueryFacade;
         this.productionRunQueryApi = productionRunQueryApi;
-        this.allocationQueryService = allocationQueryService;
         this.distributorQueryApi = distributorQueryApi;
         this.inventoryMovementQueryApi = inventoryMovementQueryApi;
         this.saleQueryApi = saleQueryApi;
@@ -213,35 +206,21 @@ public class ReleaseController {
             ProductionRun run,
             List<Distributor> distributors
     ) {
-        List<ChannelAllocation> allocations =
-                allocationQueryService.getAllocationsForProductionRun(run.id());
-        List<AllocationView> allocationViews = allocations.stream()
-                .map(alloc -> new AllocationView(
-                        alloc.id(),
-                        findDistributorName(alloc.distributorId(), distributors),
-                        alloc.quantity(),
-                        alloc.allocatedAt()
-                ))
-                .toList();
-        int totalAllocated = allocationQueryService.getTotalAllocated(run.id());
-        int unallocated = run.quantity() - totalAllocated;
-
-        int warehouseInventory = inventoryMovementQueryApi.getWarehouseInventory(run.id());
+        int warehouseInventory = run.quantity() + inventoryMovementQueryApi.getWarehouseInventory(run.id());
+        int bandcampInventory = inventoryMovementQueryApi.getBandcampInventory(run.id());
         Map<Long, Integer> currentByDistributor =
                 inventoryMovementQueryApi.getCurrentInventoryByDistributor(run.id());
         List<InventoryMovement> movements =
                 inventoryMovementQueryApi.getMovementsForProductionRun(run.id());
 
         List<DistributorInventoryView> distributorInventories =
-                buildDistributorInventories(allocations, currentByDistributor, distributors);
+                buildDistributorInventories(currentByDistributor, distributors);
         List<MovementHistoryView> movementHistory =
                 buildMovementHistory(movements, distributors);
 
         return new ProductionRunWithAllocation(
                 run,
-                totalAllocated,
-                unallocated,
-                allocationViews,
+                bandcampInventory,
                 warehouseInventory,
                 distributorInventories,
                 movementHistory
@@ -249,27 +228,13 @@ public class ReleaseController {
     }
 
     private List<DistributorInventoryView> buildDistributorInventories(
-            List<ChannelAllocation> allocations,
             Map<Long, Integer> currentByDistributor,
             List<Distributor> distributors
     ) {
-        Map<Long, Integer> allocatedByDistributor = allocations.stream()
-                .collect(Collectors.groupingBy(
-                        ChannelAllocation::distributorId,
-                        Collectors.summingInt(ChannelAllocation::quantity)
-                ));
-
-        // Union of distributor IDs from allocations and from current inventory movements
-        var allDistributorIds = new ArrayList<Long>(allocatedByDistributor.keySet());
-        currentByDistributor.keySet().stream()
-                .filter(id -> !allocatedByDistributor.containsKey(id))
-                .forEach(allDistributorIds::add);
-
-        return allDistributorIds.stream()
-                .map(id -> new DistributorInventoryView(
-                        findDistributorName(id, distributors),
-                        allocatedByDistributor.getOrDefault(id, 0),
-                        currentByDistributor.getOrDefault(id, 0)
+        return currentByDistributor.entrySet().stream()
+                .map(entry -> new DistributorInventoryView(
+                        findDistributorName(entry.getKey(), distributors),
+                        entry.getValue()
                 ))
                 .sorted(Comparator.comparing(DistributorInventoryView::name))
                 .toList();

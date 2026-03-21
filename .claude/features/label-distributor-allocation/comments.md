@@ -88,6 +88,42 @@ All 🔴 resolved. Feature is clear to continue to task 5.1.
 
 ---
 
+## Review Round 7
+
+Scope: tasks 7.1, 7.2, 7.3 — `ProductionRunWithAllocation`, `DistributorInventoryView`, `AllocationView` deletion, plus cascading changes to `ReleaseController`, `ReleaseControllerTest`, and `release.html`.
+
+### 🔴 Must Fix
+
+- [x] **`ReleaseController.java:209` — `warehouseInventory` stores the raw movement delta, not absolute available stock** — Resolved. Line 209 now reads `run.quantity() + inventoryMovementQueryApi.getWarehouseInventory(run.id())`. Test assertion updated to 700. ✅
+  `buildProductionRunWithAllocation` assigns `warehouseInventory = inventoryMovementQueryApi.getWarehouseInventory(run.id())`. `getWarehouseInventory` returns a net delta (negative after allocations). For a run of 500 units with 200 allocated, the stored value is `−200`, but the template renders it directly at `runWithAlloc.warehouseInventory()` — the user sees `−200` instead of `300`. The spec is explicit: "`warehouseInventory` stored in this record should be absolute available stock: `productionRun.quantity() + getWarehouseInventory()`." Fix: change line 209 to `run.quantity() + inventoryMovementQueryApi.getWarehouseInventory(run.id())`. The test in `ReleaseControllerTest` (`release_populatesInventoryDataInProductionRuns`, asserts `warehouseInventory() == 200`) must be updated to assert `700` (run.quantity=500, delta=200).
+
+### 🟡 Should Fix
+
+- [x] **`tasks.md:76,78` — tasks 8.1 and 8.2 implemented but not checked off** — Resolved. Both marked `[x]`. ✅
+
+- [x] **`ReleaseControllerTest.java` — no assertion on `bandcampInventory()`** — Resolved. Stub `getBandcampInventory(10L) → 25` added; `bandcampInventory() == 25` asserted. ✅
+
+### 🟢 Suggestions
+
+- [ ] **`ReleaseController.java:230` — zero-stock distributors no longer shown**
+  The old `buildDistributorInventories` unioned allocation records with movement records, so distributors with zero current stock (sold all units) still appeared in the table. The new version only includes entries in `currentByDistributor`. Verify whether `getCurrentInventoryByDistributor` returns zero-valued entries or filters them. If it filters them, a distributor who sold all their stock disappears from the table — which is arguably correct per AC-5.1 ("current stock"), but worth a conscious decision. No change required if intentional.
+
+### NFR Checks
+
+- **NFR-1 (no negative stock):** 🔴 fix applied — `warehouseInventory` now shows absolute available stock. UI display is correct. ✅
+- **NFR-2 (audit trail):** Unchanged — all stock changes still recorded as movements. ✅
+- **NFR-3 (safe migration):** Task 11.1 not yet started. ⏳
+
+---
+
+## Developer Responses (Round 7)
+
+- 🔴 **`warehouseInventory` raw delta**: Fixed `buildProductionRunWithAllocation` — line 209 now computes `run.quantity() + inventoryMovementQueryApi.getWarehouseInventory(run.id())`. For a run of 500 with delta 200, the stored value is now 700, not 200.
+- 🟡 **Tasks 8.1 and 8.2 unchecked**: Both marked `[x]` in `tasks.md`.
+- 🟡 **`bandcampInventory` assertion missing**: Added `when(inventoryMovementQueryApi.getBandcampInventory(10L)).thenReturn(25)` stub and `assertThat(productionRuns.get(0).bandcampInventory()).isEqualTo(25)` assertion to `release_populatesInventoryDataInProductionRuns`. Also updated `warehouseInventory` assertion from 200 to 700. All tests pass.
+
+---
+
 ## Developer Responses (Round 6)
 
 - 🟡 **null `locationType` guard**: Added `if (form.getLocationType() == null)` check in `AllocateController.allocate()` before the distributor-specific guard — flashes `"A location type must be selected"` and redirects. Added test `allocate_withNullLocationType_flashesAllocationError`. All 9 `AllocateControllerTest` tests pass.

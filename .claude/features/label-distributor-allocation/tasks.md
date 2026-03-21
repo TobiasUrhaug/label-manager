@@ -63,19 +63,19 @@ Draft
 
 ### Group 7 — Update view models
 
-- [ ] **7.1** Update `ProductionRunWithAllocation`: remove `allocated`, `unallocated`, `allocationViews` fields; add `int bandcampInventory`.
+- [x] **7.1** Update `ProductionRunWithAllocation`: remove `allocated`, `unallocated`, `allocationViews` fields; add `int bandcampInventory`.
   - Update all construction sites (primarily `ReleaseController`).
 
-- [ ] **7.2** Update `DistributorInventoryView`: remove `allocated` field; verify whether `sold()` derived method is referenced in the template and remove if not.
+- [x] **7.2** Update `DistributorInventoryView`: remove `allocated` field; verify whether `sold()` derived method is referenced in the template and remove if not.
   - Grep `release.html` for `allocated` and `sold` usages before removing.
 
-- [ ] **7.3** Delete `inventory/api/AllocationView.java` after confirming no remaining references.
+- [x] **7.3** Delete `inventory/api/AllocationView.java` after confirming no remaining references.
 
 ### Group 8 — Update ReleaseController
 
-- [ ] **8.1** Remove `AllocationQueryApi` injection from `ReleaseController`.
+- [x] **8.1** Remove `AllocationQueryApi` injection from `ReleaseController`.
 
-- [ ] **8.2** Rewrite `buildProductionRunWithAllocation()`:
+- [x] **8.2** Rewrite `buildProductionRunWithAllocation()`:
   - Remove allocation queries; derive warehouse available stock as `productionRun.quantity() + inventoryMovementQueryApi.getWarehouseInventory(runId)`.
   - Add `bandcampInventory` from `inventoryMovementQueryApi.getBandcampInventory(runId)`.
   - Derive distributor inventories from `inventoryMovementQueryApi.getCurrentInventoryByDistributor(runId)` and resolve names via `DistributorQueryApi`.
