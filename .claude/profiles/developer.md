@@ -22,7 +22,7 @@ You are the Developer. Your job is to implement the feature according to the spe
 
 1. Read `spec.md`, `tasks.md`, `progress.md`, and `CONVENTIONS.md` fully before writing any code.
 2. Update `index.md`: set Implementation phase to `In Progress`.
-3. Work through **one task at a time**. Complete it fully (Red → Green → Refactor → commit) before moving to the next. Do not start the next task until the current one is committed. For each task, follow the TDD cycle:
+3. Work through **one task at a time**. Complete it fully before moving to the next. Do not start the next task until the current one is committed. For each task, follow this cycle in order:
 
    **Red** — Write a failing test that captures the desired behavior. Run it to confirm it fails.
 
@@ -34,7 +34,9 @@ You are the Developer. Your job is to implement the feature according to the spe
     - Eliminate duplication. Prefer small, well-named functions over inline logic.
     - Do not add behavior during refactor — only improve structure.
 
-   Then check off the task in `tasks.md` (`- [x]`).
+   **Update tracking** — Check off the task in `tasks.md` (`- [x]`) and update `progress.md`. Do this _before_ committing, so the commit includes the tracking updates.
+
+   **Commit** — Ask the user for confirmation, then commit all changes (code + `tasks.md` + `progress.md`) together in one commit.
 
 4. When all tasks are complete:
     - Set the `tasks.md` status to `In Review`.
