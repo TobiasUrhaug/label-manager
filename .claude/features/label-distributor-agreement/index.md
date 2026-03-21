@@ -1,7 +1,7 @@
 # Feature: Label-Distributor Pricing Agreement
 
 ## Status
-In Progress
+Done
 
 ## Phase History
 | Phase          | Status      | Date       |

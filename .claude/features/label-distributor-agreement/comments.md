@@ -1,7 +1,7 @@
 # Review Comments: label-distributor-agreement
 
 ## Status
-In Review
+Done
 
 ## Review Round 1
 
@@ -132,7 +132,44 @@ In Review
 ### NFR Checks (Appendix A)
 
 - **FR-2a (commission type + value fields):** ✅ `PricingAgreement` record has `commissionType` and `commissionValue`. `AgreementForm` and `PricingAgreementEntity` updated accordingly.
-- **FR-10a (type-aware validation):** ✅ `AgreementValidator.validateCommissionValue` enforces PERCENTAGE 0–100 and FIXED_AMOUNT > 0. Tests cover all six spec cases.
+- **FR-10a (type-aware validation):** ✅ Invariants enforced in `PricingAgreement` compact constructor: PERCENTAGE 0–100, FIXED_AMOUNT > 0, unit price > 0. Tests cover all cases via `PricingAgreementTest`.
 - **Display (commission column):** ✅ `AgreementView.displayCommission()` formats as `30%` or `1.00 €`. `detail.html` uses `displayCommission()` and column header updated to "Commission".
 - **V30 migration:** ✅ Renames `commission_percentage → commission_value`, adds `commission_type NOT NULL DEFAULT 'PERCENTAGE'`, adds check constraint, drops default. Safe for existing rows (all default to `PERCENTAGE`).
 - **Controller (Appendix A):** ✅ `commissionTypes` model attribute added to both GET create and GET edit. POST handlers pass `commissionType` and `commissionValue` to command API.
+
+---
+
+## Review Round 4
+
+### Round 3 comment resolution
+
+- [x] **🟡 Move validation to domain / misleading error message** — Resolved. `PricingAgreement.java:18-32` compact constructor enforces all three invariants. Error messages are correct: unit price > 0, PERCENTAGE consolidated to `"Commission percentage must be between 0 and 100"`, FIXED_AMOUNT > 0. `AgreementValidator.java` deleted. `PricingAgreementTest.java` covers all six spec cases plus the negative-percentage path.
+- [x] **🟢 Negative-percentage test** — Resolved. `constructor_withPercentageNegative_throws()` in `PricingAgreementTest` asserts `IllegalArgumentException` with correct message.
+- [x] **🟢 FIXED_AMOUNT display scale** — Resolved. `AgreementView.java:13` uses `setScale(2, RoundingMode.HALF_UP).toPlainString()`.
+
+### New findings
+
+#### 🟡 Should Fix
+
+- [x] **`CreateAgreementUseCase.java:38-44` / `UpdateAgreementUseCase.java:28-37`** Validation fires **after** `repository.save()`. In both use cases the entity is persisted to the DB before `PricingAgreement.fromEntity(entity)` triggers the compact constructor. If the input is invalid (e.g. `unitPrice = 0`) the row is written and then the `IllegalArgumentException` causes the transaction to roll back. This is functionally safe (`@Transactional` rolls back on `RuntimeException`) but defeats the purpose of domain-first validation: invalid data is transiently written to the DB and no DB check constraint on `unit_price` or `commission_value` ranges exists to block it. The fix is to validate the domain object **before** the save — either construct a throwaway `PricingAgreement` immediately after receiving the arguments, or restructure the use case to build the entity from the domain object. Example for `CreateAgreementUseCase`:
+  ```java
+  // Validate domain invariants before any DB interaction
+  new PricingAgreement(null, distributorId, productionRunId, unitPrice, commissionType, commissionValue, null);
+  PricingAgreementEntity entity = new PricingAgreementEntity(...);
+  entity = repository.save(entity);
+  return PricingAgreement.fromEntity(entity);
+  ```
+
+---
+
+## Developer Responses (Round 4)
+
+**🟡 Validate before save:** Added a throwaway `PricingAgreement` construction before `repository.save()` in both use cases. In `CreateAgreementUseCase` this fires immediately after the duplicate check, before the entity is created. In `UpdateAgreementUseCase` it fires after loading the entity (so `distributorId`, `productionRunId`, and `createdAt` are available from the entity) and before the setters and save. The compact constructor throws `IllegalArgumentException` for invalid input before any DB write occurs. All existing integration and unit tests pass.
+
+---
+
+## Review Round 4 — Resolution
+
+- [x] **🟡 Validate before save** — Resolved. `CreateAgreementUseCase.java:38` and `UpdateAgreementUseCase.java:31-32` both construct a `PricingAgreement` before `repository.save()`, triggering the compact constructor validation prior to any DB interaction. Fix is correct and complete.
+
+All comments across all rounds are resolved. **Feature is Done.**
