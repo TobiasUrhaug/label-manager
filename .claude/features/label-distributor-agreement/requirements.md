@@ -162,3 +162,54 @@ Allow a label manager to record and manage the pricing agreement between a label
 - [ ] Should deleting a distributor or production run cascade-delete associated pricing agreements, or should deletion be blocked when agreements exist?
 - [ ] Should the release+format dropdown in the agreement creation form be limited to releases already allocated to this distributor, or all releases for the label?
 - [ ] Where does the pricing agreement entity live in the bounded context structure — under `distribution/` or a new `agreement/` context?
+
+---
+
+## Appendix A: Fixed-Amount Commission
+
+### Discovery
+Some distributors negotiate a fixed per-unit amount as their commission rather than a percentage. This requirement was identified after the initial specification was written.
+
+### Changes to Core Entity (addendum to FR-2)
+
+A pricing agreement's commission is **either** a percentage **or** a fixed amount per unit — never both.
+
+The commission field in FR-2 is therefore replaced by two mutually exclusive fields:
+- **Commission type** (required) — `PERCENTAGE` or `FIXED_AMOUNT`
+- **Commission value** (required) — interpreted as a percentage (0–100) if type is `PERCENTAGE`, or as a positive monetary amount if type is `FIXED_AMOUNT`
+
+All other fields (distributor, release+format, label unit price) remain unchanged.
+
+**Example:**
+- Label unit price: 4.00 €, commission type: `FIXED_AMOUNT`, commission value: 1.00 €
+- The distributor keeps 1.00 € per unit sold and sells to stores at 5.00 €. The label is owed 4.00 € per unit sold.
+
+### New/Updated Functional Requirements
+
+**FR-2a:** A pricing agreement shall record:
+- Distributor (required)
+- Release+format (required)
+- Label unit price (required) — amount the label is owed per unit sold
+- Commission type (required) — `PERCENTAGE` or `FIXED_AMOUNT`
+- Commission value (required) — percentage (0–100) or fixed monetary amount (> 0) depending on type
+
+**FR-10a:** The system shall validate that:
+- If commission type is `PERCENTAGE`: value is a number between 0 and 100 inclusive
+- If commission type is `FIXED_AMOUNT`: value is a positive monetary amount (greater than zero)
+
+### Display
+
+The commission column in all agreements lists shall display the value with its unit:
+- Percentage: e.g., `30%`
+- Fixed amount: e.g., `1.00 €`
+
+### Updated Business Rules
+
+**Rule: Commission value must match its type**
+- If type is `PERCENTAGE`: value must be 0–100
+- If type is `FIXED_AMOUNT`: value must be greater than zero
+- A single agreement cannot carry both a percentage and a fixed amount
+
+### Impact on Future Invoicing (addendum to FR-12)
+
+The invoicing computation remains `label unit price × units sold` regardless of commission type. The commission type and value are recorded for reference and transparency but do not change what the label is owed — that is always the label unit price.
