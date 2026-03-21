@@ -60,6 +60,15 @@ public interface InventoryMovementQueryApi {
     int getBandcampInventory(Long productionRunId);
 
     /**
+     * Returns distinct production run IDs that have at least one ALLOCATION movement
+     * to the given distributor.
+     *
+     * @param distributorId the distributor
+     * @return list of distinct production run IDs
+     */
+    List<Long> getProductionRunIdsAllocatedToDistributor(Long distributorId);
+
+    /**
      * Returns current inventory per distributor for a production run.
      *
      * <p>Distributors with zero current inventory may be omitted from the result.

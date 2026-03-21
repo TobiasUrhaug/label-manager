@@ -44,6 +44,7 @@ public class QueryMovementIntegrationTest extends AbstractIntegrationTest {
     private LabelTestHelper labelTestHelper;
 
     private Long productionRunId;
+    private Long releaseId;
     private Long distributorId;
 
     @BeforeEach
@@ -52,7 +53,7 @@ public class QueryMovementIntegrationTest extends AbstractIntegrationTest {
         distributorRepository.deleteAll();
 
         var label = labelTestHelper.createLabel("Test Label");
-        Long releaseId = releaseTestHelper
+        releaseId = releaseTestHelper
                 .createReleaseEntity("Test Release", label.id());
 
         ProductionRunEntity productionRun = productionRunRepository.save(
@@ -176,6 +177,36 @@ public class QueryMovementIntegrationTest extends AbstractIntegrationTest {
         int held = inventoryMovementQueryApi.getBandcampInventory(productionRunId);
 
         assertThat(held).isEqualTo(30);
+    }
+
+    @Test
+    void getProductionRunIdsAllocatedToDistributor_returnsBothRunIds() {
+        ProductionRunEntity secondRun = productionRunRepository.save(
+                new ProductionRunEntity(
+                        releaseId,
+                        ReleaseFormat.VINYL, "Second pressing",
+                        "Plant B", LocalDate.of(2025, 6, 1), 200));
+        Long secondRunId = secondRun.getId();
+
+        recordAllocation(100);
+        inventoryMovementCommandApi.recordMovement(
+                secondRunId, warehouse(), distributor(distributorId),
+                50, MovementType.ALLOCATION, null);
+
+        var runIds = inventoryMovementQueryApi
+                .getProductionRunIdsAllocatedToDistributor(distributorId);
+
+        assertThat(runIds).containsExactlyInAnyOrder(productionRunId, secondRunId);
+    }
+
+    @Test
+    void getProductionRunIdsAllocatedToDistributor_excludesRunsWithOnlySales() {
+        recordSale(10);
+
+        var runIds = inventoryMovementQueryApi
+                .getProductionRunIdsAllocatedToDistributor(distributorId);
+
+        assertThat(runIds).isEmpty();
     }
 
     private void recordBandcampAllocation(int quantity) {
