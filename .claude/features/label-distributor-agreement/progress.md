@@ -1,13 +1,13 @@
 # Progress: Label-Distributor Pricing Agreement
 
 ## Current Phase
-Design (Appendix A amendment)
+Review (Round 3 — addressed)
 
 ## Last Completed Task
-Architect: wrote spec and tasks for Appendix A (fixed-amount commission).
+Developer: addressed all Round 3 comments. Moved validation to PricingAgreement compact constructor, deleted AgreementValidator, fixed FIXED_AMOUNT display scale, added negative-percentage test.
 
 ## Next Action
-Developer: start Task A.1 (V30 DB migration).
+Reviewer: re-review Round 3 comment responses.
 
 ## Blockers
 None.
@@ -18,3 +18,5 @@ None.
 - 2026-03-20: Architect session. Resolved open questions: cascade-delete at DB level, dropdown filtered to allocated runs, module placed at `distribution/agreement/`. Wrote spec.md and tasks.md (10 task groups, ~20 subtasks).
 - 2026-03-21: Developer session. Tasks 1–7 were completed in a prior session. Approach for task 8.1 changed: no separate `agreements.html`; agreements embedded inline in `detail.html`. Completed tasks 9.2 (JS tests) and 10.1 (AgreementControllerTest). Note: `npm run test` requires Node 18+ (use Node 24 via nvm).
 - 2026-03-21: Developer session (Round 2). Addressed all 8 reviewer comments: moved AgreementView to distributor package, kept fromEntity public (justified), added ownership checks in update/delete, moved JS test to src/test/js/, removed dead enrichAgreement, extracted AgreementValidator, added @NotNull + validation dependency, nested AvailableProductionRunView in controller. All tests pass.
+- 2026-03-21: Reviewer session (Round 3). Resolved both Round 2 comments (showEditForm ownership check + consistent exception type). Reviewed Appendix A implementation. Found 1 🟡 (misleading error message in AgreementValidator PERCENTAGE branch) and 2 🟢 (missing negative-percentage test, FIXED_AMOUNT display scale).
+- 2026-03-21: Developer session (Round 3). Addressed all Round 3 comments: moved validation to PricingAgreement compact constructor (deleting AgreementValidator), fixed misleading PERCENTAGE error message (consolidated check), added PricingAgreementTest with negative-percentage case, fixed FIXED_AMOUNT display to use setScale(2, HALF_UP).

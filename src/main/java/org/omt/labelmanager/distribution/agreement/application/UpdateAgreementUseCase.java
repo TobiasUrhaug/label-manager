@@ -25,9 +25,6 @@ class UpdateAgreementUseCase {
 
     @Transactional
     public PricingAgreement execute(Long agreementId, BigDecimal unitPrice, CommissionType commissionType, BigDecimal commissionValue) {
-        AgreementValidator.validateUnitPrice(unitPrice);
-        AgreementValidator.validateCommissionValue(commissionType, commissionValue);
-
         PricingAgreementEntity entity = repository.findById(agreementId)
                 .orElseThrow(() -> new AgreementNotFoundException(agreementId));
 

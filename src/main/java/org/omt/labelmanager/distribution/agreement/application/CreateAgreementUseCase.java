@@ -31,9 +31,6 @@ class CreateAgreementUseCase {
             CommissionType commissionType,
             BigDecimal commissionValue
     ) {
-        AgreementValidator.validateUnitPrice(unitPrice);
-        AgreementValidator.validateCommissionValue(commissionType, commissionValue);
-
         if (repository.existsByDistributorIdAndProductionRunId(distributorId, productionRunId)) {
             throw new DuplicateAgreementException(distributorId, productionRunId);
         }

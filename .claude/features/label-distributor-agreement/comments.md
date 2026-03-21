@@ -1,7 +1,7 @@
 # Review Comments: label-distributor-agreement
 
 ## Status
-Done
+In Review
 
 ## Review Round 1
 
@@ -95,3 +95,44 @@ Done
 **🟡 `showEditForm` ownership check:** Added ownership assertion after `queryApi.findById(id)` in `showEditForm`: throws `AgreementNotFoundException(id)` if `agreement.distributorId()` does not match the URL's `distributorId`. Added test `showEditForm_whenAgreementBelongsToDifferentDistributor_throwsNotFound` to verify the behaviour.
 
 **🟢 Inconsistent exception type:** Changed `showEditForm`'s not-found throw from `EntityNotFoundException("Agreement not found")` to `AgreementNotFoundException(id)`, consistent with `updateAgreement` and `deleteAgreement`.
+
+---
+
+## Review Round 3
+
+### Round 2 comment resolution
+
+- [x] **🟡 `showEditForm` ownership check** — Resolved. `AgreementController.java:118-120` asserts `agreement.distributorId().equals(distributorId)` and throws `AgreementNotFoundException(id)`. Test `showEditForm_whenAgreementBelongsToDifferentDistributor_throwsNotFound` added.
+- [x] **🟢 Inconsistent exception type in `showEditForm`** — Resolved. Line 117 throws `AgreementNotFoundException(id)` consistently with `updateAgreement` and `deleteAgreement`.
+
+### Appendix A new findings
+
+#### 🟡 Should Fix
+
+- [ ] **`AgreementValidator.java` / `PricingAgreement.java`** The validation rules ("unit price > 0", "commission percentage 0–100", "fixed amount > 0") are **domain invariants** — they define what a valid `PricingAgreement` is. Under DDD, the domain object should protect its own invariants; no external caller should be able to construct one in an invalid state. Move the validation into `PricingAgreement`'s compact record constructor and delete `AgreementValidator`. The use cases (`CreateAgreementUseCase`, `UpdateAgreementUseCase`) then just construct the domain object and the invariant is enforced at the domain boundary automatically. Note: the compact constructor also fires in `fromEntity()`, but that is harmless — data from the DB is always valid given the DB constraints.
+
+- [ ] **`AgreementValidator.java:24`** (Superseded by the above if the invariant is moved to the domain; fix regardless if `AgreementValidator` is kept.) Misleading error message in the PERCENTAGE branch: `"Commission value must be greater than zero"` is thrown when `value < 0`, but 0 is valid for PERCENTAGE. Consolidate the two PERCENTAGE checks into one guard with message `"Commission percentage must be between 0 and 100"`.
+
+#### 🟢 Suggestions
+
+- [ ] **`AgreementValidator.java`** No test covers the `PERCENTAGE` with a negative value path (e.g., `-1`). All six task I.2 cases from the spec are tested, but a negative percentage is a reachable code path that would currently produce the misleading message above. Add one test: `validateCommissionValue_percentage_negativeThrows`.
+
+- [ ] **`AgreementView.java:11`** `FIXED_AMOUNT` display uses implicit `BigDecimal.toString()` via string concatenation, while `PERCENTAGE` explicitly calls `stripTrailingZeros().toPlainString()`. The spec example says `1.00 €`, so 2 decimal places is intentional — but the display depends on the scale of the `BigDecimal` at runtime. Values read from the DB (scale 2) will show `1.00 €` as expected; however, in-memory values (e.g., test fixtures created with `new BigDecimal("1")`) would show `1 €`. Consider using `agreement.commissionValue().setScale(2, RoundingMode.HALF_UP).toPlainString() + " €"` to guarantee consistent formatting regardless of scale.
+
+---
+
+## Developer Responses (Round 3)
+
+**🟡 Move validation to domain / misleading error message:** Added a compact record constructor to `PricingAgreement` that enforces all three invariants: unit price > 0, PERCENTAGE commission in [0, 100] (single consolidated check with message "Commission percentage must be between 0 and 100"), and FIXED_AMOUNT commission > 0. The compact constructor fires on every construction including `fromEntity()` — harmless since DB constraints guarantee valid data. Removed `AgreementValidator.validateUnitPrice` and `AgreementValidator.validateCommissionValue` calls from `CreateAgreementUseCase` and `UpdateAgreementUseCase`. Deleted `AgreementValidator.java` and replaced `AgreementValidatorTest.java` with `PricingAgreementTest.java` in the domain package.
+
+**🟢 Negative-percentage test:** Covered by `PricingAgreementTest.constructor_withPercentageNegative_throws()` in the new domain test class. It asserts `IllegalArgumentException` with message "Commission percentage must be between 0 and 100".
+
+**🟢 FIXED_AMOUNT display scale:** Updated `AgreementView.displayCommission()` FIXED_AMOUNT branch to use `setScale(2, RoundingMode.HALF_UP).toPlainString()` instead of implicit `toString()` via string concatenation. This guarantees `1.00 €` regardless of the BigDecimal's in-memory scale.
+
+### NFR Checks (Appendix A)
+
+- **FR-2a (commission type + value fields):** ✅ `PricingAgreement` record has `commissionType` and `commissionValue`. `AgreementForm` and `PricingAgreementEntity` updated accordingly.
+- **FR-10a (type-aware validation):** ✅ `AgreementValidator.validateCommissionValue` enforces PERCENTAGE 0–100 and FIXED_AMOUNT > 0. Tests cover all six spec cases.
+- **Display (commission column):** ✅ `AgreementView.displayCommission()` formats as `30%` or `1.00 €`. `detail.html` uses `displayCommission()` and column header updated to "Commission".
+- **V30 migration:** ✅ Renames `commission_percentage → commission_value`, adds `commission_type NOT NULL DEFAULT 'PERCENTAGE'`, adds check constraint, drops default. Safe for existing rows (all default to `PERCENTAGE`).
+- **Controller (Appendix A):** ✅ `commissionTypes` model attribute added to both GET create and GET edit. POST handlers pass `commissionType` and `commissionValue` to command API.
