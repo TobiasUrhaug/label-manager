@@ -3,6 +3,10 @@
 ## Status
 In Progress
 
+## Amendment: Fixed-Amount Commission (Appendix A)
+
+See requirements Appendix A. The `commission_percentage` field is replaced by two fields: `commission_type` (enum) and `commission_value` (decimal). All other design decisions are unchanged.
+
 ## Approach
 
 Add a `distribution/agreement` module within the `distribution` bounded context. The module stores a `PricingAgreement` entity — one per distributor+production run pair — recording the label's unit price and the distributor's commission percentage.
@@ -231,6 +235,136 @@ Template usage: `<button onclick="AgreementDelete.confirmDelete('delete-form-1')
 - No new bounded context is needed; `distribution/` is sufficient.
 - The existing Flyway sequence is at V28; next is V29.
 - `AllocationRepository` can add `findByDistributorId` without breaking existing queries.
+
+---
+
+---
+
+## Appendix A: Fixed-Amount Commission — Technical Design
+
+### Key Decision: Enum storage
+
+`CommissionType` is stored as `VARCHAR(20)` with a DB-level `CHECK` constraint (`'PERCENTAGE'`, `'FIXED_AMOUNT'`). The JPA entity uses `@Enumerated(EnumType.STRING)`. This avoids ordinal-fragility and keeps the DB column human-readable.
+
+### Key Decision: No separate column
+
+A single `commission_value NUMERIC(10,2)` column holds the value for both commission types. The interpretation (percentage 0–100 or positive monetary amount) is determined by `commission_type`. This is the simplest model; a second column would always be null for one type.
+
+### DB Migration (V30)
+
+```sql
+ALTER TABLE pricing_agreement
+    RENAME COLUMN commission_percentage TO commission_value;
+
+ALTER TABLE pricing_agreement
+    ADD COLUMN commission_type VARCHAR(20) NOT NULL DEFAULT 'PERCENTAGE';
+
+ALTER TABLE pricing_agreement
+    ADD CONSTRAINT chk_commission_type CHECK (commission_type IN ('PERCENTAGE', 'FIXED_AMOUNT'));
+
+ALTER TABLE pricing_agreement
+    ALTER COLUMN commission_type DROP DEFAULT;
+```
+
+Existing rows get `commission_type = 'PERCENTAGE'`, which correctly preserves their meaning.
+
+### Updated Domain Record — `PricingAgreement.java`
+
+```java
+public record PricingAgreement(
+    Long id,
+    Long distributorId,
+    Long productionRunId,
+    BigDecimal unitPrice,
+    CommissionType commissionType,
+    BigDecimal commissionValue,
+    Instant createdAt
+) { ... }
+```
+
+### New Enum — `CommissionType.java` (in `distribution/agreement/domain/`)
+
+```java
+public enum CommissionType {
+    PERCENTAGE,
+    FIXED_AMOUNT
+}
+```
+
+### Updated `AgreementForm.java`
+
+```java
+public class AgreementForm {
+    private Long productionRunId;
+    @NotNull private BigDecimal unitPrice;
+    @NotNull private CommissionType commissionType;
+    @NotNull private BigDecimal commissionValue;
+}
+```
+
+### Updated API Signatures
+
+```java
+// AgreementCommandApi
+PricingAgreement create(Long distributorId, Long productionRunId,
+                        BigDecimal unitPrice, CommissionType commissionType, BigDecimal commissionValue);
+PricingAgreement update(Long agreementId,
+                        BigDecimal unitPrice, CommissionType commissionType, BigDecimal commissionValue);
+```
+
+### Updated `AgreementValidator.java`
+
+Replace `validateCommissionPercentage` with:
+
+```java
+static void validateCommissionValue(CommissionType type, BigDecimal value) {
+    if (value == null || value.compareTo(BigDecimal.ZERO) <= 0) { ... }
+    if (type == PERCENTAGE && value.compareTo(new BigDecimal("100")) > 0) { ... }
+}
+```
+
+Both types require `value > 0`. Only `PERCENTAGE` additionally requires `value ≤ 100`.
+
+### Display
+
+`AgreementView` (in `distribution/distributor/api/`) gains a `displayCommission()` method:
+
+```java
+public String displayCommission() {
+    return switch (agreement.commissionType()) {
+        case PERCENTAGE    -> agreement.commissionValue().stripTrailingZeros().toPlainString() + "%";
+        case FIXED_AMOUNT  -> agreement.commissionValue() + " €";
+    };
+}
+```
+
+The Thymeleaf templates call `${item.displayCommission()}` instead of accessing `commissionPercentage` directly.
+
+### Form UI (agreement-form.html)
+
+The commission section changes from one number input to:
+1. A radio group or `<select>` for `commissionType` (PERCENTAGE / FIXED AMOUNT)
+2. A number input for `commissionValue` with `step="0.01"` and `min="0"`. The `max="100"` constraint is removed (it was only valid for percentages); server-side validation enforces the range.
+
+### Updated files
+
+| File | Change |
+|------|--------|
+| `V30__add_commission_type_to_pricing_agreement.sql` | **New** — migration |
+| `distribution/agreement/domain/CommissionType.java` | **New** — enum |
+| `distribution/agreement/domain/PricingAgreement.java` | Replace `commissionPercentage` → `commissionType` + `commissionValue` |
+| `distribution/agreement/infrastructure/PricingAgreementEntity.java` | Same field swap; `@Enumerated(EnumType.STRING)` on type |
+| `distribution/agreement/api/AgreementCommandApi.java` | Updated method signatures |
+| `distribution/agreement/api/AgreementForm.java` | Add `commissionType`; rename field |
+| `distribution/agreement/application/AgreementValidator.java` | Replace `validateCommissionPercentage` with `validateCommissionValue(type, value)` |
+| `distribution/agreement/application/CreateAgreementUseCase.java` | Pass new fields; call new validator |
+| `distribution/agreement/application/UpdateAgreementUseCase.java` | Same |
+| `distribution/agreement/application/AgreementCommandApiImpl.java` | Updated delegation |
+| `distribution/distributor/api/AgreementView.java` | Add `displayCommission()` |
+| `distribution/agreement/api/AgreementController.java` | Pass `CommissionType.values()` to form model |
+| `templates/distributor/agreement-form.html` | Commission type selector + renamed value field |
+| `templates/distributor/detail.html` | Use `displayCommission()` instead of raw `commissionPercentage` |
+| `AgreementControllerTest.java` | Add/update tests for new fields and validation paths |
 
 ---
 
