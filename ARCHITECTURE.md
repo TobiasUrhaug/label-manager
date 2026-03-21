@@ -21,31 +21,67 @@ Within each bounded context, organize by **module** (not by layer).
 
 Within each bounded context, organize code into **modules** with encapsulated internals and clean public APIs. This prevents tight coupling and allows modules to evolve independently.
 
-### Module Structure
+### Choosing a Module Structure
 
-Each module (e.g., `label`, `release`, `artist`) should follow this pattern:
+Not every module needs the full layered structure. Choose based on complexity:
+
+- **Full structure**: The module has non-trivial business logic, orchestration across repositories or external APIs, side effects, or complex domain rules.
+- **Simplified structure**: The module is primarily CRUD — entities go in, entities come out, with no meaningful business logic beyond validation and persistence.
+
+When planning a new module, **always ask**: does this module have business logic that justifies separate use case classes and the `CommandApi`/`QueryApi` interface split? If the answer is "it's just CRUD", use the simplified structure.
+
+#### Full Module Structure
+
+For modules with real business logic (e.g., `release`, `sale`, `allocation`):
+
+```
+catalog/release/
+├── api/
+│   ├── ReleaseCommandApi.java       # Public interface (mutations)
+│   ├── ReleaseQueryApi.java         # Public interface (queries)
+│   └── ReleaseController.java       # Public HTTP interface
+│
+├── application/                     # package-private
+│   ├── CreateReleaseUseCase.java    # Focused business operations
+│   ├── BuildTracksUseCase.java
+│   ├── ReleaseCommandApiImpl.java   # Implements CommandApi, delegates to use cases
+│   └── ReleaseQueryApiImpl.java     # Implements QueryApi
+│
+├── domain/
+│   └── Release.java                 # Public domain record
+│
+└── infrastructure/                  # public
+    ├── ReleaseEntity.java           # JPA entity
+    └── ReleaseRepository.java       # Spring Data repository
+```
+
+#### Simplified Module Structure
+
+For CRUD-dominant modules (e.g., `label`, `artist`, `distributor`):
 
 ```
 catalog/label/
 ├── api/
-│   ├── LabelCommandApi.java       # Public interface (mutations)
-│   ├── LabelQueryApi.java         # Public interface (queries)
+│   ├── LabelCommandApi.java       # Public interface (mutations) — optional, see below
+│   ├── LabelQueryApi.java         # Public interface (queries) — optional, see below
 │   └── LabelController.java       # Public HTTP interface
 │
-├── application/                   # package-private use cases
-│   ├── CreateLabelUseCase.java    # Focused business operations
-│   ├── UpdateLabelUseCase.java
-│   ├── DeleteLabelUseCase.java
-│   ├── LabelCommandApiImpl.java   # Implements CommandApi, delegates to use cases
-│   └── LabelQueryApiImpl.java     # Implements QueryApi
+├── application/                   # package-private
+│   ├── LabelCommandService.java   # Single service: implements CommandApi, handles all mutations directly
+│   └── LabelQueryService.java     # Single service: implements QueryApi, handles all queries directly
 │
 ├── domain/
 │   └── Label.java                 # Public domain record
 │
-└── infrastructure/                # package-private
+└── infrastructure/                # public
     ├── LabelEntity.java           # JPA entity
     └── LabelRepository.java       # Spring Data repository
 ```
+
+**Key differences from full structure:**
+- No separate `*UseCase` classes — the service handles CRUD operations directly
+- `CommandApi`/`QueryApi` interfaces are only needed if other modules depend on this module. If only the controller calls the service, skip the interfaces entirely and inject the service directly.
+- Fewer files, fewer hops, easier to navigate
 
 **Key principles**:
 - The `api/` package contains **only module contracts**: public interfaces (`CommandApi`, `QueryApi`), controllers, and form objects. It does not contain view-specific DTOs or read models assembled for Thymeleaf templates.
@@ -104,7 +140,7 @@ catalog/label/
    }
    ```
 
-4. **Make all internal classes package-private**: Use case classes, `Entity`, `Repository`, and API implementations should have **no access modifier** (package-private), not `public`.
+4. **Make application classes package-private**: Use case classes and API implementations should have **no access modifier** (package-private), not `public`. Infrastructure classes (`Entity`, `Repository`) are `public` — they may be accessed by test helpers or shared infrastructure adapters.
 
 5. **Use ID references between modules**: Domain records should reference other modules by ID, not by embedding full objects:
    ```java
@@ -138,12 +174,16 @@ catalog/label/
 
 ### Use Case Guidelines
 
-Use cases represent discrete business operations.
+Use cases represent discrete business operations. They belong in modules that use the **full structure** (see above).
 
 **When to create a new use case:**
-- Each significant business operation gets its own use case class
-- Examples: `CreateLabelUseCase`, `PublishReleaseUseCase`, `CalculateRoyaltiesUseCase`
-- Use cases should be named with verbs that describe what they do
+- The operation involves orchestration (multiple repositories, external API calls, side effects)
+- The operation contains business rules beyond simple validation
+- Examples: `PublishReleaseUseCase`, `RegisterSaleUseCase`, `CalculateRoyaltiesUseCase`
+
+**When NOT to create separate use case classes:**
+- The module is CRUD-only — put the logic directly in a `CommandService`/`QueryService` (simplified structure)
+- The operation is a trivial save/delete with no coordination or business rules
 
 **Keep use cases focused:**
 - Each use case should do one thing well
@@ -330,7 +370,7 @@ public class InsufficientInventoryException extends RuntimeException { ... }
 | `api/` | Module contracts: interfaces, controllers, forms, domain exceptions | Public | `LabelCommandApi.java`, `LabelController.java`, `LabelNotFoundException.java` |
 | `application/` | Use cases, API implementations | Package-private | `CreateLabelUseCase.java`, `LabelCommandApiImpl.java` |
 | `domain/` | Domain records | Public | `Label.java` |
-| `infrastructure/` | JPA entities, repositories | Package-private | `LabelEntity.java`, `LabelRepository.java` |
+| `infrastructure/` | JPA entities, repositories | Public | `LabelEntity.java`, `LabelRepository.java` |
 
 Note: Shared infrastructure (cross-cutting concerns like security, storage) lives in the `infrastructure/` **bounded context**, not within individual modules.
 

@@ -35,6 +35,7 @@ Create these files in the same feature folder:
 - Order tasks so each one builds on the last. Note dependencies between tasks.
 - Include tasks for tests, not just implementation.
 - If a requirement can be solved multiple ways, state which approach you chose and briefly note why.
+- **Always assess module complexity before choosing a structure.** Ask the user: "Does this module have business logic that justifies the full structure (separate use cases, CommandApi/QueryApi interfaces), or is it primarily CRUD?" See `ARCHITECTURE.md` § "Choosing a Module Structure" for the two patterns. Default to the simplified structure unless there is a clear reason for the full one.
 
 ## Handoff
 
