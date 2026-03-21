@@ -276,8 +276,8 @@ class SaleRegistrationIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    void registerSale_withNoAllocation_throwsHelpfulException() {
-        // Create a second production run without any allocation
+    void registerSale_withNoStock_throwsInsufficientInventoryException() {
+        // Create a production run with no inventory movements (zero stock at distributor)
         productionRunRepository.save(
                 new ProductionRunEntity(
                         releaseId,
@@ -306,13 +306,7 @@ class SaleRegistrationIntegrationTest extends AbstractIntegrationTest {
                         null,
                         lineItems
                 ))
-                .isInstanceOf(IllegalStateException.class)
-                .hasMessageContaining("No inventory allocated")
-                .hasMessageContaining("Test Release")
-                .hasMessageContaining("CD")
-                .hasMessageContaining(
-                        "allocate inventory from the production run"
-                );
+                .isInstanceOf(InsufficientInventoryException.class);
     }
 
     @Test
@@ -491,8 +485,8 @@ class SaleRegistrationIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    void registerDistributorSale_withNoAllocation_throwsHelpfulException() {
-        // Create distributor WITHOUT allocation
+    void registerDistributorSale_withNoStock_throwsInsufficientInventoryException() {
+        // Create distributor with no inventory movements (zero stock)
         var distributorEntity = distributorRepository.save(
                 new DistributorEntity(
                         labelId,
@@ -518,8 +512,6 @@ class SaleRegistrationIntegrationTest extends AbstractIntegrationTest {
                         distributorEntity.getId(),
                         lineItems
                 ))
-                .isInstanceOf(IllegalStateException.class)
-                .hasMessageContaining("No inventory allocated")
-                .hasMessageContaining("Unallocated Distributor");
+                .isInstanceOf(InsufficientInventoryException.class);
     }
 }

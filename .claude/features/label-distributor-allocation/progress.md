@@ -4,10 +4,10 @@
 Implementation
 
 ## Last Completed Task
-Reviewer: Round 1 re-review complete. All 🔴 comments resolved. One new 🟢 observation logged (LocationType `<ul>` omits BANDCAMP). Tasks 1.1–3.1 approved.
+Developer: Round 3 comments addressed. Removed `distributorName` from `validateAndAdd()` and cleaned up `UpdateSaleUseCase` (removed `resolveDistributorName`, `distributorQueryApi` injection). Checked off task 3.1. Added happy-path unit test to `SaleLineItemProcessorTest`. All 365 tests pass.
 
 ## Next Action
-Developer: continue to task 4.1 — remove prior-allocation check from SaleLineItemProcessor.
+Developer: fix stale `@param distributorName` Javadoc in `SaleLineItemProcessor` (🟢), then continue to task 5.1.
 
 ## Blockers
 None.

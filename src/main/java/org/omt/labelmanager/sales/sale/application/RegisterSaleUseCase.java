@@ -87,7 +87,7 @@ class RegisterSaleUseCase {
         Map<SaleLineItemInput, Long> productionRunIds = new LinkedHashMap<>();
         for (var lineItemInput : lineItems) {
             Long productionRunId = lineItemProcessor.validateAndAdd(
-                    lineItemInput, labelId, distributor.id(), distributor.name(), saleEntity
+                    lineItemInput, labelId, distributor.id(), saleEntity
             );
             productionRunIds.put(lineItemInput, productionRunId);
         }

@@ -5,8 +5,6 @@ import java.time.LocalDate;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import org.omt.labelmanager.distribution.distributor.api.DistributorQueryApi;
-import org.omt.labelmanager.distribution.distributor.Distributor;
 import org.omt.labelmanager.inventory.domain.InventoryLocation;
 import org.omt.labelmanager.inventory.domain.MovementType;
 import org.omt.labelmanager.inventory.inventorymovement.api.InventoryMovementCommandApi;
@@ -24,20 +22,17 @@ class UpdateSaleUseCase {
     private static final Logger log = LoggerFactory.getLogger(UpdateSaleUseCase.class);
 
     private final SaleRepository saleRepository;
-    private final DistributorQueryApi distributorQueryApi;
     private final InventoryMovementCommandApi inventoryMovementCommandApi;
     private final SaleLineItemProcessor lineItemProcessor;
     private final SaleConverter saleConverter;
 
     UpdateSaleUseCase(
             SaleRepository saleRepository,
-            DistributorQueryApi distributorQueryApi,
             InventoryMovementCommandApi inventoryMovementCommandApi,
             SaleLineItemProcessor lineItemProcessor,
             SaleConverter saleConverter
     ) {
         this.saleRepository = saleRepository;
-        this.distributorQueryApi = distributorQueryApi;
         this.inventoryMovementCommandApi = inventoryMovementCommandApi;
         this.lineItemProcessor = lineItemProcessor;
         this.saleConverter = saleConverter;
@@ -74,14 +69,12 @@ class UpdateSaleUseCase {
 
         // 3. Validate each new line item and add to entity, caching production run IDs
         Long distributorId = saleEntity.getDistributorId();
-        String distributorName = resolveDistributorName(distributorId, saleEntity.getLabelId());
         Map<SaleLineItemInput, Long> productionRunIds = new LinkedHashMap<>();
         for (var lineItemInput : lineItems) {
             Long productionRunId = lineItemProcessor.validateAndAdd(
                     lineItemInput,
                     saleEntity.getLabelId(),
                     distributorId,
-                    distributorName,
                     saleEntity
             );
             productionRunIds.put(lineItemInput, productionRunId);
@@ -108,10 +101,4 @@ class UpdateSaleUseCase {
         return saleConverter.toSale(savedSale);
     }
 
-    private String resolveDistributorName(Long distributorId, Long labelId) {
-        return distributorQueryApi.findById(distributorId)
-                .filter(d -> d.labelId().equals(labelId))
-                .map(Distributor::name)
-                .orElse("id=" + distributorId);
-    }
 }

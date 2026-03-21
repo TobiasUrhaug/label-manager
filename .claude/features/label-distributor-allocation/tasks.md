@@ -23,7 +23,7 @@ Draft
 
 ### Group 3 — Rewrite validateQuantityIsAvailable()
 
-- [ ] **3.1** Rewrite `ProductionRunQueryApiImpl.validateQuantityIsAvailable()` to use `InventoryMovementQueryApi.getWarehouseInventory()` instead of `AllocationQueryApi`.
+- [x] **3.1** Rewrite `ProductionRunQueryApiImpl.validateQuantityIsAvailable()` to use `InventoryMovementQueryApi.getWarehouseInventory()` instead of `AllocationQueryApi`.
   - Remove `AllocationQueryApi` injection; inject `InventoryMovementQueryApi` instead.
   - Available stock formula: `productionRun.quantity() + inventoryMovementQueryApi.getWarehouseInventory(productionRunId)`.
   - Note: verify the delta semantics of `getWarehouseInventory()` (should return negative value after allocations, positive after returns) before coding.
@@ -31,7 +31,7 @@ Draft
 
 ### Group 4 — Remove prior-allocation check from SaleLineItemProcessor
 
-- [ ] **4.1** Remove `AllocationQueryApi` injection and the `hasAllocation` guard from `SaleLineItemProcessor`.
+- [x] **4.1** Remove `AllocationQueryApi` injection and the `hasAllocation` guard from `SaleLineItemProcessor`.
   - The stock-only check (`FR-7`) remains unchanged.
   - Test: verify that a sale attempt against a distributor with zero stock (and no allocation) throws `InsufficientInventoryException` (not an `IllegalStateException` about missing allocation).
 
