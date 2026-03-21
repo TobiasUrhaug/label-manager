@@ -4,7 +4,7 @@ import jakarta.persistence.EntityNotFoundException;
 import org.omt.labelmanager.catalog.label.api.LabelQueryApi;
 import org.omt.labelmanager.catalog.release.api.ReleaseQueryApi;
 import org.omt.labelmanager.distribution.distributor.api.DistributorQueryApi;
-import org.omt.labelmanager.inventory.allocation.api.AllocationQueryApi;
+import org.omt.labelmanager.inventory.inventorymovement.api.InventoryMovementQueryApi;
 import org.omt.labelmanager.inventory.productionrun.api.ProductionRunQueryApi;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -26,7 +26,7 @@ public class AgreementController {
     private final AgreementQueryApi queryApi;
     private final DistributorQueryApi distributorQueryApi;
     private final LabelQueryApi labelQueryApi;
-    private final AllocationQueryApi allocationQueryApi;
+    private final InventoryMovementQueryApi inventoryMovementQueryApi;
     private final ProductionRunQueryApi productionRunQueryApi;
     private final ReleaseQueryApi releaseQueryApi;
 
@@ -35,7 +35,7 @@ public class AgreementController {
             AgreementQueryApi queryApi,
             DistributorQueryApi distributorQueryApi,
             LabelQueryApi labelQueryApi,
-            AllocationQueryApi allocationQueryApi,
+            InventoryMovementQueryApi inventoryMovementQueryApi,
             ProductionRunQueryApi productionRunQueryApi,
             ReleaseQueryApi releaseQueryApi
     ) {
@@ -43,7 +43,7 @@ public class AgreementController {
         this.queryApi = queryApi;
         this.distributorQueryApi = distributorQueryApi;
         this.labelQueryApi = labelQueryApi;
-        this.allocationQueryApi = allocationQueryApi;
+        this.inventoryMovementQueryApi = inventoryMovementQueryApi;
         this.productionRunQueryApi = productionRunQueryApi;
         this.releaseQueryApi = releaseQueryApi;
     }
@@ -184,12 +184,8 @@ public class AgreementController {
     }
 
     private List<AvailableProductionRunView> buildAvailableRuns(Long distributorId) {
-        var allocatedRunIds = allocationQueryApi.getAllocationsForDistributor(distributorId)
+        return inventoryMovementQueryApi.getProductionRunIdsAllocatedToDistributor(distributorId)
                 .stream()
-                .map(a -> a.productionRunId())
-                .toList();
-
-        return allocatedRunIds.stream()
                 .filter(runId -> !queryApi.existsByDistributorIdAndProductionRunId(distributorId, runId))
                 .map(runId -> new AvailableProductionRunView(runId, buildDisplayName(runId)))
                 .toList();
