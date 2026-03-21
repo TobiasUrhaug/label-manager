@@ -1,4 +1,4 @@
-package org.omt.labelmanager.distribution.agreement.infrastructure;
+package org.omt.labelmanager.distribution.agreement.persistence;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 

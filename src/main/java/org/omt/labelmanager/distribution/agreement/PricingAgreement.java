@@ -1,6 +1,6 @@
-package org.omt.labelmanager.distribution.agreement.domain;
+package org.omt.labelmanager.distribution.agreement;
 
-import org.omt.labelmanager.distribution.agreement.infrastructure.PricingAgreementEntity;
+import org.omt.labelmanager.distribution.agreement.persistence.PricingAgreementEntity;
 
 import java.math.BigDecimal;
 import java.time.Instant;

@@ -1,7 +1,7 @@
 package org.omt.labelmanager.distribution.distributor.api;
 
-import org.omt.labelmanager.distribution.agreement.domain.CommissionType;
-import org.omt.labelmanager.distribution.agreement.domain.PricingAgreement;
+import org.omt.labelmanager.distribution.agreement.CommissionType;
+import org.omt.labelmanager.distribution.agreement.PricingAgreement;
 
 import java.math.RoundingMode;
 

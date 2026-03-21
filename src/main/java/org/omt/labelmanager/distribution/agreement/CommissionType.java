@@ -1,4 +1,4 @@
-package org.omt.labelmanager.distribution.agreement.domain;
+package org.omt.labelmanager.distribution.agreement;
 
 public enum CommissionType {
     PERCENTAGE,

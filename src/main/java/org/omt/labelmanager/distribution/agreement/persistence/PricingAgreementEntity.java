@@ -1,7 +1,7 @@
-package org.omt.labelmanager.distribution.agreement.infrastructure;
+package org.omt.labelmanager.distribution.agreement.persistence;
 
 import jakarta.persistence.*;
-import org.omt.labelmanager.distribution.agreement.domain.CommissionType;
+import org.omt.labelmanager.distribution.agreement.CommissionType;
 
 import java.math.BigDecimal;
 import java.time.Instant;

@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-import org.omt.labelmanager.distribution.agreement.domain.CommissionType;
+import org.omt.labelmanager.distribution.agreement.CommissionType;
 
 import java.util.List;
 

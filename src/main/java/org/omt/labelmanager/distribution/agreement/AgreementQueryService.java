@@ -1,19 +1,18 @@
-package org.omt.labelmanager.distribution.agreement.application;
+package org.omt.labelmanager.distribution.agreement;
 
 import org.omt.labelmanager.distribution.agreement.api.AgreementQueryApi;
-import org.omt.labelmanager.distribution.agreement.domain.PricingAgreement;
-import org.omt.labelmanager.distribution.agreement.infrastructure.PricingAgreementRepository;
+import org.omt.labelmanager.distribution.agreement.persistence.PricingAgreementRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
 
 @Service
-class AgreementQueryApiImpl implements AgreementQueryApi {
+class AgreementQueryService implements AgreementQueryApi {
 
     private final PricingAgreementRepository repository;
 
-    AgreementQueryApiImpl(PricingAgreementRepository repository) {
+    AgreementQueryService(PricingAgreementRepository repository) {
         this.repository = repository;
     }
 

@@ -1,6 +1,6 @@
 package org.omt.labelmanager.distribution.agreement.api;
 
-import org.omt.labelmanager.distribution.agreement.domain.PricingAgreement;
+import org.omt.labelmanager.distribution.agreement.PricingAgreement;
 
 import java.util.List;
 import java.util.Optional;

@@ -52,7 +52,7 @@
                     <select class="form-select" id="commissionType" th:field="*{commissionType}" required>
                         <option th:each="type : ${commissionTypes}"
                                 th:value="${type}"
-                                th:text="${type == T(org.omt.labelmanager.distribution.agreement.domain.CommissionType).PERCENTAGE} ? 'Percentage (%)' : 'Fixed Amount (€)'">
+                                th:text="${type == T(org.omt.labelmanager.distribution.agreement.CommissionType).PERCENTAGE} ? 'Percentage (%)' : 'Fixed Amount (€)'">
                         </option>
                     </select>
                 </div>
