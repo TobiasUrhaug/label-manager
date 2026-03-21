@@ -50,6 +50,16 @@ public interface InventoryMovementQueryApi {
     int getWarehouseInventory(Long productionRunId);
 
     /**
+     * Returns the current quantity held by Bandcamp for a production run.
+     *
+     * <p>Result = SUM(ALLOCATION to BANDCAMP) − SUM(outbound from BANDCAMP)
+     *
+     * @param productionRunId the production run
+     * @return current Bandcamp inventory quantity
+     */
+    int getBandcampInventory(Long productionRunId);
+
+    /**
      * Returns current inventory per distributor for a production run.
      *
      * <p>Distributors with zero current inventory may be omitted from the result.

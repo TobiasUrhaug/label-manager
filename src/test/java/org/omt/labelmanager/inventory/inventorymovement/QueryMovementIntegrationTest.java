@@ -1,6 +1,7 @@
 package org.omt.labelmanager.inventory.inventorymovement;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.omt.labelmanager.inventory.domain.InventoryLocation.bandcamp;
 import static org.omt.labelmanager.inventory.domain.InventoryLocation.distributor;
 import static org.omt.labelmanager.inventory.domain.InventoryLocation.external;
 import static org.omt.labelmanager.inventory.domain.InventoryLocation.warehouse;
@@ -154,6 +155,48 @@ public class QueryMovementIntegrationTest extends AbstractIntegrationTest {
                 .isEqualTo(MovementType.SALE);
         assertThat(movements.get(1).movementType())
                 .isEqualTo(MovementType.ALLOCATION);
+    }
+
+    @Test
+    void getBandcampInventory_returnsAllocatedMinusSoldAndReturned() {
+        recordBandcampAllocation(50);
+        recordBandcampSale(10);
+
+        int held = inventoryMovementQueryApi.getBandcampInventory(productionRunId);
+
+        assertThat(held).isEqualTo(40);
+    }
+
+    @Test
+    void getBandcampInventory_deductsReturnedQuantity() {
+        recordBandcampAllocation(50);
+        recordBandcampSale(10);
+        recordBandcampReturn(10);
+
+        int held = inventoryMovementQueryApi.getBandcampInventory(productionRunId);
+
+        assertThat(held).isEqualTo(30);
+    }
+
+    private void recordBandcampAllocation(int quantity) {
+        inventoryMovementCommandApi.recordMovement(
+                productionRunId,
+                warehouse(), bandcamp(),
+                quantity, MovementType.ALLOCATION, null);
+    }
+
+    private void recordBandcampSale(int quantity) {
+        inventoryMovementCommandApi.recordMovement(
+                productionRunId,
+                bandcamp(), external(),
+                quantity, MovementType.SALE, null);
+    }
+
+    private void recordBandcampReturn(int quantity) {
+        inventoryMovementCommandApi.recordMovement(
+                productionRunId,
+                bandcamp(), warehouse(),
+                quantity, MovementType.RETURN, null);
     }
 
     private void recordAllocation(int quantity) {

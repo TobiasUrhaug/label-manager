@@ -46,6 +46,14 @@ class InventoryMovementQueryApiImpl implements InventoryMovementQueryApi {
     }
 
     @Override
+    public int getBandcampInventory(Long productionRunId) {
+        var movements = movementsFor(productionRunId);
+        int inbound = sumQuantityTo(movements, LocationType.BANDCAMP, null);
+        int outbound = sumQuantityFrom(movements, LocationType.BANDCAMP, null);
+        return inbound - outbound;
+    }
+
+    @Override
     public Map<Long, Integer> getCurrentInventoryByDistributor(Long productionRunId) {
         var movements = movementsFor(productionRunId);
 
