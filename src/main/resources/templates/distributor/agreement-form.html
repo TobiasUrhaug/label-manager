@@ -48,9 +48,19 @@
                 </div>
 
                 <div class="mb-3">
-                    <label for="commissionPercentage" class="form-label">Commission %*</label>
-                    <input type="number" class="form-control" id="commissionPercentage"
-                           th:field="*{commissionPercentage}" step="0.01" min="0" max="100" required>
+                    <label for="commissionType" class="form-label">Commission Type*</label>
+                    <select class="form-select" id="commissionType" th:field="*{commissionType}" required>
+                        <option th:each="type : ${commissionTypes}"
+                                th:value="${type}"
+                                th:text="${type == T(org.omt.labelmanager.distribution.agreement.domain.CommissionType).PERCENTAGE} ? 'Percentage (%)' : 'Fixed Amount (€)'">
+                        </option>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label for="commissionValue" class="form-label">Commission Value*</label>
+                    <input type="number" class="form-control" id="commissionValue"
+                           th:field="*{commissionValue}" step="0.01" min="0" required>
                 </div>
 
                 <div class="d-flex gap-2">

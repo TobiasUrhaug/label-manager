@@ -8,6 +8,7 @@ import org.omt.labelmanager.catalog.release.ReleaseTestHelper;
 import org.omt.labelmanager.catalog.release.domain.ReleaseFormat;
 import org.omt.labelmanager.distribution.agreement.api.AgreementCommandApi;
 import org.omt.labelmanager.distribution.agreement.api.AgreementNotFoundException;
+import org.omt.labelmanager.distribution.agreement.domain.CommissionType;
 import org.omt.labelmanager.distribution.agreement.infrastructure.PricingAgreementRepository;
 import org.omt.labelmanager.distribution.distributor.DistributorTestHelper;
 import org.omt.labelmanager.distribution.distributor.domain.ChannelType;
@@ -57,37 +58,37 @@ public class UpdateAgreementIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     void update_changesUnitPriceAndCommission() {
-        var created = agreementCommandApi.create(distributorId, productionRunId, new BigDecimal("10.00"), new BigDecimal("10.00"));
+        var created = agreementCommandApi.create(distributorId, productionRunId, new BigDecimal("10.00"), CommissionType.PERCENTAGE, new BigDecimal("10.00"));
 
-        var updated = agreementCommandApi.update(created.id(), new BigDecimal("20.00"), new BigDecimal("25.00"));
+        var updated = agreementCommandApi.update(created.id(), new BigDecimal("20.00"), CommissionType.PERCENTAGE, new BigDecimal("25.00"));
 
         assertThat(updated.id()).isEqualTo(created.id());
         assertThat(updated.unitPrice()).isEqualByComparingTo("20.00");
-        assertThat(updated.commissionPercentage()).isEqualByComparingTo("25.00");
+        assertThat(updated.commissionValue()).isEqualByComparingTo("25.00");
     }
 
     @Test
     void update_throwsAgreementNotFoundException_whenAgreementDoesNotExist() {
         assertThatThrownBy(() ->
-                agreementCommandApi.update(999L, new BigDecimal("10.00"), new BigDecimal("10.00"))
+                agreementCommandApi.update(999L, new BigDecimal("10.00"), CommissionType.PERCENTAGE, new BigDecimal("10.00"))
         ).isInstanceOf(AgreementNotFoundException.class);
     }
 
     @Test
     void update_throwsIllegalArgumentException_whenUnitPriceIsZero() {
-        var created = agreementCommandApi.create(distributorId, productionRunId, new BigDecimal("10.00"), new BigDecimal("10.00"));
+        var created = agreementCommandApi.create(distributorId, productionRunId, new BigDecimal("10.00"), CommissionType.PERCENTAGE, new BigDecimal("10.00"));
 
         assertThatThrownBy(() ->
-                agreementCommandApi.update(created.id(), BigDecimal.ZERO, new BigDecimal("10.00"))
+                agreementCommandApi.update(created.id(), BigDecimal.ZERO, CommissionType.PERCENTAGE, new BigDecimal("10.00"))
         ).isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
     void update_throwsIllegalArgumentException_whenCommissionExceedsHundred() {
-        var created = agreementCommandApi.create(distributorId, productionRunId, new BigDecimal("10.00"), new BigDecimal("10.00"));
+        var created = agreementCommandApi.create(distributorId, productionRunId, new BigDecimal("10.00"), CommissionType.PERCENTAGE, new BigDecimal("10.00"));
 
         assertThatThrownBy(() ->
-                agreementCommandApi.update(created.id(), new BigDecimal("10.00"), new BigDecimal("100.01"))
+                agreementCommandApi.update(created.id(), new BigDecimal("10.00"), CommissionType.PERCENTAGE, new BigDecimal("100.01"))
         ).isInstanceOf(IllegalArgumentException.class);
     }
 }

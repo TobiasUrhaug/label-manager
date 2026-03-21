@@ -93,7 +93,7 @@
                 <tr>
                     <th>Production Run</th>
                     <th>Unit Price</th>
-                    <th>Commission %</th>
+                    <th>Commission</th>
                     <th></th>
                 </tr>
                 </thead>
@@ -101,7 +101,7 @@
                 <tr th:each="item : ${agreements}">
                     <td th:text="${item.productionRunDisplayName}">Release – FORMAT</td>
                     <td th:text="${item.agreement.unitPrice}">0.00</td>
-                    <td th:text="${item.agreement.commissionPercentage}">0.00</td>
+                    <td th:text="${item.displayCommission()}">0.00</td>
                     <td class="text-end">
                         <a th:href="@{/labels/{labelId}/distributors/{distributorId}/agreements/{id}/edit(
                                 labelId=${label.id},distributorId=${distributor.id},id=${item.agreement.id})}"

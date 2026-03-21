@@ -1,6 +1,8 @@
 package org.omt.labelmanager.distribution.agreement.api;
 
 import jakarta.validation.constraints.NotNull;
+import org.omt.labelmanager.distribution.agreement.domain.CommissionType;
+
 import java.math.BigDecimal;
 
 public class AgreementForm {
@@ -9,7 +11,9 @@ public class AgreementForm {
     @NotNull
     private BigDecimal unitPrice;
     @NotNull
-    private BigDecimal commissionPercentage;
+    private CommissionType commissionType;
+    @NotNull
+    private BigDecimal commissionValue;
 
     public Long getProductionRunId() {
         return productionRunId;
@@ -27,11 +31,19 @@ public class AgreementForm {
         this.unitPrice = unitPrice;
     }
 
-    public BigDecimal getCommissionPercentage() {
-        return commissionPercentage;
+    public CommissionType getCommissionType() {
+        return commissionType;
     }
 
-    public void setCommissionPercentage(BigDecimal commissionPercentage) {
-        this.commissionPercentage = commissionPercentage;
+    public void setCommissionType(CommissionType commissionType) {
+        this.commissionType = commissionType;
+    }
+
+    public BigDecimal getCommissionValue() {
+        return commissionValue;
+    }
+
+    public void setCommissionValue(BigDecimal commissionValue) {
+        this.commissionValue = commissionValue;
     }
 }

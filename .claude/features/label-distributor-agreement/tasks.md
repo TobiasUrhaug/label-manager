@@ -93,40 +93,40 @@ In Review
   - Verify: `./gradlew bootRun` starts without Flyway errors.
 
 ### Task B: Domain
-- [ ] **B.1** Create `distribution/agreement/domain/CommissionType.java` — public enum with values `PERCENTAGE`, `FIXED_AMOUNT`.
-- [ ] **B.2** Update `distribution/agreement/domain/PricingAgreement.java` — replace `commissionPercentage` field with `commissionType` (CommissionType) and `commissionValue` (BigDecimal). Update `fromEntity` accordingly.
+- [x] **B.1** Create `distribution/agreement/domain/CommissionType.java` — public enum with values `PERCENTAGE`, `FIXED_AMOUNT`.
+- [x] **B.2** Update `distribution/agreement/domain/PricingAgreement.java` — replace `commissionPercentage` field with `commissionType` (CommissionType) and `commissionValue` (BigDecimal). Update `fromEntity` accordingly.
   - Verify: Compiles. Fix any references that break (there will be cascading compile errors — fix them all before running tests).
 
 ### Task C: Infrastructure
-- [ ] **C.1** Update `distribution/agreement/infrastructure/PricingAgreementEntity.java`:
+- [x] **C.1** Update `distribution/agreement/infrastructure/PricingAgreementEntity.java`:
   - Rename field `commissionPercentage` → `commissionValue`, update column mapping to `commission_value`.
   - Add field `commissionType` (CommissionType), annotate `@Enumerated(EnumType.STRING)`, column `commission_type`.
   - Update getter/setter names accordingly.
   - Verify: `./gradlew build` compiles.
 
 ### Task D: API layer
-- [ ] **D.1** Update `distribution/agreement/api/AgreementCommandApi.java`:
+- [x] **D.1** Update `distribution/agreement/api/AgreementCommandApi.java`:
   - `create(...)`: replace `BigDecimal commissionPercentage` with `CommissionType commissionType, BigDecimal commissionValue`.
   - `update(...)`: same replacement.
-- [ ] **D.2** Update `distribution/agreement/api/AgreementForm.java`:
+- [x] **D.2** Update `distribution/agreement/api/AgreementForm.java`:
   - Remove `commissionPercentage` field.
   - Add `@NotNull CommissionType commissionType`.
   - Add `@NotNull BigDecimal commissionValue`.
   - Verify: Compiles.
 
 ### Task E: Application layer
-- [ ] **E.1** Update `distribution/agreement/application/AgreementValidator.java`:
+- [x] **E.1** Update `distribution/agreement/application/AgreementValidator.java`:
   - Remove `validateCommissionPercentage`.
   - Add `static void validateCommissionValue(CommissionType type, BigDecimal value)`:
     - Throws `IllegalArgumentException("Commission value must be greater than zero")` if `value ≤ 0`.
     - Throws `IllegalArgumentException("Commission percentage must be between 0 and 100")` if `type == PERCENTAGE && value > 100`.
-- [ ] **E.2** Update `distribution/agreement/application/CreateAgreementUseCase.java` — pass `commissionType` and `commissionValue`; call `AgreementValidator.validateCommissionValue(commissionType, commissionValue)` instead of `validateCommissionPercentage`.
-- [ ] **E.3** Update `distribution/agreement/application/UpdateAgreementUseCase.java` — same changes as E.2.
-- [ ] **E.4** Update `distribution/agreement/application/AgreementCommandApiImpl.java` — update delegation to pass `commissionType` and `commissionValue`.
+- [x] **E.2** Update `distribution/agreement/application/CreateAgreementUseCase.java` — pass `commissionType` and `commissionValue`; call `AgreementValidator.validateCommissionValue(commissionType, commissionValue)` instead of `validateCommissionPercentage`.
+- [x] **E.3** Update `distribution/agreement/application/UpdateAgreementUseCase.java` — same changes as E.2.
+- [x] **E.4** Update `distribution/agreement/application/AgreementCommandApiImpl.java` — update delegation to pass `commissionType` and `commissionValue`.
   - Verify: `./gradlew build` passes.
 
 ### Task F: View record
-- [ ] **F.1** Update `distribution/distributor/api/AgreementView.java` — add `displayCommission()` method:
+- [x] **F.1** Update `distribution/distributor/api/AgreementView.java` — add `displayCommission()` method:
   ```java
   public String displayCommission() {
       return switch (agreement.commissionType()) {
@@ -137,29 +137,29 @@ In Review
   ```
 
 ### Task G: Controller
-- [ ] **G.1** Update `distribution/agreement/api/AgreementController.java`:
+- [x] **G.1** Update `distribution/agreement/api/AgreementController.java`:
   - On GET create form and GET edit form: add `CommissionType.values()` to model as `"commissionTypes"`.
   - On POST create and POST update: pass `form.getCommissionType()` and `form.getCommissionValue()` to the command API.
   - Verify: `./gradlew build` compiles.
 
 ### Task H: Templates
-- [ ] **H.1** Update `src/main/resources/templates/distributor/agreement-form.html`:
+- [x] **H.1** Update `src/main/resources/templates/distributor/agreement-form.html`:
   - Replace the single commission % input with:
     1. A `<select>` (or radio group) bound to `th:field="*{commissionType}"`, populated from `commissionTypes` with labels "Percentage (%)" and "Fixed Amount (€)".
     2. A number input bound to `th:field="*{commissionValue}"` with `step="0.01"` and `min="0"` (no `max`).
   - Update label text accordingly.
-- [ ] **H.2** Update `src/main/resources/templates/distributor/detail.html`:
+- [x] **H.2** Update `src/main/resources/templates/distributor/detail.html`:
   - Replace `th:text="${item.agreement.commissionPercentage}"` with `th:text="${item.displayCommission()}"`.
   - Update the column header from "Commission %" to "Commission".
 
 ### Task I: Tests
-- [ ] **I.1** Update `AgreementControllerTest.java`:
+- [x] **I.1** Update `AgreementControllerTest.java`:
   - Update all existing test fixtures to supply `commissionType` (PERCENTAGE) and `commissionValue` instead of `commissionPercentage`.
   - Add test: POST create with `FIXED_AMOUNT` and value `> 0` → success.
   - Add test: POST create with `PERCENTAGE` and value `> 100` → form re-rendered with error.
   - Add test: POST create with `FIXED_AMOUNT` and value `≤ 0` → form re-rendered with error.
   - Verify: `./gradlew test --tests "AgreementControllerTest"` passes.
-- [ ] **I.2** Write or update unit tests for `AgreementValidator`:
+- [x] **I.2** Write or update unit tests for `AgreementValidator`:
   - PERCENTAGE with 0 → valid
   - PERCENTAGE with 100 → valid
   - PERCENTAGE with 100.01 → throws

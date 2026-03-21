@@ -1,6 +1,7 @@
 package org.omt.labelmanager.distribution.agreement.application;
 
 import org.omt.labelmanager.distribution.agreement.api.DuplicateAgreementException;
+import org.omt.labelmanager.distribution.agreement.domain.CommissionType;
 import org.omt.labelmanager.distribution.agreement.domain.PricingAgreement;
 import org.omt.labelmanager.distribution.agreement.infrastructure.PricingAgreementEntity;
 import org.omt.labelmanager.distribution.agreement.infrastructure.PricingAgreementRepository;
@@ -27,17 +28,18 @@ class CreateAgreementUseCase {
             Long distributorId,
             Long productionRunId,
             BigDecimal unitPrice,
-            BigDecimal commissionPercentage
+            CommissionType commissionType,
+            BigDecimal commissionValue
     ) {
         AgreementValidator.validateUnitPrice(unitPrice);
-        AgreementValidator.validateCommissionPercentage(commissionPercentage);
+        AgreementValidator.validateCommissionValue(commissionType, commissionValue);
 
         if (repository.existsByDistributorIdAndProductionRunId(distributorId, productionRunId)) {
             throw new DuplicateAgreementException(distributorId, productionRunId);
         }
 
         PricingAgreementEntity entity =
-                new PricingAgreementEntity(distributorId, productionRunId, unitPrice, commissionPercentage);
+                new PricingAgreementEntity(distributorId, productionRunId, unitPrice, commissionType, commissionValue);
         entity = repository.save(entity);
         log.info("Created pricing agreement {} for distributor {} and production run {}",
                 entity.getId(), distributorId, productionRunId);

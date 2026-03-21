@@ -8,6 +8,7 @@ import org.omt.labelmanager.catalog.release.ReleaseTestHelper;
 import org.omt.labelmanager.catalog.release.domain.ReleaseFormat;
 import org.omt.labelmanager.distribution.agreement.api.AgreementCommandApi;
 import org.omt.labelmanager.distribution.agreement.api.AgreementQueryApi;
+import org.omt.labelmanager.distribution.agreement.domain.CommissionType;
 import org.omt.labelmanager.distribution.agreement.infrastructure.PricingAgreementRepository;
 import org.omt.labelmanager.distribution.distributor.DistributorTestHelper;
 import org.omt.labelmanager.distribution.distributor.domain.ChannelType;
@@ -59,7 +60,7 @@ public class QueryAgreementIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     void findById_returnsAgreement_whenItExists() {
-        var created = agreementCommandApi.create(distributorId, productionRunId, new BigDecimal("10.00"), new BigDecimal("10.00"));
+        var created = agreementCommandApi.create(distributorId, productionRunId, new BigDecimal("10.00"), CommissionType.PERCENTAGE, new BigDecimal("10.00"));
 
         var found = agreementQueryApi.findById(created.id());
 
@@ -74,7 +75,7 @@ public class QueryAgreementIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     void findByDistributorId_returnsAllAgreementsForDistributor() {
-        agreementCommandApi.create(distributorId, productionRunId, new BigDecimal("10.00"), new BigDecimal("10.00"));
+        agreementCommandApi.create(distributorId, productionRunId, new BigDecimal("10.00"), CommissionType.PERCENTAGE, new BigDecimal("10.00"));
 
         var agreements = agreementQueryApi.findByDistributorId(distributorId);
 
@@ -89,7 +90,7 @@ public class QueryAgreementIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     void existsByDistributorIdAndProductionRunId_returnsTrue_whenAgreementExists() {
-        agreementCommandApi.create(distributorId, productionRunId, new BigDecimal("10.00"), new BigDecimal("10.00"));
+        agreementCommandApi.create(distributorId, productionRunId, new BigDecimal("10.00"), CommissionType.PERCENTAGE, new BigDecimal("10.00"));
 
         assertThat(agreementQueryApi.existsByDistributorIdAndProductionRunId(distributorId, productionRunId)).isTrue();
     }

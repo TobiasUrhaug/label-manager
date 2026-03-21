@@ -5,6 +5,7 @@ import org.omt.labelmanager.catalog.label.LabelFactory;
 import org.omt.labelmanager.catalog.label.api.LabelQueryApi;
 import org.omt.labelmanager.catalog.release.ReleaseFactory;
 import org.omt.labelmanager.catalog.release.api.ReleaseQueryApi;
+import org.omt.labelmanager.distribution.agreement.domain.CommissionType;
 import org.omt.labelmanager.distribution.agreement.domain.PricingAgreement;
 import org.omt.labelmanager.distribution.distributor.domain.DistributorFactory;
 import org.omt.labelmanager.distribution.distributor.api.DistributorQueryApi;
@@ -96,25 +97,45 @@ class AgreementControllerTest {
                         LABEL_ID, DISTRIBUTOR_ID))
                 .andExpect(status().isOk())
                 .andExpect(view().name("distributor/agreement-form"))
-                .andExpect(model().attributeExists("availableRuns", "form", "label", "distributor"));
+                .andExpect(model().attributeExists("availableRuns", "form", "label", "distributor", "commissionTypes"));
     }
 
     @Test
-    void createAgreement_withValidData_redirectsToDistributorDetail() throws Exception {
+    void createAgreement_withValidPercentageData_redirectsToDistributorDetail() throws Exception {
         var agreement = agreement(AGREEMENT_ID, DISTRIBUTOR_ID, RUN_ID,
-                new BigDecimal("9.99"), new BigDecimal("15.00"));
-        when(commandApi.create(any(), any(), any(), any())).thenReturn(agreement);
+                new BigDecimal("9.99"), CommissionType.PERCENTAGE, new BigDecimal("15.00"));
+        when(commandApi.create(any(), any(), any(), any(), any())).thenReturn(agreement);
 
         mockMvc.perform(post("/labels/{labelId}/distributors/{distributorId}/agreements",
                         LABEL_ID, DISTRIBUTOR_ID)
                         .param("productionRunId", RUN_ID.toString())
                         .param("unitPrice", "9.99")
-                        .param("commissionPercentage", "15.00"))
+                        .param("commissionType", "PERCENTAGE")
+                        .param("commissionValue", "15.00"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/labels/1/distributors/5"));
 
         verify(commandApi).create(eq(DISTRIBUTOR_ID), eq(RUN_ID),
-                eq(new BigDecimal("9.99")), eq(new BigDecimal("15.00")));
+                eq(new BigDecimal("9.99")), eq(CommissionType.PERCENTAGE), eq(new BigDecimal("15.00")));
+    }
+
+    @Test
+    void createAgreement_withFixedAmountAndPositiveValue_redirectsToDistributorDetail() throws Exception {
+        var agreement = agreement(AGREEMENT_ID, DISTRIBUTOR_ID, RUN_ID,
+                new BigDecimal("9.99"), CommissionType.FIXED_AMOUNT, new BigDecimal("2.50"));
+        when(commandApi.create(any(), any(), any(), any(), any())).thenReturn(agreement);
+
+        mockMvc.perform(post("/labels/{labelId}/distributors/{distributorId}/agreements",
+                        LABEL_ID, DISTRIBUTOR_ID)
+                        .param("productionRunId", RUN_ID.toString())
+                        .param("unitPrice", "9.99")
+                        .param("commissionType", "FIXED_AMOUNT")
+                        .param("commissionValue", "2.50"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/labels/1/distributors/5"));
+
+        verify(commandApi).create(eq(DISTRIBUTOR_ID), eq(RUN_ID),
+                eq(new BigDecimal("9.99")), eq(CommissionType.FIXED_AMOUNT), eq(new BigDecimal("2.50")));
     }
 
     @Test
@@ -125,14 +146,15 @@ class AgreementControllerTest {
         when(labelQueryApi.findById(LABEL_ID)).thenReturn(Optional.of(label));
         when(distributorQueryApi.findById(DISTRIBUTOR_ID)).thenReturn(Optional.of(distributor));
         when(allocationQueryApi.getAllocationsForDistributor(DISTRIBUTOR_ID)).thenReturn(List.of());
-        when(commandApi.create(any(), any(), any(), any()))
+        when(commandApi.create(any(), any(), any(), any(), any()))
                 .thenThrow(new DuplicateAgreementException(DISTRIBUTOR_ID, RUN_ID));
 
         mockMvc.perform(post("/labels/{labelId}/distributors/{distributorId}/agreements",
                         LABEL_ID, DISTRIBUTOR_ID)
                         .param("productionRunId", RUN_ID.toString())
                         .param("unitPrice", "9.99")
-                        .param("commissionPercentage", "15.00"))
+                        .param("commissionType", "PERCENTAGE")
+                        .param("commissionValue", "15.00"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("distributor/agreement-form"))
                 .andExpect(model().attributeExists("errorMessage"));
@@ -146,35 +168,59 @@ class AgreementControllerTest {
         when(labelQueryApi.findById(LABEL_ID)).thenReturn(Optional.of(label));
         when(distributorQueryApi.findById(DISTRIBUTOR_ID)).thenReturn(Optional.of(distributor));
         when(allocationQueryApi.getAllocationsForDistributor(DISTRIBUTOR_ID)).thenReturn(List.of());
-        when(commandApi.create(any(), any(), any(), any()))
+        when(commandApi.create(any(), any(), any(), any(), any()))
                 .thenThrow(new IllegalArgumentException("Unit price must be greater than zero"));
 
         mockMvc.perform(post("/labels/{labelId}/distributors/{distributorId}/agreements",
                         LABEL_ID, DISTRIBUTOR_ID)
                         .param("productionRunId", RUN_ID.toString())
                         .param("unitPrice", "0.00")
-                        .param("commissionPercentage", "15.00"))
+                        .param("commissionType", "PERCENTAGE")
+                        .param("commissionValue", "15.00"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("distributor/agreement-form"))
                 .andExpect(model().attributeExists("errorMessage"));
     }
 
     @Test
-    void createAgreement_withCommissionOver100_reRendersFormWithError() throws Exception {
+    void createAgreement_withPercentageOver100_reRendersFormWithError() throws Exception {
         var label = LabelFactory.aLabel().id(LABEL_ID).build();
         var distributor = DistributorFactory.aDistributor().id(DISTRIBUTOR_ID).labelId(LABEL_ID).build();
 
         when(labelQueryApi.findById(LABEL_ID)).thenReturn(Optional.of(label));
         when(distributorQueryApi.findById(DISTRIBUTOR_ID)).thenReturn(Optional.of(distributor));
         when(allocationQueryApi.getAllocationsForDistributor(DISTRIBUTOR_ID)).thenReturn(List.of());
-        when(commandApi.create(any(), any(), any(), any()))
+        when(commandApi.create(any(), any(), any(), any(), any()))
                 .thenThrow(new IllegalArgumentException("Commission percentage must be between 0 and 100"));
 
         mockMvc.perform(post("/labels/{labelId}/distributors/{distributorId}/agreements",
                         LABEL_ID, DISTRIBUTOR_ID)
                         .param("productionRunId", RUN_ID.toString())
                         .param("unitPrice", "9.99")
-                        .param("commissionPercentage", "101.00"))
+                        .param("commissionType", "PERCENTAGE")
+                        .param("commissionValue", "101.00"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("distributor/agreement-form"))
+                .andExpect(model().attributeExists("errorMessage"));
+    }
+
+    @Test
+    void createAgreement_withFixedAmountAndZeroValue_reRendersFormWithError() throws Exception {
+        var label = LabelFactory.aLabel().id(LABEL_ID).build();
+        var distributor = DistributorFactory.aDistributor().id(DISTRIBUTOR_ID).labelId(LABEL_ID).build();
+
+        when(labelQueryApi.findById(LABEL_ID)).thenReturn(Optional.of(label));
+        when(distributorQueryApi.findById(DISTRIBUTOR_ID)).thenReturn(Optional.of(distributor));
+        when(allocationQueryApi.getAllocationsForDistributor(DISTRIBUTOR_ID)).thenReturn(List.of());
+        when(commandApi.create(any(), any(), any(), any(), any()))
+                .thenThrow(new IllegalArgumentException("Commission value must be greater than zero"));
+
+        mockMvc.perform(post("/labels/{labelId}/distributors/{distributorId}/agreements",
+                        LABEL_ID, DISTRIBUTOR_ID)
+                        .param("productionRunId", RUN_ID.toString())
+                        .param("unitPrice", "9.99")
+                        .param("commissionType", "FIXED_AMOUNT")
+                        .param("commissionValue", "0.00"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("distributor/agreement-form"))
                 .andExpect(model().attributeExists("errorMessage"));
@@ -185,7 +231,7 @@ class AgreementControllerTest {
         var label = LabelFactory.aLabel().id(LABEL_ID).build();
         var distributor = DistributorFactory.aDistributor().id(DISTRIBUTOR_ID).labelId(LABEL_ID).build();
         var agreement = agreement(AGREEMENT_ID, DISTRIBUTOR_ID, RUN_ID,
-                new BigDecimal("9.99"), new BigDecimal("15.00"));
+                new BigDecimal("9.99"), CommissionType.PERCENTAGE, new BigDecimal("15.00"));
         var run = ProductionRunFactory.aProductionRun().id(RUN_ID).build();
         var release = ReleaseFactory.aRelease().id(run.releaseId()).name("Test Album").build();
 
@@ -199,14 +245,14 @@ class AgreementControllerTest {
                         LABEL_ID, DISTRIBUTOR_ID, AGREEMENT_ID))
                 .andExpect(status().isOk())
                 .andExpect(view().name("distributor/agreement-form"))
-                .andExpect(model().attributeExists("agreement", "form", "productionRunDisplayName"));
+                .andExpect(model().attributeExists("agreement", "form", "productionRunDisplayName", "commissionTypes"));
     }
 
     @Test
     void showEditForm_whenAgreementBelongsToDifferentDistributor_throwsNotFound() {
         var otherDistributorId = 99L;
         var agreement = agreement(AGREEMENT_ID, otherDistributorId, RUN_ID,
-                new BigDecimal("9.99"), new BigDecimal("15.00"));
+                new BigDecimal("9.99"), CommissionType.PERCENTAGE, new BigDecimal("15.00"));
         var label = LabelFactory.aLabel().id(LABEL_ID).build();
         var distributor = DistributorFactory.aDistributor().id(DISTRIBUTOR_ID).labelId(LABEL_ID).build();
 
@@ -223,40 +269,43 @@ class AgreementControllerTest {
     @Test
     void updateAgreement_withValidData_redirectsToDistributorDetail() throws Exception {
         var agreement = agreement(AGREEMENT_ID, DISTRIBUTOR_ID, RUN_ID,
-                new BigDecimal("12.00"), new BigDecimal("20.00"));
+                new BigDecimal("12.00"), CommissionType.PERCENTAGE, new BigDecimal("20.00"));
         when(queryApi.findById(AGREEMENT_ID)).thenReturn(Optional.of(agreement));
-        when(commandApi.update(any(), any(), any())).thenReturn(agreement);
+        when(commandApi.update(any(), any(), any(), any())).thenReturn(agreement);
 
         mockMvc.perform(post("/labels/{labelId}/distributors/{distributorId}/agreements/{id}",
                         LABEL_ID, DISTRIBUTOR_ID, AGREEMENT_ID)
                         .param("productionRunId", RUN_ID.toString())
                         .param("unitPrice", "12.00")
-                        .param("commissionPercentage", "20.00"))
+                        .param("commissionType", "PERCENTAGE")
+                        .param("commissionValue", "20.00"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/labels/1/distributors/5"));
 
-        verify(commandApi).update(eq(AGREEMENT_ID), eq(new BigDecimal("12.00")), eq(new BigDecimal("20.00")));
+        verify(commandApi).update(eq(AGREEMENT_ID), eq(new BigDecimal("12.00")),
+                eq(CommissionType.PERCENTAGE), eq(new BigDecimal("20.00")));
     }
 
     @Test
     void updateAgreement_whenAgreementBelongsToDifferentDistributor_throwsNotFound() {
         var otherDistributorId = 99L;
         var agreement = agreement(AGREEMENT_ID, otherDistributorId, RUN_ID,
-                new BigDecimal("12.00"), new BigDecimal("20.00"));
+                new BigDecimal("12.00"), CommissionType.PERCENTAGE, new BigDecimal("20.00"));
         when(queryApi.findById(AGREEMENT_ID)).thenReturn(Optional.of(agreement));
 
         assertThatThrownBy(() ->
                 mockMvc.perform(post("/labels/{labelId}/distributors/{distributorId}/agreements/{id}",
                                 LABEL_ID, DISTRIBUTOR_ID, AGREEMENT_ID)
                                 .param("unitPrice", "12.00")
-                                .param("commissionPercentage", "20.00")))
+                                .param("commissionType", "PERCENTAGE")
+                                .param("commissionValue", "20.00")))
                 .hasRootCauseInstanceOf(AgreementNotFoundException.class);
     }
 
     @Test
     void deleteAgreement_deletesAndRedirectsToDistributorDetail() throws Exception {
         var agreement = agreement(AGREEMENT_ID, DISTRIBUTOR_ID, RUN_ID,
-                new BigDecimal("9.99"), new BigDecimal("15.00"));
+                new BigDecimal("9.99"), CommissionType.PERCENTAGE, new BigDecimal("15.00"));
         when(queryApi.findById(AGREEMENT_ID)).thenReturn(Optional.of(agreement));
 
         mockMvc.perform(post("/labels/{labelId}/distributors/{distributorId}/agreements/{id}/delete",
@@ -271,7 +320,7 @@ class AgreementControllerTest {
     void deleteAgreement_whenAgreementBelongsToDifferentDistributor_throwsNotFound() {
         var otherDistributorId = 99L;
         var agreement = agreement(AGREEMENT_ID, otherDistributorId, RUN_ID,
-                new BigDecimal("9.99"), new BigDecimal("15.00"));
+                new BigDecimal("9.99"), CommissionType.PERCENTAGE, new BigDecimal("15.00"));
         when(queryApi.findById(AGREEMENT_ID)).thenReturn(Optional.of(agreement));
 
         assertThatThrownBy(() ->
@@ -281,8 +330,8 @@ class AgreementControllerTest {
     }
 
     private PricingAgreement agreement(Long id, Long distributorId, Long productionRunId,
-            BigDecimal unitPrice, BigDecimal commissionPercentage) {
+            BigDecimal unitPrice, CommissionType commissionType, BigDecimal commissionValue) {
         return new PricingAgreement(id, distributorId, productionRunId,
-                unitPrice, commissionPercentage, Instant.now());
+                unitPrice, commissionType, commissionValue, Instant.now());
     }
 }

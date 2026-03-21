@@ -9,6 +9,7 @@ import org.omt.labelmanager.catalog.release.domain.ReleaseFormat;
 import org.omt.labelmanager.distribution.agreement.api.AgreementCommandApi;
 import org.omt.labelmanager.distribution.agreement.api.AgreementNotFoundException;
 import org.omt.labelmanager.distribution.agreement.api.AgreementQueryApi;
+import org.omt.labelmanager.distribution.agreement.domain.CommissionType;
 import org.omt.labelmanager.distribution.agreement.infrastructure.PricingAgreementRepository;
 import org.omt.labelmanager.distribution.distributor.DistributorTestHelper;
 import org.omt.labelmanager.distribution.distributor.domain.ChannelType;
@@ -61,7 +62,7 @@ public class DeleteAgreementIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     void delete_removesAgreementFromDatabase() {
-        var agreement = agreementCommandApi.create(distributorId, productionRunId, new BigDecimal("10.00"), new BigDecimal("10.00"));
+        var agreement = agreementCommandApi.create(distributorId, productionRunId, new BigDecimal("10.00"), CommissionType.PERCENTAGE, new BigDecimal("10.00"));
 
         agreementCommandApi.delete(agreement.id());
 

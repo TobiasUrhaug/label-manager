@@ -10,7 +10,8 @@ public record PricingAgreement(
         Long distributorId,
         Long productionRunId,
         BigDecimal unitPrice,
-        BigDecimal commissionPercentage,
+        CommissionType commissionType,
+        BigDecimal commissionValue,
         Instant createdAt
 ) {
 
@@ -20,7 +21,8 @@ public record PricingAgreement(
                 entity.getDistributorId(),
                 entity.getProductionRunId(),
                 entity.getUnitPrice(),
-                entity.getCommissionPercentage(),
+                entity.getCommissionType(),
+                entity.getCommissionValue(),
                 entity.getCreatedAt()
         );
     }

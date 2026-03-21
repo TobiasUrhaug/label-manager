@@ -1,6 +1,7 @@
 package org.omt.labelmanager.distribution.agreement.infrastructure;
 
 import jakarta.persistence.*;
+import org.omt.labelmanager.distribution.agreement.domain.CommissionType;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -22,8 +23,12 @@ public class PricingAgreementEntity {
     @Column(name = "unit_price", nullable = false, precision = 10, scale = 2)
     private BigDecimal unitPrice;
 
-    @Column(name = "commission_percentage", nullable = false, precision = 5, scale = 2)
-    private BigDecimal commissionPercentage;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "commission_type", nullable = false)
+    private CommissionType commissionType;
+
+    @Column(name = "commission_value", nullable = false, precision = 10, scale = 2)
+    private BigDecimal commissionValue;
 
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
@@ -35,12 +40,14 @@ public class PricingAgreementEntity {
             Long distributorId,
             Long productionRunId,
             BigDecimal unitPrice,
-            BigDecimal commissionPercentage
+            CommissionType commissionType,
+            BigDecimal commissionValue
     ) {
         this.distributorId = distributorId;
         this.productionRunId = productionRunId;
         this.unitPrice = unitPrice;
-        this.commissionPercentage = commissionPercentage;
+        this.commissionType = commissionType;
+        this.commissionValue = commissionValue;
         this.createdAt = Instant.now();
     }
 
@@ -64,12 +71,20 @@ public class PricingAgreementEntity {
         this.unitPrice = unitPrice;
     }
 
-    public BigDecimal getCommissionPercentage() {
-        return commissionPercentage;
+    public CommissionType getCommissionType() {
+        return commissionType;
     }
 
-    public void setCommissionPercentage(BigDecimal commissionPercentage) {
-        this.commissionPercentage = commissionPercentage;
+    public void setCommissionType(CommissionType commissionType) {
+        this.commissionType = commissionType;
+    }
+
+    public BigDecimal getCommissionValue() {
+        return commissionValue;
+    }
+
+    public void setCommissionValue(BigDecimal commissionValue) {
+        this.commissionValue = commissionValue;
     }
 
     public Instant getCreatedAt() {

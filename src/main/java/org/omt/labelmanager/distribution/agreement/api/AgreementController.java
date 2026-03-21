@@ -14,6 +14,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import org.omt.labelmanager.distribution.agreement.domain.CommissionType;
+
 import java.util.List;
 
 @Controller
@@ -70,6 +72,7 @@ public class AgreementController {
         model.addAttribute("distributor", distributor);
         model.addAttribute("form", new AgreementForm());
         model.addAttribute("availableRuns", buildAvailableRuns(distributorId));
+        model.addAttribute("commissionTypes", CommissionType.values());
 
         return "distributor/agreement-form";
     }
@@ -83,7 +86,7 @@ public class AgreementController {
     ) {
         try {
             commandApi.create(distributorId, form.getProductionRunId(),
-                    form.getUnitPrice(), form.getCommissionPercentage());
+                    form.getUnitPrice(), form.getCommissionType(), form.getCommissionValue());
             return "redirect:/labels/" + labelId + "/distributors/" + distributorId;
         } catch (DuplicateAgreementException | IllegalArgumentException e) {
             var label = labelQueryApi.findById(labelId).orElseThrow();
@@ -92,6 +95,7 @@ public class AgreementController {
             model.addAttribute("distributor", distributor);
             model.addAttribute("form", form);
             model.addAttribute("availableRuns", buildAvailableRuns(distributorId));
+            model.addAttribute("commissionTypes", CommissionType.values());
             model.addAttribute("errorMessage", e.getMessage());
             return "distributor/agreement-form";
         }
@@ -118,7 +122,8 @@ public class AgreementController {
         var form = new AgreementForm();
         form.setProductionRunId(agreement.productionRunId());
         form.setUnitPrice(agreement.unitPrice());
-        form.setCommissionPercentage(agreement.commissionPercentage());
+        form.setCommissionType(agreement.commissionType());
+        form.setCommissionValue(agreement.commissionValue());
 
         var runDisplayName = buildDisplayName(agreement.productionRunId());
 
@@ -127,6 +132,7 @@ public class AgreementController {
         model.addAttribute("agreement", agreement);
         model.addAttribute("form", form);
         model.addAttribute("productionRunDisplayName", runDisplayName);
+        model.addAttribute("commissionTypes", CommissionType.values());
 
         return "distributor/agreement-form";
     }
@@ -146,7 +152,7 @@ public class AgreementController {
         }
 
         try {
-            commandApi.update(id, form.getUnitPrice(), form.getCommissionPercentage());
+            commandApi.update(id, form.getUnitPrice(), form.getCommissionType(), form.getCommissionValue());
             return "redirect:/labels/" + labelId + "/distributors/" + distributorId;
         } catch (IllegalArgumentException e) {
             var label = labelQueryApi.findById(labelId).orElseThrow();
@@ -156,6 +162,7 @@ public class AgreementController {
             model.addAttribute("agreement", agreement);
             model.addAttribute("form", form);
             model.addAttribute("productionRunDisplayName", buildDisplayName(agreement.productionRunId()));
+            model.addAttribute("commissionTypes", CommissionType.values());
             model.addAttribute("errorMessage", e.getMessage());
             return "distributor/agreement-form";
         }

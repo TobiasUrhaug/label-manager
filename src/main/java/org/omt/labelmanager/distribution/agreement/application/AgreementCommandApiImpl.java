@@ -1,6 +1,7 @@
 package org.omt.labelmanager.distribution.agreement.application;
 
 import org.omt.labelmanager.distribution.agreement.api.AgreementCommandApi;
+import org.omt.labelmanager.distribution.agreement.domain.CommissionType;
 import org.omt.labelmanager.distribution.agreement.domain.PricingAgreement;
 import org.springframework.stereotype.Service;
 
@@ -28,14 +29,15 @@ class AgreementCommandApiImpl implements AgreementCommandApi {
             Long distributorId,
             Long productionRunId,
             BigDecimal unitPrice,
-            BigDecimal commissionPercentage
+            CommissionType commissionType,
+            BigDecimal commissionValue
     ) {
-        return createAgreement.execute(distributorId, productionRunId, unitPrice, commissionPercentage);
+        return createAgreement.execute(distributorId, productionRunId, unitPrice, commissionType, commissionValue);
     }
 
     @Override
-    public PricingAgreement update(Long agreementId, BigDecimal unitPrice, BigDecimal commissionPercentage) {
-        return updateAgreement.execute(agreementId, unitPrice, commissionPercentage);
+    public PricingAgreement update(Long agreementId, BigDecimal unitPrice, CommissionType commissionType, BigDecimal commissionValue) {
+        return updateAgreement.execute(agreementId, unitPrice, commissionType, commissionValue);
     }
 
     @Override
