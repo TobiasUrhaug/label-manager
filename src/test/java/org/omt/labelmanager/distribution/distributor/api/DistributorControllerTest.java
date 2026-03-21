@@ -20,9 +20,11 @@ import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.omt.labelmanager.catalog.label.LabelFactory;
 import org.omt.labelmanager.catalog.label.api.LabelQueryApi;
+import org.omt.labelmanager.distribution.agreement.api.AgreementQueryApi;
 import org.omt.labelmanager.distribution.distributor.domain.ChannelType;
 import org.omt.labelmanager.distribution.distributor.domain.DistributorFactory;
 import org.omt.labelmanager.identity.application.AppUserDetails;
+import org.omt.labelmanager.inventory.productionrun.api.ProductionRunQueryApi;
 import org.omt.labelmanager.sales.distributor_return.api.DistributorReturnQueryApi;
 import org.omt.labelmanager.sales.distributor_return.domain.DistributorReturn;
 import org.omt.labelmanager.sales.sale.api.SaleQueryApi;
@@ -55,6 +57,15 @@ class DistributorControllerTest {
 
     @MockitoBean
     private DistributorReturnQueryApi returnQueryApi;
+
+    @MockitoBean
+    private AgreementQueryApi agreementQueryApi;
+
+    @MockitoBean
+    private ProductionRunQueryApi productionRunQueryApi;
+
+    @MockitoBean
+    private org.omt.labelmanager.catalog.release.api.ReleaseQueryApi releaseQueryApi;
 
     private final AppUserDetails testUser =
             new AppUserDetails(1L, "test@example.com", "password", "Test User");
@@ -139,6 +150,7 @@ class DistributorControllerTest {
         when(distributorQueryApi.findById(5L)).thenReturn(Optional.of(distributor));
         when(saleQueryApi.getSalesForDistributor(5L)).thenReturn(List.of(sale));
         when(returnQueryApi.getReturnsForDistributor(5L)).thenReturn(List.of(distributorReturn));
+        when(agreementQueryApi.findByDistributorId(5L)).thenReturn(List.of());
 
         var result = mockMvc.perform(get("/labels/1/distributors/5").with(user(testUser)))
                 .andExpect(status().isOk())
@@ -180,6 +192,7 @@ class DistributorControllerTest {
         when(distributorQueryApi.findById(5L)).thenReturn(Optional.of(distributor));
         when(saleQueryApi.getSalesForDistributor(5L)).thenReturn(List.of());
         when(returnQueryApi.getReturnsForDistributor(5L)).thenReturn(List.of());
+        when(agreementQueryApi.findByDistributorId(5L)).thenReturn(List.of());
 
         mockMvc.perform(get("/labels/1/distributors/5").with(user(testUser)))
                 .andExpect(status().isOk())

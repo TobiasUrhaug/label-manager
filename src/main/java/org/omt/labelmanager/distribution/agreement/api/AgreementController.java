@@ -3,7 +3,6 @@ package org.omt.labelmanager.distribution.agreement.api;
 import jakarta.persistence.EntityNotFoundException;
 import org.omt.labelmanager.catalog.label.api.LabelQueryApi;
 import org.omt.labelmanager.catalog.release.api.ReleaseQueryApi;
-import org.omt.labelmanager.distribution.agreement.domain.PricingAgreement;
 import org.omt.labelmanager.distribution.distributor.api.DistributorQueryApi;
 import org.omt.labelmanager.inventory.allocation.api.AllocationQueryApi;
 import org.omt.labelmanager.inventory.productionrun.api.ProductionRunQueryApi;
@@ -111,7 +110,10 @@ public class AgreementController {
                 .filter(d -> d.labelId().equals(labelId))
                 .orElseThrow(() -> new EntityNotFoundException("Distributor not found"));
         var agreement = queryApi.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Agreement not found"));
+                .orElseThrow(() -> new AgreementNotFoundException(id));
+        if (!agreement.distributorId().equals(distributorId)) {
+            throw new AgreementNotFoundException(id);
+        }
 
         var form = new AgreementForm();
         form.setProductionRunId(agreement.productionRunId());
@@ -137,18 +139,23 @@ public class AgreementController {
             @ModelAttribute AgreementForm form,
             Model model
     ) {
+        var agreement = queryApi.findById(id)
+                .orElseThrow(() -> new AgreementNotFoundException(id));
+        if (!agreement.distributorId().equals(distributorId)) {
+            throw new AgreementNotFoundException(id);
+        }
+
         try {
             commandApi.update(id, form.getUnitPrice(), form.getCommissionPercentage());
             return "redirect:/labels/" + labelId + "/distributors/" + distributorId;
         } catch (IllegalArgumentException e) {
             var label = labelQueryApi.findById(labelId).orElseThrow();
             var distributor = distributorQueryApi.findById(distributorId).orElseThrow();
-            var agreement = queryApi.findById(id).orElseThrow();
             model.addAttribute("label", label);
             model.addAttribute("distributor", distributor);
             model.addAttribute("agreement", agreement);
             model.addAttribute("form", form);
-            model.addAttribute("productionRunDisplayName", buildDisplayName(form.getProductionRunId()));
+            model.addAttribute("productionRunDisplayName", buildDisplayName(agreement.productionRunId()));
             model.addAttribute("errorMessage", e.getMessage());
             return "distributor/agreement-form";
         }
@@ -160,6 +167,11 @@ public class AgreementController {
             @PathVariable Long distributorId,
             @PathVariable Long id
     ) {
+        var agreement = queryApi.findById(id)
+                .orElseThrow(() -> new AgreementNotFoundException(id));
+        if (!agreement.distributorId().equals(distributorId)) {
+            throw new AgreementNotFoundException(id);
+        }
         commandApi.delete(id);
         return "redirect:/labels/" + labelId + "/distributors/" + distributorId;
     }
@@ -187,8 +199,6 @@ public class AgreementController {
                 .orElse("Unknown");
     }
 
-    private AgreementView enrichAgreement(PricingAgreement agreement) {
-        var displayName = buildDisplayName(agreement.productionRunId());
-        return new AgreementView(agreement, displayName);
+    private record AvailableProductionRunView(Long productionRunId, String displayName) {
     }
 }

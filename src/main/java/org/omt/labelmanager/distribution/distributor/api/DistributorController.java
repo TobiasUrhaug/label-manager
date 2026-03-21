@@ -4,7 +4,6 @@ import jakarta.persistence.EntityNotFoundException;
 import org.omt.labelmanager.catalog.label.api.LabelQueryApi;
 import org.omt.labelmanager.catalog.release.api.ReleaseQueryApi;
 import org.omt.labelmanager.distribution.agreement.api.AgreementQueryApi;
-import org.omt.labelmanager.distribution.agreement.api.AgreementView;
 import org.omt.labelmanager.distribution.agreement.domain.PricingAgreement;
 import org.omt.labelmanager.inventory.productionrun.api.ProductionRunQueryApi;
 import org.omt.labelmanager.sales.distributor_return.api.DistributorReturnQueryApi;

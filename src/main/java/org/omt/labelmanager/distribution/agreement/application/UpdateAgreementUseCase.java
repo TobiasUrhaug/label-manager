@@ -24,8 +24,8 @@ class UpdateAgreementUseCase {
 
     @Transactional
     public PricingAgreement execute(Long agreementId, BigDecimal unitPrice, BigDecimal commissionPercentage) {
-        validateUnitPrice(unitPrice);
-        validateCommissionPercentage(commissionPercentage);
+        AgreementValidator.validateUnitPrice(unitPrice);
+        AgreementValidator.validateCommissionPercentage(commissionPercentage);
 
         PricingAgreementEntity entity = repository.findById(agreementId)
                 .orElseThrow(() -> new AgreementNotFoundException(agreementId));
@@ -38,17 +38,4 @@ class UpdateAgreementUseCase {
         return PricingAgreement.fromEntity(entity);
     }
 
-    private void validateUnitPrice(BigDecimal unitPrice) {
-        if (unitPrice == null || unitPrice.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new IllegalArgumentException("Unit price must be greater than zero");
-        }
-    }
-
-    private void validateCommissionPercentage(BigDecimal commissionPercentage) {
-        if (commissionPercentage == null
-                || commissionPercentage.compareTo(BigDecimal.ZERO) < 0
-                || commissionPercentage.compareTo(new BigDecimal("100")) > 0) {
-            throw new IllegalArgumentException("Commission percentage must be between 0 and 100");
-        }
-    }
 }

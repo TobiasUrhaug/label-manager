@@ -1,7 +1,7 @@
 # Tasks: Label-Distributor Pricing Agreement
 
 ## Status
-Draft
+In Review
 
 ## Tasks
 
@@ -58,17 +58,17 @@ Draft
   - Verify: `./gradlew build` compiles.
 
 ### Task 8: Templates
-- [ ] **8.1** Create `src/main/resources/templates/distributor/agreements.html`. Layout: title "Pricing Agreements – {distributorName}", back link to distributor detail, "New Agreement" button. Table with columns: Production Run, Unit Price, Commission %, Actions (Edit, Delete). Empty state message. Each Delete button triggers `AgreementDelete.confirmDelete(formId)`. Each delete form is a POST to `.../agreements/{id}/delete` with CSRF token.
-- [ ] **8.2** Create `src/main/resources/templates/distributor/agreement-form.html`. Create mode: show `productionRunId` dropdown (populated from `availableRuns`; if empty, show message "No production runs available"). Edit mode: show production run as read-only text (no dropdown). Fields: unit price (decimal input), commission % (decimal input). Validation error display. Submit button. CSRF token on form.
-- [ ] **8.3** Modify `src/main/resources/templates/distributor/detail.html`: add a "Pricing Agreements" card below the Returns section. Show count of agreements (or "No agreements yet"). Link to `/labels/{labelId}/distributors/{distributorId}/agreements`. Requires the controller to pass `agreementCount` (or `agreements` list) to the model — update `DistributorController.showDistributor` accordingly.
+- [x] **8.1** ~~Create `src/main/resources/templates/distributor/agreements.html`.~~ *Approach changed: agreements embedded inline in detail.html (see 8.3).*
+- [x] **8.2** Create `src/main/resources/templates/distributor/agreement-form.html`. Create mode: show `productionRunId` dropdown (populated from `availableRuns`; if empty, show message "No production runs available"). Edit mode: show production run as read-only text (no dropdown). Fields: unit price (decimal input), commission % (decimal input). Validation error display. Submit button. CSRF token on form.
+- [x] **8.3** Modified `src/main/resources/templates/distributor/detail.html`: added inline "Pricing Agreements" section (table with Edit/Delete, empty state). Updated `DistributorController.showDistributor` to pass `agreements` (list of `AgreementView`) to the model.
 
 ### Task 9: JavaScript
-- [ ] **9.1** Create `src/main/resources/static/js/agreement-delete.js`. Export `AgreementDelete = { confirmDelete(formId) { ... } }`.
-- [ ] **9.2** Create `src/test/js/agreement-delete.test.js`. Test: when confirmed, form is submitted; when cancelled, form is not submitted. Mock `window.confirm` and `document.getElementById`.
-  - Verify: `npm run test` passes.
+- [x] **9.1** Create `src/main/resources/static/js/agreement-delete.js`. Export `AgreementDelete = { confirmDelete(formId) { ... } }`.
+- [x] **9.2** Create `src/main/resources/static/js/agreement-delete.test.js` (vitest config resolves tests from `src/main/resources/static/js/`). Test: when confirmed, form is submitted; when cancelled, form is not submitted. Mock `window.confirm` and `document.getElementById`.
+  - Verify: `npm run test` passes (requires Node 18+; Node 24 works).
 
 ### Task 10: Controller integration tests
-- [ ] **10.1** Create `AgreementControllerTest.java`. Test coverage:
+- [x] **10.1** Create `AgreementControllerTest.java`. Test coverage:
   - GET `/agreements` returns 200 with agreements list
   - GET `/agreements/new` returns 200 with available runs in model
   - POST `/agreements` with valid data redirects to list

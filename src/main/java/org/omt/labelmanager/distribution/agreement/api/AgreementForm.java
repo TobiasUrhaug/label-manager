@@ -1,11 +1,14 @@
 package org.omt.labelmanager.distribution.agreement.api;
 
+import jakarta.validation.constraints.NotNull;
 import java.math.BigDecimal;
 
 public class AgreementForm {
 
     private Long productionRunId;
+    @NotNull
     private BigDecimal unitPrice;
+    @NotNull
     private BigDecimal commissionPercentage;
 
     public Long getProductionRunId() {
