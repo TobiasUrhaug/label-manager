@@ -38,5 +38,11 @@ public enum LocationType {
      * Inventory that has left the label's system entirely — i.e. sold to end customers.
      * No accompanying ID is required.
      */
-    EXTERNAL
+    EXTERNAL,
+
+    /**
+     * Bandcamp platform holding inventory reserved for online sales.
+     * No accompanying ID is required.
+     */
+    BANDCAMP
 }

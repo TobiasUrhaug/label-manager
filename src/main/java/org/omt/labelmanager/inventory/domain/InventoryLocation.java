@@ -23,4 +23,8 @@ public record InventoryLocation(LocationType type, Long id) {
     public static InventoryLocation external() {
         return new InventoryLocation(LocationType.EXTERNAL, null);
     }
+
+    public static InventoryLocation bandcamp() {
+        return new InventoryLocation(LocationType.BANDCAMP, null);
+    }
 }

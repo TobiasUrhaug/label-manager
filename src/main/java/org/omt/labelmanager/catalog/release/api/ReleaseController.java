@@ -299,6 +299,7 @@ public class ReleaseController {
             case WAREHOUSE -> "Warehouse";
             case EXTERNAL -> "External (sold)";
             case DISTRIBUTOR -> findDistributorName(locationId, distributors);
+            case BANDCAMP -> "Bandcamp";
         };
     }
 

@@ -29,4 +29,12 @@ class InventoryLocationTest {
         assertThat(location.type()).isEqualTo(LocationType.EXTERNAL);
         assertThat(location.id()).isNull();
     }
+
+    @Test
+    void bandcamp_createsLocationWithBandcampTypeAndNullId() {
+        var location = InventoryLocation.bandcamp();
+
+        assertThat(location.type()).isEqualTo(LocationType.BANDCAMP);
+        assertThat(location.id()).isNull();
+    }
 }
