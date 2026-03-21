@@ -7,7 +7,7 @@ In Progress
 | Phase          | Status      | Date       |
 |----------------|-------------|------------|
 | Analysis       | Done        | 2026-03-21 |
-| Design         | -           |            |
+| Design         | Done        | 2026-03-21 |
 | Implementation | -           |            |
 | Review         | -           |            |
 
