@@ -4,10 +4,10 @@
 Review
 
 ## Last Completed Task
-Reviewer: Round 8 re-review complete. No 🔴 or 🟡 items. Three 🟢 suggestions (all discretionary). Tasks 10.1 and 11.1 remain.
+Developer: task 10.1 — deleted `inventory/allocation/` package, migrated 8 integration tests, removed dead `validateQuantityIsAvailable` method and its test. All tests pass.
 
 ## Next Action
-Developer: task 10.1 — delete the `inventory/allocation/` package.
+Developer: task 11.1 — write `V31__drop_channel_allocation_table.sql`.
 
 ## Blockers
 None.

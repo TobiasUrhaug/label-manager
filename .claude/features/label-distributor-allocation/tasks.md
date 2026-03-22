@@ -97,7 +97,8 @@ Draft
 
 ### Group 10 — Delete allocation module
 
-- [ ] **10.1** Delete the entire `inventory/allocation/` package (all 9 files listed in spec).
+- [x] **10.1** Delete the entire `inventory/allocation/` package (all 9 files listed in spec).
+  - Migrated 8 sales/return integration tests from `AllocationCommandApi`/`AllocationTestHelper` to `InventoryMovementCommandApi.recordMovement()` before deleting.
   - Run `./gradlew build` and confirm zero compilation errors.
 
 - [x] **10.2** Delete `AllocationControllerTest.java`. _(done early alongside 6.3 to resolve mapping conflict)_

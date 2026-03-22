@@ -1,14 +1,10 @@
 package org.omt.labelmanager.inventory.productionrun.application;
 
 import org.omt.labelmanager.catalog.release.domain.ReleaseFormat;
-import org.omt.labelmanager.inventory.InsufficientInventoryException;
-import org.omt.labelmanager.inventory.inventorymovement.api.InventoryMovementQueryApi;
 import org.omt.labelmanager.inventory.productionrun.api.ProductionRunQueryApi;
 import org.omt.labelmanager.inventory.productionrun.domain.ProductionRun;
 import org.omt.labelmanager.inventory.productionrun.infrastructure.ProductionRunEntity;
 import org.omt.labelmanager.inventory.productionrun.infrastructure.ProductionRunRepository;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -17,15 +13,10 @@ import java.util.Optional;
 @Service
 class ProductionRunQueryApiImpl implements ProductionRunQueryApi {
 
-    private static final Logger log =
-            LoggerFactory.getLogger(ProductionRunQueryApiImpl.class);
-
     private final ProductionRunRepository repository;
-    private final InventoryMovementQueryApi inventoryMovementQueryApi;
 
-    ProductionRunQueryApiImpl(ProductionRunRepository repository, InventoryMovementQueryApi inventoryMovementQueryApi) {
+    ProductionRunQueryApiImpl(ProductionRunRepository repository) {
         this.repository = repository;
-        this.inventoryMovementQueryApi = inventoryMovementQueryApi;
     }
 
     @Override
@@ -54,25 +45,4 @@ class ProductionRunQueryApiImpl implements ProductionRunQueryApi {
                 .orElse(0);
     }
 
-    @Override
-    public void validateQuantityIsAvailable(Long productionRunId, int quantity) {
-        ProductionRun productionRun = repository.findById(productionRunId)
-                .map(ProductionRun::fromEntity)
-                .orElseThrow(() -> new IllegalArgumentException(
-                        "Production run not found: " + productionRunId
-                ));
-
-        int warehouseDelta = inventoryMovementQueryApi.getWarehouseInventory(productionRunId);
-        int available = productionRun.quantity() + warehouseDelta;
-
-        if (quantity > available) {
-            log.warn(
-                    "Allocation rejected: requested {} but only {} available for run {}",
-                    quantity,
-                    available,
-                    productionRunId
-            );
-            throw new InsufficientInventoryException(quantity, available);
-        }
-    }
 }

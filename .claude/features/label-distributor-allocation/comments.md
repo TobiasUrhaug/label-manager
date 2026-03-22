@@ -151,6 +151,36 @@ All 🔴 items resolved (none raised). Feature is clear to continue to task 10.1
 
 ---
 
+---
+
+## Review Round 9
+
+Scope: task 10.1 — delete `inventory/allocation/` package and migrate 8 integration tests.
+
+### 🔴 Must Fix
+
+None.
+
+### 🟡 Should Fix
+
+None.
+
+### 🟢 Suggestions
+
+- [x] **`ProductionRunQueryApi` — `validateQuantityIsAvailable` is now dead code**
+  Round 6 flagged this for removal at task 10.1: "At that point, `validateQuantityIsAvailable` should be removed from `ProductionRunQueryApi`, `ProductionRunQueryApiImpl`, and `ProductionRunQueryApiImplTest` to eliminate the duplication." Now that `AllocationCommandApiImpl` (its only production caller) is deleted, the method has zero callers in main code. `AllocateUseCase` performs its own inline stock check. The method remains on the public API interface and its impl, plus two tests in `ProductionRunQueryApiImplTest` — all dead weight. Discretionary since it was originally 🟢, but this is the scheduled moment.
+
+### Verification
+
+- Zero references to `inventory.allocation` in `src/` ✅
+- Build clean, all tests pass ✅
+- 8 migrated tests correctly call `inventoryMovementCommandApi.recordMovement()` for test setup ✅
+- `channelAllocationRepository.deleteAll()` removed from `SaleRegistrationIntegrationTest` setUp ✅
+
+All 🔴 items: none raised. Feature is clear to continue to task 11.1.
+
+---
+
 ## Developer Responses (Round 7)
 
 - 🔴 **`warehouseInventory` raw delta**: Fixed `buildProductionRunWithAllocation` — line 209 now computes `run.quantity() + inventoryMovementQueryApi.getWarehouseInventory(run.id())`. For a run of 500 with delta 200, the stored value is now 700, not 200.

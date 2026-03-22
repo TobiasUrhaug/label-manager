@@ -16,8 +16,9 @@ import org.omt.labelmanager.catalog.release.domain.ReleaseFormat;
 import org.omt.labelmanager.distribution.distributor.api.DistributorQueryApi;
 import org.omt.labelmanager.distribution.distributor.ChannelType;
 import org.omt.labelmanager.finance.domain.shared.Money;
-import org.omt.labelmanager.inventory.allocation.api.AllocationCommandApi;
+import org.omt.labelmanager.inventory.domain.InventoryLocation;
 import org.omt.labelmanager.inventory.domain.MovementType;
+import org.omt.labelmanager.inventory.inventorymovement.api.InventoryMovementCommandApi;
 import org.omt.labelmanager.inventory.inventorymovement.api.InventoryMovementQueryApi;
 import org.omt.labelmanager.inventory.inventorymovement.domain.InventoryMovement;
 import org.omt.labelmanager.inventory.productionrun.ProductionRunTestHelper;
@@ -50,7 +51,7 @@ class SaleDeleteIntegrationTest extends AbstractIntegrationTest {
     private DistributorQueryApi distributorQueryApi;
 
     @Autowired
-    private AllocationCommandApi allocationCommandApi;
+    private InventoryMovementCommandApi inventoryMovementCommandApi;
 
     @Autowired
     private InventoryMovementQueryApi inventoryMovementQueryApi;
@@ -78,7 +79,9 @@ class SaleDeleteIntegrationTest extends AbstractIntegrationTest {
         );
         productionRunId = productionRun.id();
 
-        allocationCommandApi.createAllocation(productionRunId, directDistributorId, 80);
+        inventoryMovementCommandApi.recordMovement(
+                productionRunId, InventoryLocation.warehouse(),
+                InventoryLocation.distributor(directDistributorId), 80, MovementType.ALLOCATION, null);
     }
 
     @Test

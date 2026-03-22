@@ -15,12 +15,11 @@ import org.omt.labelmanager.distribution.distributor.persistence.DistributorEnti
 import org.omt.labelmanager.distribution.distributor.persistence.DistributorRepository;
 import org.omt.labelmanager.finance.domain.shared.Money;
 import org.omt.labelmanager.inventory.InsufficientInventoryException;
-import org.omt.labelmanager.inventory.allocation.api.AllocationCommandApi;
-import org.omt.labelmanager.inventory.allocation.infrastructure.ChannelAllocationEntity;
-import org.omt.labelmanager.inventory.allocation.infrastructure.ChannelAllocationRepository;
+import org.omt.labelmanager.inventory.domain.InventoryLocation;
 import org.omt.labelmanager.inventory.domain.MovementType;
-import org.omt.labelmanager.inventory.inventorymovement.infrastructure.InventoryMovementRepository;
+import org.omt.labelmanager.inventory.inventorymovement.api.InventoryMovementCommandApi;
 import org.omt.labelmanager.inventory.inventorymovement.api.InventoryMovementQueryApi;
+import org.omt.labelmanager.inventory.inventorymovement.infrastructure.InventoryMovementRepository;
 import org.omt.labelmanager.inventory.productionrun.infrastructure.ProductionRunEntity;
 import org.omt.labelmanager.inventory.productionrun.infrastructure.ProductionRunRepository;
 import org.omt.labelmanager.sales.sale.api.SaleCommandApi;
@@ -48,16 +47,13 @@ class SaleRegistrationIntegrationTest extends AbstractIntegrationTest {
     private DistributorRepository distributorRepository;
 
     @Autowired
-    private ChannelAllocationRepository channelAllocationRepository;
-
-    @Autowired
     private InventoryMovementRepository inventoryMovementRepository;
 
     @Autowired
     private InventoryMovementQueryApi inventoryMovementQueryApi;
 
     @Autowired
-    private AllocationCommandApi allocationCommandApi;
+    private InventoryMovementCommandApi inventoryMovementCommandApi;
 
     private Long labelId;
     private Long releaseId;
@@ -68,7 +64,6 @@ class SaleRegistrationIntegrationTest extends AbstractIntegrationTest {
     void setUp() {
         // Clean up
         inventoryMovementRepository.deleteAll();
-        channelAllocationRepository.deleteAll();
         productionRunRepository.deleteAll();
 
         // Create label with DIRECT distributor
@@ -96,8 +91,10 @@ class SaleRegistrationIntegrationTest extends AbstractIntegrationTest {
                 ));
         productionRunId = productionRun.getId();
 
-        // Allocate inventory to DIRECT distributor (records movement via API)
-        allocationCommandApi.createAllocation(productionRunId, directDistributorId, 50);
+        // Allocate inventory to DIRECT distributor
+        inventoryMovementCommandApi.recordMovement(
+                productionRunId, InventoryLocation.warehouse(),
+                InventoryLocation.distributor(directDistributorId), 50, MovementType.ALLOCATION, null);
     }
 
     @Test
@@ -376,8 +373,10 @@ class SaleRegistrationIntegrationTest extends AbstractIntegrationTest {
                 ));
         Long distributorId = distributorEntity.getId();
 
-        // Allocate inventory to this distributor (via API so movements are recorded)
-        allocationCommandApi.createAllocation(productionRunId, distributorId, 30);
+        // Allocate inventory to this distributor
+        inventoryMovementCommandApi.recordMovement(
+                productionRunId, InventoryLocation.warehouse(),
+                InventoryLocation.distributor(distributorId), 30, MovementType.ALLOCATION, null);
 
         var lineItems = List.of(
                 new SaleLineItemInput(

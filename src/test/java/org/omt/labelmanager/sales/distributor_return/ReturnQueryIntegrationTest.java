@@ -11,7 +11,9 @@ import org.omt.labelmanager.catalog.release.domain.ReleaseFormat;
 import org.omt.labelmanager.distribution.distributor.DistributorTestHelper;
 import org.omt.labelmanager.distribution.distributor.api.DistributorQueryApi;
 import org.omt.labelmanager.distribution.distributor.ChannelType;
-import org.omt.labelmanager.inventory.allocation.AllocationTestHelper;
+import org.omt.labelmanager.inventory.domain.InventoryLocation;
+import org.omt.labelmanager.inventory.domain.MovementType;
+import org.omt.labelmanager.inventory.inventorymovement.api.InventoryMovementCommandApi;
 import org.omt.labelmanager.inventory.inventorymovement.infrastructure.InventoryMovementRepository;
 import org.omt.labelmanager.inventory.productionrun.ProductionRunTestHelper;
 import org.omt.labelmanager.sales.distributor_return.api.DistributorReturnCommandApi;
@@ -42,7 +44,7 @@ class ReturnQueryIntegrationTest extends AbstractIntegrationTest {
     private ProductionRunTestHelper productionRunTestHelper;
 
     @Autowired
-    private AllocationTestHelper allocationTestHelper;
+    private InventoryMovementCommandApi inventoryMovementCommandApi;
 
     @Autowired
     private DistributorQueryApi distributorQueryApi;
@@ -74,7 +76,9 @@ class ReturnQueryIntegrationTest extends AbstractIntegrationTest {
         );
         productionRunId = productionRun.id();
 
-        allocationTestHelper.createAllocation(productionRunId, distributorId, 50);
+        inventoryMovementCommandApi.recordMovement(
+                productionRunId, InventoryLocation.warehouse(),
+                InventoryLocation.distributor(distributorId), 50, MovementType.ALLOCATION, null);
     }
 
     @Test
@@ -143,7 +147,9 @@ class ReturnQueryIntegrationTest extends AbstractIntegrationTest {
         var otherProductionRun = productionRunTestHelper.createProductionRun(
                 otherReleaseId, ReleaseFormat.VINYL, 100
         );
-        allocationTestHelper.createAllocation(otherProductionRun.id(), otherDistributorId, 20);
+        inventoryMovementCommandApi.recordMovement(
+                otherProductionRun.id(), InventoryLocation.warehouse(),
+                InventoryLocation.distributor(otherDistributorId), 20, MovementType.ALLOCATION, null);
         returnCommandApi.registerReturn(
                 otherLabel.id(), otherDistributorId,
                 LocalDate.of(2026, 2, 1),
@@ -170,7 +176,9 @@ class ReturnQueryIntegrationTest extends AbstractIntegrationTest {
         var otherDistributor = distributorTestHelper.createDistributor(
                 labelId, "Other Distributor", ChannelType.DISTRIBUTOR
         );
-        allocationTestHelper.createAllocation(productionRunId, otherDistributor.id(), 20);
+        inventoryMovementCommandApi.recordMovement(
+                productionRunId, InventoryLocation.warehouse(),
+                InventoryLocation.distributor(otherDistributor.id()), 20, MovementType.ALLOCATION, null);
         returnCommandApi.registerReturn(
                 labelId, otherDistributor.id(),
                 LocalDate.of(2026, 2, 1),
