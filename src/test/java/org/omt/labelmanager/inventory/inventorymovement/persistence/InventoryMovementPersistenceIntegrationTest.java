@@ -13,8 +13,8 @@ import org.omt.labelmanager.distribution.distributor.persistence.DistributorEnti
 import org.omt.labelmanager.distribution.distributor.persistence.DistributorRepository;
 import org.omt.labelmanager.inventory.LocationType;
 import org.omt.labelmanager.inventory.MovementType;
-import org.omt.labelmanager.inventory.productionrun.infrastructure.ProductionRunEntity;
-import org.omt.labelmanager.inventory.productionrun.infrastructure.ProductionRunRepository;
+import org.omt.labelmanager.inventory.productionrun.persistence.ProductionRunEntity;
+import org.omt.labelmanager.inventory.productionrun.persistence.ProductionRunRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import static org.assertj.core.api.Assertions.assertThat;

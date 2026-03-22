@@ -18,8 +18,8 @@ import org.omt.labelmanager.inventory.MovementType;
 import org.omt.labelmanager.inventory.inventorymovement.api.InventoryMovementQueryApi;
 import org.omt.labelmanager.inventory.inventorymovement.persistence.InventoryMovementEntity;
 import org.omt.labelmanager.inventory.inventorymovement.persistence.InventoryMovementRepository;
-import org.omt.labelmanager.inventory.productionrun.infrastructure.ProductionRunEntity;
-import org.omt.labelmanager.inventory.productionrun.infrastructure.ProductionRunRepository;
+import org.omt.labelmanager.inventory.productionrun.persistence.ProductionRunEntity;
+import org.omt.labelmanager.inventory.productionrun.persistence.ProductionRunRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 
 public class InventoryMovementQueryServiceTest extends AbstractIntegrationTest {

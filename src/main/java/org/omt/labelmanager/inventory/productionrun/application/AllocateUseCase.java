@@ -6,7 +6,7 @@ import org.omt.labelmanager.inventory.MovementType;
 import org.omt.labelmanager.inventory.inventorymovement.api.InventoryMovementCommandApi;
 import org.omt.labelmanager.inventory.inventorymovement.api.InventoryMovementQueryApi;
 import org.omt.labelmanager.inventory.productionrun.domain.ProductionRun;
-import org.omt.labelmanager.inventory.productionrun.infrastructure.ProductionRunRepository;
+import org.omt.labelmanager.inventory.productionrun.persistence.ProductionRunRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;

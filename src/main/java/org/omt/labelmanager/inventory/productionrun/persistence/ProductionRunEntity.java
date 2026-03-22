@@ -1,4 +1,4 @@
-package org.omt.labelmanager.inventory.productionrun.infrastructure;
+package org.omt.labelmanager.inventory.productionrun.persistence;
 
 import jakarta.persistence.*;
 import org.omt.labelmanager.catalog.release.domain.ReleaseFormat;

@@ -19,8 +19,8 @@ import org.omt.labelmanager.distribution.distributor.persistence.DistributorRepo
 import org.omt.labelmanager.inventory.MovementType;
 import org.omt.labelmanager.inventory.inventorymovement.api.InventoryMovementCommandApi;
 import org.omt.labelmanager.inventory.inventorymovement.api.InventoryMovementQueryApi;
-import org.omt.labelmanager.inventory.productionrun.infrastructure.ProductionRunEntity;
-import org.omt.labelmanager.inventory.productionrun.infrastructure.ProductionRunRepository;
+import org.omt.labelmanager.inventory.productionrun.persistence.ProductionRunEntity;
+import org.omt.labelmanager.inventory.productionrun.persistence.ProductionRunRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 
 public class QueryMovementIntegrationTest extends AbstractIntegrationTest {
