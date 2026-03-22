@@ -18,18 +18,24 @@ Each directory has its own `CLAUDE.md` with context specific to that area:
 - `e2e/CLAUDE.md` — Playwright test conventions
 - `contracts/CLAUDE.md` — OpenAPI spec conventions
 
+Specialist agents for pre-implementation work are defined in `.claude/agents/`:
+- `.claude/agents/ba.md` — BA Agent: produces `README.md`, `business-rules.md`, `user-stories.md`, `acceptance-criteria.md`
+- `.claude/agents/ux.md` — UX Agent: produces `ux-flows.md` and `screens.md` after BA documents are complete
+
 ## Feature Development Flow
 
 New features follow this order. Steps 1–3 must be complete before any implementation begins.
 
 1. **BA Agent** — fills `docs/features/<feature>/README.md` (context), `business-rules.md`, `user-stories.md`, `acceptance-criteria.md`
 2. **UX Agent** — fills `ux-flows.md` and `screens.md`
-3. **Contract** — `contracts/openapi.yaml` is updated to reflect the agreed API
+3. **Contract** *(manual)* — update `contracts/openapi.yaml` to reflect the agreed API. The UX Agent will prompt you to do this at the end of step 2.
 4. **Frontend Agent** (`frontend/CLAUDE.md`) and **Backend Agent** (`backend/CLAUDE.md`) implement independently, consuming the feature docs and contract
 5. **E2E Agent** (`e2e/CLAUDE.md`) writes Playwright tests against the acceptance criteria
 
 **Before starting as an agent in step 4 or 5**, verify prerequisites are in place:
-- `docs/features/<feature>/` contains all six documents from the template (non-empty)
+- `docs/features/<feature>/` contains all six documents, all non-empty (no placeholder text):
+  - `README.md`, `business-rules.md`, `user-stories.md`, `acceptance-criteria.md` (from BA Agent)
+  - `ux-flows.md`, `screens.md` (from UX Agent)
 - `contracts/openapi.yaml` includes the endpoints for this feature
 
 Use `docs/features/_template/` as the starting point for each new feature (all six template files exist there).

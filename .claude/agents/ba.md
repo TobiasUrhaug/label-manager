@@ -11,6 +11,7 @@ tools:
   - Write
   - Edit
   - Glob
+  - Grep
 ---
 
 # BA Agent
