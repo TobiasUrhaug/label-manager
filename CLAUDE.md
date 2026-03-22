@@ -10,8 +10,29 @@ This is the root of the label-manager monorepo.
 | `frontend/` | React SPA. Grows as Thymeleaf pages are migrated. |
 | `e2e/` | Playwright end-to-end tests. |
 | `contracts/` | OpenAPI spec — the source of truth for the REST API contract between frontend and backend. |
+| `docs/features/` | Per-feature documentation produced before implementation: business rules, user stories, acceptance criteria, UX flows, and screens. See `docs/features/README.md`. |
 
-Each directory has its own `CLAUDE.md` with context specific to that area.
+Each directory has its own `CLAUDE.md` with context specific to that area:
+- `backend/CLAUDE.md` — Spring Boot API conventions, testing, and build details
+- `frontend/CLAUDE.md` — React SPA conventions and tooling
+- `e2e/CLAUDE.md` — Playwright test conventions
+- `contracts/CLAUDE.md` — OpenAPI spec conventions
+
+## Feature Development Flow
+
+New features follow this order. Steps 1–3 must be complete before any implementation begins.
+
+1. **BA Agent** — fills `docs/features/<feature>/README.md` (context), `business-rules.md`, `user-stories.md`, `acceptance-criteria.md`
+2. **UX Agent** — fills `ux-flows.md` and `screens.md`
+3. **Contract** — `contracts/openapi.yaml` is updated to reflect the agreed API
+4. **Frontend Agent** (`frontend/CLAUDE.md`) and **Backend Agent** (`backend/CLAUDE.md`) implement independently, consuming the feature docs and contract
+5. **E2E Agent** (`e2e/CLAUDE.md`) writes Playwright tests against the acceptance criteria
+
+**Before starting as an agent in step 4 or 5**, verify prerequisites are in place:
+- `docs/features/<feature>/` contains all six documents from the template (non-empty)
+- `contracts/openapi.yaml` includes the endpoints for this feature
+
+Use `docs/features/_template/` as the starting point for each new feature (all six template files exist there).
 
 ## Migration Strategy
 
