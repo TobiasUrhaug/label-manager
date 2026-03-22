@@ -83,7 +83,7 @@ Draft
 
 ### Group 9 — Update release.html and extract JS
 
-- [ ] **9.1** Update `release.html`:
+- [x] **9.1** Update `release.html`:
   - Remove the allocation details dropdown (expandable row with per-distributor allocation quantities).
   - Update production run table: remove "Allocated" and "Unallocated" columns.
   - Update inventory status section: remove "Allocated" column from distributor table; add Bandcamp row showing held units and a "Cancel Reservation" button (triggers cancellation modal).
@@ -91,7 +91,7 @@ Draft
   - Add Bandcamp cancellation modal: simple form with quantity input; posts to `…/bandcamp-cancellations`.
   - CSRF tokens required on all new forms.
 
-- [ ] **9.2** Extract allocate modal JavaScript from `release.html` to `src/main/resources/static/js/allocate-form.js`.
+- [x] **9.2** Extract allocate modal JavaScript from `release.html` to `src/main/resources/static/js/allocate-form.js`.
   - Export functions for testability (ES6 module pattern matching existing JS files).
   - Write `src/test/js/allocate-form.test.js` with Vitest unit tests covering: form action URL construction, location type toggle (show/hide distributor dropdown), max quantity binding.
 

@@ -174,7 +174,7 @@
                             <td class="text-end" th:text="${runWithAlloc.productionRun().quantity()}">500</td>
                             <td class="text-nowrap">
                                 <button type="button" class="btn btn-sm btn-outline-primary allocate-btn"
-                                        th:if="${runWithAlloc.warehouseInventory() > 0 && !distributors.isEmpty()}"
+                                        th:if="${runWithAlloc.warehouseInventory() > 0}"
                                         th:data-run-id="${runWithAlloc.productionRun().id()}"
                                         th:data-max-quantity="${runWithAlloc.warehouseInventory()}"
                                         data-bs-toggle="modal" data-bs-target="#allocateModal">Allocate</button>
@@ -218,6 +218,17 @@
                     <div class="text-muted small">Warehouse</div>
                     <div class="fw-bold"
                          th:text="${runWithAlloc.warehouseInventory()}">300</div>
+                </div>
+                <div th:if="${runWithAlloc.bandcampInventory() > 0}">
+                    <div class="text-muted small">Bandcamp</div>
+                    <div class="fw-bold"
+                         th:text="${runWithAlloc.bandcampInventory()}">0</div>
+                    <button type="button" class="btn btn-sm btn-outline-secondary cancel-bandcamp-btn mt-1"
+                            th:data-run-id="${runWithAlloc.productionRun().id()}"
+                            th:data-max-quantity="${runWithAlloc.bandcampInventory()}"
+                            data-bs-toggle="modal" data-bs-target="#cancelBandcampModal">
+                        Cancel Reservation
+                    </button>
                 </div>
             </div>
 
@@ -397,6 +408,14 @@
                     </div>
                     <div class="modal-body">
                         <div class="mb-3">
+                            <label for="allocationLocationType" class="form-label">Location</label>
+                            <select class="form-select" id="allocationLocationType"
+                                    name="locationType" required>
+                                <option value="DISTRIBUTOR">Distributor</option>
+                                <option value="BANDCAMP">Bandcamp</option>
+                            </select>
+                        </div>
+                        <div class="mb-3" id="distributorGroup">
                             <label for="allocationDistributorId" class="form-label">
                                 Distributor
                             </label>
@@ -415,7 +434,7 @@
                             <input type="number" class="form-control" id="allocationQuantity"
                                    name="quantity" required min="1">
                             <div class="form-text">
-                                Available: <span id="allocationUnallocatedDisplay">0</span>
+                                Available: <span id="allocationAvailableDisplay">0</span>
                             </div>
                         </div>
                     </div>
@@ -423,6 +442,37 @@
                         <button type="button" class="btn btn-secondary"
                                 data-bs-dismiss="modal">Cancel</button>
                         <button type="submit" class="btn btn-primary">Allocate</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cancel Bandcamp Reservation Modal -->
+    <div class="modal fade" id="cancelBandcampModal" tabindex="-1"
+         aria-labelledby="cancelBandcampModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form id="cancelBandcampForm" method="post">
+                    <input type="hidden" th:if="${_csrf}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="cancelBandcampModalLabel">
+                            Cancel Bandcamp Reservation
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="cancelBandcampQuantity" class="form-label">Quantity</label>
+                            <input type="number" class="form-control" id="cancelBandcampQuantity"
+                                   name="quantity" required min="1">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary"
+                                data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Confirm Cancellation</button>
                     </div>
                 </form>
             </div>
@@ -636,6 +686,7 @@
         setupEditCostButtons,
     } from '/js/cost-form.js';
     import { setupInvoiceExtraction } from '/js/invoice-extraction.js';
+    import { AllocateForm } from '/js/allocate-form.js';
 
     document.addEventListener('DOMContentLoaded', function() {
         const allArtists = /*[[${allArtists}]]*/ [];
@@ -725,24 +776,7 @@
         setupEditCostButtons('.edit-cost-btn', editCostModalHandler);
 
         // Allocate Inventory Modal
-        const allocateForm = document.getElementById('allocateForm');
-        const allocateModal = document.getElementById('allocateModal');
-        const allocationQuantity = document.getElementById('allocationQuantity');
-        const allocationUnallocatedDisplay =
-                document.getElementById('allocationUnallocatedDisplay');
-
-        document.querySelectorAll('.allocate-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const runId = this.dataset.runId;
-                const maxQuantity = parseInt(this.dataset.maxQuantity, 10);
-
-                allocateForm.action =
-                    `/labels/${labelId}/releases/${releaseId}/production-runs/${runId}/allocations`;
-                allocationQuantity.max = maxQuantity;
-                allocationQuantity.value = '';
-                allocationUnallocatedDisplay.textContent = maxQuantity;
-            });
-        });
+        AllocateForm.setup(labelId, releaseId);
     });
     </script>
 </main>

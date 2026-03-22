@@ -4,10 +4,10 @@
 Review
 
 ## Last Completed Task
-Reviewer: Round 7 re-review complete. All 🔴 and 🟡 items resolved. Tasks 9.1, 9.2, 10.1, 11.1 remain.
+Reviewer: Round 8 re-review complete. No 🔴 or 🟡 items. Three 🟢 suggestions (all discretionary). Tasks 10.1 and 11.1 remain.
 
 ## Next Action
-Developer: continue with task 9.1 — update `release.html`.
+Developer: task 10.1 — delete the `inventory/allocation/` package.
 
 ## Blockers
 None.

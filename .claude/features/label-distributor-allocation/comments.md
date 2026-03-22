@@ -116,6 +116,41 @@ Scope: tasks 7.1, 7.2, 7.3 — `ProductionRunWithAllocation`, `DistributorInvent
 
 ---
 
+---
+
+## Review Round 8
+
+Scope: tasks 9.1 and 9.2 — `release.html` updates, `allocate-form.js` extraction, `allocate-form.test.js`.
+
+### 🔴 Must Fix
+
+None.
+
+### 🟡 Should Fix
+
+None.
+
+### 🟢 Suggestions
+
+- [ ] **`release.html:418` — `#distributorGroup` has no initial `display:none`; relies entirely on JS for correct initial state**
+  The distributor group has no `style="display:none"` in the HTML. The initial state is consistent because: (a) the locationType select defaults to `DISTRIBUTOR` (first option), and (b) the `.allocate-btn` click handler always resets to `DISTRIBUTOR` before opening the modal. But if JS fails to load, the form renders with both the location selector and the distributor dropdown fully visible and required — which is the correct fallback for the DISTRIBUTOR path. No correctness issue; noting for awareness.
+
+- [ ] **`release.html:467` — cancel modal has no held-quantity hint**
+  The allocate modal shows "Available: X" (set by JS) so the user knows their limit before typing. The cancel modal only sets `max` on the input via JS — there's no visible "Currently held: X" hint. Since the user just clicked the Cancel Reservation button from the Bandcamp row that displays the held count, the information is still visible on the page behind the modal. Low impact; consider adding a `<div class="form-text">Held: <span id="cancelBandcampHeldDisplay">0</span></div>` alongside the quantity input for symmetry with the allocate modal.
+
+- [ ] **`allocate-form.test.js` — `buildCancellationActionUrl` has one test; `buildActionUrl` has two**
+  Slight inconsistency. A second test with string IDs (`buildCancellationActionUrl('10', '20', '30')`) would give full parity. Low priority.
+
+### NFR Checks
+
+- **NFR-1 (no negative stock):** JS sets `max` on all quantity inputs from server-supplied values; server-side guards in `AllocateController` remain the authoritative check. ✅
+- **NFR-2 (audit trail):** No changes to movement recording. ✅
+- **NFR-3 (safe migration):** Task 11.1 not yet started. ⏳
+
+All 🔴 items resolved (none raised). Feature is clear to continue to task 10.1.
+
+---
+
 ## Developer Responses (Round 7)
 
 - 🔴 **`warehouseInventory` raw delta**: Fixed `buildProductionRunWithAllocation` — line 209 now computes `run.quantity() + inventoryMovementQueryApi.getWarehouseInventory(run.id())`. For a run of 500 with delta 200, the stored value is now 700, not 200.
