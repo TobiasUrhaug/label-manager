@@ -1,4 +1,4 @@
-package org.omt.labelmanager.inventory.inventorymovement.application;
+package org.omt.labelmanager.inventory.inventorymovement;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -13,16 +13,16 @@ import org.omt.labelmanager.catalog.release.domain.ReleaseFormat;
 import org.omt.labelmanager.distribution.distributor.ChannelType;
 import org.omt.labelmanager.distribution.distributor.persistence.DistributorEntity;
 import org.omt.labelmanager.distribution.distributor.persistence.DistributorRepository;
-import org.omt.labelmanager.inventory.domain.LocationType;
-import org.omt.labelmanager.inventory.domain.MovementType;
+import org.omt.labelmanager.inventory.LocationType;
+import org.omt.labelmanager.inventory.MovementType;
 import org.omt.labelmanager.inventory.inventorymovement.api.InventoryMovementQueryApi;
-import org.omt.labelmanager.inventory.inventorymovement.infrastructure.InventoryMovementEntity;
-import org.omt.labelmanager.inventory.inventorymovement.infrastructure.InventoryMovementRepository;
+import org.omt.labelmanager.inventory.inventorymovement.persistence.InventoryMovementEntity;
+import org.omt.labelmanager.inventory.inventorymovement.persistence.InventoryMovementRepository;
 import org.omt.labelmanager.inventory.productionrun.infrastructure.ProductionRunEntity;
 import org.omt.labelmanager.inventory.productionrun.infrastructure.ProductionRunRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 
-public class InventoryMovementQueryApiImplTest extends AbstractIntegrationTest {
+public class InventoryMovementQueryServiceTest extends AbstractIntegrationTest {
 
     @Autowired
     private InventoryMovementQueryApi inventoryMovementQueryApi;

@@ -1,6 +1,6 @@
 package org.omt.labelmanager.inventory.productionrun.api;
 
-import org.omt.labelmanager.inventory.domain.LocationType;
+import org.omt.labelmanager.inventory.LocationType;
 
 public class AllocateForm {
 

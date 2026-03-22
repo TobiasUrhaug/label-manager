@@ -15,11 +15,11 @@ import org.omt.labelmanager.distribution.distributor.persistence.DistributorEnti
 import org.omt.labelmanager.distribution.distributor.persistence.DistributorRepository;
 import org.omt.labelmanager.finance.domain.shared.Money;
 import org.omt.labelmanager.inventory.InsufficientInventoryException;
-import org.omt.labelmanager.inventory.domain.InventoryLocation;
-import org.omt.labelmanager.inventory.domain.MovementType;
+import org.omt.labelmanager.inventory.InventoryLocation;
+import org.omt.labelmanager.inventory.MovementType;
 import org.omt.labelmanager.inventory.inventorymovement.api.InventoryMovementCommandApi;
 import org.omt.labelmanager.inventory.inventorymovement.api.InventoryMovementQueryApi;
-import org.omt.labelmanager.inventory.inventorymovement.infrastructure.InventoryMovementRepository;
+import org.omt.labelmanager.inventory.inventorymovement.persistence.InventoryMovementRepository;
 import org.omt.labelmanager.inventory.productionrun.infrastructure.ProductionRunEntity;
 import org.omt.labelmanager.inventory.productionrun.infrastructure.ProductionRunRepository;
 import org.omt.labelmanager.sales.sale.api.SaleCommandApi;
@@ -187,10 +187,10 @@ class SaleRegistrationIntegrationTest extends AbstractIntegrationTest {
         assertThat(movements).hasSize(1);
         assertThat(movements.getFirst().getMovementType()).isEqualTo(MovementType.SALE);
         assertThat(movements.getFirst().getFromLocationType()).isEqualTo(
-                org.omt.labelmanager.inventory.domain.LocationType.DISTRIBUTOR);
+                org.omt.labelmanager.inventory.LocationType.DISTRIBUTOR);
         assertThat(movements.getFirst().getFromLocationId()).isEqualTo(directDistributorId);
         assertThat(movements.getFirst().getToLocationType()).isEqualTo(
-                org.omt.labelmanager.inventory.domain.LocationType.EXTERNAL);
+                org.omt.labelmanager.inventory.LocationType.EXTERNAL);
         assertThat(movements.getFirst().getQuantity()).isEqualTo(5);
         assertThat(movements.getFirst().getReferenceId()).isEqualTo(sale.id());
     }

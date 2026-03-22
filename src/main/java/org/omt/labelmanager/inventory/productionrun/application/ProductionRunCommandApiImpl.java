@@ -1,7 +1,7 @@
 package org.omt.labelmanager.inventory.productionrun.application;
 
 import org.omt.labelmanager.catalog.release.domain.ReleaseFormat;
-import org.omt.labelmanager.inventory.domain.InventoryLocation;
+import org.omt.labelmanager.inventory.InventoryLocation;
 import org.omt.labelmanager.inventory.productionrun.api.ProductionRunCommandApi;
 import org.omt.labelmanager.inventory.productionrun.domain.ProductionRun;
 import org.springframework.stereotype.Service;

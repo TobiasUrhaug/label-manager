@@ -1,4 +1,4 @@
-package org.omt.labelmanager.inventory.domain;
+package org.omt.labelmanager.inventory;
 
 public enum MovementType {
     ALLOCATION,

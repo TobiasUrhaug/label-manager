@@ -1,21 +1,20 @@
-package org.omt.labelmanager.inventory.inventorymovement.application;
+package org.omt.labelmanager.inventory.inventorymovement;
 
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import org.omt.labelmanager.inventory.domain.LocationType;
+import org.omt.labelmanager.inventory.LocationType;
 import org.omt.labelmanager.inventory.inventorymovement.api.InventoryMovementQueryApi;
-import org.omt.labelmanager.inventory.inventorymovement.domain.InventoryMovement;
-import org.omt.labelmanager.inventory.inventorymovement.infrastructure.InventoryMovementRepository;
+import org.omt.labelmanager.inventory.inventorymovement.persistence.InventoryMovementRepository;
 import org.springframework.stereotype.Service;
 
 @Service
-class InventoryMovementQueryApiImpl implements InventoryMovementQueryApi {
+class InventoryMovementQueryService implements InventoryMovementQueryApi {
 
     private final InventoryMovementRepository repository;
 
-    InventoryMovementQueryApiImpl(InventoryMovementRepository repository) {
+    InventoryMovementQueryService(InventoryMovementRepository repository) {
         this.repository = repository;
     }
 

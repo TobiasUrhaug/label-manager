@@ -1,4 +1,4 @@
-package org.omt.labelmanager.inventory.domain;
+package org.omt.labelmanager.inventory;
 
 /**
  * Identifies one endpoint of an inventory movement.

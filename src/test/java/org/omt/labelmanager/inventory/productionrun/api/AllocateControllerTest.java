@@ -3,7 +3,7 @@ package org.omt.labelmanager.inventory.productionrun.api;
 import org.junit.jupiter.api.Test;
 import org.omt.labelmanager.identity.application.AppUserDetails;
 import org.omt.labelmanager.inventory.InsufficientInventoryException;
-import org.omt.labelmanager.inventory.domain.InventoryLocation;
+import org.omt.labelmanager.inventory.InventoryLocation;
 import org.omt.labelmanager.test.TestSecurityConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;

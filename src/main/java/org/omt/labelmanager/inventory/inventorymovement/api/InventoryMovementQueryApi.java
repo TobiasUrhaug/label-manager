@@ -2,7 +2,7 @@ package org.omt.labelmanager.inventory.inventorymovement.api;
 
 import java.util.List;
 import java.util.Map;
-import org.omt.labelmanager.inventory.inventorymovement.domain.InventoryMovement;
+import org.omt.labelmanager.inventory.inventorymovement.InventoryMovement;
 
 /**
  * Public API for inventory movement query operations.

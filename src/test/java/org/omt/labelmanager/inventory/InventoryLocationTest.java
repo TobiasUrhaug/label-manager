@@ -1,4 +1,4 @@
-package org.omt.labelmanager.inventory.domain;
+package org.omt.labelmanager.inventory;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

@@ -1,7 +1,7 @@
 package org.omt.labelmanager.inventory.inventorymovement.api;
 
-import org.omt.labelmanager.inventory.domain.InventoryLocation;
-import org.omt.labelmanager.inventory.domain.MovementType;
+import org.omt.labelmanager.inventory.InventoryLocation;
+import org.omt.labelmanager.inventory.MovementType;
 
 /**
  * Public API for inventory movement command operations.
