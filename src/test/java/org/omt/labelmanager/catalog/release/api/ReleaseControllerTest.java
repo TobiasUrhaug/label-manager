@@ -33,8 +33,6 @@ import org.omt.labelmanager.distribution.distributor.DistributorFactory;
 import org.omt.labelmanager.finance.cost.api.CostQueryApi;
 import org.omt.labelmanager.finance.domain.shared.Money;
 import org.omt.labelmanager.identity.application.AppUserDetails;
-import org.omt.labelmanager.inventory.allocation.api.AllocationQueryApi;
-import org.omt.labelmanager.inventory.allocation.domain.ChannelAllocationFactory;
 import org.omt.labelmanager.inventory.api.ProductionRunWithAllocation;
 import org.omt.labelmanager.inventory.inventorymovement.api.InventoryMovementQueryApi;
 import org.omt.labelmanager.inventory.productionrun.api.ProductionRunQueryApi;
@@ -73,9 +71,6 @@ class ReleaseControllerTest {
 
     @MockitoBean
     private ProductionRunQueryApi productionRunQueryService;
-
-    @MockitoBean
-    private AllocationQueryApi allocationQueryService;
 
     @MockitoBean
     private DistributorQueryApi distributorQueryService;
@@ -139,6 +134,7 @@ class ReleaseControllerTest {
         when(releaseQueryFacade.findById(4L)).thenReturn(Optional.of(release));
         when(productionRunQueryService.findByReleaseId(4L)).thenReturn(List.of(productionRun));
         when(inventoryMovementQueryApi.getWarehouseInventory(10L)).thenReturn(200);
+        when(inventoryMovementQueryApi.getBandcampInventory(10L)).thenReturn(25);
         when(inventoryMovementQueryApi.getCurrentInventoryByDistributor(10L))
                 .thenReturn(Map.of());
         when(inventoryMovementQueryApi.getMovementsForProductionRun(10L))
@@ -152,7 +148,8 @@ class ReleaseControllerTest {
         var productionRuns = (List<ProductionRunWithAllocation>) result.getModelAndView()
                 .getModel().get("productionRuns");
         assertThat(productionRuns).hasSize(1);
-        assertThat(productionRuns.get(0).warehouseInventory()).isEqualTo(200);
+        assertThat(productionRuns.get(0).warehouseInventory()).isEqualTo(700);
+        assertThat(productionRuns.get(0).bandcampInventory()).isEqualTo(25);
         assertThat(productionRuns.get(0).distributorInventories()).isEmpty();
         assertThat(productionRuns.get(0).movements()).isEmpty();
     }
@@ -166,16 +163,11 @@ class ReleaseControllerTest {
                 .id(1L).name("Alpha Records").build();
         var betaDistributor = DistributorFactory.aDistributor()
                 .id(2L).name("Beta Distribution").build();
-        // Distributor 1 has an allocation; distributor 2 does not (union edge case)
-        var allocation = ChannelAllocationFactory.aChannelAllocation()
-                .productionRunId(10L).distributorId(1L).quantity(100).build();
 
         when(releaseQueryFacade.findById(4L)).thenReturn(Optional.of(release));
         when(productionRunQueryService.findByReleaseId(4L)).thenReturn(List.of(productionRun));
         when(distributorQueryService.findByLabelId(1L))
                 .thenReturn(List.of(alphaDistributor, betaDistributor));
-        when(allocationQueryService.getAllocationsForProductionRun(10L))
-                .thenReturn(List.of(allocation));
         when(inventoryMovementQueryApi.getWarehouseInventory(10L)).thenReturn(350);
         when(inventoryMovementQueryApi.getCurrentInventoryByDistributor(10L))
                 .thenReturn(Map.of(1L, 80, 2L, 30));
@@ -195,16 +187,11 @@ class ReleaseControllerTest {
         // Results are sorted alphabetically by name
         var alpha = distributorInventories.get(0);
         assertThat(alpha.name()).isEqualTo("Alpha Records");
-        assertThat(alpha.allocated()).isEqualTo(100);
         assertThat(alpha.current()).isEqualTo(80);
-        assertThat(alpha.sold()).isEqualTo(20);
 
-        // Beta appears only in currentByDistributor, not in allocations (union edge case)
         var beta = distributorInventories.get(1);
         assertThat(beta.name()).isEqualTo("Beta Distribution");
-        assertThat(beta.allocated()).isEqualTo(0);
         assertThat(beta.current()).isEqualTo(30);
-        assertThat(beta.sold()).isEqualTo(-30);
     }
 
     @Test

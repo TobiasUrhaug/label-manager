@@ -15,14 +15,13 @@ import org.omt.labelmanager.distribution.distributor.persistence.DistributorEnti
 import org.omt.labelmanager.distribution.distributor.persistence.DistributorRepository;
 import org.omt.labelmanager.finance.domain.shared.Money;
 import org.omt.labelmanager.inventory.InsufficientInventoryException;
-import org.omt.labelmanager.inventory.allocation.api.AllocationCommandApi;
-import org.omt.labelmanager.inventory.allocation.infrastructure.ChannelAllocationEntity;
-import org.omt.labelmanager.inventory.allocation.infrastructure.ChannelAllocationRepository;
-import org.omt.labelmanager.inventory.domain.MovementType;
-import org.omt.labelmanager.inventory.inventorymovement.infrastructure.InventoryMovementRepository;
+import org.omt.labelmanager.inventory.InventoryLocation;
+import org.omt.labelmanager.inventory.MovementType;
+import org.omt.labelmanager.inventory.inventorymovement.api.InventoryMovementCommandApi;
 import org.omt.labelmanager.inventory.inventorymovement.api.InventoryMovementQueryApi;
-import org.omt.labelmanager.inventory.productionrun.infrastructure.ProductionRunEntity;
-import org.omt.labelmanager.inventory.productionrun.infrastructure.ProductionRunRepository;
+import org.omt.labelmanager.inventory.inventorymovement.persistence.InventoryMovementRepository;
+import org.omt.labelmanager.inventory.productionrun.persistence.ProductionRunEntity;
+import org.omt.labelmanager.inventory.productionrun.persistence.ProductionRunRepository;
 import org.omt.labelmanager.sales.sale.api.SaleCommandApi;
 import org.omt.labelmanager.sales.sale.domain.SaleLineItemInput;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,16 +47,13 @@ class SaleRegistrationIntegrationTest extends AbstractIntegrationTest {
     private DistributorRepository distributorRepository;
 
     @Autowired
-    private ChannelAllocationRepository channelAllocationRepository;
-
-    @Autowired
     private InventoryMovementRepository inventoryMovementRepository;
 
     @Autowired
     private InventoryMovementQueryApi inventoryMovementQueryApi;
 
     @Autowired
-    private AllocationCommandApi allocationCommandApi;
+    private InventoryMovementCommandApi inventoryMovementCommandApi;
 
     private Long labelId;
     private Long releaseId;
@@ -68,7 +64,6 @@ class SaleRegistrationIntegrationTest extends AbstractIntegrationTest {
     void setUp() {
         // Clean up
         inventoryMovementRepository.deleteAll();
-        channelAllocationRepository.deleteAll();
         productionRunRepository.deleteAll();
 
         // Create label with DIRECT distributor
@@ -96,8 +91,10 @@ class SaleRegistrationIntegrationTest extends AbstractIntegrationTest {
                 ));
         productionRunId = productionRun.getId();
 
-        // Allocate inventory to DIRECT distributor (records movement via API)
-        allocationCommandApi.createAllocation(productionRunId, directDistributorId, 50);
+        // Allocate inventory to DIRECT distributor
+        inventoryMovementCommandApi.recordMovement(
+                productionRunId, InventoryLocation.warehouse(),
+                InventoryLocation.distributor(directDistributorId), 50, MovementType.ALLOCATION, null);
     }
 
     @Test
@@ -190,10 +187,10 @@ class SaleRegistrationIntegrationTest extends AbstractIntegrationTest {
         assertThat(movements).hasSize(1);
         assertThat(movements.getFirst().getMovementType()).isEqualTo(MovementType.SALE);
         assertThat(movements.getFirst().getFromLocationType()).isEqualTo(
-                org.omt.labelmanager.inventory.domain.LocationType.DISTRIBUTOR);
+                org.omt.labelmanager.inventory.LocationType.DISTRIBUTOR);
         assertThat(movements.getFirst().getFromLocationId()).isEqualTo(directDistributorId);
         assertThat(movements.getFirst().getToLocationType()).isEqualTo(
-                org.omt.labelmanager.inventory.domain.LocationType.EXTERNAL);
+                org.omt.labelmanager.inventory.LocationType.EXTERNAL);
         assertThat(movements.getFirst().getQuantity()).isEqualTo(5);
         assertThat(movements.getFirst().getReferenceId()).isEqualTo(sale.id());
     }
@@ -276,8 +273,8 @@ class SaleRegistrationIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    void registerSale_withNoAllocation_throwsHelpfulException() {
-        // Create a second production run without any allocation
+    void registerSale_withNoStock_throwsInsufficientInventoryException() {
+        // Create a production run with no inventory movements (zero stock at distributor)
         productionRunRepository.save(
                 new ProductionRunEntity(
                         releaseId,
@@ -306,13 +303,7 @@ class SaleRegistrationIntegrationTest extends AbstractIntegrationTest {
                         null,
                         lineItems
                 ))
-                .isInstanceOf(IllegalStateException.class)
-                .hasMessageContaining("No inventory allocated")
-                .hasMessageContaining("Test Release")
-                .hasMessageContaining("CD")
-                .hasMessageContaining(
-                        "allocate inventory from the production run"
-                );
+                .isInstanceOf(InsufficientInventoryException.class);
     }
 
     @Test
@@ -382,8 +373,10 @@ class SaleRegistrationIntegrationTest extends AbstractIntegrationTest {
                 ));
         Long distributorId = distributorEntity.getId();
 
-        // Allocate inventory to this distributor (via API so movements are recorded)
-        allocationCommandApi.createAllocation(productionRunId, distributorId, 30);
+        // Allocate inventory to this distributor
+        inventoryMovementCommandApi.recordMovement(
+                productionRunId, InventoryLocation.warehouse(),
+                InventoryLocation.distributor(distributorId), 30, MovementType.ALLOCATION, null);
 
         var lineItems = List.of(
                 new SaleLineItemInput(
@@ -491,8 +484,8 @@ class SaleRegistrationIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    void registerDistributorSale_withNoAllocation_throwsHelpfulException() {
-        // Create distributor WITHOUT allocation
+    void registerDistributorSale_withNoStock_throwsInsufficientInventoryException() {
+        // Create distributor with no inventory movements (zero stock)
         var distributorEntity = distributorRepository.save(
                 new DistributorEntity(
                         labelId,
@@ -518,8 +511,6 @@ class SaleRegistrationIntegrationTest extends AbstractIntegrationTest {
                         distributorEntity.getId(),
                         lineItems
                 ))
-                .isInstanceOf(IllegalStateException.class)
-                .hasMessageContaining("No inventory allocated")
-                .hasMessageContaining("Unallocated Distributor");
+                .isInstanceOf(InsufficientInventoryException.class);
     }
 }

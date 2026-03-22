@@ -1,7 +1,7 @@
 package org.omt.labelmanager.inventory.productionrun.domain;
 
 import org.omt.labelmanager.catalog.release.domain.ReleaseFormat;
-import org.omt.labelmanager.inventory.productionrun.infrastructure.ProductionRunEntity;
+import org.omt.labelmanager.inventory.productionrun.persistence.ProductionRunEntity;
 
 import java.time.LocalDate;
 
@@ -27,12 +27,4 @@ public record ProductionRun(
         );
     }
 
-    public boolean canAllocate(int requestedQuantity, int currentlyAllocated) {
-        int available = quantity - currentlyAllocated;
-        return requestedQuantity <= available;
-    }
-
-    public int getAvailableQuantity(int currentlyAllocated) {
-        return quantity - currentlyAllocated;
-    }
 }

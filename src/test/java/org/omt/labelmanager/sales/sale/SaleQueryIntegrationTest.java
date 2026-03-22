@@ -13,7 +13,9 @@ import org.omt.labelmanager.distribution.distributor.DistributorTestHelper;
 import org.omt.labelmanager.distribution.distributor.api.DistributorQueryApi;
 import org.omt.labelmanager.distribution.distributor.ChannelType;
 import org.omt.labelmanager.finance.domain.shared.Money;
-import org.omt.labelmanager.inventory.allocation.api.AllocationCommandApi;
+import org.omt.labelmanager.inventory.InventoryLocation;
+import org.omt.labelmanager.inventory.MovementType;
+import org.omt.labelmanager.inventory.inventorymovement.api.InventoryMovementCommandApi;
 import org.omt.labelmanager.inventory.productionrun.ProductionRunTestHelper;
 import org.omt.labelmanager.sales.sale.api.SaleCommandApi;
 import org.omt.labelmanager.sales.sale.api.SaleQueryApi;
@@ -49,7 +51,7 @@ class SaleQueryIntegrationTest extends AbstractIntegrationTest {
     private DistributorQueryApi distributorQueryApi;
 
     @Autowired
-    private AllocationCommandApi allocationCommandApi;
+    private InventoryMovementCommandApi inventoryMovementCommandApi;
 
     private Long labelId;
     private Long releaseId;
@@ -80,8 +82,12 @@ class SaleQueryIntegrationTest extends AbstractIntegrationTest {
         );
         productionRunId = productionRun.id();
 
-        allocationCommandApi.createAllocation(productionRunId, directDistributorId, 80);
-        allocationCommandApi.createAllocation(productionRunId, externalDistributorId, 80);
+        inventoryMovementCommandApi.recordMovement(
+                productionRunId, InventoryLocation.warehouse(),
+                InventoryLocation.distributor(directDistributorId), 80, MovementType.ALLOCATION, null);
+        inventoryMovementCommandApi.recordMovement(
+                productionRunId, InventoryLocation.warehouse(),
+                InventoryLocation.distributor(externalDistributorId), 80, MovementType.ALLOCATION, null);
     }
 
     // ── distributorId is persisted on registration ──────────────────────────
@@ -184,9 +190,9 @@ class SaleQueryIntegrationTest extends AbstractIntegrationTest {
         var otherProductionRun = productionRunTestHelper.createProductionRun(
                 otherReleaseId, ReleaseFormat.VINYL, 50
         );
-        allocationCommandApi.createAllocation(
-                otherProductionRun.id(), otherDirectDistributorId, 50
-        );
+        inventoryMovementCommandApi.recordMovement(
+                otherProductionRun.id(), InventoryLocation.warehouse(),
+                InventoryLocation.distributor(otherDirectDistributorId), 50, MovementType.ALLOCATION, null);
 
         // Sale for our production run
         registerDirectSale(5);
@@ -215,7 +221,9 @@ class SaleQueryIntegrationTest extends AbstractIntegrationTest {
                 releaseId, ReleaseFormat.VINYL, "Second pressing", "Plant A",
                 LocalDate.of(2026, 6, 1), 100
         );
-        allocationCommandApi.createAllocation(repress.id(), directDistributorId, 100);
+        inventoryMovementCommandApi.recordMovement(
+                repress.id(), InventoryLocation.warehouse(),
+                InventoryLocation.distributor(directDistributorId), 100, MovementType.ALLOCATION, null);
 
         // Sale against the repress (findMostRecent now returns the repress)
         registerDirectSale(3);

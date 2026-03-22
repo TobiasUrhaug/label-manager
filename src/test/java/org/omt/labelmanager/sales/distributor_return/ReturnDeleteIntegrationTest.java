@@ -11,10 +11,11 @@ import org.omt.labelmanager.catalog.release.ReleaseTestHelper;
 import org.omt.labelmanager.catalog.release.domain.ReleaseFormat;
 import org.omt.labelmanager.distribution.distributor.api.DistributorQueryApi;
 import org.omt.labelmanager.distribution.distributor.ChannelType;
-import org.omt.labelmanager.inventory.allocation.AllocationTestHelper;
-import org.omt.labelmanager.inventory.domain.MovementType;
+import org.omt.labelmanager.inventory.InventoryLocation;
+import org.omt.labelmanager.inventory.MovementType;
+import org.omt.labelmanager.inventory.inventorymovement.api.InventoryMovementCommandApi;
 import org.omt.labelmanager.inventory.inventorymovement.api.InventoryMovementQueryApi;
-import org.omt.labelmanager.inventory.inventorymovement.infrastructure.InventoryMovementRepository;
+import org.omt.labelmanager.inventory.inventorymovement.persistence.InventoryMovementRepository;
 import org.omt.labelmanager.inventory.productionrun.ProductionRunTestHelper;
 import org.omt.labelmanager.sales.distributor_return.api.DistributorReturnCommandApi;
 import org.omt.labelmanager.sales.distributor_return.api.DistributorReturnQueryApi;
@@ -48,7 +49,7 @@ class ReturnDeleteIntegrationTest extends AbstractIntegrationTest {
     private ProductionRunTestHelper productionRunTestHelper;
 
     @Autowired
-    private AllocationTestHelper allocationTestHelper;
+    private InventoryMovementCommandApi inventoryMovementCommandApi;
 
     @Autowired
     private DistributorQueryApi distributorQueryApi;
@@ -77,7 +78,9 @@ class ReturnDeleteIntegrationTest extends AbstractIntegrationTest {
         );
         productionRunId = productionRun.id();
 
-        allocationTestHelper.createAllocation(productionRunId, distributorId, 50);
+        inventoryMovementCommandApi.recordMovement(
+                productionRunId, InventoryLocation.warehouse(),
+                InventoryLocation.distributor(distributorId), 50, MovementType.ALLOCATION, null);
     }
 
     @Test

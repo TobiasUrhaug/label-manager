@@ -1,9 +1,10 @@
 package org.omt.labelmanager.inventory.inventorymovement;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.omt.labelmanager.inventory.domain.InventoryLocation.distributor;
-import static org.omt.labelmanager.inventory.domain.InventoryLocation.external;
-import static org.omt.labelmanager.inventory.domain.InventoryLocation.warehouse;
+import static org.omt.labelmanager.inventory.InventoryLocation.bandcamp;
+import static org.omt.labelmanager.inventory.InventoryLocation.distributor;
+import static org.omt.labelmanager.inventory.InventoryLocation.external;
+import static org.omt.labelmanager.inventory.InventoryLocation.warehouse;
 
 import java.time.LocalDate;
 import org.junit.jupiter.api.BeforeEach;
@@ -15,11 +16,11 @@ import org.omt.labelmanager.catalog.release.domain.ReleaseFormat;
 import org.omt.labelmanager.distribution.distributor.ChannelType;
 import org.omt.labelmanager.distribution.distributor.persistence.DistributorEntity;
 import org.omt.labelmanager.distribution.distributor.persistence.DistributorRepository;
-import org.omt.labelmanager.inventory.domain.MovementType;
+import org.omt.labelmanager.inventory.MovementType;
 import org.omt.labelmanager.inventory.inventorymovement.api.InventoryMovementCommandApi;
 import org.omt.labelmanager.inventory.inventorymovement.api.InventoryMovementQueryApi;
-import org.omt.labelmanager.inventory.productionrun.infrastructure.ProductionRunEntity;
-import org.omt.labelmanager.inventory.productionrun.infrastructure.ProductionRunRepository;
+import org.omt.labelmanager.inventory.productionrun.persistence.ProductionRunEntity;
+import org.omt.labelmanager.inventory.productionrun.persistence.ProductionRunRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 
 public class QueryMovementIntegrationTest extends AbstractIntegrationTest {
@@ -43,6 +44,7 @@ public class QueryMovementIntegrationTest extends AbstractIntegrationTest {
     private LabelTestHelper labelTestHelper;
 
     private Long productionRunId;
+    private Long releaseId;
     private Long distributorId;
 
     @BeforeEach
@@ -51,7 +53,7 @@ public class QueryMovementIntegrationTest extends AbstractIntegrationTest {
         distributorRepository.deleteAll();
 
         var label = labelTestHelper.createLabel("Test Label");
-        Long releaseId = releaseTestHelper
+        releaseId = releaseTestHelper
                 .createReleaseEntity("Test Release", label.id());
 
         ProductionRunEntity productionRun = productionRunRepository.save(
@@ -154,6 +156,78 @@ public class QueryMovementIntegrationTest extends AbstractIntegrationTest {
                 .isEqualTo(MovementType.SALE);
         assertThat(movements.get(1).movementType())
                 .isEqualTo(MovementType.ALLOCATION);
+    }
+
+    @Test
+    void getBandcampInventory_returnsAllocatedMinusSoldAndReturned() {
+        recordBandcampAllocation(50);
+        recordBandcampSale(10);
+
+        int held = inventoryMovementQueryApi.getBandcampInventory(productionRunId);
+
+        assertThat(held).isEqualTo(40);
+    }
+
+    @Test
+    void getBandcampInventory_deductsReturnedQuantity() {
+        recordBandcampAllocation(50);
+        recordBandcampSale(10);
+        recordBandcampReturn(10);
+
+        int held = inventoryMovementQueryApi.getBandcampInventory(productionRunId);
+
+        assertThat(held).isEqualTo(30);
+    }
+
+    @Test
+    void getProductionRunIdsAllocatedToDistributor_returnsBothRunIds() {
+        ProductionRunEntity secondRun = productionRunRepository.save(
+                new ProductionRunEntity(
+                        releaseId,
+                        ReleaseFormat.VINYL, "Second pressing",
+                        "Plant B", LocalDate.of(2025, 6, 1), 200));
+        Long secondRunId = secondRun.getId();
+
+        recordAllocation(100);
+        inventoryMovementCommandApi.recordMovement(
+                secondRunId, warehouse(), distributor(distributorId),
+                50, MovementType.ALLOCATION, null);
+
+        var runIds = inventoryMovementQueryApi
+                .getProductionRunIdsAllocatedToDistributor(distributorId);
+
+        assertThat(runIds).containsExactlyInAnyOrder(productionRunId, secondRunId);
+    }
+
+    @Test
+    void getProductionRunIdsAllocatedToDistributor_excludesRunsWithOnlySales() {
+        recordSale(10);
+
+        var runIds = inventoryMovementQueryApi
+                .getProductionRunIdsAllocatedToDistributor(distributorId);
+
+        assertThat(runIds).isEmpty();
+    }
+
+    private void recordBandcampAllocation(int quantity) {
+        inventoryMovementCommandApi.recordMovement(
+                productionRunId,
+                warehouse(), bandcamp(),
+                quantity, MovementType.ALLOCATION, null);
+    }
+
+    private void recordBandcampSale(int quantity) {
+        inventoryMovementCommandApi.recordMovement(
+                productionRunId,
+                bandcamp(), external(),
+                quantity, MovementType.SALE, null);
+    }
+
+    private void recordBandcampReturn(int quantity) {
+        inventoryMovementCommandApi.recordMovement(
+                productionRunId,
+                bandcamp(), warehouse(),
+                quantity, MovementType.RETURN, null);
     }
 
     private void recordAllocation(int quantity) {

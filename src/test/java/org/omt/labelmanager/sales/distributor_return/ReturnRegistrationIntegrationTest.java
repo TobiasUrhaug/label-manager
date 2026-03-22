@@ -11,11 +11,12 @@ import org.omt.labelmanager.catalog.release.domain.ReleaseFormat;
 import org.omt.labelmanager.distribution.distributor.api.DistributorQueryApi;
 import org.omt.labelmanager.distribution.distributor.ChannelType;
 import org.omt.labelmanager.inventory.InsufficientInventoryException;
-import org.omt.labelmanager.inventory.allocation.AllocationTestHelper;
-import org.omt.labelmanager.inventory.domain.LocationType;
-import org.omt.labelmanager.inventory.domain.MovementType;
+import org.omt.labelmanager.inventory.InventoryLocation;
+import org.omt.labelmanager.inventory.LocationType;
+import org.omt.labelmanager.inventory.MovementType;
+import org.omt.labelmanager.inventory.inventorymovement.api.InventoryMovementCommandApi;
 import org.omt.labelmanager.inventory.inventorymovement.api.InventoryMovementQueryApi;
-import org.omt.labelmanager.inventory.inventorymovement.infrastructure.InventoryMovementRepository;
+import org.omt.labelmanager.inventory.inventorymovement.persistence.InventoryMovementRepository;
 import org.omt.labelmanager.inventory.productionrun.ProductionRunTestHelper;
 import org.omt.labelmanager.sales.distributor_return.api.DistributorReturnCommandApi;
 import org.omt.labelmanager.sales.distributor_return.domain.ReturnLineItemInput;
@@ -45,7 +46,7 @@ class ReturnRegistrationIntegrationTest extends AbstractIntegrationTest {
     private ProductionRunTestHelper productionRunTestHelper;
 
     @Autowired
-    private AllocationTestHelper allocationTestHelper;
+    private InventoryMovementCommandApi inventoryMovementCommandApi;
 
     @Autowired
     private DistributorQueryApi distributorQueryApi;
@@ -75,7 +76,9 @@ class ReturnRegistrationIntegrationTest extends AbstractIntegrationTest {
         productionRunId = productionRun.id();
 
         // Allocate 50 units to the distributor so they have inventory to return
-        allocationTestHelper.createAllocation(productionRunId, distributorId, 50);
+        inventoryMovementCommandApi.recordMovement(
+                productionRunId, InventoryLocation.warehouse(),
+                InventoryLocation.distributor(distributorId), 50, MovementType.ALLOCATION, null);
     }
 
     @Test

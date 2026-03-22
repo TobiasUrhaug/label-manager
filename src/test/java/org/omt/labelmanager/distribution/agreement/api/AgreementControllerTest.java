@@ -9,8 +9,7 @@ import org.omt.labelmanager.distribution.agreement.CommissionType;
 import org.omt.labelmanager.distribution.agreement.PricingAgreement;
 import org.omt.labelmanager.distribution.distributor.DistributorFactory;
 import org.omt.labelmanager.distribution.distributor.api.DistributorQueryApi;
-import org.omt.labelmanager.inventory.allocation.api.AllocationQueryApi;
-import org.omt.labelmanager.inventory.allocation.domain.ChannelAllocationFactory;
+import org.omt.labelmanager.inventory.inventorymovement.api.InventoryMovementQueryApi;
 import org.omt.labelmanager.inventory.productionrun.api.ProductionRunQueryApi;
 import org.omt.labelmanager.inventory.productionrun.domain.ProductionRunFactory;
 import org.omt.labelmanager.test.TestSecurityConfig;
@@ -57,7 +56,7 @@ class AgreementControllerTest {
     private LabelQueryApi labelQueryApi;
 
     @MockitoBean
-    private AllocationQueryApi allocationQueryApi;
+    private InventoryMovementQueryApi inventoryMovementQueryApi;
 
     @MockitoBean
     private ProductionRunQueryApi productionRunQueryApi;
@@ -82,13 +81,12 @@ class AgreementControllerTest {
     void showCreateForm_returns200WithAvailableRuns() throws Exception {
         var label = LabelFactory.aLabel().id(LABEL_ID).build();
         var distributor = DistributorFactory.aDistributor().id(DISTRIBUTOR_ID).labelId(LABEL_ID).build();
-        var allocation = ChannelAllocationFactory.aChannelAllocation().productionRunId(RUN_ID).build();
         var run = ProductionRunFactory.aProductionRun().id(RUN_ID).build();
         var release = ReleaseFactory.aRelease().id(run.releaseId()).name("Test Album").build();
 
         when(labelQueryApi.findById(LABEL_ID)).thenReturn(Optional.of(label));
         when(distributorQueryApi.findById(DISTRIBUTOR_ID)).thenReturn(Optional.of(distributor));
-        when(allocationQueryApi.getAllocationsForDistributor(DISTRIBUTOR_ID)).thenReturn(List.of(allocation));
+        when(inventoryMovementQueryApi.getProductionRunIdsAllocatedToDistributor(DISTRIBUTOR_ID)).thenReturn(List.of(RUN_ID));
         when(queryApi.existsByDistributorIdAndProductionRunId(DISTRIBUTOR_ID, RUN_ID)).thenReturn(false);
         when(productionRunQueryApi.findById(RUN_ID)).thenReturn(Optional.of(run));
         when(releaseQueryApi.findById(run.releaseId())).thenReturn(Optional.of(release));
@@ -145,7 +143,7 @@ class AgreementControllerTest {
 
         when(labelQueryApi.findById(LABEL_ID)).thenReturn(Optional.of(label));
         when(distributorQueryApi.findById(DISTRIBUTOR_ID)).thenReturn(Optional.of(distributor));
-        when(allocationQueryApi.getAllocationsForDistributor(DISTRIBUTOR_ID)).thenReturn(List.of());
+        when(inventoryMovementQueryApi.getProductionRunIdsAllocatedToDistributor(DISTRIBUTOR_ID)).thenReturn(List.of());
         when(commandApi.create(any(), any(), any(), any(), any()))
                 .thenThrow(new DuplicateAgreementException(DISTRIBUTOR_ID, RUN_ID));
 
@@ -167,7 +165,7 @@ class AgreementControllerTest {
 
         when(labelQueryApi.findById(LABEL_ID)).thenReturn(Optional.of(label));
         when(distributorQueryApi.findById(DISTRIBUTOR_ID)).thenReturn(Optional.of(distributor));
-        when(allocationQueryApi.getAllocationsForDistributor(DISTRIBUTOR_ID)).thenReturn(List.of());
+        when(inventoryMovementQueryApi.getProductionRunIdsAllocatedToDistributor(DISTRIBUTOR_ID)).thenReturn(List.of());
         when(commandApi.create(any(), any(), any(), any(), any()))
                 .thenThrow(new IllegalArgumentException("Unit price must be greater than zero"));
 
@@ -189,7 +187,7 @@ class AgreementControllerTest {
 
         when(labelQueryApi.findById(LABEL_ID)).thenReturn(Optional.of(label));
         when(distributorQueryApi.findById(DISTRIBUTOR_ID)).thenReturn(Optional.of(distributor));
-        when(allocationQueryApi.getAllocationsForDistributor(DISTRIBUTOR_ID)).thenReturn(List.of());
+        when(inventoryMovementQueryApi.getProductionRunIdsAllocatedToDistributor(DISTRIBUTOR_ID)).thenReturn(List.of());
         when(commandApi.create(any(), any(), any(), any(), any()))
                 .thenThrow(new IllegalArgumentException("Commission percentage must be between 0 and 100"));
 
@@ -211,7 +209,7 @@ class AgreementControllerTest {
 
         when(labelQueryApi.findById(LABEL_ID)).thenReturn(Optional.of(label));
         when(distributorQueryApi.findById(DISTRIBUTOR_ID)).thenReturn(Optional.of(distributor));
-        when(allocationQueryApi.getAllocationsForDistributor(DISTRIBUTOR_ID)).thenReturn(List.of());
+        when(inventoryMovementQueryApi.getProductionRunIdsAllocatedToDistributor(DISTRIBUTOR_ID)).thenReturn(List.of());
         when(commandApi.create(any(), any(), any(), any(), any()))
                 .thenThrow(new IllegalArgumentException("Commission value must be greater than zero"));
 

@@ -1,7 +1,7 @@
 package org.omt.labelmanager.inventory.api;
 
 import java.time.Instant;
-import org.omt.labelmanager.inventory.domain.MovementType;
+import org.omt.labelmanager.inventory.MovementType;
 
 /**
  * A single inventory movement for display in the movement history table.

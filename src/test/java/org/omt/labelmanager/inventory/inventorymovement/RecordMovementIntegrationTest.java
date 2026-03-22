@@ -1,9 +1,9 @@
 package org.omt.labelmanager.inventory.inventorymovement;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.omt.labelmanager.inventory.domain.InventoryLocation.distributor;
-import static org.omt.labelmanager.inventory.domain.InventoryLocation.external;
-import static org.omt.labelmanager.inventory.domain.InventoryLocation.warehouse;
+import static org.omt.labelmanager.inventory.InventoryLocation.distributor;
+import static org.omt.labelmanager.inventory.InventoryLocation.external;
+import static org.omt.labelmanager.inventory.InventoryLocation.warehouse;
 
 import java.time.LocalDate;
 import org.junit.jupiter.api.BeforeEach;
@@ -15,12 +15,12 @@ import org.omt.labelmanager.catalog.release.domain.ReleaseFormat;
 import org.omt.labelmanager.distribution.distributor.ChannelType;
 import org.omt.labelmanager.distribution.distributor.persistence.DistributorEntity;
 import org.omt.labelmanager.distribution.distributor.persistence.DistributorRepository;
-import org.omt.labelmanager.inventory.domain.LocationType;
-import org.omt.labelmanager.inventory.domain.MovementType;
+import org.omt.labelmanager.inventory.LocationType;
+import org.omt.labelmanager.inventory.MovementType;
 import org.omt.labelmanager.inventory.inventorymovement.api.InventoryMovementCommandApi;
 import org.omt.labelmanager.inventory.inventorymovement.api.InventoryMovementQueryApi;
-import org.omt.labelmanager.inventory.productionrun.infrastructure.ProductionRunEntity;
-import org.omt.labelmanager.inventory.productionrun.infrastructure.ProductionRunRepository;
+import org.omt.labelmanager.inventory.productionrun.persistence.ProductionRunEntity;
+import org.omt.labelmanager.inventory.productionrun.persistence.ProductionRunRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 
 public class RecordMovementIntegrationTest extends AbstractIntegrationTest {

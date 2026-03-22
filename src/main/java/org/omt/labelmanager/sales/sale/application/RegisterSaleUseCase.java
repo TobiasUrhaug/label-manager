@@ -9,8 +9,8 @@ import org.omt.labelmanager.catalog.label.api.LabelQueryApi;
 import org.omt.labelmanager.distribution.distributor.api.DistributorQueryApi;
 import org.omt.labelmanager.distribution.distributor.ChannelType;
 import org.omt.labelmanager.distribution.distributor.Distributor;
-import org.omt.labelmanager.inventory.domain.InventoryLocation;
-import org.omt.labelmanager.inventory.domain.MovementType;
+import org.omt.labelmanager.inventory.InventoryLocation;
+import org.omt.labelmanager.inventory.MovementType;
 import org.omt.labelmanager.inventory.inventorymovement.api.InventoryMovementCommandApi;
 import org.omt.labelmanager.sales.sale.domain.Sale;
 import org.omt.labelmanager.sales.sale.domain.SaleLineItemInput;
@@ -87,7 +87,7 @@ class RegisterSaleUseCase {
         Map<SaleLineItemInput, Long> productionRunIds = new LinkedHashMap<>();
         for (var lineItemInput : lineItems) {
             Long productionRunId = lineItemProcessor.validateAndAdd(
-                    lineItemInput, labelId, distributor.id(), distributor.name(), saleEntity
+                    lineItemInput, labelId, distributor.id(), saleEntity
             );
             productionRunIds.put(lineItemInput, productionRunId);
         }
