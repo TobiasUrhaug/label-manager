@@ -1,0 +1,21 @@
+openapi: 3.1.0
+info:
+  title: Label Manager API
+  version: 0.1.0
+  description: |
+    REST API for the Label Manager application.
+
+    This spec is the source of truth for the contract between frontend and backend.
+    Add endpoints here as they are introduced during the Thymeleaf → React migration.
+
+paths: {}
+
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: JSESSIONID
+
+security:
+  - cookieAuth: []

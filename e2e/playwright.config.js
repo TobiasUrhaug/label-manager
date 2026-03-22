@@ -4,7 +4,7 @@ const baseURL = process.env.E2E_TARGET_URL || 'http://localhost:8080';
 const isLocalhost = baseURL.includes('localhost');
 
 export default defineConfig({
-  testDir: './e2e',
+  testDir: './',
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
@@ -32,7 +32,7 @@ export default defineConfig({
   // Only start local server when not testing against external URL
   ...(isLocalhost && {
     webServer: {
-      command: './gradlew bootRun',
+      command: '../backend/gradlew bootRun',
       url: 'http://localhost:8080',
       reuseExistingServer: !process.env.CI,
       timeout: 120000,

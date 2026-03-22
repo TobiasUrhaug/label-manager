@@ -1,71 +1,45 @@
-# CLAUDE.md
+# CLAUDE.md — Monorepo Root
 
-This file provides guidance to Claude Code when working with this repository.
+This is the root of the label-manager monorepo.
 
-## Session Protocol
+## Structure
 
-1. Read this file + any `.claude/features/<FEATURE_NAME>/progress.md` at session start.
-2. One feature at a time.
-3. Update `progress.md` and `index.md` before session ends.
+| Directory | Purpose |
+|-----------|---------|
+| `backend/` | Spring Boot REST API (Java). Also contains Thymeleaf templates and static JS — these are **temporary** and will be removed when the React migration is complete. |
+| `frontend/` | React SPA. Grows as Thymeleaf pages are migrated. |
+| `e2e/` | Playwright end-to-end tests. |
+| `contracts/` | OpenAPI spec — the source of truth for the REST API contract between frontend and backend. |
 
-## Domain
+Each directory has its own `CLAUDE.md` with context specific to that area.
 
-A multi-tenant application for managing independent music labels.
+## Migration Strategy
 
-- **Users** own one or more **Labels**
-- **Labels** have **Artists** and **Releases**
-- **Releases** contain **Tracks** (with artist, duration) and can be physical (vinyl, CD) or digital
-- **Costs** track expenses (mastering, distribution) with VAT calculations and document attachments
+The app is migrating from Thymeleaf (server-side rendered) to a React SPA backed by a REST API.
 
-## Key References
+- During migration, a page may exist in **both** Thymeleaf and React simultaneously.
+- The OpenAPI spec in `contracts/openapi.yaml` must be updated whenever a new REST endpoint is introduced.
+- When all pages have been migrated, everything Thymeleaf-related in `backend/` is deleted in one cleanup pass:
+  - `src/main/resources/templates/`
+  - `src/main/resources/static/js/`
+  - `src/test/js/`
+  - `backend/package.json`, `backend/vitest.config.js`
+  - Thymeleaf and Bootstrap dependencies in `build.gradle.kts`
 
-| Topic | File |
-|-------|------|
-| Architecture, module structure, patterns | [ARCHITECTURE.md](ARCHITECTURE.md) |
-| Testing strategy and patterns | [TESTING.md](TESTING.md) |
-| Development workflow, formatting, logging | [DEVELOPMENT.md](DEVELOPMENT.md) |
+## Common Commands
 
-## Statuses
-
-All status fields: `Draft` → `In Progress` → `In Review` → `Done`
-
-## Roles
-
-Tell Claude: "Act as [Role] for feature [FEATURE_NAME]."
-
-- **Analyst** → `.claude/profiles/analyst.md`
-- **Architect** → `.claude/profiles/architect.md`
-- **Developer** → `.claude/profiles/developer.md`
-- **Reviewer** → `.claude/profiles/reviewer.md`
-
-## Feature Workflow
-
-Each feature lives in `.claude/features/<FEATURE_NAME>/`.
-Templates are in `.claude/templates/`.
-
-```
-Analyst   → index.md, progress.md, requirements.md, context.md
-Architect → spec.md, tasks.md, updates index.md + progress.md
-Developer → implements, checks off tasks, updates index.md + progress.md
-Reviewer  → comments.md, updates index.md + progress.md
-Developer → addresses comments, updates progress.md
-Reviewer  → resolves comments → updates index.md status to Done
+```bash
+make build          # Build backend
+make test           # Backend Java tests
+make test-js        # JS unit tests for Thymeleaf static JS (temporary)
+make test-e2e       # Playwright e2e tests
+make start-backend  # Run backend dev server (port 8080)
+make start-frontend # Run frontend dev server (port 5173)
+make install        # Install all npm dependencies
 ```
 
 ## Git Workflow
 
-- Create a feature branch per feature: `feature/<FEATURE_NAME>`
-- Merge to `main` via pull request when Done
-- Always show the proposed commit message and ask for confirmation before executing a commit
-
-## Quick Command Reference
-
-```bash
-./gradlew build                             # Build
-./gradlew bootRun                           # Run application
-./gradlew test                              # All Java tests
-./gradlew test --tests LabelControllerTest  # Single test class
-./gradlew checkstyleMain checkstyleTest     # Checkstyle
-npm run test                                # JavaScript unit tests
-npm run test:e2e                            # E2E tests
-```
+- Feature branches: `feature/<FEATURE_NAME>`
+- Merge to `main` via pull request
+- Always show the proposed commit message and ask for confirmation before committing

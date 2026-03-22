@@ -1,15 +1,13 @@
-HELP.md
-.gradle
-build/
-!gradle/wrapper/gradle-wrapper.jar
-!**/src/main/**/build/
-!**/src/test/**/build/
-
-### MacOS ###
+### macOS ###
 .DS_Store
 **/.DS_Store
 
-### STS ###
+### IDE ###
+.idea
+*.iws
+*.iml
+*.ipr
+.vscode/
 .apt_generated
 .classpath
 .factorypath
@@ -17,23 +15,27 @@ build/
 .settings
 .springBeans
 .sts4-cache
-bin/
-!**/src/main/**/bin/
-!**/src/test/**/bin/
 
-### IntelliJ IDEA ###
-.idea
-*.iws
-*.iml
-*.ipr
-out/
-!**/src/main/**/out/
-!**/src/test/**/out/
-
-### VS Code ###
-.vscode/
+### Node ###
 node_modules/
 
-### Playwright ###
-playwright-report/
-test-results/
+### Backend (Gradle) ###
+backend/HELP.md
+backend/.gradle
+backend/build/
+!backend/gradle/wrapper/gradle-wrapper.jar
+!backend/**/src/main/**/build/
+!backend/**/src/test/**/build/
+backend/bin/
+!backend/**/src/main/**/bin/
+!backend/**/src/test/**/bin/
+out/
+!backend/**/src/main/**/out/
+!backend/**/src/test/**/out/
+
+### Frontend (Vite) ###
+frontend/dist/
+
+### E2E (Playwright) ###
+e2e/playwright-report/
+e2e/test-results/

@@ -1,17 +1,13 @@
 {
-  "name": "label-manager",
+  "name": "label-manager-backend",
   "version": "1.0.0",
   "private": true,
   "type": "module",
   "scripts": {
     "test": "vitest run",
-    "test:watch": "vitest",
-    "test:e2e": "playwright test",
-    "test:e2e:ui": "playwright test --ui",
-    "test:e2e:headed": "playwright test --headed"
+    "test:watch": "vitest"
   },
   "devDependencies": {
-    "@playwright/test": "^1.58.1",
     "@testing-library/dom": "^10.4.0",
     "jsdom": "^25.0.1",
     "vitest": "^2.1.8"
