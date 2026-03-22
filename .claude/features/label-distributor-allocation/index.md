@@ -1,15 +1,15 @@
 # Feature: label-distributor-allocation
 
 ## Status
-In Progress
+In Review
 
 ## Phase History
 | Phase          | Status      | Date       |
 |----------------|-------------|------------|
 | Analysis       | Done        | 2026-03-21 |
 | Design         | Done        | 2026-03-21 |
-| Implementation | In Progress | 2026-03-21 |
-| Review         | -           |            |
+| Implementation | Done        | 2026-03-22 |
+| Review         | In Progress | 2026-03-22 |
 
 ## Artifacts
 | File              | Purpose                          |

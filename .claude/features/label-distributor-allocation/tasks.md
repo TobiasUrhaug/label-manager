@@ -1,7 +1,7 @@
 # Tasks: label-distributor-allocation
 
 ## Status
-Draft
+In Review
 
 ## Tasks
 
@@ -105,7 +105,7 @@ Draft
 
 ### Group 11 — Database migration
 
-- [ ] **11.1** Write `V31__drop_channel_allocation_table.sql`:
+- [x] **11.1** Write `V31__drop_channel_allocation_table.sql`:
   ```sql
   DROP INDEX IF EXISTS idx_channel_allocation_production_run_id;
   DROP INDEX IF EXISTS idx_channel_allocation_sales_channel_id;

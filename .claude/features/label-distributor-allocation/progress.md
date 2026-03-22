@@ -4,10 +4,10 @@
 Review
 
 ## Last Completed Task
-Developer: task 10.1 — deleted `inventory/allocation/` package, migrated 8 integration tests, removed dead `validateQuantityIsAvailable` method and its test. All tests pass.
+Developer: task 11.1 — wrote `V31__drop_channel_allocation_table.sql`; all tests pass. All 18 tasks complete.
 
 ## Next Action
-Developer: task 11.1 — write `V31__drop_channel_allocation_table.sql`.
+Reviewer: review the feature and leave feedback in `comments.md`.
 
 ## Blockers
 None.
