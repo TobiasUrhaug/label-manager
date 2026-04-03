@@ -4,10 +4,10 @@
 Implementation
 
 ## Last Completed Task
-1.2 — Vite proxy extended for /login and /logout (2026-04-03)
+2.2 — AuthContext with AuthProvider and useAuth hook (2026-04-03)
 
 ## Next Action
-Developer: Task 2.1 — Write failing tests for AuthContext
+Developer: Task 3.1 — Write failing tests for RequireAuth
 
 ## Blockers
 None.
@@ -16,3 +16,5 @@ None.
 - 2026-04-03: Frontend Architect created spec.md, tasks.md, index.md, progress.md. Design phase complete.
 - 2026-04-03: Completed Task 1.1 — Created src/api/auth.js (getSession, login, logout)
 - 2026-04-03: Completed Task 1.2 — Extended Vite proxy to include /login and /logout
+- 2026-04-03: Completed Task 2.1 — Wrote failing tests for AuthContext
+- 2026-04-03: Completed Task 2.2 — Created AuthContext.jsx with AuthProvider and useAuth hook

@@ -20,14 +20,14 @@ Draft
 
 ### Phase 2 — Auth context
 
-- [ ] **2.1** Write a failing test for `AuthContext` in `src/context/AuthContext.test.jsx`:
+- [x] **2.1** Write a failing test for `AuthContext` in `src/context/AuthContext.test.jsx`:
   - When `getSession` resolves with a user, `useAuth().user` equals `{ username }` and `isLoading` is false.
   - When `getSession` rejects (401), `useAuth().user` is null and `isLoading` is false.
   - While the probe is pending, `isLoading` is true.
   - Mock `src/api/auth.js` in the test (use `vi.mock`).
   - Prerequisite: 1.1.
 
-- [ ] **2.2** Create `src/context/AuthContext.jsx` implementing `AuthProvider` and `useAuth` hook to make the tests from 2.1 pass.
+- [x] **2.2** Create `src/context/AuthContext.jsx` implementing `AuthProvider` and `useAuth` hook to make the tests from 2.1 pass.
   - `AuthProvider` calls `getSession()` on mount (plain `useEffect` + `fetch`, not TanStack Query).
   - Stores `{ user, setUser, isLoading }` in context.
   - Prerequisite: 2.1.
