@@ -1,4 +1,5 @@
 import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { vi } from 'vitest';
@@ -8,7 +9,12 @@ vi.mock('../context/AuthContext', () => ({
   useAuth: vi.fn(),
 }));
 
+vi.mock('../api/auth', () => ({
+  login: vi.fn(),
+}));
+
 import { useAuth } from '../context/AuthContext';
+import { login } from '../api/auth';
 
 function renderLoginPage(initialEntry = '/login', authValue = { user: null, isLoading: false }) {
   useAuth.mockReturnValue(authValue);
@@ -57,6 +63,20 @@ describe('LoginPage', () => {
       renderLoginPage('/login', { user: { username: 'alice' }, isLoading: false });
       expect(screen.getByText('Home page')).toBeInTheDocument();
       expect(screen.queryByRole('button', { name: 'Log in' })).not.toBeInTheDocument();
+    });
+  });
+
+  describe('loading state', () => {
+    it('disables the Log in button while login is pending', async () => {
+      login.mockReturnValue(new Promise(() => {})); // never resolves
+      const user = userEvent.setup();
+      renderLoginPage();
+
+      await user.type(screen.getByLabelText('Username'), 'alice');
+      await user.type(screen.getByLabelText('Password'), 'secret');
+      await user.click(screen.getByRole('button', { name: 'Log in' }));
+
+      expect(screen.getByRole('button', { name: 'Log in' })).toBeDisabled();
     });
   });
 });

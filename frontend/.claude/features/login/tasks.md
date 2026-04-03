@@ -55,7 +55,7 @@ Draft
   - Already-authenticated: when `AuthContext` has a user, component renders a redirect (does not render the form). Use `MemoryRouter` with an initial entry of `/login`.
   - Prerequisite: 2.2.
 
-- [ ] **4.2** Write a failing test for the loading state:
+- [x] **4.2** Write a failing test for the loading state:
   - When the form is submitted, the "Log in" button becomes disabled while the mutation is pending.
   - Mock `src/api/auth.js` `login` to return a never-resolving promise.
   - Prerequisite: 4.1.

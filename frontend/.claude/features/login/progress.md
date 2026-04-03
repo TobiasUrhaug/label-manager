@@ -4,10 +4,10 @@
 Implementation
 
 ## Last Completed Task
-4.1 — LoginPage tests: default state and already-authenticated redirect (2026-04-03)
+4.2 — LoginPage test: button disabled while login is pending (2026-04-03)
 
 ## Next Action
-Developer: Task 4.2 — Write failing test for LoginPage loading state
+Developer: Task 4.3 — Write failing test for LoginPage error state
 
 ## Blockers
 None.
@@ -21,3 +21,4 @@ None.
 - 2026-04-03: Completed Task 3.1 — Wrote failing tests for RequireAuth
 - 2026-04-03: Completed Task 3.2 — Created RequireAuth.jsx (loading/unauthenticated/authenticated states)
 - 2026-04-03: Completed Task 4.1 — Wrote failing tests for LoginPage (default state and already-authenticated redirect)
+- 2026-04-03: Completed Task 4.2 — Wrote test for LoginPage loading state (button disabled while pending)
