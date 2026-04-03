@@ -79,4 +79,47 @@ describe('LoginPage', () => {
       expect(screen.getByRole('button', { name: 'Log in' })).toBeDisabled();
     });
   });
+
+  describe('error state', () => {
+    it('shows inline error message when login returns 401', async () => {
+      login.mockRejectedValue({ status: 401 });
+      const user = userEvent.setup();
+      renderLoginPage();
+
+      await user.type(screen.getByLabelText('Username'), 'alice');
+      await user.type(screen.getByLabelText('Password'), 'wrongpassword');
+      await user.click(screen.getByRole('button', { name: 'Log in' }));
+
+      expect(await screen.findByText('Invalid username or password.')).toBeInTheDocument();
+    });
+
+    it('clears both fields after a 401 error', async () => {
+      login.mockRejectedValue({ status: 401 });
+      const user = userEvent.setup();
+      renderLoginPage();
+
+      await user.type(screen.getByLabelText('Username'), 'alice');
+      await user.type(screen.getByLabelText('Password'), 'wrongpassword');
+      await user.click(screen.getByRole('button', { name: 'Log in' }));
+
+      await screen.findByText('Invalid username or password.');
+
+      expect(screen.getByLabelText('Username')).toHaveValue('');
+      expect(screen.getByLabelText('Password')).toHaveValue('');
+    });
+
+    it('focuses the username field after a 401 error', async () => {
+      login.mockRejectedValue({ status: 401 });
+      const user = userEvent.setup();
+      renderLoginPage();
+
+      await user.type(screen.getByLabelText('Username'), 'alice');
+      await user.type(screen.getByLabelText('Password'), 'wrongpassword');
+      await user.click(screen.getByRole('button', { name: 'Log in' }));
+
+      await screen.findByText('Invalid username or password.');
+
+      expect(screen.getByLabelText('Username')).toHaveFocus();
+    });
+  });
 });

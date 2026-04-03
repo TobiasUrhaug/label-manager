@@ -60,7 +60,7 @@ Draft
   - Mock `src/api/auth.js` `login` to return a never-resolving promise.
   - Prerequisite: 4.1.
 
-- [ ] **4.3** Write a failing test for the error state:
+- [x] **4.3** Write a failing test for the error state:
   - When `login` rejects with a 401-like error, the inline message "Invalid username or password." appears.
   - Both fields are cleared after the error.
   - Focus moves to the username field after the error.

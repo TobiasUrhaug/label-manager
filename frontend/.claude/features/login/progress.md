@@ -4,10 +4,10 @@
 Implementation
 
 ## Last Completed Task
-4.2 — LoginPage test: button disabled while login is pending (2026-04-03)
+4.3 — LoginPage tests: error message, field clearing, focus on 401 (2026-04-03)
 
 ## Next Action
-Developer: Task 4.3 — Write failing test for LoginPage error state
+Developer: Task 4.4 — Create LoginPage.jsx (implementation complete; verify tests cover all spec requirements)
 
 ## Blockers
 None.
@@ -22,3 +22,4 @@ None.
 - 2026-04-03: Completed Task 3.2 — Created RequireAuth.jsx (loading/unauthenticated/authenticated states)
 - 2026-04-03: Completed Task 4.1 — Wrote failing tests for LoginPage (default state and already-authenticated redirect)
 - 2026-04-03: Completed Task 4.2 — Wrote test for LoginPage loading state (button disabled while pending)
+- 2026-04-03: Completed Task 4.3 — Wrote tests for LoginPage error state (inline message, field clearing, username focus)
