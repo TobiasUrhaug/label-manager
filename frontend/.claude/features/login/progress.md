@@ -4,10 +4,10 @@
 Implementation
 
 ## Last Completed Task
-2.2 — AuthContext with AuthProvider and useAuth hook (2026-04-03)
+3.2 — RequireAuth component (2026-04-03)
 
 ## Next Action
-Developer: Task 3.1 — Write failing tests for RequireAuth
+Developer: Task 4.1 — Write failing tests for LoginPage (default state and already-authenticated redirect)
 
 ## Blockers
 None.
@@ -18,3 +18,5 @@ None.
 - 2026-04-03: Completed Task 1.2 — Extended Vite proxy to include /login and /logout
 - 2026-04-03: Completed Task 2.1 — Wrote failing tests for AuthContext
 - 2026-04-03: Completed Task 2.2 — Created AuthContext.jsx with AuthProvider and useAuth hook
+- 2026-04-03: Completed Task 3.1 — Wrote failing tests for RequireAuth
+- 2026-04-03: Completed Task 3.2 — Created RequireAuth.jsx (loading/unauthenticated/authenticated states)

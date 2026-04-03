@@ -34,14 +34,14 @@ Draft
 
 ### Phase 3 — Route guard
 
-- [ ] **3.1** Write a failing test for `RequireAuth` in `src/components/RequireAuth.test.jsx`:
+- [x] **3.1** Write a failing test for `RequireAuth` in `src/components/RequireAuth.test.jsx`:
   - When `isLoading` is true: renders nothing.
   - When `user` is null: redirects to `/login` and includes `state.from` equal to the current path.
   - When `user` is set: renders child content (via `<Outlet>`).
   - Wrap the component under test with `MemoryRouter` and a mock `AuthContext`.
   - Prerequisite: 2.2.
 
-- [ ] **3.2** Create `src/components/RequireAuth.jsx` to make the tests from 3.1 pass.
+- [x] **3.2** Create `src/components/RequireAuth.jsx` to make the tests from 3.1 pass.
   - Reads `useAuth()`.
   - Renders `null` while `isLoading`.
   - Renders `<Navigate to="/login" state={{ from: location.pathname }} replace />` when `user` is null.
