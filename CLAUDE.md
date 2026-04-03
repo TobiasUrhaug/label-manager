@@ -11,6 +11,7 @@ This is the root of the label-manager monorepo.
 | `e2e/` | Playwright end-to-end tests. |
 | `contracts/` | OpenAPI spec — the source of truth for the REST API contract between frontend and backend. |
 | `docs/features/` | Per-feature documentation produced before implementation: business rules, user stories, acceptance criteria, UX flows, and screens. See `docs/features/README.md`. |
+| `docs/ux/` | App-wide UX documentation. `app-flow.md` is the high-level navigation structure, domain model, screen inventory, and primary user flows — read this before designing any feature UX. |
 
 Each directory has its own `CLAUDE.md` with context specific to that area:
 - `backend/CLAUDE.md` — Spring Boot API conventions, testing, and build details

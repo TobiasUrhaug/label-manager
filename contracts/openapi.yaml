@@ -8,7 +8,68 @@ info:
     This spec is the source of truth for the contract between frontend and backend.
     Add endpoints here as they are introduced during the Thymeleaf → React migration.
 
-paths: {}
+paths:
+  /login:
+    post:
+      operationId: login
+      summary: Authenticate a user and start a session
+      description: |
+        Accepts form-encoded credentials. On success the server sets a session
+        cookie (JSESSIONID) in the response. This endpoint is unauthenticated —
+        no session is required to call it.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Login successful. Session cookie is set in the response.
+        '401':
+          description: Invalid username or password.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /logout:
+    post:
+      operationId: logout
+      summary: Invalidate the current session
+      description: |
+        Ends the authenticated session. Requires an active session cookie.
+      responses:
+        '200':
+          description: Logout successful. Session has been invalidated.
+        '401':
+          description: No active session.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/session:
+    get:
+      operationId: getSession
+      summary: Get the currently authenticated user
+      description: |
+        Returns the username of the user associated with the current session.
+        Used by the frontend to determine whether the user is logged in and who they are.
+      responses:
+        '200':
+          description: The user is authenticated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionResponse'
+        '401':
+          description: Not authenticated — no valid session cookie present.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
 components:
   securitySchemes:
@@ -16,6 +77,35 @@ components:
       type: apiKey
       in: cookie
       name: JSESSIONID
+
+  schemas:
+    LoginRequest:
+      type: object
+      required:
+        - username
+        - password
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+          format: password
+
+    SessionResponse:
+      type: object
+      required:
+        - username
+      properties:
+        username:
+          type: string
+
+    ErrorResponse:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
 
 security:
   - cookieAuth: []
