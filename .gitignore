@@ -19,6 +19,10 @@
 ### Node ###
 node_modules/
 
+### Root build artifacts ###
+.gradle/
+build/
+
 ### Backend (Gradle) ###
 backend/HELP.md
 backend/.gradle
