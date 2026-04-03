@@ -90,6 +90,5 @@ Read your memory at the start of each session. Update it whenever you learn some
 When both documents are written, report:
 - The feature folder path
 - A one-line summary of each document
-- Next step: "contracts/openapi.yaml must now be updated manually to reflect any new
-  endpoints introduced by this feature (this is a manual step — neither agent updates
-  the contract). Once done, hand off to Frontend Agent and Backend Agent."
+- Next step: "Hand off to Contract Agent (`/contract feature=<name>`) to derive and
+  write the REST API contract into contracts/openapi.yaml."

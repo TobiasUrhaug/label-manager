@@ -80,6 +80,6 @@ Read your memory at the start of each session. Update it whenever you learn some
 When all four documents are written, report:
 - The feature folder path
 - A one-line summary of each document
-- Next step: "Hand off to UX Agent, then update contracts/openapi.yaml"
+- Next step: "Hand off to UX Agent (`/ux feature=<name>`)"
 
 Do not update `docs/features/README.md` (the feature index) — the user does that.

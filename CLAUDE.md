@@ -24,6 +24,7 @@ Specialist agents are defined in `.claude/agents/` and invoked via slash command
 |---------|-------|-------------|
 | `/ba feature=<name> description=<need>` | `ba.md` | Start BA work on a new feature |
 | `/ux feature=<name>` | `ux.md` | After BA documents are complete |
+| `/contract feature=<name>` | `contract.md` | After all six BA/UX documents are complete |
 | `/frontend-architect feature=<name>` | `frontend-architect.md` | After BA, UX, and contract are done |
 | `/frontend-developer feature=<name>` | `frontend-developer.md` | After frontend spec and tasks exist |
 | `/frontend-reviewer feature=<name>` | `frontend-reviewer.md` | After all tasks are checked off |
@@ -34,7 +35,7 @@ New features follow this order. Steps 1–3 must be complete before any implemen
 
 1. **BA Agent** — fills `docs/features/<feature>/README.md` (context), `business-rules.md`, `user-stories.md`, `acceptance-criteria.md`
 2. **UX Agent** — fills `ux-flows.md` and `screens.md`
-3. **Contract** *(manual)* — update `contracts/openapi.yaml` to reflect the agreed API. The UX Agent will prompt you to do this at the end of step 2.
+3. **Contract Agent** — derives REST endpoints and schemas from the feature docs and writes them into `contracts/openapi.yaml`
 4. **Frontend Agent** (`frontend/CLAUDE.md`) and **Backend Agent** (`backend/CLAUDE.md`) implement independently, consuming the feature docs and contract
 5. **E2E Agent** (`e2e/CLAUDE.md`) writes Playwright tests against the acceptance criteria
 
