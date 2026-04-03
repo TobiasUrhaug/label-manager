@@ -50,7 +50,7 @@ Draft
 
 ### Phase 4 — Login page
 
-- [ ] **4.1** Write a failing test for `LoginPage` in `src/pages/LoginPage.test.jsx` covering:
+- [x] **4.1** Write a failing test for `LoginPage` in `src/pages/LoginPage.test.jsx` covering:
   - Default state: username field, password field, and "Log in" button are rendered; username field has autofocus.
   - Already-authenticated: when `AuthContext` has a user, component renders a redirect (does not render the form). Use `MemoryRouter` with an initial entry of `/login`.
   - Prerequisite: 2.2.
