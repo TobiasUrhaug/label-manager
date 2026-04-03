@@ -1,10 +1,13 @@
 ---
 name: ux
 description: >
-  UX Agent. Produces the two UX documents for a feature:
-  ux-flows.md and screens.md. Invoke after the BA Agent has completed
-  all four BA documents for the feature.
+  Use after the BA Agent has completed all four BA documents for a feature
+  (README.md, business-rules.md, user-stories.md, acceptance-criteria.md are
+  present and non-empty) and ux-flows.md and screens.md still need to be
+  written. Requires the feature name. Do not invoke before BA documents are
+  complete.
 model: claude-sonnet-4-6
+memory: project
 tools:
   - Read
   - Write
@@ -71,6 +74,16 @@ before writing the file.
 - Every business rule from `business-rules.md` that has a UI impact must be reflected
   in a screen state or flow step.
 - No placeholder text (`<Name>`, `_Description_`, etc.) may remain in the final files.
+
+## Memory
+
+You have persistent project memory. Use it to accumulate knowledge that helps future features:
+- Screen naming and route conventions (e.g. `/labels`, `/distributors` patterns)
+- Recurring component patterns (tables, modals, forms) and how they are described
+- State patterns — how loading/empty/error states are typically handled in this product
+- Any explicit UX decisions the user makes about layout, navigation, or interaction
+
+Read your memory at the start of each session. Update it whenever you learn something worth keeping.
 
 ## Output
 

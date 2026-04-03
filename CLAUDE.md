@@ -22,6 +22,10 @@ Specialist agents for pre-implementation work are defined in `.claude/agents/`:
 - `.claude/agents/ba.md` — BA Agent: produces `README.md`, `business-rules.md`, `user-stories.md`, `acceptance-criteria.md`
 - `.claude/agents/ux.md` — UX Agent: produces `ux-flows.md` and `screens.md` after BA documents are complete
 
+Slash commands for invoking these agents are in `.claude/commands/`:
+- `/ba feature=<name> description=<need>` — start BA work on a new feature
+- `/ux feature=<name>` — start UX work after BA documents are complete
+
 ## Feature Development Flow
 
 New features follow this order. Steps 1–3 must be complete before any implementation begins.
