@@ -1,0 +1,1850 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Label Manager — Interactive Mockup</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Mono:wght@300;400;500&family=Instrument+Serif:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:        #f5f2ed;
+    --surface:   #ffffff;
+    --surface2:  #f0ece6;
+    --surface3:  #e8e3db;
+    --border:    #ddd8cf;
+    --amber:     #b5620e;
+    --amber-dim: #d4823a;
+    --cream:     #1a1612;
+    --muted:     #8a7f72;
+    --text:      #3d3529;
+    --danger:    #b83a27;
+    --green:     #2e6e45;
+    --sidebar-w: 220px;
+    --header-h:  52px;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Grain texture overlay */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 9999;
+    opacity: 0.035;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+    background-size: 200px 200px;
+  }
+
+  /* ─── HEADER ─────────────────────────────────────── */
+  header {
+    height: var(--header-h);
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    gap: 16px;
+    flex-shrink: 0;
+    z-index: 100;
+  }
+
+  .logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 22px;
+    letter-spacing: 0.08em;
+    color: var(--amber);
+    white-space: nowrap;
+  }
+
+  .logo span {
+    color: var(--muted);
+    font-size: 16px;
+  }
+
+  .header-divider {
+    width: 1px;
+    height: 24px;
+    background: var(--border);
+  }
+
+  .label-switcher {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 6px 12px;
+    cursor: pointer;
+    transition: border-color 0.15s;
+    position: relative;
+  }
+  .label-switcher:hover { border-color: var(--amber-dim); }
+
+  .label-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--amber);
+    flex-shrink: 0;
+  }
+
+  .label-name {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--cream);
+    letter-spacing: 0.04em;
+  }
+
+  .label-caret {
+    color: var(--muted);
+    font-size: 10px;
+    margin-left: 4px;
+  }
+
+  .label-dropdown {
+    display: none;
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    min-width: 180px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    z-index: 200;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+  }
+  .label-switcher.open .label-dropdown { display: block; }
+
+  .label-option {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    cursor: pointer;
+    transition: background 0.1s;
+  }
+  .label-option:hover { background: var(--surface3); }
+  .label-option.active { color: var(--amber); }
+  .label-option .dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
+
+  .header-right {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .header-badge {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    background: var(--surface3);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 3px 8px;
+    letter-spacing: 0.06em;
+  }
+
+  .avatar {
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--amber), var(--amber-dim));
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 14px;
+    color: #fff;
+    cursor: pointer;
+  }
+
+  /* ─── MAIN LAYOUT ────────────────────────────────── */
+  .main {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+  }
+
+  /* ─── SIDEBAR ─────────────────────────────────────── */
+  aside {
+    width: var(--sidebar-w);
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    overflow-y: auto;
+    padding: 12px 0;
+  }
+
+  .nav-section-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 10px 18px 6px;
+  }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 18px;
+    cursor: pointer;
+    color: var(--muted);
+    border-radius: 0;
+    transition: color 0.15s, background 0.15s;
+    font-size: 13.5px;
+    font-weight: 400;
+    position: relative;
+  }
+  .nav-item:hover { color: var(--text); background: var(--surface2); }
+  .nav-item.active {
+    color: var(--amber);
+    background: rgba(181, 98, 14, 0.08);
+  }
+  .nav-item.active::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 4px; bottom: 4px;
+    width: 2px;
+    background: var(--amber);
+    border-radius: 0 2px 2px 0;
+  }
+
+  .nav-icon {
+    width: 16px;
+    text-align: center;
+    flex-shrink: 0;
+    opacity: 0.8;
+  }
+
+  .nav-divider {
+    height: 1px;
+    background: var(--border);
+    margin: 10px 0;
+  }
+
+  /* ─── CONTENT AREA ───────────────────────────────── */
+  .content {
+    flex: 1;
+    overflow-y: auto;
+    background: var(--bg);
+  }
+
+  .screen { display: none; padding: 32px 36px; animation: fadeIn 0.2s ease; }
+  .screen.active { display: block; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ─── PAGE HEADER ────────────────────────────────── */
+  .page-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    margin-bottom: 28px;
+  }
+
+  .page-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 36px;
+    letter-spacing: 0.06em;
+    color: var(--cream);
+    line-height: 1;
+  }
+
+  .page-subtitle {
+    font-family: 'Instrument Serif', serif;
+    font-style: italic;
+    color: var(--muted);
+    font-size: 13px;
+    margin-top: 4px;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    border: none;
+    transition: all 0.15s;
+    font-family: 'DM Sans', sans-serif;
+  }
+
+  .btn-primary {
+    background: var(--amber);
+    color: var(--bg);
+  }
+  .btn-primary:hover { background: #f0b840; transform: translateY(-1px); }
+
+  .btn-ghost {
+    background: transparent;
+    color: var(--text);
+    border: 1px solid var(--border);
+  }
+  .btn-ghost:hover { border-color: var(--muted); background: var(--surface2); }
+
+  .btn-link {
+    background: none;
+    border: none;
+    color: var(--amber);
+    padding: 0;
+    font-size: 13px;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    text-decoration-color: var(--amber-dim);
+  }
+  .btn-link:hover { color: var(--cream); }
+
+  /* ─── STAT CARDS ─────────────────────────────────── */
+  .stat-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 14px;
+    margin-bottom: 28px;
+  }
+
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
+  }
+  .stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--amber), transparent);
+    opacity: 0.4;
+  }
+
+  .stat-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+
+  .stat-value {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 22px;
+    font-weight: 300;
+    color: var(--cream);
+    letter-spacing: -0.02em;
+  }
+
+  .stat-delta {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    margin-top: 4px;
+  }
+  .stat-delta.up { color: var(--green); }
+  .stat-delta.down { color: var(--danger); }
+
+  /* ─── TABLE ───────────────────────────────────────── */
+  .table-wrap {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+
+  .table-header-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .table-title {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  thead tr {
+    border-bottom: 1px solid var(--border);
+  }
+
+  th {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 10px 20px;
+    text-align: left;
+  }
+
+  td {
+    padding: 13px 20px;
+    border-bottom: 1px solid var(--border);
+    font-size: 13.5px;
+    color: var(--text);
+  }
+
+  tr:last-child td { border-bottom: none; }
+
+  tbody tr {
+    transition: background 0.1s;
+    cursor: pointer;
+  }
+  tbody tr:hover { background: var(--surface2); }
+
+  .mono { font-family: 'IBM Plex Mono', monospace; font-size: 12px; }
+  .positive { color: var(--green); }
+  .negative { color: var(--danger); }
+  .highlight { color: var(--cream); font-weight: 500; }
+  .dim { color: var(--muted); }
+
+  /* ─── BADGES ─────────────────────────────────────── */
+  .badge {
+    display: inline-block;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border-radius: 4px;
+  }
+  .badge-amber { background: rgba(232,168,56,0.12); color: var(--amber); border: 1px solid rgba(232,168,56,0.25); }
+  .badge-green { background: rgba(74,143,94,0.12); color: var(--green); border: 1px solid rgba(74,143,94,0.25); }
+  .badge-red   { background: rgba(201,79,58,0.12); color: var(--danger); border: 1px solid rgba(201,79,58,0.25); }
+  .badge-muted { background: var(--surface3); color: var(--muted); border: 1px solid var(--border); }
+
+  /* ─── SECTION ─────────────────────────────────────── */
+  .section { margin-bottom: 28px; }
+
+  .section-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 16px;
+    letter-spacing: 0.1em;
+    color: var(--cream);
+    margin-bottom: 12px;
+  }
+
+  /* ─── TABS ────────────────────────────────────────── */
+  .tabs {
+    display: flex;
+    gap: 2px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 24px;
+  }
+
+  .tab {
+    padding: 10px 18px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--muted);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    transition: color 0.15s, border-color 0.15s;
+  }
+  .tab:hover { color: var(--text); }
+  .tab.active { color: var(--amber); border-bottom-color: var(--amber); }
+
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; animation: fadeIn 0.15s ease; }
+
+  /* ─── BACK BUTTON ────────────────────────────────── */
+  .back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--muted);
+    cursor: pointer;
+    font-size: 12px;
+    font-family: 'IBM Plex Mono', monospace;
+    letter-spacing: 0.06em;
+    margin-bottom: 20px;
+    transition: color 0.15s;
+  }
+  .back-btn:hover { color: var(--amber); }
+
+  /* ─── DETAIL HEADER ───────────────────────────────── */
+  .detail-header {
+    display: flex;
+    gap: 24px;
+    align-items: flex-start;
+    margin-bottom: 28px;
+    padding: 24px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+  }
+
+  .album-art {
+    width: 96px;
+    height: 96px;
+    border-radius: 6px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 28px;
+    color: #fff;
+    letter-spacing: 0.05em;
+  }
+
+  .detail-meta { flex: 1; }
+  .detail-meta .release-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 28px;
+    letter-spacing: 0.05em;
+    color: var(--cream);
+    line-height: 1.1;
+    margin-bottom: 6px;
+  }
+  .detail-meta .release-info {
+    font-family: 'Instrument Serif', serif;
+    font-style: italic;
+    color: var(--muted);
+    font-size: 14px;
+    margin-bottom: 10px;
+  }
+
+  .meta-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 8px;
+  }
+  .meta-chip {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 3px 8px;
+    letter-spacing: 0.06em;
+  }
+
+  /* ─── FORM ELEMENTS ───────────────────────────────── */
+  .form-group { margin-bottom: 16px; }
+  .form-label {
+    display: block;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+  .form-input, .form-select {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 9px 12px;
+    color: var(--text);
+    font-size: 13.5px;
+    font-family: 'DM Sans', sans-serif;
+    transition: border-color 0.15s;
+    outline: none;
+    appearance: none;
+  }
+  .form-input:focus, .form-select:focus { border-color: var(--amber-dim); }
+  .form-select { cursor: pointer; }
+
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.35);
+    backdrop-filter: blur(4px);
+    z-index: 500;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-overlay.open { display: flex; animation: fadeIn 0.15s ease; }
+
+  .modal {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 28px;
+    width: 440px;
+    max-width: 90vw;
+    box-shadow: 0 24px 80px rgba(0,0,0,0.6);
+  }
+
+  .modal-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 22px;
+    letter-spacing: 0.06em;
+    color: var(--cream);
+    margin-bottom: 20px;
+  }
+
+  .modal-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    margin-top: 24px;
+  }
+
+  /* ─── INVENTORY BAR ───────────────────────────────── */
+  .inv-bar {
+    height: 4px;
+    background: var(--surface3);
+    border-radius: 2px;
+    overflow: hidden;
+    margin-top: 6px;
+  }
+  .inv-bar-fill {
+    height: 100%;
+    border-radius: 2px;
+    background: var(--amber);
+  }
+
+  /* ─── ACTIVITY FEED ───────────────────────────────── */
+  .activity-feed {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .activity-item {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--border);
+  }
+  .activity-item:last-child { border-bottom: none; }
+  .activity-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--amber);
+    margin-top: 5px;
+    flex-shrink: 0;
+  }
+  .activity-text { font-size: 13px; color: var(--text); line-height: 1.5; }
+  .activity-time {
+    margin-left: auto;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  /* ─── TOAST ───────────────────────────────────────── */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 18px;
+    font-size: 13px;
+    color: var(--text);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    z-index: 1000;
+    transform: translateY(80px);
+    opacity: 0;
+    transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .toast.show { transform: translateY(0); opacity: 1; }
+  .toast-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--amber); flex-shrink: 0; }
+
+  /* ─── FINANCIAL SUMMARY ───────────────────────────── */
+  .financial-summary {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+    margin-bottom: 24px;
+  }
+
+  .fin-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px;
+  }
+  .fin-card.accent { border-color: var(--amber); background: rgba(181,98,14,0.05); }
+
+  .fin-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+  .fin-value {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 26px;
+    font-weight: 300;
+    color: var(--cream);
+  }
+  .fin-value.green { color: var(--green); }
+  .fin-value.red { color: var(--danger); }
+
+  /* ─── SEARCH BAR ─────────────────────────────────── */
+  .search-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 7px 12px;
+    margin-bottom: 16px;
+  }
+  .search-bar input {
+    background: none;
+    border: none;
+    outline: none;
+    color: var(--text);
+    font-size: 13px;
+    font-family: 'DM Sans', sans-serif;
+    flex: 1;
+  }
+  .search-bar input::placeholder { color: var(--muted); }
+  .search-icon { color: var(--muted); font-size: 12px; }
+
+  /* ─── SCROLLBAR ───────────────────────────────────── */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--muted); }
+
+  /* ─── ROUTE BREADCRUMB ─────────────────────────────── */
+  .route-crumb {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .route-crumb .seg { cursor: pointer; transition: color 0.15s; }
+  .route-crumb .seg:hover { color: var(--amber); }
+  .route-crumb .sep { color: var(--border); }
+  .route-crumb .current { color: var(--text); }
+
+  /* ─── DISTRIBUTOR CHART ──────────────────────────── */
+  .dist-bars { display: flex; flex-direction: column; gap: 10px; }
+  .dist-bar-row { display: flex; align-items: center; gap: 12px; }
+  .dist-bar-label { font-size: 12px; color: var(--text); width: 120px; flex-shrink: 0; }
+  .dist-bar-track { flex: 1; height: 6px; background: var(--surface3); border-radius: 3px; overflow: hidden; }
+  .dist-bar-fill { height: 100%; border-radius: 3px; background: var(--amber); transition: width 0.6s ease; }
+  .dist-bar-val {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    width: 60px;
+    text-align: right;
+  }
+
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
+</style>
+</head>
+<body>
+
+<!-- ═══ HEADER ═══ -->
+<header>
+  <div class="logo">Label<span>MGR</span></div>
+  <div class="header-divider"></div>
+
+  <div class="label-switcher" id="labelSwitcher" onclick="toggleLabelDropdown()">
+    <div class="label-dot"></div>
+    <span class="label-name">NORTHERN LIGHT RECORDS</span>
+    <span class="label-caret">▾</span>
+    <div class="label-dropdown" id="labelDropdown">
+      <div class="label-option active" onclick="switchLabel('NORTHERN LIGHT RECORDS')">
+        <div class="dot"></div> Northern Light Records
+      </div>
+      <div class="label-option" onclick="switchLabel('VOID MUSIC')">
+        <div class="dot"></div> Void Music
+      </div>
+      <div class="label-option" onclick="switchLabel('FJORD SOUNDS')">
+        <div class="dot"></div> Fjord Sounds
+      </div>
+    </div>
+  </div>
+
+  <div class="header-right">
+    <div class="header-badge">MOCKUP v0.1</div>
+    <div class="avatar">TU</div>
+  </div>
+</header>
+
+<!-- ═══ MAIN ═══ -->
+<div class="main">
+
+  <!-- ─── SIDEBAR ─── -->
+  <aside>
+    <div class="nav-section-label">Workspace</div>
+    <div class="nav-item active" onclick="navigate('dashboard')">
+      <span class="nav-icon">◈</span> Dashboard
+    </div>
+    <div class="nav-item" onclick="navigate('releases')">
+      <span class="nav-icon">◎</span> Releases
+    </div>
+    <div class="nav-item" onclick="navigate('distributors')">
+      <span class="nav-icon">⬡</span> Distributors
+    </div>
+    <div class="nav-item" onclick="navigate('sales')">
+      <span class="nav-icon">▦</span> Sales &amp; Financials
+    </div>
+    <div class="nav-divider"></div>
+    <div class="nav-section-label">Label</div>
+    <div class="nav-item" onclick="navigate('artists')">
+      <span class="nav-icon">◉</span> Artists
+    </div>
+  </aside>
+
+  <!-- ─── CONTENT ─── -->
+  <div class="content">
+
+    <!-- ══════════════════════════════════════════ -->
+    <!-- DASHBOARD                                   -->
+    <!-- ══════════════════════════════════════════ -->
+    <div class="screen active" id="screen-dashboard">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Dashboard</div>
+          <div class="page-subtitle">Northern Light Records — fiscal 2025</div>
+        </div>
+      </div>
+
+      <div class="stat-grid">
+        <div class="stat-card">
+          <div class="stat-label">Total Revenue</div>
+          <div class="stat-value mono">€42,810</div>
+          <div class="stat-delta up">↑ 14% vs last year</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Total Expenses</div>
+          <div class="stat-value mono">€28,430</div>
+          <div class="stat-delta down">↑ 9% vs last year</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Net Profit</div>
+          <div class="stat-value mono" style="color:var(--green)">€14,380</div>
+          <div class="stat-delta up">↑ 24% vs last year</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Active Releases</div>
+          <div class="stat-value mono">7</div>
+          <div class="stat-delta up">+ 2 this year</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Units In Stock</div>
+          <div class="stat-value mono">1,240</div>
+          <div class="stat-delta down">↓ 320 since Jan</div>
+        </div>
+      </div>
+
+      <div class="two-col">
+        <div class="section">
+          <div class="section-title">Inventory Snapshot</div>
+          <div class="table-wrap">
+            <div class="dist-bars" style="padding:16px 20px;">
+              <div class="dist-bar-row">
+                <div class="dist-bar-label">Pale Meridian LP</div>
+                <div class="dist-bar-track"><div class="dist-bar-fill" style="width:72%"></div></div>
+                <div class="dist-bar-val">360 / 500</div>
+              </div>
+              <div class="dist-bar-row">
+                <div class="dist-bar-label">Dusk Protocol EP</div>
+                <div class="dist-bar-track"><div class="dist-bar-fill" style="width:40%;background:var(--amber-dim)"></div></div>
+                <div class="dist-bar-val">200 / 500</div>
+              </div>
+              <div class="dist-bar-row">
+                <div class="dist-bar-label">Crestfallen LP</div>
+                <div class="dist-bar-track"><div class="dist-bar-fill" style="width:18%;background:var(--danger)"></div></div>
+                <div class="dist-bar-val">90 / 500</div>
+              </div>
+              <div class="dist-bar-row">
+                <div class="dist-bar-label">Hollow Signal 7"</div>
+                <div class="dist-bar-track"><div class="dist-bar-fill" style="width:58%"></div></div>
+                <div class="dist-bar-val">290 / 500</div>
+              </div>
+              <div class="dist-bar-row">
+                <div class="dist-bar-label">Before the Thaw LP</div>
+                <div class="dist-bar-track"><div class="dist-bar-fill" style="width:85%"></div></div>
+                <div class="dist-bar-val">300 / 350</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">Recent Activity</div>
+          <div class="activity-feed">
+            <div class="activity-item">
+              <div class="activity-dot"></div>
+              <div class="activity-text">Sale registered — <strong>Pale Meridian LP</strong> × 12 via Bandcamp</div>
+              <div class="activity-time">2h ago</div>
+            </div>
+            <div class="activity-item">
+              <div class="activity-dot"></div>
+              <div class="activity-text">Expense added — Mastering for <strong>Static Bloom LP</strong> €480</div>
+              <div class="activity-time">yesterday</div>
+            </div>
+            <div class="activity-item">
+              <div class="activity-dot"></div>
+              <div class="activity-text">New release created — <strong>Static Bloom LP</strong></div>
+              <div class="activity-time">2d ago</div>
+            </div>
+            <div class="activity-item">
+              <div class="activity-dot"></div>
+              <div class="activity-text">Distributor allocation updated — <strong>Crestfallen LP</strong> via NMD</div>
+              <div class="activity-time">3d ago</div>
+            </div>
+            <div class="activity-item">
+              <div class="activity-dot"></div>
+              <div class="activity-text">Artist added — <strong>Eline Voss</strong> to roster</div>
+              <div class="activity-time">5d ago</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════ -->
+    <!-- RELEASES LIST                               -->
+    <!-- ══════════════════════════════════════════ -->
+    <div class="screen" id="screen-releases">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Releases</div>
+          <div class="page-subtitle">All releases — Northern Light Records</div>
+        </div>
+        <button class="btn btn-primary" onclick="openModal('addRelease')">+ Add Release</button>
+      </div>
+
+      <div class="search-bar">
+        <span class="search-icon">⌕</span>
+        <input type="text" placeholder="Search releases…">
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Title</th>
+              <th>Artist(s)</th>
+              <th>Format</th>
+              <th>Year</th>
+              <th>Stock</th>
+              <th>Revenue</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr onclick="navigate('release-detail', {id:1})">
+              <td class="highlight">Pale Meridian</td>
+              <td>Halo Drift</td>
+              <td><span class="badge badge-amber">LP</span></td>
+              <td class="mono dim">2024</td>
+              <td class="mono">360</td>
+              <td class="mono positive">€12,400</td>
+              <td><span class="badge badge-green">Active</span></td>
+            </tr>
+            <tr onclick="navigate('release-detail', {id:2})">
+              <td class="highlight">Dusk Protocol</td>
+              <td>Eline Voss</td>
+              <td><span class="badge badge-muted">EP</span></td>
+              <td class="mono dim">2024</td>
+              <td class="mono">200</td>
+              <td class="mono positive">€5,600</td>
+              <td><span class="badge badge-green">Active</span></td>
+            </tr>
+            <tr onclick="navigate('release-detail', {id:3})">
+              <td class="highlight">Crestfallen</td>
+              <td>Pale Shore, Eline Voss</td>
+              <td><span class="badge badge-amber">LP</span></td>
+              <td class="mono dim">2023</td>
+              <td class="mono" style="color:var(--danger)">90</td>
+              <td class="mono positive">€18,200</td>
+              <td><span class="badge badge-green">Active</span></td>
+            </tr>
+            <tr onclick="navigate('release-detail', {id:4})">
+              <td class="highlight">Hollow Signal</td>
+              <td>Halo Drift</td>
+              <td><span class="badge badge-muted">7"</span></td>
+              <td class="mono dim">2023</td>
+              <td class="mono">290</td>
+              <td class="mono positive">€3,200</td>
+              <td><span class="badge badge-green">Active</span></td>
+            </tr>
+            <tr onclick="navigate('release-detail', {id:5})">
+              <td class="highlight">Before the Thaw</td>
+              <td>Pale Shore</td>
+              <td><span class="badge badge-amber">LP</span></td>
+              <td class="mono dim">2023</td>
+              <td class="mono">300</td>
+              <td class="mono positive">€9,800</td>
+              <td><span class="badge badge-green">Active</span></td>
+            </tr>
+            <tr onclick="navigate('release-detail', {id:6})">
+              <td class="highlight">Static Bloom</td>
+              <td>TBC</td>
+              <td><span class="badge badge-amber">LP</span></td>
+              <td class="mono dim">2025</td>
+              <td class="mono dim">—</td>
+              <td class="mono dim">€0</td>
+              <td><span class="badge badge-muted">In Progress</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════ -->
+    <!-- RELEASE DETAIL                              -->
+    <!-- ══════════════════════════════════════════ -->
+    <div class="screen" id="screen-release-detail">
+      <div class="route-crumb">
+        <span class="seg" onclick="navigate('releases')">Releases</span>
+        <span class="sep">/</span>
+        <span class="current">Pale Meridian</span>
+      </div>
+
+      <div class="detail-header">
+        <div class="album-art" style="background: linear-gradient(135deg,#2a1f0a,#7a5218)">PM</div>
+        <div class="detail-meta">
+          <div class="release-title">Pale Meridian</div>
+          <div class="release-info">Halo Drift — Northern Light Records, 2024</div>
+          <div class="meta-chips">
+            <span class="meta-chip">LP</span>
+            <span class="meta-chip">180g Vinyl</span>
+            <span class="meta-chip">500 pressed</span>
+            <span class="meta-chip">Cat# NLR-024</span>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:flex-start">
+          <button class="btn btn-ghost" style="font-size:12px">Edit</button>
+        </div>
+      </div>
+
+      <div class="tabs" id="releaseTabs">
+        <div class="tab active" onclick="switchTab('releaseTabs', 0)">Artists &amp; Tracks</div>
+        <div class="tab" onclick="switchTab('releaseTabs', 1)">Distributor Allocations</div>
+        <div class="tab" onclick="switchTab('releaseTabs', 2)">Expenses</div>
+        <div class="tab" onclick="switchTab('releaseTabs', 3)">Sales &amp; Financials</div>
+      </div>
+
+      <!-- Tab 0: Artists & Tracks -->
+      <div class="tab-panel active" id="releaseTabs-0">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+          <div class="section-title" style="margin:0">Tracklist</div>
+          <button class="btn btn-ghost" style="font-size:12px" onclick="showToast('Add track — coming soon')">+ Add Track</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>#</th><th>Title</th><th>Artist(s)</th><th>Duration</th><th>Side</th></tr>
+            </thead>
+            <tbody>
+              <tr><td class="mono dim">A1</td><td class="highlight">Meridian Line</td><td><button class="btn-link" onclick="navigate('artist-detail')">Halo Drift</button></td><td class="mono">5:42</td><td class="mono dim">A</td></tr>
+              <tr><td class="mono dim">A2</td><td class="highlight">Pale Hours</td><td><button class="btn-link" onclick="navigate('artist-detail')">Halo Drift</button></td><td class="mono">7:18</td><td class="mono dim">A</td></tr>
+              <tr><td class="mono dim">A3</td><td class="highlight">Solstice Return</td><td><button class="btn-link" onclick="navigate('artist-detail')">Halo Drift</button></td><td class="mono">4:55</td><td class="mono dim">A</td></tr>
+              <tr><td class="mono dim">B1</td><td class="highlight">Amber Current</td><td><button class="btn-link" onclick="navigate('artist-detail')">Halo Drift</button></td><td class="mono">6:30</td><td class="mono dim">B</td></tr>
+              <tr><td class="mono dim">B2</td><td class="highlight">Drifting Borealis</td><td><button class="btn-link" onclick="navigate('artist-detail')">Halo Drift</button></td><td class="mono">8:02</td><td class="mono dim">B</td></tr>
+              <tr><td class="mono dim">B3</td><td class="highlight">Final Latitude</td><td><button class="btn-link" onclick="navigate('artist-detail')">Halo Drift</button></td><td class="mono">5:11</td><td class="mono dim">B</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Tab 1: Distributor Allocations -->
+      <div class="tab-panel" id="releaseTabs-1">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+          <div class="section-title" style="margin:0">Distributor Allocations</div>
+          <button class="btn btn-ghost" style="font-size:12px" onclick="showToast('Add allocation — coming soon')">+ Add Allocation</button>
+        </div>
+        <div class="stat-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:20px">
+          <div class="stat-card">
+            <div class="stat-label">Total Pressed</div>
+            <div class="stat-value mono">500</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Allocated</div>
+            <div class="stat-value mono">430</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">In House</div>
+            <div class="stat-value mono">70</div>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Distributor</th><th>Allocated</th><th>Sold</th><th>Remaining</th><th>Channel</th></tr></thead>
+            <tbody>
+              <tr onclick="navigate('distributor-detail')">
+                <td class="highlight">Nordic Music Distribution</td>
+                <td class="mono">200</td>
+                <td class="mono positive">98</td>
+                <td class="mono">102</td>
+                <td><span class="badge badge-muted">Physical</span></td>
+              </tr>
+              <tr onclick="navigate('distributor-detail')">
+                <td class="highlight">Horizon Records</td>
+                <td class="mono">150</td>
+                <td class="mono positive">52</td>
+                <td class="mono">98</td>
+                <td><span class="badge badge-muted">Physical</span></td>
+              </tr>
+              <tr>
+                <td class="highlight">Bandcamp (Direct)</td>
+                <td class="mono">80</td>
+                <td class="mono positive">70</td>
+                <td class="mono" style="color:var(--danger)">10</td>
+                <td><span class="badge badge-amber">Direct</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Tab 2: Expenses -->
+      <div class="tab-panel" id="releaseTabs-2">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+          <div class="section-title" style="margin:0">Release Expenses</div>
+          <button class="btn btn-ghost" style="font-size:12px" onclick="openModal('addExpense')">+ Add Expense</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Description</th><th>Category</th><th>Date</th><th>Amount</th></tr></thead>
+            <tbody>
+              <tr><td class="highlight">Mastering — Studio Polaris</td><td><span class="badge badge-muted">Mastering</span></td><td class="mono dim">2024-01-15</td><td class="mono negative">€680</td></tr>
+              <tr><td class="highlight">Vinyl pressing × 500</td><td><span class="badge badge-muted">Pressing</span></td><td class="mono dim">2024-02-01</td><td class="mono negative">€3,200</td></tr>
+              <tr><td class="highlight">Album artwork design</td><td><span class="badge badge-muted">Artwork</span></td><td class="mono dim">2024-01-08</td><td class="mono negative">€850</td></tr>
+              <tr><td class="highlight">Photography session</td><td><span class="badge badge-muted">Artwork</span></td><td class="mono dim">2024-01-10</td><td class="mono negative">€400</td></tr>
+              <tr><td class="highlight">Promo copies (20 units)</td><td><span class="badge badge-muted">Promo</span></td><td class="mono dim">2024-03-01</td><td class="mono negative">€240</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div style="display:flex;justify-content:flex-end;margin-top:12px;gap:24px;padding-right:8px">
+          <span class="mono dim">Total release expenses:</span>
+          <span class="mono negative" style="font-size:15px">€5,370</span>
+        </div>
+      </div>
+
+      <!-- Tab 3: Sales & Financials -->
+      <div class="tab-panel" id="releaseTabs-3">
+        <div class="financial-summary">
+          <div class="fin-card">
+            <div class="fin-label">Revenue</div>
+            <div class="fin-value">€12,400</div>
+          </div>
+          <div class="fin-card">
+            <div class="fin-label">Release Expenses</div>
+            <div class="fin-value red">€5,370</div>
+          </div>
+          <div class="fin-card accent">
+            <div class="fin-label">Net</div>
+            <div class="fin-value green">€7,030</div>
+          </div>
+        </div>
+
+        <div class="table-wrap">
+          <div class="table-header-row">
+            <span class="table-title">Sales Transactions</span>
+            <button class="btn btn-primary" style="font-size:12px;padding:6px 12px" onclick="openModal('registerSale')">Register Sale</button>
+          </div>
+          <table>
+            <thead><tr><th>Date</th><th>Qty</th><th>Unit Price</th><th>Total</th><th>Channel</th></tr></thead>
+            <tbody>
+              <tr><td class="mono dim">2024-11-12</td><td class="mono">12</td><td class="mono">€28</td><td class="mono positive">€336</td><td><span class="badge badge-amber">Direct</span></td></tr>
+              <tr><td class="mono dim">2024-10-28</td><td class="mono">30</td><td class="mono">€24</td><td class="mono positive">€720</td><td><span class="badge badge-muted">NMD</span></td></tr>
+              <tr><td class="mono dim">2024-09-15</td><td class="mono">25</td><td class="mono">€24</td><td class="mono positive">€600</td><td><span class="badge badge-muted">Horizon</span></td></tr>
+              <tr><td class="mono dim">2024-08-04</td><td class="mono">20</td><td class="mono">€28</td><td class="mono positive">€560</td><td><span class="badge badge-amber">Direct</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════ -->
+    <!-- DISTRIBUTORS                                -->
+    <!-- ══════════════════════════════════════════ -->
+    <div class="screen" id="screen-distributors">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Distributors</div>
+          <div class="page-subtitle">Distribution partnerships — Northern Light Records</div>
+        </div>
+        <button class="btn btn-primary" onclick="showToast('Add distributor — coming soon')">+ Add Distributor</button>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Name</th><th>Region</th><th>Releases</th><th>Total Units</th><th>Units Sold</th><th>Relationship Since</th></tr>
+          </thead>
+          <tbody>
+            <tr onclick="navigate('distributor-detail')">
+              <td class="highlight">Nordic Music Distribution</td>
+              <td>Scandinavia</td>
+              <td class="mono">5</td>
+              <td class="mono">820</td>
+              <td class="mono positive">412</td>
+              <td class="mono dim">2021</td>
+            </tr>
+            <tr onclick="navigate('distributor-detail')">
+              <td class="highlight">Horizon Records</td>
+              <td>Central Europe</td>
+              <td class="mono">3</td>
+              <td class="mono">450</td>
+              <td class="mono positive">198</td>
+              <td class="mono dim">2022</td>
+            </tr>
+            <tr onclick="navigate('distributor-detail')">
+              <td class="highlight">Velvet Distribution Co.</td>
+              <td>UK / Ireland</td>
+              <td class="mono">2</td>
+              <td class="mono">300</td>
+              <td class="mono positive">87</td>
+              <td class="mono dim">2023</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════ -->
+    <!-- DISTRIBUTOR DETAIL                          -->
+    <!-- ══════════════════════════════════════════ -->
+    <div class="screen" id="screen-distributor-detail">
+      <div class="route-crumb">
+        <span class="seg" onclick="navigate('distributors')">Distributors</span>
+        <span class="sep">/</span>
+        <span class="current">Nordic Music Distribution</span>
+      </div>
+
+      <div class="page-header">
+        <div>
+          <div class="page-title">Nordic Music Distribution</div>
+          <div class="page-subtitle">Scandinavia · Partner since 2021</div>
+        </div>
+        <button class="btn btn-ghost">Edit</button>
+      </div>
+
+      <div class="two-col" style="margin-bottom:24px">
+        <div class="stat-card">
+          <div class="stat-label">Total Units Allocated</div>
+          <div class="stat-value mono">820</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Units Sold</div>
+          <div class="stat-value mono positive">412</div>
+        </div>
+      </div>
+
+      <div class="section-title">Releases Carried</div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Release</th><th>Format</th><th>Allocated</th><th>Sold</th><th>Remaining</th></tr></thead>
+          <tbody>
+            <tr onclick="navigate('release-detail')">
+              <td class="highlight">Pale Meridian</td>
+              <td><span class="badge badge-amber">LP</span></td>
+              <td class="mono">200</td>
+              <td class="mono positive">98</td>
+              <td class="mono">102</td>
+            </tr>
+            <tr onclick="navigate('release-detail')">
+              <td class="highlight">Crestfallen</td>
+              <td><span class="badge badge-amber">LP</span></td>
+              <td class="mono">250</td>
+              <td class="mono positive">180</td>
+              <td class="mono" style="color:var(--danger)">70</td>
+            </tr>
+            <tr onclick="navigate('release-detail')">
+              <td class="highlight">Before the Thaw</td>
+              <td><span class="badge badge-amber">LP</span></td>
+              <td class="mono">200</td>
+              <td class="mono positive">84</td>
+              <td class="mono">116</td>
+            </tr>
+            <tr onclick="navigate('release-detail')">
+              <td class="highlight">Hollow Signal</td>
+              <td><span class="badge badge-muted">7"</span></td>
+              <td class="mono">100</td>
+              <td class="mono positive">40</td>
+              <td class="mono">60</td>
+            </tr>
+            <tr onclick="navigate('release-detail')">
+              <td class="highlight">Dusk Protocol</td>
+              <td><span class="badge badge-muted">EP</span></td>
+              <td class="mono">70</td>
+              <td class="mono positive">10</td>
+              <td class="mono">60</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════ -->
+    <!-- SALES & FINANCIALS                          -->
+    <!-- ══════════════════════════════════════════ -->
+    <div class="screen" id="screen-sales">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Sales &amp; Financials</div>
+          <div class="page-subtitle">Northern Light Records — all time</div>
+        </div>
+        <button class="btn btn-primary" onclick="openModal('registerSale')">Register Sale</button>
+      </div>
+
+      <div class="financial-summary">
+        <div class="fin-card">
+          <div class="fin-label">Total Revenue</div>
+          <div class="fin-value">€42,810</div>
+        </div>
+        <div class="fin-card">
+          <div class="fin-label">Total Expenses</div>
+          <div class="fin-value red">€28,430</div>
+        </div>
+        <div class="fin-card accent">
+          <div class="fin-label">Net Profit</div>
+          <div class="fin-value green">€14,380</div>
+        </div>
+      </div>
+
+      <div class="tabs" id="salesTabs">
+        <div class="tab active" onclick="switchTab('salesTabs', 0)">Transactions</div>
+        <div class="tab" onclick="switchTab('salesTabs', 1)">Label Expenses</div>
+        <div class="tab" onclick="switchTab('salesTabs', 2)">Full Expense Overview</div>
+        <div class="tab" onclick="switchTab('salesTabs', 3)">Per-Release</div>
+      </div>
+
+      <!-- Transactions -->
+      <div class="tab-panel active" id="salesTabs-0">
+        <div class="search-bar">
+          <span class="search-icon">⌕</span>
+          <input type="text" placeholder="Filter by release, channel, date…">
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Date</th><th>Release</th><th>Qty</th><th>Unit Price</th><th>Total</th><th>Channel</th></tr></thead>
+            <tbody>
+              <tr><td class="mono dim">2024-11-12</td><td onclick="navigate('release-detail')" style="cursor:pointer"><span class="highlight">Pale Meridian</span></td><td class="mono">12</td><td class="mono">€28</td><td class="mono positive">€336</td><td><span class="badge badge-amber">Direct</span></td></tr>
+              <tr><td class="mono dim">2024-11-08</td><td onclick="navigate('release-detail')" style="cursor:pointer"><span class="highlight">Dusk Protocol</span></td><td class="mono">5</td><td class="mono">€20</td><td class="mono positive">€100</td><td><span class="badge badge-amber">Direct</span></td></tr>
+              <tr><td class="mono dim">2024-10-28</td><td onclick="navigate('release-detail')" style="cursor:pointer"><span class="highlight">Pale Meridian</span></td><td class="mono">30</td><td class="mono">€24</td><td class="mono positive">€720</td><td><span class="badge badge-muted">NMD</span></td></tr>
+              <tr><td class="mono dim">2024-10-20</td><td onclick="navigate('release-detail')" style="cursor:pointer"><span class="highlight">Crestfallen</span></td><td class="mono">40</td><td class="mono">€24</td><td class="mono positive">€960</td><td><span class="badge badge-muted">NMD</span></td></tr>
+              <tr><td class="mono dim">2024-09-15</td><td onclick="navigate('release-detail')" style="cursor:pointer"><span class="highlight">Pale Meridian</span></td><td class="mono">25</td><td class="mono">€24</td><td class="mono positive">€600</td><td><span class="badge badge-muted">Horizon</span></td></tr>
+              <tr><td class="mono dim">2024-09-02</td><td onclick="navigate('release-detail')" style="cursor:pointer"><span class="highlight">Before the Thaw</span></td><td class="mono">20</td><td class="mono">€26</td><td class="mono positive">€520</td><td><span class="badge badge-amber">Direct</span></td></tr>
+              <tr><td class="mono dim">2024-08-14</td><td onclick="navigate('release-detail')" style="cursor:pointer"><span class="highlight">Hollow Signal</span></td><td class="mono">15</td><td class="mono">€16</td><td class="mono positive">€240</td><td><span class="badge badge-amber">Direct</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Label Expenses -->
+      <div class="tab-panel" id="salesTabs-1">
+        <div style="display:flex;justify-content:flex-end;margin-bottom:14px">
+          <button class="btn btn-primary" style="font-size:12px" onclick="openModal('addLabelExpense')">+ Add Expense</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Description</th><th>Category</th><th>Date</th><th>Amount</th></tr></thead>
+            <tbody>
+              <tr><td class="highlight">Website hosting (annual)</td><td><span class="badge badge-muted">Infrastructure</span></td><td class="mono dim">2024-01-01</td><td class="mono negative">€240</td></tr>
+              <tr><td class="highlight">Legal fees — contract review</td><td><span class="badge badge-muted">Legal</span></td><td class="mono dim">2024-02-15</td><td class="mono negative">€800</td></tr>
+              <tr><td class="highlight">Accounting software</td><td><span class="badge badge-muted">Software</span></td><td class="mono dim">2024-01-01</td><td class="mono negative">€180</td></tr>
+              <tr><td class="highlight">Promo photography (label)</td><td><span class="badge badge-muted">Marketing</span></td><td class="mono dim">2024-04-10</td><td class="mono negative">€600</td></tr>
+              <tr><td class="highlight">Music conference travel</td><td><span class="badge badge-muted">Travel</span></td><td class="mono dim">2024-06-20</td><td class="mono negative">€950</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div style="display:flex;justify-content:flex-end;margin-top:12px;gap:24px;padding-right:8px">
+          <span class="mono dim">Total label expenses:</span>
+          <span class="mono negative" style="font-size:15px">€2,770</span>
+        </div>
+      </div>
+
+      <!-- Full Expense Overview -->
+      <div class="tab-panel" id="salesTabs-2">
+        <div class="search-bar">
+          <span class="search-icon">⌕</span>
+          <input type="text" placeholder="Filter expenses…">
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Description</th><th>Scope</th><th>Category</th><th>Date</th><th>Amount</th></tr></thead>
+            <tbody>
+              <tr><td class="highlight">Vinyl pressing × 500 — Pale Meridian</td><td><span class="badge badge-amber">Release</span></td><td><span class="badge badge-muted">Pressing</span></td><td class="mono dim">2024-02-01</td><td class="mono negative">€3,200</td></tr>
+              <tr><td class="highlight">Vinyl pressing × 500 — Crestfallen</td><td><span class="badge badge-amber">Release</span></td><td><span class="badge badge-muted">Pressing</span></td><td class="mono dim">2023-04-01</td><td class="mono negative">€3,200</td></tr>
+              <tr><td class="highlight">Mastering — Pale Meridian</td><td><span class="badge badge-amber">Release</span></td><td><span class="badge badge-muted">Mastering</span></td><td class="mono dim">2024-01-15</td><td class="mono negative">€680</td></tr>
+              <tr><td class="highlight">Music conference travel</td><td><span class="badge badge-green">Label</span></td><td><span class="badge badge-muted">Travel</span></td><td class="mono dim">2024-06-20</td><td class="mono negative">€950</td></tr>
+              <tr><td class="highlight">Legal fees</td><td><span class="badge badge-green">Label</span></td><td><span class="badge badge-muted">Legal</span></td><td class="mono dim">2024-02-15</td><td class="mono negative">€800</td></tr>
+              <tr><td class="highlight">Album artwork — Before the Thaw</td><td><span class="badge badge-amber">Release</span></td><td><span class="badge badge-muted">Artwork</span></td><td class="mono dim">2023-01-20</td><td class="mono negative">€920</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Per-Release -->
+      <div class="tab-panel" id="salesTabs-3">
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Release</th><th>Revenue</th><th>Release Exp.</th><th>Net</th><th></th></tr></thead>
+            <tbody>
+              <tr>
+                <td class="highlight">Pale Meridian</td>
+                <td class="mono positive">€12,400</td>
+                <td class="mono negative">€5,370</td>
+                <td class="mono positive">€7,030</td>
+                <td><button class="btn-link" onclick="navigate('release-detail')">View Detail →</button></td>
+              </tr>
+              <tr>
+                <td class="highlight">Crestfallen</td>
+                <td class="mono positive">€18,200</td>
+                <td class="mono negative">€7,100</td>
+                <td class="mono positive">€11,100</td>
+                <td><button class="btn-link" onclick="navigate('release-detail')">View Detail →</button></td>
+              </tr>
+              <tr>
+                <td class="highlight">Before the Thaw</td>
+                <td class="mono positive">€9,800</td>
+                <td class="mono negative">€6,200</td>
+                <td class="mono positive">€3,600</td>
+                <td><button class="btn-link" onclick="navigate('release-detail')">View Detail →</button></td>
+              </tr>
+              <tr>
+                <td class="highlight">Hollow Signal</td>
+                <td class="mono positive">€3,200</td>
+                <td class="mono negative">€1,840</td>
+                <td class="mono positive">€1,360</td>
+                <td><button class="btn-link" onclick="navigate('release-detail')">View Detail →</button></td>
+              </tr>
+              <tr>
+                <td class="highlight">Dusk Protocol</td>
+                <td class="mono positive">€5,600</td>
+                <td class="mono negative">€3,120</td>
+                <td class="mono positive">€2,480</td>
+                <td><button class="btn-link" onclick="navigate('release-detail')">View Detail →</button></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════ -->
+    <!-- ARTISTS                                     -->
+    <!-- ══════════════════════════════════════════ -->
+    <div class="screen" id="screen-artists">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Artists</div>
+          <div class="page-subtitle">Full roster — Northern Light Records</div>
+        </div>
+        <button class="btn btn-primary" onclick="showToast('Add artist — coming soon')">+ Add Artist</button>
+      </div>
+
+      <div class="search-bar">
+        <span class="search-icon">⌕</span>
+        <input type="text" placeholder="Search artists…">
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Artist</th><th>Releases</th><th>Royalties Owed</th><th>Royalties Paid</th><th>Status</th></tr></thead>
+          <tbody>
+            <tr onclick="navigate('artist-detail')">
+              <td class="highlight">Halo Drift</td>
+              <td class="mono">2</td>
+              <td class="mono negative">€1,840</td>
+              <td class="mono positive">€3,200</td>
+              <td><span class="badge badge-green">Active</span></td>
+            </tr>
+            <tr onclick="navigate('artist-detail')">
+              <td class="highlight">Eline Voss</td>
+              <td class="mono">2</td>
+              <td class="mono negative">€920</td>
+              <td class="mono positive">€1,600</td>
+              <td><span class="badge badge-green">Active</span></td>
+            </tr>
+            <tr onclick="navigate('artist-detail')">
+              <td class="highlight">Pale Shore</td>
+              <td class="mono">2</td>
+              <td class="mono negative">€2,100</td>
+              <td class="mono positive">€4,800</td>
+              <td><span class="badge badge-green">Active</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════ -->
+    <!-- ARTIST DETAIL                               -->
+    <!-- ══════════════════════════════════════════ -->
+    <div class="screen" id="screen-artist-detail">
+      <div class="route-crumb">
+        <span class="seg" onclick="navigate('artists')">Artists</span>
+        <span class="sep">/</span>
+        <span class="current">Halo Drift</span>
+      </div>
+
+      <div class="detail-header">
+        <div class="album-art" style="background: linear-gradient(135deg,#0f1a2e,#1e3a5a)">HD</div>
+        <div class="detail-meta">
+          <div class="release-title">Halo Drift</div>
+          <div class="release-info">Electronic / Ambient · Oslo, Norway</div>
+          <div class="meta-chips">
+            <span class="meta-chip">2 releases</span>
+            <span class="meta-chip">halo-drift@email.no</span>
+            <span class="meta-chip">NLR since 2023</span>
+          </div>
+        </div>
+        <button class="btn btn-ghost">Edit</button>
+      </div>
+
+      <div class="three-col" style="margin-bottom:24px">
+        <div class="stat-card">
+          <div class="stat-label">Royalties Owed</div>
+          <div class="stat-value mono negative">€1,840</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Royalties Paid</div>
+          <div class="stat-value mono positive">€3,200</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Total Earned</div>
+          <div class="stat-value mono">€5,040</div>
+        </div>
+      </div>
+
+      <div class="section-title">Releases</div>
+      <div class="table-wrap" style="margin-bottom:24px">
+        <table>
+          <thead><tr><th>Release</th><th>Year</th><th>Format</th><th>Revenue</th><th>Royalty Rate</th><th>Royalties Owed</th></tr></thead>
+          <tbody>
+            <tr onclick="navigate('release-detail')">
+              <td class="highlight">Pale Meridian</td>
+              <td class="mono dim">2024</td>
+              <td><span class="badge badge-amber">LP</span></td>
+              <td class="mono positive">€12,400</td>
+              <td class="mono">12%</td>
+              <td class="mono negative">€1,140</td>
+            </tr>
+            <tr onclick="navigate('release-detail')">
+              <td class="highlight">Hollow Signal</td>
+              <td class="mono dim">2023</td>
+              <td><span class="badge badge-muted">7"</span></td>
+              <td class="mono positive">€3,200</td>
+              <td class="mono">12%</td>
+              <td class="mono negative">€700</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div style="display:flex;justify-content:flex-end">
+        <button class="btn btn-primary" onclick="showToast('Royalty payment recorded!')">Record Payment</button>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /main -->
+
+<!-- ══════════════════════════════════════════ -->
+<!-- MODALS                                      -->
+<!-- ══════════════════════════════════════════ -->
+
+<!-- Register Sale Modal -->
+<div class="modal-overlay" id="modal-registerSale" onclick="closeModalOnOverlay(event, 'registerSale')">
+  <div class="modal">
+    <div class="modal-title">Register Sale</div>
+    <div class="form-group">
+      <label class="form-label">Release</label>
+      <select class="form-select">
+        <option>Pale Meridian — Halo Drift (LP)</option>
+        <option>Dusk Protocol — Eline Voss (EP)</option>
+        <option>Crestfallen — Pale Shore (LP)</option>
+        <option>Hollow Signal — Halo Drift (7")</option>
+        <option>Before the Thaw — Pale Shore (LP)</option>
+      </select>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Quantity</label>
+        <input type="number" class="form-input" placeholder="0" value="10">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Unit Price (€)</label>
+        <input type="number" class="form-input" placeholder="0.00" value="28.00">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Date</label>
+        <input type="date" class="form-input" value="2026-04-03">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Channel</label>
+        <select class="form-select">
+          <option>Direct</option>
+          <option>Nordic Music Distribution</option>
+          <option>Horizon Records</option>
+          <option>Velvet Distribution Co.</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('registerSale')">Cancel</button>
+      <button class="btn btn-primary" onclick="closeModal('registerSale'); showToast('Sale registered — €280 added')">Save Sale</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Release Modal -->
+<div class="modal-overlay" id="modal-addRelease" onclick="closeModalOnOverlay(event, 'addRelease')">
+  <div class="modal">
+    <div class="modal-title">Add Release</div>
+    <div class="form-group">
+      <label class="form-label">Title</label>
+      <input type="text" class="form-input" placeholder="Release title…">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Format</label>
+        <select class="form-select">
+          <option>LP</option>
+          <option>EP</option>
+          <option>7"</option>
+          <option>12"</option>
+          <option>Digital</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Release Date</label>
+        <input type="date" class="form-input">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Catalogue Number</label>
+      <input type="text" class="form-input" placeholder="NLR-0XX">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('addRelease')">Cancel</button>
+      <button class="btn btn-primary" onclick="closeModal('addRelease'); showToast('Release created!')">Create Release</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Expense Modal -->
+<div class="modal-overlay" id="modal-addExpense" onclick="closeModalOnOverlay(event, 'addExpense')">
+  <div class="modal">
+    <div class="modal-title">Add Release Expense</div>
+    <div class="form-group">
+      <label class="form-label">Description</label>
+      <input type="text" class="form-input" placeholder="e.g. Mastering, Pressing…">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Category</label>
+        <select class="form-select">
+          <option>Mastering</option>
+          <option>Pressing</option>
+          <option>Artwork</option>
+          <option>Photography</option>
+          <option>Promo</option>
+          <option>Other</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Amount (€)</label>
+        <input type="number" class="form-input" placeholder="0.00">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Date</label>
+      <input type="date" class="form-input">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('addExpense')">Cancel</button>
+      <button class="btn btn-primary" onclick="closeModal('addExpense'); showToast('Expense added!')">Save Expense</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Label Expense Modal -->
+<div class="modal-overlay" id="modal-addLabelExpense" onclick="closeModalOnOverlay(event, 'addLabelExpense')">
+  <div class="modal">
+    <div class="modal-title">Add Label Expense</div>
+    <div class="form-group">
+      <label class="form-label">Description</label>
+      <input type="text" class="form-input" placeholder="e.g. Website hosting, Legal fees…">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Category</label>
+        <select class="form-select">
+          <option>Infrastructure</option>
+          <option>Legal</option>
+          <option>Marketing</option>
+          <option>Software</option>
+          <option>Travel</option>
+          <option>Other</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Amount (€)</label>
+        <input type="number" class="form-input" placeholder="0.00">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Date</label>
+      <input type="date" class="form-input">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('addLabelExpense')">Cancel</button>
+      <button class="btn btn-primary" onclick="closeModal('addLabelExpense'); showToast('Label expense saved!')">Save Expense</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast">
+  <div class="toast-dot"></div>
+  <span id="toast-msg">Action completed</span>
+</div>
+
+<script>
+  // ─── NAVIGATION ───────────────────────────────
+  const navMap = {
+    dashboard:           'Dashboard',
+    releases:            'Releases',
+    'release-detail':    'Releases',
+    distributors:        'Distributors',
+    'distributor-detail':'Distributors',
+    sales:               'Sales & Financials',
+    artists:             'Artists',
+    'artist-detail':     'Artists',
+  };
+
+  function navigate(screenId, params) {
+    // Hide all screens
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    // Show target
+    const el = document.getElementById('screen-' + screenId);
+    if (el) el.classList.add('active');
+
+    // Update sidebar active state
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    const parentRoute = navMap[screenId];
+    document.querySelectorAll('.nav-item').forEach(n => {
+      if (n.textContent.trim().startsWith(parentRoute?.split(' ')[0] || screenId)) {
+        n.classList.add('active');
+      }
+    });
+  }
+
+  // ─── TABS ──────────────────────────────────────
+  function switchTab(groupId, idx) {
+    const tabs = document.querySelectorAll(`#${groupId} .tab`);
+    const panels = document.querySelectorAll(`[id^="${groupId}-"]`);
+    tabs.forEach((t, i) => t.classList.toggle('active', i === idx));
+    panels.forEach((p, i) => p.classList.toggle('active', i === idx));
+  }
+
+  // ─── MODALS ────────────────────────────────────
+  function openModal(id) {
+    document.getElementById('modal-' + id).classList.add('open');
+  }
+  function closeModal(id) {
+    document.getElementById('modal-' + id).classList.remove('open');
+  }
+  function closeModalOnOverlay(e, id) {
+    if (e.target === e.currentTarget) closeModal(id);
+  }
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+      document.querySelectorAll('.modal-overlay.open').forEach(m => m.classList.remove('open'));
+      document.getElementById('labelDropdown').parentElement.classList.remove('open');
+    }
+  });
+
+  // ─── LABEL SWITCHER ────────────────────────────
+  function toggleLabelDropdown() {
+    document.getElementById('labelSwitcher').classList.toggle('open');
+  }
+  function switchLabel(name) {
+    document.querySelector('.label-name').textContent = name;
+    document.getElementById('labelSwitcher').classList.remove('open');
+    showToast('Switched to ' + name);
+  }
+  document.addEventListener('click', e => {
+    const sw = document.getElementById('labelSwitcher');
+    if (!sw.contains(e.target)) sw.classList.remove('open');
+  });
+
+  // ─── TOAST ─────────────────────────────────────
+  let toastTimer;
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    document.getElementById('toast-msg').textContent = msg;
+    t.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => t.classList.remove('show'), 2800);
+  }
+</script>
+</body>
+</html>
