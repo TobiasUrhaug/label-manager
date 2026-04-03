@@ -66,7 +66,7 @@ Draft
   - Focus moves to the username field after the error.
   - Prerequisite: 4.2.
 
-- [ ] **4.4** Create `src/pages/LoginPage.jsx` to make the tests from 4.1–4.3 pass.
+- [x] **4.4** Create `src/pages/LoginPage.jsx` to make the tests from 4.1–4.3 pass.
   - Renders a centered card (Tailwind: full-height neutral background, card centered with `max-w-sm mx-auto`).
   - Application name at the top of the card.
   - Inline error message area between the name and the form (hidden when no error).

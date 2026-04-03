@@ -38,31 +38,56 @@ export default function LoginPage() {
   }
 
   return (
-    <div>
-      <form onSubmit={handleSubmit}>
-        {loginError && <p role="alert">{loginError}</p>}
-        <label htmlFor="username">Username</label>
-        <input
-          id="username"
-          type="text"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          required
-          autoFocus
-          ref={usernameRef}
-        />
-        <label htmlFor="password">Password</label>
-        <input
-          id="password"
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
-        <button type="submit" disabled={mutation.isPending}>
-          Log in
-        </button>
-      </form>
+    <div className="min-h-screen bg-neutral-100 flex items-center justify-center">
+      <div className="bg-white rounded-lg shadow-sm border border-neutral-200 w-full max-w-sm mx-auto p-8">
+        <h1 className="text-xl font-semibold text-gray-900 text-center mb-6">Label Manager</h1>
+
+        {loginError && (
+          <p role="alert" className="text-red-600 text-sm mb-4">
+            {loginError}
+          </p>
+        )}
+
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          <div className="flex flex-col gap-1">
+            <label htmlFor="username" className="text-sm font-medium text-gray-700">
+              Username
+            </label>
+            <input
+              id="username"
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              required
+              autoFocus
+              ref={usernameRef}
+              className="border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+
+          <div className="flex flex-col gap-1">
+            <label htmlFor="password" className="text-sm font-medium text-gray-700">
+              Password
+            </label>
+            <input
+              id="password"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              className="border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+
+          <button
+            type="submit"
+            disabled={mutation.isPending}
+            className="w-full bg-blue-600 text-white rounded px-4 py-2 text-sm font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Log in
+          </button>
+        </form>
+      </div>
     </div>
   );
 }
