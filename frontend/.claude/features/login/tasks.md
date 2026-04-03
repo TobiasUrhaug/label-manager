@@ -81,13 +81,13 @@ Draft
 
 ### Phase 5 — Logout action in AppLayout
 
-- [ ] **5.1** Write a failing test for the logout action in `src/layouts/AppLayout.test.jsx`:
+- [x] **5.1** Write a failing test for the logout action in `src/layouts/AppLayout.test.jsx`:
   - A "Log out" button is rendered when a user is authenticated.
   - Clicking it calls `logout()` and navigates to `/login`.
   - Mock `src/api/auth.js` `logout` and `AuthContext` `setUser`.
   - Prerequisite: 2.2.
 
-- [ ] **5.2** Modify `src/layouts/AppLayout.jsx` to make the test from 5.1 pass.
+- [x] **5.2** Modify `src/layouts/AppLayout.jsx` to make the test from 5.1 pass.
   - Add a "Log out" button (or link) to the nav bar.
   - Use `useMutation` for `logout()`.
   - On success: `setUser(null)` + `navigate('/login')`.

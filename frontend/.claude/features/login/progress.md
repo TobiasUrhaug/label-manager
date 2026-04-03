@@ -4,10 +4,10 @@
 Implementation
 
 ## Last Completed Task
-4.4 — LoginPage.jsx with Tailwind card layout, app name, inline error, full form (2026-04-03)
+5.2 — AppLayout.jsx with logout button, useMutation, setUser(null) + navigate('/login') (2026-04-03)
 
 ## Next Action
-Developer: Task 5.1 — Write failing test for AppLayout logout action
+Developer: Task 6.1 — Wrap app with AuthProvider in main.jsx
 
 ## Blockers
 None.
@@ -24,3 +24,5 @@ None.
 - 2026-04-03: Completed Task 4.2 — Wrote test for LoginPage loading state (button disabled while pending)
 - 2026-04-03: Completed Task 4.3 — Wrote tests for LoginPage error state (inline message, field clearing, username focus)
 - 2026-04-03: Completed Task 4.4 — Created LoginPage.jsx with Tailwind card layout, app name, all form behavior
+- 2026-04-03: Completed Task 5.1 — Wrote failing tests for AppLayout logout (button renders, logout called, navigates to /login, setUser(null))
+- 2026-04-03: Completed Task 5.2 — Modified AppLayout.jsx with Log out button, useMutation, setUser(null) + navigate('/login')
