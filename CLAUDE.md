@@ -18,13 +18,15 @@ Each directory has its own `CLAUDE.md` with context specific to that area:
 - `e2e/CLAUDE.md` — Playwright test conventions
 - `contracts/CLAUDE.md` — OpenAPI spec conventions
 
-Specialist agents for pre-implementation work are defined in `.claude/agents/`:
-- `.claude/agents/ba.md` — BA Agent: produces `README.md`, `business-rules.md`, `user-stories.md`, `acceptance-criteria.md`
-- `.claude/agents/ux.md` — UX Agent: produces `ux-flows.md` and `screens.md` after BA documents are complete
+Specialist agents are defined in `.claude/agents/` and invoked via slash commands in `.claude/commands/`:
 
-Slash commands for invoking these agents are in `.claude/commands/`:
-- `/ba feature=<name> description=<need>` — start BA work on a new feature
-- `/ux feature=<name>` — start UX work after BA documents are complete
+| Command | Agent | When to use |
+|---------|-------|-------------|
+| `/ba feature=<name> description=<need>` | `ba.md` | Start BA work on a new feature |
+| `/ux feature=<name>` | `ux.md` | After BA documents are complete |
+| `/frontend-architect feature=<name>` | `frontend-architect.md` | After BA, UX, and contract are done |
+| `/frontend-developer feature=<name>` | `frontend-developer.md` | After frontend spec and tasks exist |
+| `/frontend-reviewer feature=<name>` | `frontend-reviewer.md` | After all tasks are checked off |
 
 ## Feature Development Flow
 

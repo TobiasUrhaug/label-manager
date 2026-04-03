@@ -31,6 +31,22 @@ All API shapes are defined in `../contracts/openapi.yaml` — consult it before 
 - No inline styles — use CSS modules or a utility-first approach (TBD when styling is introduced)
 - Fetch data with plain `fetch` using the `/api` prefix; add an abstraction layer only when the pattern repeats
 
+## Feature Workflow
+
+Features are implemented by three agents in sequence. Prerequisites (BA, UX, contract)
+must be complete before the architect starts — see root `CLAUDE.md` for the full flow.
+
+```
+frontend-architect  → frontend/.claude/features/<feature>/spec.md, tasks.md, index.md, progress.md
+frontend-developer  → implements, checks off tasks, updates index.md + progress.md
+frontend-reviewer   → comments.md, updates index.md + progress.md
+frontend-developer  → addresses comments, updates progress.md
+frontend-reviewer   → resolves comments → sets index.md status to Done
+```
+
+Agent definitions: `.claude/agents/frontend-architect.md`, `frontend-developer.md`, `frontend-reviewer.md`
+Templates: `frontend/.claude/templates/`
+
 ## Migration Notes
 
 Pages are added here as they are migrated from Thymeleaf.
