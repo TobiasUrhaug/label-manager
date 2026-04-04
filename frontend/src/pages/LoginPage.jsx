@@ -16,8 +16,8 @@ export default function LoginPage() {
 
   const mutation = useMutation({
     mutationFn: ({ username, password }) => login(username, password),
-    onSuccess: () => {
-      setUser({ username });
+    onSuccess: (_, variables) => {
+      setUser({ username: variables.username });
       navigate(location.state?.from ?? '/');
     },
     onError: () => {

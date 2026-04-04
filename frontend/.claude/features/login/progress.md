@@ -28,3 +28,5 @@ None.
 - 2026-04-03: Completed Task 5.2 — Modified AppLayout.jsx with Log out button, useMutation, setUser(null) + navigate('/login')
 - 2026-04-03: Completed Task 6.1 — Wrapped app with AuthProvider in main.jsx (inside BrowserRouter, outside App)
 - 2026-04-03: Completed Task 6.2 — Restructured App.jsx with /login route, RequireAuth wrapper; added App.test.jsx smoke tests
+- 2026-04-04: Review Round 1 complete. No blocking comments. Two should-fix items (missing happy-path tests), one suggestion.
+- 2026-04-03: Addressed review comments (Round 1) — added happy-path tests, strengthened App redirect test, fixed stale closure in LoginPage.jsx onSuccess.

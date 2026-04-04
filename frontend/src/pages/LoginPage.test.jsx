@@ -80,6 +80,68 @@ describe('LoginPage', () => {
     });
   });
 
+  describe('success state', () => {
+    it('calls setUser with { username } and navigates to / on successful login', async () => {
+      const setUser = vi.fn();
+      login.mockResolvedValue({});
+      const user = userEvent.setup();
+      renderLoginPage('/login', { user: null, isLoading: false, setUser });
+
+      await user.type(screen.getByLabelText('Username'), 'alice');
+      await user.type(screen.getByLabelText('Password'), 'secret');
+      await user.click(screen.getByRole('button', { name: 'Log in' }));
+
+      expect(setUser).toHaveBeenCalledWith({ username: 'alice' });
+      expect(await screen.findByText('Home page')).toBeInTheDocument();
+    });
+
+    it('calls setUser with the submitted username even if the field changed after submission', async () => {
+      const setUser = vi.fn();
+      let resolveLogin;
+      login.mockReturnValue(new Promise((resolve) => { resolveLogin = resolve; }));
+      const user = userEvent.setup();
+      renderLoginPage('/login', { user: null, isLoading: false, setUser });
+
+      await user.type(screen.getByLabelText('Username'), 'alice');
+      await user.type(screen.getByLabelText('Password'), 'secret');
+      await user.click(screen.getByRole('button', { name: 'Log in' }));
+
+      // Simulate field change after submission while mutation is in-flight
+      await user.clear(screen.getByLabelText('Username'));
+      await user.type(screen.getByLabelText('Username'), 'bob');
+
+      resolveLogin({});
+      await screen.findByText('Home page');
+
+      // setUser must use the submitted username ('alice'), not the current state ('bob')
+      expect(setUser).toHaveBeenCalledWith({ username: 'alice' });
+    });
+
+    it('navigates to location.state.from on successful login when from is set', async () => {
+      const setUser = vi.fn();
+      useAuth.mockReturnValue({ user: null, isLoading: false, setUser });
+      login.mockResolvedValue({});
+      const queryClient = new QueryClient({ defaultOptions: { mutations: { retry: false } } });
+      render(
+        <QueryClientProvider client={queryClient}>
+          <MemoryRouter initialEntries={[{ pathname: '/login', state: { from: '/labels' } }]}>
+            <Routes>
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/labels" element={<div>Labels page</div>} />
+            </Routes>
+          </MemoryRouter>
+        </QueryClientProvider>
+      );
+      const user = userEvent.setup();
+
+      await user.type(screen.getByLabelText('Username'), 'alice');
+      await user.type(screen.getByLabelText('Password'), 'secret');
+      await user.click(screen.getByRole('button', { name: 'Log in' }));
+
+      expect(await screen.findByText('Labels page')).toBeInTheDocument();
+    });
+  });
+
   describe('error state', () => {
     it('shows inline error message when login returns 401', async () => {
       login.mockRejectedValue({ status: 401 });

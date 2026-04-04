@@ -47,5 +47,6 @@ describe('App routing', () => {
   it('authenticated user navigating to /login is redirected to /', () => {
     renderApp('/login', { user: { username: 'alice' }, isLoading: false });
     expect(screen.queryByRole('button', { name: 'Log in' })).not.toBeInTheDocument();
+    expect(screen.getByText('Manage your labels here.')).toBeInTheDocument();
   });
 });
