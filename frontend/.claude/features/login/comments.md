@@ -1,7 +1,7 @@
 # Review Comments: Login
 
 ## Status
-In Review
+Done
 
 ## Review Round 1
 
@@ -13,20 +13,20 @@ None.
 ### Should Fix
 <!-- Error handling gaps, test coverage, accessibility, edge cases -->
 
-- [ ] **`frontend/src/pages/LoginPage.test.jsx` — missing happy-path test**
-  The test file covers default state, already-authenticated redirect, loading state, and error state, but there is no test for the successful login path. AC-01 and F-01 both require that on successful login `setUser` is called with the username and the user is navigated to `location.state?.from ?? '/'`. Add two tests to the `LoginPage` describe block:
-  1. On successful login, `setUser` is called with `{ username }` and the user is navigated to `/` (the default target).
-  2. On successful login when `location.state.from` is set, the user is navigated to that path rather than `/`.
-  Mock `login` to resolve, mock `useAuth` to return a `setUser` spy, and use `MemoryRouter` with an initial state entry for the second case.
+- [x] **`frontend/src/pages/LoginPage.test.jsx` — missing happy-path test**
+  Resolved. Three tests added in the `success state` describe block (lines 84–142):
+  1. `setUser` called with `{ username: 'alice' }` and navigates to `/` on success.
+  2. Stale-closure robustness — submits as 'alice', changes field to 'bob' while mutation is in-flight, asserts `setUser` received `{ username: 'alice' }`.
+  3. Navigates to `location.state.from` when set. All tests use correct TL user-centric queries and `findBy*` for async assertions.
 
-- [ ] **`frontend/src/App.test.jsx:48` — authenticated redirect test could be stronger**
-  The test `'authenticated user navigating to /login is redirected to /'` only asserts that the Log in button is absent. It does not assert that the home page content is shown. This means the test would pass even if the redirect landed on a blank page. Add `expect(screen.getByText('Home page')).toBeInTheDocument()` (the stub route element is already defined in `renderApp`).
+- [x] **`frontend/src/App.test.jsx:48` — authenticated redirect test could be stronger**
+  Resolved. Line 50 now asserts `expect(screen.getByText('Manage your labels here.')).toBeInTheDocument()`, confirming the redirect lands on the real home page and the full route tree rendered correctly.
 
 ### Suggestions
 <!-- Style, minor refactors, naming -->
 
-- [ ] **`frontend/src/pages/LoginPage.jsx:19-21` — onSuccess closes over stale `username`**
-  The `onSuccess` handler captures `username` from the outer `useState` closure. If a user submits, the mutation is inflight, and the component re-renders with a different value (unlikely for a login form, but possible), the wrong username could be stored in context. Consider passing the username through the mutation variables: `onSuccess: (_, variables) => { setUser({ username: variables.username }); ... }`. This is a minor robustness improvement, not a correctness issue for normal usage.
+- [x] **`frontend/src/pages/LoginPage.jsx:19-21` — onSuccess closes over stale `username`**
+  Resolved. `onSuccess` now uses `(_, variables) => { setUser({ username: variables.username }); ... }` (LoginPage.jsx line 19). The stale-closure test at LoginPage.test.jsx lines 98–118 proves correctness.
 
 ---
 
@@ -45,7 +45,7 @@ None.
 - [x] **Loading state**: Submit button has `disabled={mutation.isPending}`. Field values are preserved (controlled inputs). Pass.
 - [x] **Error state**: Inline `role="alert"` paragraph above the form. Both fields cleared (`setUsername('')`, `setPassword('')`). Focus moved to username via `usernameRef.current?.focus()`. Pass.
 - [x] **Already-authenticated redirect**: `<Navigate to="/" replace />` rendered before the form. Pass.
-- [x] **F-01 (Successful Login)**: Login form → loading → navigate to `from ?? '/'`. Implemented. (Test gap noted in Should Fix above.)
+- [x] **F-01 (Successful Login)**: Login form → loading → navigate to `from ?? '/'`. Implemented and tested. Pass.
 - [x] **F-02 (Wrong Credentials)**: Error state wired to mutation `onError`. Pass.
 - [x] **F-03 (Empty Fields)**: HTML5 `required` on both inputs. Pass.
 - [x] **F-04 (Logout)**: AppLayout logout action implemented. Pass.
@@ -68,5 +68,12 @@ A third test was also added to cover the stale-closure robustness fix (see Sugge
 
 ---
 
-## Review Round 2 (if needed)
-<!-- Reviewer adds new comments or follow-ups here -->
+## Review Round 2
+
+All Round 1 comments verified resolved against source files. No new issues found.
+
+- [x] **Should Fix 1** — Resolved. Three tests confirmed in `LoginPage.test.jsx` lines 84–142. Correct queries, correct async patterns, all three paths covered.
+- [x] **Should Fix 2** — Resolved. `App.test.jsx` line 50 asserts home page content is rendered after authenticated redirect.
+- [x] **Suggestion** — Resolved. `LoginPage.jsx` line 19 uses `variables.username` in `onSuccess`. Stale-closure test at `LoginPage.test.jsx` lines 98–118 backs the fix.
+
+No new Must Fix, Should Fix, or Suggestion items.

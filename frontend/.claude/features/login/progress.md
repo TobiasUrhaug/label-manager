@@ -1,13 +1,13 @@
 # Progress: Login
 
 ## Current Phase
-Review
+Done
 
 ## Last Completed Task
-6.2 — App.jsx restructured with /login route, RequireAuth wrapper, and App.test.jsx smoke tests (2026-04-03)
+Review Round 2 — all comments resolved, feature marked Done (2026-04-04)
 
 ## Next Action
-Frontend Reviewer: run `/frontend-reviewer feature=login`
+None. Ready to merge. Create a PR from `feature/login` to `main`.
 
 ## Blockers
 None.
@@ -29,4 +29,5 @@ None.
 - 2026-04-03: Completed Task 6.1 — Wrapped app with AuthProvider in main.jsx (inside BrowserRouter, outside App)
 - 2026-04-03: Completed Task 6.2 — Restructured App.jsx with /login route, RequireAuth wrapper; added App.test.jsx smoke tests
 - 2026-04-04: Review Round 1 complete. No blocking comments. Two should-fix items (missing happy-path tests), one suggestion.
-- 2026-04-03: Addressed review comments (Round 1) — added happy-path tests, strengthened App redirect test, fixed stale closure in LoginPage.jsx onSuccess.
+- 2026-04-04: Addressed review comments (Round 1) — added happy-path tests, strengthened App redirect test, fixed stale closure in LoginPage.jsx onSuccess.
+- 2026-04-04: Review Round 2 complete. All comments resolved, no new issues. Feature marked Done.
