@@ -1,13 +1,13 @@
 # Progress: Login
 
 ## Current Phase
-Implementation
+Review
 
 ## Last Completed Task
-5.2 — AppLayout.jsx with logout button, useMutation, setUser(null) + navigate('/login') (2026-04-03)
+6.2 — App.jsx restructured with /login route, RequireAuth wrapper, and App.test.jsx smoke tests (2026-04-03)
 
 ## Next Action
-Developer: Task 6.1 — Wrap app with AuthProvider in main.jsx
+Frontend Reviewer: run `/frontend-reviewer feature=login`
 
 ## Blockers
 None.
@@ -26,3 +26,5 @@ None.
 - 2026-04-03: Completed Task 4.4 — Created LoginPage.jsx with Tailwind card layout, app name, all form behavior
 - 2026-04-03: Completed Task 5.1 — Wrote failing tests for AppLayout logout (button renders, logout called, navigates to /login, setUser(null))
 - 2026-04-03: Completed Task 5.2 — Modified AppLayout.jsx with Log out button, useMutation, setUser(null) + navigate('/login')
+- 2026-04-03: Completed Task 6.1 — Wrapped app with AuthProvider in main.jsx (inside BrowserRouter, outside App)
+- 2026-04-03: Completed Task 6.2 — Restructured App.jsx with /login route, RequireAuth wrapper; added App.test.jsx smoke tests

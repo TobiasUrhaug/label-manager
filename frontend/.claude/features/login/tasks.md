@@ -1,7 +1,7 @@
 # Tasks: Login
 
 ## Status
-Draft
+In Review
 
 ## Tasks
 
@@ -95,11 +95,11 @@ Draft
 
 ### Phase 6 — Wire up routes
 
-- [ ] **6.1** Modify `src/main.jsx` to wrap the app with `<AuthProvider>` (inside `<BrowserRouter>`, outside `<App>`).
+- [x] **6.1** Modify `src/main.jsx` to wrap the app with `<AuthProvider>` (inside `<BrowserRouter>`, outside `<App>`).
   - No new test needed (provider mounting is covered by context tests in 2.1).
   - Prerequisite: 2.2.
 
-- [ ] **6.2** Modify `src/App.jsx` to restructure the route tree:
+- [x] **6.2** Modify `src/App.jsx` to restructure the route tree:
   - Add `<Route path="/login" element={<LoginPage />} />` at the top level.
   - Wrap the existing `<Route element={<AppLayout />}>` block with `<Route element={<RequireAuth />}>`.
   - Write or extend a smoke test in `src/App.test.jsx`:

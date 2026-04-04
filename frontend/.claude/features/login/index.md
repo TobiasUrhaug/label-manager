@@ -1,14 +1,14 @@
 # Feature: Login
 
 ## Status
-In Progress
+In Review
 
 ## Phase History
 | Phase          | Status      | Date       |
 |----------------|-------------|------------|
 | Design         | Done        | 2026-04-03 |
-| Implementation | In Progress | 2026-04-03 |
-| Review         | -           |            |
+| Implementation | Done        | 2026-04-03 |
+| Review         | In Progress | 2026-04-03 |
 
 ## Artifacts
 | File         | Purpose                         |
