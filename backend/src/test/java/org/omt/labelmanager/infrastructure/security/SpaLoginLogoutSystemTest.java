@@ -136,12 +136,12 @@ class SpaLoginLogoutSystemTest extends AbstractIntegrationTest {
         HttpHeaders headers = new HttpHeaders();
         headers.add(HttpHeaders.COOKIE, "JSESSIONID=" + jsessionId);
         ResponseEntity<String> response = restTemplate.exchange(
-                "/login", HttpMethod.GET, new HttpEntity<>(headers), String.class);
+                "/api/session", HttpMethod.GET, new HttpEntity<>(headers), String.class);
         return extractCookieValue(response.getHeaders(), "XSRF-TOKEN");
     }
 
     private String fetchXsrfToken() {
-        ResponseEntity<String> getResponse = restTemplate.getForEntity("/login", String.class);
+        ResponseEntity<String> getResponse = restTemplate.getForEntity("/api/session", String.class);
         return extractCookieValue(getResponse.getHeaders(), "XSRF-TOKEN");
     }
 

@@ -31,13 +31,6 @@ class AuthControllerTest {
     private UserCRUDHandler userCRUDHandler;
 
     @Test
-    void loginPage_isAccessible() throws Exception {
-        mockMvc.perform(get("/login"))
-                .andExpect(status().isOk())
-                .andExpect(view().name("auth/login"));
-    }
-
-    @Test
     void registerPage_isAccessible() throws Exception {
         mockMvc.perform(get("/register"))
                 .andExpect(status().isOk())

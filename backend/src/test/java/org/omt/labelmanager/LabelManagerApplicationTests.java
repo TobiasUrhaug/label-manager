@@ -1,29 +1,18 @@
 package org.omt.labelmanager;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureRestTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
-import org.springframework.test.web.servlet.client.RestTestClient;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 @Testcontainers
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureRestTestClient
 class LabelManagerApplicationTests {
-
-    @LocalServerPort
-    int port;
-
-    @Autowired
-    private RestTestClient restClient;
 
     @Container
     static PostgreSQLContainer<?> postgres =
@@ -41,25 +30,6 @@ class LabelManagerApplicationTests {
 
     @Test
     void contextLoads() {
-    }
-
-    @Test
-    void loginPageLoads() {
-        restClient.get()
-                .uri("http://localhost:" + port + "/login")
-                .exchange()
-                .expectStatus().is2xxSuccessful()
-                .expectBody(String.class)
-                .consumeWith(response ->
-                        assertThat(response.getResponseBody()).contains("Login"));
-    }
-
-    @Test
-    void dashboardRedirectsToLoginWhenUnauthenticated() {
-        restClient.get()
-                .uri("http://localhost:" + port + "/dashboard")
-                .exchange()
-                .expectStatus().is3xxRedirection();
     }
 
 }
