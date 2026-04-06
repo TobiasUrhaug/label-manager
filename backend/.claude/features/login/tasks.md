@@ -12,7 +12,7 @@ In Progress
   - Writes `200 OK` with empty body; does not redirect
   - Test in `SpaLoginLogoutIT`: `POST /login` with valid credentials → `200`; response has `Set-Cookie: JSESSIONID`
 
-- [ ] **1.2** Create `SpaAuthFailureHandler` in `infrastructure/security/`
+- [x] **1.2** Create `SpaAuthFailureHandler` in `infrastructure/security/`
   - Implements `AuthenticationFailureHandler`
   - Writes `401` with `Content-Type: application/json` and body `{ "message": "Invalid username or password." }`
   - Test in `SpaLoginLogoutIT`: `POST /login` with wrong password → `401`; body matches `ErrorResponse`

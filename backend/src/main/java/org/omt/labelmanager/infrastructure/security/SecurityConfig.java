@@ -28,6 +28,7 @@ public class SecurityConfig {
                 .formLogin(form -> form
                         .loginPage("/login")
                         .successHandler(spaAuthSuccessHandler())
+                        .failureHandler(spaAuthFailureHandler())
                         .permitAll()
                 )
                 .logout(logout -> logout
@@ -41,6 +42,11 @@ public class SecurityConfig {
     @Bean
     public SpaAuthSuccessHandler spaAuthSuccessHandler() {
         return new SpaAuthSuccessHandler();
+    }
+
+    @Bean
+    public SpaAuthFailureHandler spaAuthFailureHandler() {
+        return new SpaAuthFailureHandler();
     }
 
     @Bean

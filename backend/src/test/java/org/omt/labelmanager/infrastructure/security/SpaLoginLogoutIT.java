@@ -58,6 +58,28 @@ class SpaLoginLogoutIT extends AbstractIntegrationTest {
                 .anyMatch(cookie -> cookie.startsWith("JSESSIONID="));
     }
 
+    @Test
+    void postLogin_withWrongPassword_returns401WithErrorBody() {
+        String xsrfToken = fetchXsrfToken();
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+        headers.add(HttpHeaders.COOKIE, "XSRF-TOKEN=" + xsrfToken);
+        headers.add("X-XSRF-TOKEN", xsrfToken);
+
+        MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
+        body.add("username", "login@example.com");
+        body.add("password", "wrongpassword");
+
+        ResponseEntity<String> response = restTemplate.postForEntity(
+                "/login", new HttpEntity<>(body, headers), String.class);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+        assertThat(response.getHeaders().getContentType()).isNotNull();
+        assertThat(response.getHeaders().getContentType().isCompatibleWith(MediaType.APPLICATION_JSON)).isTrue();
+        assertThat(response.getBody()).contains("message");
+    }
+
     private String fetchXsrfToken() {
         ResponseEntity<String> getResponse = restTemplate.getForEntity("/login", String.class);
         return extractCookieValue(getResponse.getHeaders(), "XSRF-TOKEN");

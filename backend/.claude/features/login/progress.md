@@ -4,10 +4,10 @@
 Implementation
 
 ## Last Completed Task
-Task 1.1 — SpaAuthSuccessHandler created and wired; SpaLoginLogoutIT passing with TestRestTemplate.
+Task 1.2 — SpaAuthFailureHandler created and wired; POST /login with wrong password → 401 + JSON error body.
 
 ## Next Action
-Developer: start Task 1.2
+Developer: start Task 1.3
 
 ## Blockers
 None.
