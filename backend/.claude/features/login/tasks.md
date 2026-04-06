@@ -17,7 +17,7 @@ In Progress
   - Writes `401` with `Content-Type: application/json` and body `{ "message": "Invalid username or password." }`
   - Test in `SpaLoginLogoutIT`: `POST /login` with wrong password → `401`; body matches `ErrorResponse`
 
-- [ ] **1.3** Create `SpaLogoutSuccessHandler` in `infrastructure/security/`
+- [x] **1.3** Create `SpaLogoutSuccessHandler` in `infrastructure/security/`
   - Implements `LogoutSuccessHandler`
   - Writes `200 OK` with empty body; does not redirect
   - Test in `SpaLoginLogoutIT`: authenticated `POST /logout` → `200`

@@ -32,7 +32,7 @@ public class SecurityConfig {
                         .permitAll()
                 )
                 .logout(logout -> logout
-                        .logoutSuccessUrl("/login?logout")
+                        .logoutSuccessHandler(spaLogoutSuccessHandler())
                         .permitAll()
                 );
 
@@ -47,6 +47,11 @@ public class SecurityConfig {
     @Bean
     public SpaAuthFailureHandler spaAuthFailureHandler() {
         return new SpaAuthFailureHandler();
+    }
+
+    @Bean
+    public SpaLogoutSuccessHandler spaLogoutSuccessHandler() {
+        return new SpaLogoutSuccessHandler();
     }
 
     @Bean
