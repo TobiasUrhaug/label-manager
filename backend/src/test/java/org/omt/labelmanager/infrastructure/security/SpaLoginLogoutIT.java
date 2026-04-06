@@ -82,6 +82,16 @@ class SpaLoginLogoutIT extends AbstractIntegrationTest {
     }
 
     @Test
+    void apiRequest_withoutSession_returns401WithJsonBody() {
+        ResponseEntity<String> response = restTemplate.getForEntity("/api/session", String.class);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+        assertThat(response.getHeaders().getContentType()).isNotNull();
+        assertThat(response.getHeaders().getContentType().isCompatibleWith(MediaType.APPLICATION_JSON)).isTrue();
+        assertThat(response.getBody()).contains("message");
+    }
+
+    @Test
     void postLogout_whenAuthenticated_returns200() {
         String jsessionId = loginAndGetSessionId("login@example.com", "password123");
         String xsrfToken = fetchXsrfTokenForSession(jsessionId);

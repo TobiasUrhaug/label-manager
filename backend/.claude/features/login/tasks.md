@@ -22,7 +22,7 @@ In Progress
   - Writes `200 OK` with empty body; does not redirect
   - Test in `SpaLoginLogoutIT`: authenticated `POST /logout` → `200`
 
-- [ ] **1.4** Wire handlers into `SecurityConfig`
+- [x] **1.4** Wire handlers into `SecurityConfig`
   - Replace `defaultSuccessUrl` with `.successHandler(spaAuthSuccessHandler())`
   - Replace `failureUrl` / default failure handling with `.failureHandler(spaAuthFailureHandler())`
   - Replace `logoutSuccessUrl` with `.logoutSuccessHandler(spaLogoutSuccessHandler())`
