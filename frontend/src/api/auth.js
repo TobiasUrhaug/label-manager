@@ -15,7 +15,17 @@ export async function login(username, password) {
   if (!res.ok) throw new Error('Login failed');
 }
 
+function getCsrfToken() {
+  return document.cookie
+    .split('; ')
+    .find(row => row.startsWith('XSRF-TOKEN='))
+    ?.split('=')[1];
+}
+
 export async function logout() {
-  const res = await fetch('/logout', { method: 'POST' });
+  const res = await fetch('/logout', {
+    method: 'POST',
+    headers: { 'X-XSRF-TOKEN': getCsrfToken() ?? '' },
+  });
   if (!res.ok) throw new Error('Logout failed');
 }
