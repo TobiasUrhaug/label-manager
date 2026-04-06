@@ -152,7 +152,7 @@ describe('LoginPage', () => {
       await user.type(screen.getByLabelText('Password'), 'wrongpassword');
       await user.click(screen.getByRole('button', { name: 'Log in' }));
 
-      expect(await screen.findByText('Invalid username or password.')).toBeInTheDocument();
+      expect(await screen.findByText('Invalid credentials.')).toBeInTheDocument();
     });
 
     it('clears both fields after a 401 error', async () => {
@@ -164,7 +164,7 @@ describe('LoginPage', () => {
       await user.type(screen.getByLabelText('Password'), 'wrongpassword');
       await user.click(screen.getByRole('button', { name: 'Log in' }));
 
-      await screen.findByText('Invalid username or password.');
+      await screen.findByText('Invalid credentials.');
 
       expect(screen.getByLabelText('Username')).toHaveValue('');
       expect(screen.getByLabelText('Password')).toHaveValue('');
@@ -179,7 +179,7 @@ describe('LoginPage', () => {
       await user.type(screen.getByLabelText('Password'), 'wrongpassword');
       await user.click(screen.getByRole('button', { name: 'Log in' }));
 
-      await screen.findByText('Invalid username or password.');
+      await screen.findByText('Invalid credentials.');
 
       expect(screen.getByLabelText('Username')).toHaveFocus();
     });

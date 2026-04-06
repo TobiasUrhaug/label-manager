@@ -21,7 +21,7 @@ export default function LoginPage() {
       navigate(location.state?.from ?? '/');
     },
     onError: () => {
-      setLoginError('Invalid username or password.');
+      setLoginError('Invalid credentials.');
       setUsername('');
       setPassword('');
       usernameRef.current?.focus();

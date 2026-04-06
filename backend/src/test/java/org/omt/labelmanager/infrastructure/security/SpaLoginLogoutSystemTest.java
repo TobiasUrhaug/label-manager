@@ -79,7 +79,7 @@ class SpaLoginLogoutSystemTest extends AbstractIntegrationTest {
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
         assertThat(response.getHeaders().getContentType()).isNotNull();
         assertThat(response.getHeaders().getContentType().isCompatibleWith(MediaType.APPLICATION_JSON)).isTrue();
-        assertThat(response.getBody()).contains("Invalid username or password.");
+        assertThat(response.getBody()).contains("Invalid credentials.");
     }
 
     @Test

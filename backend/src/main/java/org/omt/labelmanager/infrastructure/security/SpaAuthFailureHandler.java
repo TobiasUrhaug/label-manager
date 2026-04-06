@@ -18,6 +18,6 @@ public class SpaAuthFailureHandler implements AuthenticationFailureHandler {
             AuthenticationException exception) throws IOException {
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         response.setContentType("application/json;charset=UTF-8");
-        MAPPER.writeValue(response.getWriter(), new ErrorResponse("Invalid username or password."));
+        MAPPER.writeValue(response.getWriter(), new ErrorResponse("Invalid credentials."));
     }
 }
