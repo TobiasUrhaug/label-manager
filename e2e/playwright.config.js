@@ -1,6 +1,6 @@
 import { defineConfig, devices } from '@playwright/test';
 
-const baseURL = process.env.E2E_TARGET_URL || 'http://localhost:8080';
+const baseURL = process.env.E2E_TARGET_URL || 'http://localhost:5173';
 const isLocalhost = baseURL.includes('localhost');
 
 export default defineConfig({
@@ -29,13 +29,23 @@ export default defineConfig({
       use: { ...devices['Desktop Safari'] },
     },
   ],
-  // Only start local server when not testing against external URL
+  // Only start local servers when not testing against external URL
   ...(isLocalhost && {
-    webServer: {
-      command: '../backend/gradlew bootRun',
-      url: 'http://localhost:8080',
-      reuseExistingServer: !process.env.CI,
-      timeout: 120000,
-    },
+    webServer: [
+      {
+        command: './gradlew bootRun',
+        cwd: '../backend',
+        url: 'http://localhost:8080',
+        reuseExistingServer: !process.env.CI,
+        timeout: 120000,
+      },
+      {
+        command: 'npm run dev',
+        cwd: '../frontend',
+        url: 'http://localhost:5173',
+        reuseExistingServer: !process.env.CI,
+        timeout: 30000,
+      },
+    ],
   }),
 });
