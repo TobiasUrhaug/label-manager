@@ -16,9 +16,14 @@ vi.mock('../api/auth', () => ({
 import { useAuth } from '../context/AuthContext';
 import { login } from '../api/auth';
 
-function renderLoginPage(initialEntry = '/login', authValue = { user: null, isLoading: false }) {
+function renderLoginPage(
+  initialEntry = '/login',
+  authValue = { user: null, isLoading: false },
+) {
   useAuth.mockReturnValue(authValue);
-  const queryClient = new QueryClient({ defaultOptions: { mutations: { retry: false } } });
+  const queryClient = new QueryClient({
+    defaultOptions: { mutations: { retry: false } },
+  });
   return render(
     <QueryClientProvider client={queryClient}>
       <MemoryRouter initialEntries={[initialEntry]}>
@@ -27,7 +32,7 @@ function renderLoginPage(initialEntry = '/login', authValue = { user: null, isLo
           <Route path="/" element={<div>Home page</div>} />
         </Routes>
       </MemoryRouter>
-    </QueryClientProvider>
+    </QueryClientProvider>,
   );
 }
 
@@ -49,7 +54,9 @@ describe('LoginPage', () => {
 
     it('renders the Log in button', () => {
       renderLoginPage();
-      expect(screen.getByRole('button', { name: 'Log in' })).toBeInTheDocument();
+      expect(
+        screen.getByRole('button', { name: 'Log in' }),
+      ).toBeInTheDocument();
     });
 
     it('username field has autofocus', () => {
@@ -60,9 +67,14 @@ describe('LoginPage', () => {
 
   describe('already-authenticated redirect', () => {
     it('redirects to / when user is already authenticated', () => {
-      renderLoginPage('/login', { user: { username: 'alice' }, isLoading: false });
+      renderLoginPage('/login', {
+        user: { username: 'alice' },
+        isLoading: false,
+      });
       expect(screen.getByText('Home page')).toBeInTheDocument();
-      expect(screen.queryByRole('button', { name: 'Log in' })).not.toBeInTheDocument();
+      expect(
+        screen.queryByRole('button', { name: 'Log in' }),
+      ).not.toBeInTheDocument();
     });
   });
 
@@ -98,7 +110,11 @@ describe('LoginPage', () => {
     it('calls setUser with the submitted username even if the field changed after submission', async () => {
       const setUser = vi.fn();
       let resolveLogin;
-      login.mockReturnValue(new Promise((resolve) => { resolveLogin = resolve; }));
+      login.mockReturnValue(
+        new Promise((resolve) => {
+          resolveLogin = resolve;
+        }),
+      );
       const user = userEvent.setup();
       renderLoginPage('/login', { user: null, isLoading: false, setUser });
 
@@ -121,16 +137,22 @@ describe('LoginPage', () => {
       const setUser = vi.fn();
       useAuth.mockReturnValue({ user: null, isLoading: false, setUser });
       login.mockResolvedValue({});
-      const queryClient = new QueryClient({ defaultOptions: { mutations: { retry: false } } });
+      const queryClient = new QueryClient({
+        defaultOptions: { mutations: { retry: false } },
+      });
       render(
         <QueryClientProvider client={queryClient}>
-          <MemoryRouter initialEntries={[{ pathname: '/login', state: { from: '/labels' } }]}>
+          <MemoryRouter
+            initialEntries={[
+              { pathname: '/login', state: { from: '/labels' } },
+            ]}
+          >
             <Routes>
               <Route path="/login" element={<LoginPage />} />
               <Route path="/labels" element={<div>Labels page</div>} />
             </Routes>
           </MemoryRouter>
-        </QueryClientProvider>
+        </QueryClientProvider>,
       );
       const user = userEvent.setup();
 
@@ -152,7 +174,9 @@ describe('LoginPage', () => {
       await user.type(screen.getByLabelText('Password'), 'wrongpassword');
       await user.click(screen.getByRole('button', { name: 'Log in' }));
 
-      expect(await screen.findByText('Invalid credentials.')).toBeInTheDocument();
+      expect(
+        await screen.findByText('Invalid credentials.'),
+      ).toBeInTheDocument();
     });
 
     it('clears both fields after a 401 error', async () => {

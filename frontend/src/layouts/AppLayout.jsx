@@ -24,7 +24,9 @@ export default function AppLayout() {
             to="/"
             end
             className={({ isActive }) =>
-              isActive ? 'text-blue-600 font-medium' : 'text-gray-600 hover:text-gray-900'
+              isActive
+                ? 'text-blue-600 font-medium'
+                : 'text-gray-600 hover:text-gray-900'
             }
           >
             Home

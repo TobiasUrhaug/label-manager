@@ -24,7 +24,7 @@ export async function login(username, password) {
 function getCsrfToken() {
   return document.cookie
     .split('; ')
-    .find(row => row.startsWith('XSRF-TOKEN='))
+    .find((row) => row.startsWith('XSRF-TOKEN='))
     ?.split('=')[1];
 }
 

@@ -12,9 +12,13 @@ React SPA. Introduced as part of the gradual migration away from Thymeleaf.
 
 ```bash
 npm install
-npm run dev       # Dev server at http://localhost:5173
-npm run build     # Production build
-npm run test      # Unit tests
+npm run dev           # Dev server at http://localhost:5173
+npm run build         # Production build
+npm run test          # Unit tests
+npm run lint          # ESLint
+npm run lint:fix      # ESLint with auto-fix
+npm run format:check  # Prettier check
+npm run format        # Prettier auto-fix
 ```
 
 ## API Communication
