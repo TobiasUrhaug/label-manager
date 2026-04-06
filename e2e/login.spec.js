@@ -1,38 +1,44 @@
 import { test, expect } from '@playwright/test';
 
-const BACKEND_URL = 'http://localhost:8080';
+const DEFAULT_PASSWORD = 'password123';
 
-const uniqueEmail = () => `test-${Date.now()}@example.com`;
+function apiBaseUrl(baseURL) {
+  const url = new URL(baseURL);
+  url.port = '8080';
+  return url.origin;
+}
 
-async function registerUser(request, email, password = 'password123') {
-  const response = await request.post(`${BACKEND_URL}/api/auth/register`, {
+const uniqueEmail = () => `test-${crypto.randomUUID()}@example.com`;
+
+async function registerUser(request, baseURL, email, password = DEFAULT_PASSWORD) {
+  const response = await request.post(`${apiBaseUrl(baseURL)}/api/auth/register`, {
     data: { email, password, displayName: 'Test User' },
   });
   expect(response.status()).toBe(201);
 }
 
-async function loginViaUI(page, email, password = 'password123') {
+async function loginViaUI(page, email, password = DEFAULT_PASSWORD) {
   await page.goto('/login');
-  await page.getByLabel('Username').fill(email);
-  await page.getByLabel('Password').fill(password);
+  await page.getByTestId('login-email').fill(email);
+  await page.getByTestId('login-password').fill(password);
   await Promise.all([
     page.waitForURL('/'),
-    page.getByRole('button', { name: 'Log in' }).click(),
+    page.getByTestId('login-submit').click(),
   ]);
 }
 
 test.describe('Login', () => {
 
-  test('AC-01: successful login redirects to home', async ({ page, request }) => {
+  test('AC-01: successful login redirects to home', async ({ page, request, baseURL }) => {
     const email = uniqueEmail();
-    await registerUser(request, email);
+    await registerUser(request, baseURL, email);
 
     await page.goto('/login');
-    await page.getByLabel('Username').fill(email);
-    await page.getByLabel('Password').fill('password123');
+    await page.getByTestId('login-email').fill(email);
+    await page.getByTestId('login-password').fill(DEFAULT_PASSWORD);
     await Promise.all([
       page.waitForURL('/'),
-      page.getByRole('button', { name: 'Log in' }).click(),
+      page.getByTestId('login-submit').click(),
     ]);
 
     await expect(page).toHaveURL('/');
@@ -40,23 +46,24 @@ test.describe('Login', () => {
 
   test('AC-02: wrong credentials shows error and stays on login page', async ({ page }) => {
     await page.goto('/login');
-    await page.getByLabel('Username').fill('nobody@example.com');
-    await page.getByLabel('Password').fill('wrongpassword');
-    await page.getByRole('button', { name: 'Log in' }).click();
+    await page.getByTestId('login-email').fill('nobody@example.com');
+    await page.getByTestId('login-password').fill('wrongpassword');
+    await page.getByTestId('login-submit').click();
 
     await expect(page).toHaveURL(/\/login/);
-    await expect(page.getByRole('alert')).toBeVisible();
+    const error = page.getByTestId('login-error');
+    await expect(error).toBeVisible();
     // Error must not reveal which field was wrong
-    await expect(page.getByRole('alert')).not.toContainText(/username/i);
-    await expect(page.getByRole('alert')).not.toContainText(/password/i);
+    await expect(error).not.toContainText(/username/i);
+    await expect(error).not.toContainText(/password/i);
   });
 
-  test('AC-04: logout invalidates session and redirects to login', async ({ page, request }) => {
+  test('AC-04: logout invalidates session and redirects to login', async ({ page, request, baseURL }) => {
     const email = uniqueEmail();
-    await registerUser(request, email);
+    await registerUser(request, baseURL, email);
     await loginViaUI(page, email);
 
-    await page.getByRole('button', { name: 'Log out' }).click();
+    await page.getByTestId('logout-button').click();
     await expect(page).toHaveURL(/\/login/);
 
     // Confirm session is gone — protected route now redirects back to login
@@ -69,9 +76,9 @@ test.describe('Login', () => {
     await expect(page).toHaveURL(/\/login/);
   });
 
-  test('AC-06: navigating to /login while authenticated redirects away', async ({ page, request }) => {
+  test('AC-06: navigating to /login while authenticated redirects away', async ({ page, request, baseURL }) => {
     const email = uniqueEmail();
-    await registerUser(request, email);
+    await registerUser(request, baseURL, email);
     await loginViaUI(page, email);
 
     await page.goto('/login');

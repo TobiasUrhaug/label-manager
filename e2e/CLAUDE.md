@@ -29,9 +29,7 @@ E2E_TARGET_URL=https://staging.example.com npm run test
 
 | File | What it covers |
 |------|----------------|
-| `smoke.spec.js` | Basic availability and login |
-| `critical-paths.spec.js` | Core user journeys |
-| `sales.spec.js` | Sales registration flow |
+| `login.spec.js` | Login, logout, and auth redirect flows |
 
 ## Conventions
 

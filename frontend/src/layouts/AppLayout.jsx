@@ -31,6 +31,7 @@ export default function AppLayout() {
           </NavLink>
           <button
             type="button"
+            data-testid="logout-button"
             onClick={() => logoutMutation.mutate()}
             className="ml-auto text-sm text-gray-600 hover:text-gray-900"
           >
