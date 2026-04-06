@@ -76,6 +76,24 @@ test.describe('Login', () => {
     await expect(page).toHaveURL(/\/login/);
   });
 
+  test('login succeeds on first attempt after logout', async ({ page, request, baseURL }) => {
+    const email = uniqueEmail();
+    await registerUser(request, baseURL, email);
+    await loginViaUI(page, email);
+
+    // Log out
+    await page.getByTestId('logout-button').click();
+    await expect(page).toHaveURL(/\/login/);
+
+    // First login attempt after logout should succeed
+    await page.getByTestId('login-email').fill(email);
+    await page.getByTestId('login-password').fill(DEFAULT_PASSWORD);
+    await page.getByTestId('login-submit').click();
+
+    await expect(page).toHaveURL('/');
+    await expect(page.getByTestId('login-error')).not.toBeVisible();
+  });
+
   test('AC-06: navigating to /login while authenticated redirects away', async ({ page, request, baseURL }) => {
     const email = uniqueEmail();
     await registerUser(request, baseURL, email);

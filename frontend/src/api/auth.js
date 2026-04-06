@@ -5,6 +5,9 @@ export async function getSession() {
 }
 
 export async function login(username, password) {
+  if (!getCsrfToken()) {
+    await fetch('/api/session');
+  }
   const body = new URLSearchParams({ username, password });
   const res = await fetch('/login', {
     method: 'POST',
