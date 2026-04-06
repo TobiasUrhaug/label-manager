@@ -32,7 +32,7 @@ In Progress
 
 ### 2. Session endpoint
 
-- [ ] **2.1** Create `SessionController` in `identity/api/user/`
+- [x] **2.1** Create `SessionController` in `identity/api/user/`
   - `GET /api/session` — reads `Principal` from `SecurityContext`, returns `200` with `SessionResponse { username }`
   - Uses a private record `SessionResponse(String username)` declared inside the controller file
   - Test in `SessionControllerTest` (`@WebMvcTest`):

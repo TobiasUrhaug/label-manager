@@ -1,13 +1,13 @@
 # Progress: login
 
 ## Current Phase
-Implementation
+Review
 
 ## Last Completed Task
-Task 1.4 — SpaApiAuthenticationEntryPoint created; unauthenticated GET /api/** → 401 JSON. AuthControllerTest verified passing.
+Developer addressed all Review Round 1 comments — ready for re-review.
 
 ## Next Action
-Developer: start Task 2.1
+Reviewer: re-review comments.md and resolve.
 
 ## Blockers
 None.

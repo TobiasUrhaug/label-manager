@@ -6,9 +6,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
 
@@ -60,16 +58,8 @@ public class SecurityConfig {
     }
 
     @Bean
-    public AuthenticationEntryPoint authenticationEntryPoint() {
-        SpaApiAuthenticationEntryPoint apiEntryPoint = new SpaApiAuthenticationEntryPoint();
-        LoginUrlAuthenticationEntryPoint loginEntryPoint = new LoginUrlAuthenticationEntryPoint("/login");
-        return (request, response, authException) -> {
-            if (request.getRequestURI().startsWith("/api/")) {
-                apiEntryPoint.commence(request, response, authException);
-            } else {
-                loginEntryPoint.commence(request, response, authException);
-            }
-        };
+    public SpaAwareAuthenticationEntryPoint authenticationEntryPoint() {
+        return new SpaAwareAuthenticationEntryPoint();
     }
 
     @Bean

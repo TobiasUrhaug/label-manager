@@ -6,6 +6,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.omt.labelmanager.AbstractIntegrationTest;
 import org.omt.labelmanager.identity.application.UserCRUDHandler;
+import org.omt.labelmanager.identity.domain.user.EmailAlreadyExistsException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureTestRestTemplate;
 import org.springframework.boot.resttestclient.TestRestTemplate;
@@ -21,7 +22,7 @@ import org.springframework.util.MultiValueMap;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureTestRestTemplate
-class SpaLoginLogoutIT extends AbstractIntegrationTest {
+class SpaLoginLogoutSystemTest extends AbstractIntegrationTest {
 
     @Autowired
     private TestRestTemplate restTemplate;
@@ -33,8 +34,8 @@ class SpaLoginLogoutIT extends AbstractIntegrationTest {
     void createTestUser() {
         try {
             userCRUDHandler.registerUser("login@example.com", "password123", "Login User");
-        } catch (Exception ignored) {
-            // user may already exist from a previous test run
+        } catch (EmailAlreadyExistsException ignored) {
+            // user already exists from a previous test run
         }
     }
 
@@ -78,7 +79,7 @@ class SpaLoginLogoutIT extends AbstractIntegrationTest {
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
         assertThat(response.getHeaders().getContentType()).isNotNull();
         assertThat(response.getHeaders().getContentType().isCompatibleWith(MediaType.APPLICATION_JSON)).isTrue();
-        assertThat(response.getBody()).contains("message");
+        assertThat(response.getBody()).contains("Invalid username or password.");
     }
 
     @Test
@@ -92,7 +93,7 @@ class SpaLoginLogoutIT extends AbstractIntegrationTest {
     }
 
     @Test
-    void postLogout_whenAuthenticated_returns200() {
+    void postLogout_whenAuthenticated_returns200AndInvalidatesSession() {
         String jsessionId = loginAndGetSessionId("login@example.com", "password123");
         String xsrfToken = fetchXsrfTokenForSession(jsessionId);
 
@@ -105,6 +106,12 @@ class SpaLoginLogoutIT extends AbstractIntegrationTest {
                 "/logout", HttpMethod.POST, new HttpEntity<>(logoutHeaders), Void.class);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+
+        HttpHeaders staleHeaders = new HttpHeaders();
+        staleHeaders.add(HttpHeaders.COOKIE, "JSESSIONID=" + jsessionId);
+        ResponseEntity<String> staleResponse = restTemplate.exchange(
+                "/api/session", HttpMethod.GET, new HttpEntity<>(staleHeaders), String.class);
+        assertThat(staleResponse.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
     }
 
     private String loginAndGetSessionId(String username, String password) {
