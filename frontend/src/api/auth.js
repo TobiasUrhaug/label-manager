@@ -8,7 +8,10 @@ export async function login(username, password) {
   const body = new URLSearchParams({ username, password });
   const res = await fetch('/login', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+      'X-XSRF-TOKEN': getCsrfToken() ?? '',
+    },
     body: body.toString(),
   });
   if (res.status === 401) throw { status: 401 };
