@@ -1,0 +1,73 @@
+package org.omt.labelmanager.infrastructure.security;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.omt.labelmanager.AbstractIntegrationTest;
+import org.omt.labelmanager.identity.application.UserCRUDHandler;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureTestRestTemplate;
+import org.springframework.boot.resttestclient.TestRestTemplate;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@AutoConfigureTestRestTemplate
+class SpaLoginLogoutIT extends AbstractIntegrationTest {
+
+    @Autowired
+    private TestRestTemplate restTemplate;
+
+    @Autowired
+    private UserCRUDHandler userCRUDHandler;
+
+    @BeforeEach
+    void createTestUser() {
+        try {
+            userCRUDHandler.registerUser("login@example.com", "password123", "Login User");
+        } catch (Exception ignored) {
+            // user may already exist from a previous test run
+        }
+    }
+
+    @Test
+    void postLogin_withValidCredentials_returns200AndSessionCookie() {
+        String xsrfToken = fetchXsrfToken();
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+        headers.add(HttpHeaders.COOKIE, "XSRF-TOKEN=" + xsrfToken);
+        headers.add("X-XSRF-TOKEN", xsrfToken);
+
+        MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
+        body.add("username", "login@example.com");
+        body.add("password", "password123");
+
+        ResponseEntity<Void> response = restTemplate.postForEntity(
+                "/login", new HttpEntity<>(body, headers), Void.class);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getHeaders().get(HttpHeaders.SET_COOKIE))
+                .anyMatch(cookie -> cookie.startsWith("JSESSIONID="));
+    }
+
+    private String fetchXsrfToken() {
+        ResponseEntity<String> getResponse = restTemplate.getForEntity("/login", String.class);
+        return extractCookieValue(getResponse.getHeaders(), "XSRF-TOKEN");
+    }
+
+    private String extractCookieValue(HttpHeaders headers, String cookieName) {
+        return headers.get(HttpHeaders.SET_COOKIE).stream()
+                .filter(c -> c.startsWith(cookieName + "="))
+                .map(c -> c.split(";")[0].substring(cookieName.length() + 1))
+                .findFirst()
+                .orElseThrow(() -> new AssertionError("Cookie not found: " + cookieName));
+    }
+}

@@ -1,0 +1,17 @@
+# Progress: login
+
+## Current Phase
+Implementation
+
+## Last Completed Task
+Task 1.1 — SpaAuthSuccessHandler created and wired; SpaLoginLogoutIT passing with TestRestTemplate.
+
+## Next Action
+Developer: start Task 1.2
+
+## Blockers
+None.
+
+## Session Log
+- 2026-04-04: Architect wrote spec.md and tasks.md. Feature docs from docs/features/login/ and contracts/openapi.yaml used as inputs. No Analyst phase needed — BA/UX docs already existed.
+- 2026-04-06: Task 1.1 done. Added spring-boot-resttestclient dependency (Spring Boot 4 moved TestRestTemplate). Pulled CSRF cookie switch (task 1.4) forward — needed for testable login flow with TestRestTemplate. Used CsrfTokenRequestAttributeHandler (no XOR masking) for SPA compatibility. Handlers declared as @Bean methods in SecurityConfig rather than @Component to avoid @WebMvcTest context issues.
