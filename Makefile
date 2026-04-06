@@ -16,6 +16,14 @@ lint:
 test-js:
 	cd backend && npm run test
 
+# Lint frontend (ESLint + Prettier)
+lint-frontend:
+	cd frontend && npm run lint && npm run format:check
+
+# Fix frontend lint/format issues
+lint-frontend-fix:
+	cd frontend && npm run lint:fix && npm run format
+
 # Run frontend dev server
 start-frontend:
 	cd frontend && npm run dev

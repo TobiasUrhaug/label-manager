@@ -17,15 +17,20 @@ vi.mock('./api/auth', () => ({
 
 import { useAuth } from './context/AuthContext';
 
-function renderApp(initialEntry = '/', authValue = { user: null, isLoading: false }) {
+function renderApp(
+  initialEntry = '/',
+  authValue = { user: null, isLoading: false },
+) {
   useAuth.mockReturnValue(authValue);
-  const queryClient = new QueryClient({ defaultOptions: { mutations: { retry: false } } });
+  const queryClient = new QueryClient({
+    defaultOptions: { mutations: { retry: false } },
+  });
   return render(
     <QueryClientProvider client={queryClient}>
       <MemoryRouter initialEntries={[initialEntry]}>
         <App />
       </MemoryRouter>
-    </QueryClientProvider>
+    </QueryClientProvider>,
   );
 }
 
@@ -46,7 +51,9 @@ describe('App routing', () => {
 
   it('authenticated user navigating to /login is redirected to /', () => {
     renderApp('/login', { user: { username: 'alice' }, isLoading: false });
-    expect(screen.queryByRole('button', { name: 'Log in' })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: 'Log in' }),
+    ).not.toBeInTheDocument();
     expect(screen.getByText('Manage your labels here.')).toBeInTheDocument();
   });
 });

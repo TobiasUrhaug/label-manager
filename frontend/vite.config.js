@@ -9,11 +9,11 @@ export default defineConfig({
       '/api': 'http://localhost:8080',
       '/login': {
         target: 'http://localhost:8080',
-        bypass: (req) => req.method === 'GET' ? req.url : undefined,
+        bypass: (req) => (req.method === 'GET' ? req.url : undefined),
       },
       '/logout': {
         target: 'http://localhost:8080',
-        bypass: (req) => req.method === 'GET' ? req.url : undefined,
+        bypass: (req) => (req.method === 'GET' ? req.url : undefined),
       },
     },
   },

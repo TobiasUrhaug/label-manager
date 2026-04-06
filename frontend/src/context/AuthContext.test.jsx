@@ -23,7 +23,7 @@ describe('AuthContext', () => {
     render(
       <AuthProvider>
         <TestConsumer />
-      </AuthProvider>
+      </AuthProvider>,
     );
 
     expect(screen.getByText('loading')).toBeInTheDocument();
@@ -39,7 +39,7 @@ describe('AuthContext', () => {
     render(
       <AuthProvider>
         <TestConsumer />
-      </AuthProvider>
+      </AuthProvider>,
     );
 
     await waitFor(() => {
@@ -49,12 +49,16 @@ describe('AuthContext', () => {
 
   it('shows loading while getSession is pending', async () => {
     let resolve;
-    getSession.mockReturnValue(new Promise((res) => { resolve = res; }));
+    getSession.mockReturnValue(
+      new Promise((res) => {
+        resolve = res;
+      }),
+    );
 
     render(
       <AuthProvider>
         <TestConsumer />
-      </AuthProvider>
+      </AuthProvider>,
     );
 
     expect(screen.getByText('loading')).toBeInTheDocument();

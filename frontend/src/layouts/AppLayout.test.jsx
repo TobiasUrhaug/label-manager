@@ -16,9 +16,17 @@ vi.mock('../api/auth', () => ({
 import { useAuth } from '../context/AuthContext';
 import { logout } from '../api/auth';
 
-function renderAppLayout(authValue = { user: { username: 'alice' }, setUser: vi.fn(), isLoading: false }) {
+function renderAppLayout(
+  authValue = {
+    user: { username: 'alice' },
+    setUser: vi.fn(),
+    isLoading: false,
+  },
+) {
   useAuth.mockReturnValue(authValue);
-  const queryClient = new QueryClient({ defaultOptions: { mutations: { retry: false } } });
+  const queryClient = new QueryClient({
+    defaultOptions: { mutations: { retry: false } },
+  });
   return render(
     <QueryClientProvider client={queryClient}>
       <MemoryRouter initialEntries={['/']}>
@@ -29,7 +37,7 @@ function renderAppLayout(authValue = { user: { username: 'alice' }, setUser: vi.
           <Route path="/login" element={<div>Login page</div>} />
         </Routes>
       </MemoryRouter>
-    </QueryClientProvider>
+    </QueryClientProvider>,
   );
 }
 

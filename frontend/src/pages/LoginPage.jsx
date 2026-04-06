@@ -40,17 +40,26 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen bg-neutral-100 flex items-center justify-center">
       <div className="bg-white rounded-lg shadow-sm border border-neutral-200 w-full max-w-sm mx-auto p-8">
-        <h1 className="text-xl font-semibold text-gray-900 text-center mb-6">Label Manager</h1>
+        <h1 className="text-xl font-semibold text-gray-900 text-center mb-6">
+          Label Manager
+        </h1>
 
         {loginError && (
-          <p role="alert" data-testid="login-error" className="text-red-600 text-sm mb-4">
+          <p
+            role="alert"
+            data-testid="login-error"
+            className="text-red-600 text-sm mb-4"
+          >
             {loginError}
           </p>
         )}
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <div className="flex flex-col gap-1">
-            <label htmlFor="username" className="text-sm font-medium text-gray-700">
+            <label
+              htmlFor="username"
+              className="text-sm font-medium text-gray-700"
+            >
               Username
             </label>
             <input
@@ -67,7 +76,10 @@ export default function LoginPage() {
           </div>
 
           <div className="flex flex-col gap-1">
-            <label htmlFor="password" className="text-sm font-medium text-gray-700">
+            <label
+              htmlFor="password"
+              className="text-sm font-medium text-gray-700"
+            >
               Password
             </label>
             <input

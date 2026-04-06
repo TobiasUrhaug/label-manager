@@ -24,7 +24,7 @@ function renderWithRouter(initialEntry = '/') {
         </Route>
         <Route path="/login" element={<div>Login page</div>} />
       </Routes>
-    </MemoryRouter>
+    </MemoryRouter>,
   );
 }
 
@@ -52,10 +52,12 @@ describe('RequireAuth', () => {
           </Route>
           <Route
             path="/login"
-            element={<CaptureLocation onCapture={(loc) => (capturedLocation = loc)} />}
+            element={
+              <CaptureLocation onCapture={(loc) => (capturedLocation = loc)} />
+            }
           />
         </Routes>
-      </MemoryRouter>
+      </MemoryRouter>,
     );
     expect(capturedLocation?.state?.from).toBe('/some-path');
   });
