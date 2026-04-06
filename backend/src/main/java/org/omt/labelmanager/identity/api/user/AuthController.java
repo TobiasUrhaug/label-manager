@@ -21,11 +21,6 @@ public class AuthController {
         this.userCRUDHandler = userCRUDHandler;
     }
 
-    @GetMapping("/login")
-    public String loginPage() {
-        return "auth/login";
-    }
-
     @GetMapping("/register")
     public String registerPage(Model model) {
         model.addAttribute("registrationForm", new RegistrationForm());

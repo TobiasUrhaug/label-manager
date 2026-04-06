@@ -24,6 +24,9 @@ feature in `docs/features/<feature-name>/`.
 ## Scope
 
 You work primarily inside `docs/features/`. You may also read:
+- `docs/ux/app-flow.md` — the app-wide UX reference: navigation structure, domain model,
+  screen inventory, and primary user flows. **Read this first** to ensure feature flows and
+  routes are consistent with the overall app design.
 - `docs/features/*/` — existing feature documentation (BA docs and UX docs), to ensure
   consistency and understand existing screen patterns
 - `contracts/openapi.yaml` — to understand what data is available from the API

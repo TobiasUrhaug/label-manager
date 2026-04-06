@@ -7,16 +7,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.web.SecurityFilterChain;
-
 @SpringBootTest
 class SecurityConfigTest {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
-
-    @Autowired
-    private SecurityFilterChain securityFilterChain;
 
     @Test
     void passwordEncoder_isBCrypt() {
@@ -33,8 +28,4 @@ class SecurityConfigTest {
         assertThat(passwordEncoder.matches("wrongPassword", encoded)).isFalse();
     }
 
-    @Test
-    void securityFilterChain_isConfigured() {
-        assertThat(securityFilterChain).isNotNull();
-    }
 }

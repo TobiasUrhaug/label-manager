@@ -15,21 +15,48 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
+                .csrf(csrf -> csrf
+                        .spa()
+                        .ignoringRequestMatchers("/api/auth/register")
+                )
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/login", "/register", "/css/**", "/js/**").permitAll()
+                        .requestMatchers("/login", "/register", "/api/auth/register", "/css/**", "/js/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .formLogin(form -> form
-                        .loginPage("/login")
-                        .defaultSuccessUrl("/dashboard", true)
+                        .successHandler(spaAuthSuccessHandler())
+                        .failureHandler(spaAuthFailureHandler())
                         .permitAll()
                 )
                 .logout(logout -> logout
-                        .logoutSuccessUrl("/login?logout")
+                        .logoutSuccessHandler(spaLogoutSuccessHandler())
                         .permitAll()
+                )
+                .exceptionHandling(ex -> ex
+                        .authenticationEntryPoint(authenticationEntryPoint())
                 );
 
         return http.build();
+    }
+
+    @Bean
+    public SpaAuthSuccessHandler spaAuthSuccessHandler() {
+        return new SpaAuthSuccessHandler();
+    }
+
+    @Bean
+    public SpaAuthFailureHandler spaAuthFailureHandler() {
+        return new SpaAuthFailureHandler();
+    }
+
+    @Bean
+    public SpaLogoutSuccessHandler spaLogoutSuccessHandler() {
+        return new SpaLogoutSuccessHandler();
+    }
+
+    @Bean
+    public SpaApiAuthenticationEntryPoint authenticationEntryPoint() {
+        return new SpaApiAuthenticationEntryPoint();
     }
 
     @Bean
