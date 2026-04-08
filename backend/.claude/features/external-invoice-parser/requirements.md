@@ -187,14 +187,15 @@ No new reporting requirements for this feature.
 - **No internal extraction code remains**: `OcrPort`, `InvoiceParserPort`, and `ExtractInvoiceDataUseCase` are deleted from the codebase.
 - **No regressions**: All existing tests in the cost registration flow continue to pass.
 
-## Open Questions for Solution Architect
-- [ ] What is the exact API contract of the external service? (endpoint path, authentication header name, request format — multipart or base64-encoded body, response JSON field names and types)
-- [ ] Should the application fail fast at startup when `INVOICE_PARSER_URL` or `INVOICE_PARSER_API_KEY` are missing, or should it start but disable the feature with a warning?
-- [ ] Are the existing tests for the removed classes (`ExtractInvoiceDataUseCaseTest`, `ExtractedInvoiceDataTest`, and the port-related tests) to be deleted, and what new tests should replace them?
+## Resolved Questions
+
+- [x] **External service API contract** — `POST /api/v1/extract`, multipart field `file`, auth via `X-Api-Key` header, JSON response with `invoiceDate`, `invoiceReference`, `netAmount`, `vatAmount`, `totalAmount` (each a `{amount, currency}` object or null). Full contract in `context.md`.
+- [x] **Missing env vars at startup** — Application must **fail fast**: refuse to start with a clear error if `INVOICE_PARSER_URL` or `INVOICE_PARSER_API_KEY` are absent.
+- [x] **Existing tests** — All tests for deleted classes (`ExtractInvoiceDataUseCase`, `OcrPort`, `InvoiceParserPort`, Tesseract and Ollama adapters) are to be **deleted**. No porting needed.
 
 ## Assumptions
-- The external service accepts the document as a multipart file upload (matching how documents arrive at this app) — **needs validation against the external service's API docs**.
-- The external service returns a JSON object that maps to the fields in `ExtractedInvoiceData` — **exact field names TBD**.
-- The API key is passed as an HTTP request header — **needs confirmation**.
-- Partial results from the external service (some fields null) are acceptable and expected.
-- The existing content type validation (PDF, PNG, JPEG only) and empty-file check in `InvoiceExtractionController` are retained as-is.
+- The external service accepts the document as a multipart file upload — **confirmed**.
+- The API key is passed as `X-Api-Key` request header — **confirmed**.
+- Partial results (some fields null) are acceptable and expected — **confirmed**.
+- The external service only accepts PDF (not PNG/JPEG). The Architect must decide whether to keep PNG/JPEG validation in this app (rejecting before forwarding) or drop those types from the accepted set entirely.
+- `vatRate` in `ExtractedInvoiceData` will be `null` — the external service has no direct `vatRate` field. The Architect may optionally calculate it from `netAmount` and `vatAmount` if both are present.
