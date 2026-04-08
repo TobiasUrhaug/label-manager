@@ -117,7 +117,7 @@ Test cases (write failing test → implement → pass):
 4. External service returns HTTP 503 → returns `ExtractedInvoiceData.empty()`
 5. Network error (connection refused, simulated by server.expect throwing) → returns `ExtractedInvoiceData.empty()`
 
-- [ ] Task 2: Create `ExternalInvoiceResponse` and `ExternalInvoiceParserAdapter` with full response mapping and graceful degradation (TDD with `MockRestServiceServer`)
+- [x] Task 2: Create `ExternalInvoiceResponse` and `ExternalInvoiceParserAdapter` with full response mapping and graceful degradation (TDD with `MockRestServiceServer`)
 
 ---
 

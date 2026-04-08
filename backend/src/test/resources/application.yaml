@@ -1,0 +1,4 @@
+invoice:
+  parser:
+    url: http://test-invoice-parser
+    api-key: test-api-key
