@@ -70,7 +70,7 @@ class InvoiceExtractionControllerTest {
     }
 
     @Test
-    void extractsInvoiceDataFromImage() throws Exception {
+    void returnsBadRequestForPngDocument() throws Exception {
         MockMultipartFile document = new MockMultipartFile(
                 "document",
                 "invoice.png",
@@ -78,25 +78,27 @@ class InvoiceExtractionControllerTest {
                 "image content".getBytes()
         );
 
-        when(extractionCommandApi.extract(any(), eq("image/png")))
-                .thenReturn(new ExtractedInvoiceData(
-                        new BigDecimal("50.00"),
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        "EUR"
-                ));
+        mockMvc.perform(multipart("/api/costs/extract")
+                        .file(document)
+                        .with(user(testUser))
+                        .with(csrf()))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void returnsBadRequestForJpegDocument() throws Exception {
+        MockMultipartFile document = new MockMultipartFile(
+                "document",
+                "invoice.jpg",
+                "image/jpeg",
+                "image content".getBytes()
+        );
 
         mockMvc.perform(multipart("/api/costs/extract")
                         .file(document)
                         .with(user(testUser))
                         .with(csrf()))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.netAmount").value(50.00))
-                .andExpect(jsonPath("$.vatAmount").isEmpty())
-                .andExpect(jsonPath("$.currency").value("EUR"));
+                .andExpect(status().isBadRequest());
     }
 
     @Test

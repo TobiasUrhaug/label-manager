@@ -169,7 +169,7 @@ No separate test needed — the adapter's own test (Task 2) covers the logic. Th
 
 Write the updated tests first (they will fail because the controller still accepts PNG). Then update the controller.
 
-- [ ] Task 4: Update controller test to expect 400 for PNG/JPEG, then restrict `ALLOWED_CONTENT_TYPES` to PDF only
+- [x] Task 4: Update controller test to expect 400 for PNG/JPEG, then restrict `ALLOWED_CONTENT_TYPES` to PDF only
 
 ---
 
