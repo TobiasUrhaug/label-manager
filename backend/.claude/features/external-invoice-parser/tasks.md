@@ -153,7 +153,7 @@ Note: `ExtractionCommandApiImpl` keeps its `@Service` annotation. The adapter is
 
 No separate test needed — the adapter's own test (Task 2) covers the logic. The system test (Task 7) covers the wiring.
 
-- [ ] Task 3: Modify `ExtractionCommandApiImpl` to inject `ExternalInvoiceParserAdapter`
+- [x] Task 3: Modify `ExtractionCommandApiImpl` to inject `ExternalInvoiceParserAdapter`
 
 ---
 

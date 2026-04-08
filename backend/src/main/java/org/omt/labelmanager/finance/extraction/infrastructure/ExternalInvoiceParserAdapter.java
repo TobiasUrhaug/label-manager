@@ -17,7 +17,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @Component
-class ExternalInvoiceParserAdapter {
+public class ExternalInvoiceParserAdapter {
 
     private static final Logger log = LoggerFactory.getLogger(ExternalInvoiceParserAdapter.class);
 

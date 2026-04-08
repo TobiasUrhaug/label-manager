@@ -4,10 +4,10 @@
 Implementation
 
 ## Last Completed Task
-Task 2: ExternalInvoiceParserAdapter and ExternalInvoiceResponse with full response mapping and graceful degradation
+Task 3: Wire ExternalInvoiceParserAdapter into ExtractionCommandApiImpl
 
 ## Next Action
-Developer: Task 3 — Wire adapter into ExtractionCommandApiImpl
+Developer: Task 4 — Restrict controller validation to PDF only
 
 ## Blockers
 None.
@@ -16,3 +16,4 @@ None.
 - 2026-04-08: Analysis complete. External service API contract confirmed. Open questions resolved: fail-fast on missing env vars, all internal extraction tests deleted, fresh branch `feature/external-invoice-parser` to be created.
 - 2026-04-08: Design complete. spec.md and tasks.md written. Key decisions: PDF-only validation (drop PNG/JPEG), no new port interface, named RestClient bean, vatRate always null.
 - 2026-04-08: Task 2 complete. ExternalInvoiceResponse, ExternalInvoiceParserAdapter, and ExternalInvoiceParserAdapterTest created. Added src/test/resources/application.yaml with dummy invoice parser props to fix pre-existing test failures introduced by Task 1.
+- 2026-04-08: Task 3 complete. ExtractionCommandApiImpl now delegates to ExternalInvoiceParserAdapter. Made adapter public to allow cross-package injection.
