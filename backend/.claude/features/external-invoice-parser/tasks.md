@@ -44,7 +44,7 @@ class InvoiceParserConfiguration {
 
 File: `finance/extraction/infrastructure/InvoiceParserPropertiesTest.java`
 
-- [ ] Task 1: Create `InvoiceParserProperties` and `InvoiceParserConfiguration` with fail-fast startup validation (test: context fails without env vars)
+- [x] Task 1: Create `InvoiceParserProperties` and `InvoiceParserConfiguration` with fail-fast startup validation (test: context fails without env vars)
 
 ---
 

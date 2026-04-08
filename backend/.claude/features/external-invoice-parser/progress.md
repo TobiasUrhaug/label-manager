@@ -1,13 +1,13 @@
 # Progress: external-invoice-parser
 
 ## Current Phase
-Design
+Implementation
 
 ## Last Completed Task
-Design: spec.md and tasks.md produced
+Task 1: InvoiceParserProperties and InvoiceParserConfiguration with fail-fast startup validation
 
 ## Next Action
-Developer: start Task 1 — create InvoiceParserProperties and InvoiceParserConfiguration
+Developer: Task 2 — ExternalInvoiceParserAdapter with HTTP call and response mapping
 
 ## Blockers
 None.
