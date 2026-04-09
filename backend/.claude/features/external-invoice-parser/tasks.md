@@ -228,7 +228,7 @@ Then delete the now-empty directories:
 
 Run `./gradlew build` after deletion to confirm no compile errors.
 
-- [ ] Task 6: Delete all internal pipeline production code and verify build passes
+- [x] Task 6: Delete all internal pipeline production code and verify build passes
 
 ---
 
@@ -241,7 +241,7 @@ Delete these test files:
 
 Run `./gradlew test` to confirm all remaining tests pass.
 
-- [ ] Task 7: Delete old test files and verify all remaining tests pass
+- [x] Task 7: Delete old test files and verify all remaining tests pass
 
 ---
 
