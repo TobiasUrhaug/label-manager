@@ -31,6 +31,11 @@ server:
   tomcat:
     max-http-form-post-size: 10MB
 
+invoice:
+  parser:
+    url: ${INVOICE_PARSER_URL:http://localhost:8000}
+    api-key: ${INVOICE_PARSER_API_KEY:dev-secret-key}
+
 storage:
   s3:
     endpoint: ${S3_ENDPOINT:http://localhost:9000}
