@@ -207,7 +207,7 @@ class InvoiceExtractionSystemTest {
 }
 ```
 
-- [ ] Task 5: Delete old `InvoiceExtractionSystemTest` and create replacement that mocks `ExternalInvoiceParserAdapter`
+- [x] Task 5: Delete old `InvoiceExtractionSystemTest` and create replacement that mocks `ExternalInvoiceParserAdapter`
 
 ---
 

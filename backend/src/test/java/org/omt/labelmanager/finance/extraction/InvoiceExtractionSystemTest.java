@@ -1,7 +1,6 @@
 package org.omt.labelmanager.finance.extraction;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
@@ -14,8 +13,7 @@ import java.time.LocalDate;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.omt.labelmanager.finance.extraction.domain.ExtractedInvoiceData;
-import org.omt.labelmanager.finance.extraction.infrastructure.InvoiceParserPort;
-import org.omt.labelmanager.finance.extraction.infrastructure.OcrPort;
+import org.omt.labelmanager.finance.extraction.infrastructure.ExternalInvoiceParserAdapter;
 import org.omt.labelmanager.identity.application.AppUserDetails;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -42,10 +40,7 @@ class InvoiceExtractionSystemTest {
     private MockMvc mockMvc;
 
     @MockitoBean
-    private OcrPort ocrPort;
-
-    @MockitoBean
-    private InvoiceParserPort invoiceParserPort;
+    private ExternalInvoiceParserAdapter externalInvoiceParserAdapter;
 
     private final AppUserDetails testUser =
             new AppUserDetails(1L, "test@example.com", "password", "Test User");
@@ -72,15 +67,16 @@ class InvoiceExtractionSystemTest {
         registry.add("storage.s3.region", () -> "us-east-1");
         registry.add("storage.s3.access-key", () -> MINIO_ACCESS_KEY);
         registry.add("storage.s3.secret-key", () -> MINIO_SECRET_KEY);
+        registry.add("invoice.parser.url", () -> "http://test-parser");
+        registry.add("invoice.parser.api-key", () -> "test-key");
     }
 
     @BeforeEach
     void setUp() {
-        when(ocrPort.extractText(any(), any())).thenReturn("Invoice OCR text");
-        when(invoiceParserPort.parse(any())).thenReturn(new ExtractedInvoiceData(
+        when(externalInvoiceParserAdapter.extract(any(), any())).thenReturn(new ExtractedInvoiceData(
                 new BigDecimal("100.00"),
                 new BigDecimal("21.00"),
-                new BigDecimal("21"),
+                null,
                 new BigDecimal("121.00"),
                 LocalDate.of(2024, 1, 15),
                 "INV-2024-001",
@@ -104,7 +100,7 @@ class InvoiceExtractionSystemTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.netAmount").value(100.00))
                 .andExpect(jsonPath("$.vatAmount").value(21.00))
-                .andExpect(jsonPath("$.vatRate").value(21))
+                .andExpect(jsonPath("$.vatRate").isEmpty())
                 .andExpect(jsonPath("$.grossAmount").value(121.00))
                 .andExpect(jsonPath("$.invoiceDate").value("2024-01-15"))
                 .andExpect(jsonPath("$.invoiceReference").value("INV-2024-001"))
@@ -112,7 +108,7 @@ class InvoiceExtractionSystemTest {
     }
 
     @Test
-    void extractsInvoiceDataFromImageDocument() throws Exception {
+    void returnsBadRequestForPngDocument() throws Exception {
         MockMultipartFile document = new MockMultipartFile(
                 "document",
                 "invoice.png",
@@ -124,8 +120,7 @@ class InvoiceExtractionSystemTest {
                         .file(document)
                         .with(user(testUser))
                         .with(csrf()))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.netAmount").exists());
+                .andExpect(status().isBadRequest());
     }
 
     @Test
