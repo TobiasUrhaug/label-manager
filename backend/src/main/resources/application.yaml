@@ -39,11 +39,3 @@ storage:
     access-key: ${S3_ACCESS_KEY:dev}
     secret-key: ${S3_SECRET_KEY:devdevdev}
 
-extraction:
-  tesseract:
-    data-path: ${TESSERACT_DATA_PATH:/opt/homebrew/share/tessdata}
-    language: ${TESSERACT_LANGUAGE:eng}
-  ollama:
-    base-url: ${OLLAMA_BASE_URL:http://localhost:11434}
-    model: ${OLLAMA_MODEL:llama3.2:1b}
-    default-currency: ${OLLAMA_DEFAULT_CURRENCY:EUR}
