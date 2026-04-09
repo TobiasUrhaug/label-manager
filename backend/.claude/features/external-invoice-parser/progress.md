@@ -4,10 +4,10 @@
 Implementation
 
 ## Last Completed Task
-Tasks 6 & 7: Delete internal pipeline (production code and tests)
+Task 8: Remove tess4j from build.gradle.kts
 
 ## Next Action
-Developer: Task 8 — Remove tess4j from build.gradle.kts
+Developer: Task 9 — Create .env.example at repo root
 
 ## Blockers
 None.
@@ -20,3 +20,4 @@ None.
 - 2026-04-08: Task 4 complete. Removed extractsInvoiceDataFromImage test, added returnsBadRequestForPngDocument and returnsBadRequestForJpegDocument. Restricted ALLOWED_CONTENT_TYPES to PDF only.
 - 2026-04-09: Task 5 complete. Replaced InvoiceExtractionSystemTest: removed OcrPort/InvoiceParserPort mocks, added ExternalInvoiceParserAdapter mock, added invoice.parser props to DynamicPropertySource, updated PDF test (vatRate now null), replaced image test with returnsBadRequestForPngDocument.
 - 2026-04-09: Tasks 6 & 7 complete. Deleted OcrPort, InvoiceParserPort, ExtractInvoiceDataUseCase, TesseractOcrAdapter, TesseractProperties, TesseractConfig, OllamaInvoiceParserAdapter, OllamaProperties, OllamaConfig and corresponding test files. Removed ocr/ and llm/ directories. Build compiles cleanly; extraction tests all pass.
+- 2026-04-09: Task 8 complete. Removed tess4j dependency from build.gradle.kts. Extraction tests all pass.

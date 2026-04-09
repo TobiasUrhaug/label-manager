@@ -256,7 +256,7 @@ If there are any Ollama or LLM HTTP client dependencies (not visible in current 
 
 Run `./gradlew build` to confirm the build succeeds without these dependencies.
 
-- [ ] Task 8: Remove `tess4j` from `build.gradle.kts` and verify build
+- [x] Task 8: Remove `tess4j` from `build.gradle.kts` and verify build
 
 ---
 
