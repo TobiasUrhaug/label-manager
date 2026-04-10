@@ -358,7 +358,7 @@ Delete `RegisterReturnForm.java`, `EditReturnForm.java`, `ReturnLineItemForm.jav
 - PUT: JSON body → `200`
 - DELETE: `204`
 
-- [ ] Task 11: Convert `ReturnController` to `@RestController` at `/api/labels/{labelId}/returns`, remove form-showing endpoints, delete form classes, update test
+- [x] Task 11: Convert `ReturnController` to `@RestController` at `/api/labels/{labelId}/returns`, remove form-showing endpoints, delete form classes, update test
 
 ---
 
