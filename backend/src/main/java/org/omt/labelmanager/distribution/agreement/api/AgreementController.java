@@ -1,176 +1,71 @@
 package org.omt.labelmanager.distribution.agreement.api;
 
-import jakarta.persistence.EntityNotFoundException;
-import org.omt.labelmanager.catalog.label.api.LabelQueryApi;
-import org.omt.labelmanager.catalog.release.api.ReleaseQueryApi;
-import org.omt.labelmanager.distribution.distributor.api.DistributorQueryApi;
-import org.omt.labelmanager.inventory.inventorymovement.api.InventoryMovementQueryApi;
-import org.omt.labelmanager.inventory.productionrun.api.ProductionRunQueryApi;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
+import org.omt.labelmanager.distribution.agreement.CommissionType;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-import org.omt.labelmanager.distribution.agreement.CommissionType;
+import java.math.BigDecimal;
 
-import java.util.List;
-
-@Controller
-@RequestMapping("/labels/{labelId}/distributors/{distributorId}/agreements")
+@RestController
+@RequestMapping("/api/labels/{labelId}/distributors/{distributorId}/agreements")
 public class AgreementController {
 
     private final AgreementCommandApi commandApi;
     private final AgreementQueryApi queryApi;
-    private final DistributorQueryApi distributorQueryApi;
-    private final LabelQueryApi labelQueryApi;
-    private final InventoryMovementQueryApi inventoryMovementQueryApi;
-    private final ProductionRunQueryApi productionRunQueryApi;
-    private final ReleaseQueryApi releaseQueryApi;
 
-    public AgreementController(
-            AgreementCommandApi commandApi,
-            AgreementQueryApi queryApi,
-            DistributorQueryApi distributorQueryApi,
-            LabelQueryApi labelQueryApi,
-            InventoryMovementQueryApi inventoryMovementQueryApi,
-            ProductionRunQueryApi productionRunQueryApi,
-            ReleaseQueryApi releaseQueryApi
-    ) {
+    public AgreementController(AgreementCommandApi commandApi, AgreementQueryApi queryApi) {
         this.commandApi = commandApi;
         this.queryApi = queryApi;
-        this.distributorQueryApi = distributorQueryApi;
-        this.labelQueryApi = labelQueryApi;
-        this.inventoryMovementQueryApi = inventoryMovementQueryApi;
-        this.productionRunQueryApi = productionRunQueryApi;
-        this.releaseQueryApi = releaseQueryApi;
     }
 
-    @GetMapping
-    public String listAgreements(
-            @PathVariable Long labelId,
-            @PathVariable Long distributorId
-    ) {
-        return "redirect:/labels/" + labelId + "/distributors/" + distributorId;
-    }
+    record CreateAgreementRequest(
+            Long productionRunId,
+            BigDecimal unitPrice,
+            CommissionType commissionType,
+            BigDecimal commissionValue
+    ) {}
 
-    @GetMapping("/new")
-    public String showCreateForm(
-            @PathVariable Long labelId,
-            @PathVariable Long distributorId,
-            Model model
-    ) {
-        var label = labelQueryApi.findById(labelId)
-                .orElseThrow(() -> new EntityNotFoundException("Label not found"));
-        var distributor = distributorQueryApi.findById(distributorId)
-                .filter(d -> d.labelId().equals(labelId))
-                .orElseThrow(() -> new EntityNotFoundException("Distributor not found"));
-
-        model.addAttribute("label", label);
-        model.addAttribute("distributor", distributor);
-        model.addAttribute("form", new AgreementForm());
-        model.addAttribute("availableRuns", buildAvailableRuns(distributorId));
-        model.addAttribute("commissionTypes", CommissionType.values());
-
-        return "distributor/agreement-form";
-    }
+    record UpdateAgreementRequest(
+            BigDecimal unitPrice,
+            CommissionType commissionType,
+            BigDecimal commissionValue
+    ) {}
 
     @PostMapping
-    public String createAgreement(
-            @PathVariable Long labelId,
+    public ResponseEntity<Void> createAgreement(
             @PathVariable Long distributorId,
-            @ModelAttribute AgreementForm form,
-            Model model
+            @RequestBody CreateAgreementRequest request
     ) {
-        try {
-            commandApi.create(distributorId, form.getProductionRunId(),
-                    form.getUnitPrice(), form.getCommissionType(), form.getCommissionValue());
-            return "redirect:/labels/" + labelId + "/distributors/" + distributorId;
-        } catch (DuplicateAgreementException | IllegalArgumentException e) {
-            var label = labelQueryApi.findById(labelId).orElseThrow();
-            var distributor = distributorQueryApi.findById(distributorId).orElseThrow();
-            model.addAttribute("label", label);
-            model.addAttribute("distributor", distributor);
-            model.addAttribute("form", form);
-            model.addAttribute("availableRuns", buildAvailableRuns(distributorId));
-            model.addAttribute("commissionTypes", CommissionType.values());
-            model.addAttribute("errorMessage", e.getMessage());
-            return "distributor/agreement-form";
-        }
+        commandApi.create(distributorId, request.productionRunId(),
+                request.unitPrice(), request.commissionType(), request.commissionValue());
+        return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
-    @GetMapping("/{id}/edit")
-    public String showEditForm(
-            @PathVariable Long labelId,
+    @PutMapping("/{id}")
+    public ResponseEntity<Void> updateAgreement(
             @PathVariable Long distributorId,
             @PathVariable Long id,
-            Model model
-    ) {
-        var label = labelQueryApi.findById(labelId)
-                .orElseThrow(() -> new EntityNotFoundException("Label not found"));
-        var distributor = distributorQueryApi.findById(distributorId)
-                .filter(d -> d.labelId().equals(labelId))
-                .orElseThrow(() -> new EntityNotFoundException("Distributor not found"));
-        var agreement = queryApi.findById(id)
-                .orElseThrow(() -> new AgreementNotFoundException(id));
-        if (!agreement.distributorId().equals(distributorId)) {
-            throw new AgreementNotFoundException(id);
-        }
-
-        var form = new AgreementForm();
-        form.setProductionRunId(agreement.productionRunId());
-        form.setUnitPrice(agreement.unitPrice());
-        form.setCommissionType(agreement.commissionType());
-        form.setCommissionValue(agreement.commissionValue());
-
-        var runDisplayName = buildDisplayName(agreement.productionRunId());
-
-        model.addAttribute("label", label);
-        model.addAttribute("distributor", distributor);
-        model.addAttribute("agreement", agreement);
-        model.addAttribute("form", form);
-        model.addAttribute("productionRunDisplayName", runDisplayName);
-        model.addAttribute("commissionTypes", CommissionType.values());
-
-        return "distributor/agreement-form";
-    }
-
-    @PostMapping("/{id}")
-    public String updateAgreement(
-            @PathVariable Long labelId,
-            @PathVariable Long distributorId,
-            @PathVariable Long id,
-            @ModelAttribute AgreementForm form,
-            Model model
+            @RequestBody UpdateAgreementRequest request
     ) {
         var agreement = queryApi.findById(id)
                 .orElseThrow(() -> new AgreementNotFoundException(id));
         if (!agreement.distributorId().equals(distributorId)) {
             throw new AgreementNotFoundException(id);
         }
-
-        try {
-            commandApi.update(id, form.getUnitPrice(), form.getCommissionType(), form.getCommissionValue());
-            return "redirect:/labels/" + labelId + "/distributors/" + distributorId;
-        } catch (IllegalArgumentException e) {
-            var label = labelQueryApi.findById(labelId).orElseThrow();
-            var distributor = distributorQueryApi.findById(distributorId).orElseThrow();
-            model.addAttribute("label", label);
-            model.addAttribute("distributor", distributor);
-            model.addAttribute("agreement", agreement);
-            model.addAttribute("form", form);
-            model.addAttribute("productionRunDisplayName", buildDisplayName(agreement.productionRunId()));
-            model.addAttribute("commissionTypes", CommissionType.values());
-            model.addAttribute("errorMessage", e.getMessage());
-            return "distributor/agreement-form";
-        }
+        commandApi.update(id, request.unitPrice(), request.commissionType(), request.commissionValue());
+        return ResponseEntity.noContent().build();
     }
 
-    @PostMapping("/{id}/delete")
-    public String deleteAgreement(
-            @PathVariable Long labelId,
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteAgreement(
             @PathVariable Long distributorId,
             @PathVariable Long id
     ) {
@@ -180,28 +75,16 @@ public class AgreementController {
             throw new AgreementNotFoundException(id);
         }
         commandApi.delete(id);
-        return "redirect:/labels/" + labelId + "/distributors/" + distributorId;
+        return ResponseEntity.noContent().build();
     }
 
-    private List<AvailableProductionRunView> buildAvailableRuns(Long distributorId) {
-        return inventoryMovementQueryApi.getProductionRunIdsAllocatedToDistributor(distributorId)
-                .stream()
-                .filter(runId -> !queryApi.existsByDistributorIdAndProductionRunId(distributorId, runId))
-                .map(runId -> new AvailableProductionRunView(runId, buildDisplayName(runId)))
-                .toList();
+    @ExceptionHandler({DuplicateAgreementException.class, IllegalArgumentException.class})
+    public ResponseEntity<Void> handleBadRequest() {
+        return ResponseEntity.badRequest().build();
     }
 
-    private String buildDisplayName(Long productionRunId) {
-        return productionRunQueryApi.findById(productionRunId)
-                .map(run -> {
-                    var title = releaseQueryApi.findById(run.releaseId())
-                            .map(r -> r.name())
-                            .orElse("Unknown Release");
-                    return title + " \u2013 " + run.format();
-                })
-                .orElse("Unknown");
-    }
-
-    private record AvailableProductionRunView(Long productionRunId, String displayName) {
+    @ExceptionHandler(AgreementNotFoundException.class)
+    public ResponseEntity<Void> handleNotFound() {
+        return ResponseEntity.notFound().build();
     }
 }

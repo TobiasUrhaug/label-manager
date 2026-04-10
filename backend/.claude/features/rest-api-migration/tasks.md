@@ -227,7 +227,7 @@ Delete `AgreementForm.java`.
 - DELETE: `204`
 - Error case (duplicate): → `400`
 
-- [ ] Task 7: Convert `AgreementController` to `@RestController`, remove form-showing endpoints, delete form class, update test
+- [x] Task 7: Convert `AgreementController` to `@RestController`, remove form-showing endpoints, delete form class, update test
 
 ---
 
