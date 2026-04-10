@@ -59,7 +59,7 @@ Follow Red-Green-Refactor: update the test first (it will fail), then implement 
 
 Run `./gradlew build` to confirm no compile errors.
 
-- [ ] Task 1: Delete `AuthController`, its form class, the Thymeleaf register template, and clean up `SecurityConfig`
+- [x] Task 1: Delete `AuthController`, its form class, the Thymeleaf register template, and clean up `SecurityConfig`
 
 ---
 
