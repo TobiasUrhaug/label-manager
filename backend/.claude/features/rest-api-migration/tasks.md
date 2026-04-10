@@ -85,7 +85,7 @@ Create a `DashboardResponse` record in the `dashboard` package (or as a private 
 - Existing test: `GET /dashboard` → `view("dashboard")` and `model` assertions
 - Rewrite to: `GET /api/dashboard` → `status().isOk()` + `jsonPath("$.labels")` + `jsonPath("$.artists")`
 
-- [ ] Task 2: Convert `DashboardController` to `@RestController` at `GET /api/dashboard`, update test
+- [x] Task 2: Convert `DashboardController` to `@RestController` at `GET /api/dashboard`, update test
 
 ---
 
