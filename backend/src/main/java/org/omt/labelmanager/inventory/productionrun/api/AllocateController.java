@@ -3,15 +3,18 @@ package org.omt.labelmanager.inventory.productionrun.api;
 import org.omt.labelmanager.inventory.InsufficientInventoryException;
 import org.omt.labelmanager.inventory.InventoryLocation;
 import org.omt.labelmanager.inventory.LocationType;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
+import org.springframework.http.HttpStatus;
 
-@Controller
-@RequestMapping("/labels/{labelId}/releases/{releaseId}/production-runs/{runId}")
+@RestController
+@RequestMapping("/api/labels/{labelId}/releases/{releaseId}/production-runs/{runId}")
 public class AllocateController {
 
     private final ProductionRunCommandApi productionRunCommandApi;
@@ -20,60 +23,49 @@ public class AllocateController {
         this.productionRunCommandApi = productionRunCommandApi;
     }
 
+    record AllocateRequest(LocationType locationType, Long distributorId, int quantity) {}
+
+    record CancelBandcampReservationRequest(int quantity) {}
+
     @PostMapping("/allocations")
-    public String allocate(
-            @PathVariable Long labelId,
-            @PathVariable Long releaseId,
+    public ResponseEntity<Void> allocate(
             @PathVariable Long runId,
-            @ModelAttribute AllocateForm form,
-            RedirectAttributes redirectAttributes
+            @RequestBody AllocateRequest request
     ) {
-        String redirectUrl = "redirect:/labels/" + labelId + "/releases/" + releaseId;
-        if (form.getQuantity() <= 0) {
-            redirectAttributes.addFlashAttribute("allocationError", "Quantity must be greater than zero");
-            return redirectUrl;
+        if (request.quantity() <= 0) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Quantity must be greater than zero");
         }
-        if (form.getLocationType() == null) {
-            redirectAttributes.addFlashAttribute("allocationError", "A location type must be selected");
-            return redirectUrl;
+        if (request.locationType() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "A location type must be selected");
         }
-        if (form.getLocationType() == LocationType.DISTRIBUTOR && form.getDistributorId() == null) {
-            redirectAttributes.addFlashAttribute("allocationError", "A distributor must be selected");
-            return redirectUrl;
+        if (request.locationType() == LocationType.DISTRIBUTOR && request.distributorId() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "A distributor must be selected");
         }
-        try {
-            productionRunCommandApi.allocate(runId, resolveToLocation(form), form.getQuantity());
-        } catch (InsufficientInventoryException ex) {
-            redirectAttributes.addFlashAttribute("allocationError", ex.getMessage());
-        }
-        return redirectUrl;
+        productionRunCommandApi.allocate(runId, resolveToLocation(request), request.quantity());
+        return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/bandcamp-cancellations")
-    public String cancelBandcampReservation(
-            @PathVariable Long labelId,
-            @PathVariable Long releaseId,
+    public ResponseEntity<Void> cancelBandcampReservation(
             @PathVariable Long runId,
-            @ModelAttribute CancelBandcampReservationForm form,
-            RedirectAttributes redirectAttributes
+            @RequestBody CancelBandcampReservationRequest request
     ) {
-        String redirectUrl = "redirect:/labels/" + labelId + "/releases/" + releaseId;
-        if (form.getQuantity() <= 0) {
-            redirectAttributes.addFlashAttribute("cancellationError", "Quantity must be greater than zero");
-            return redirectUrl;
+        if (request.quantity() <= 0) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Quantity must be greater than zero");
         }
-        try {
-            productionRunCommandApi.cancelBandcampReservation(runId, form.getQuantity());
-        } catch (InsufficientInventoryException ex) {
-            redirectAttributes.addFlashAttribute("cancellationError", ex.getMessage());
-        }
-        return redirectUrl;
+        productionRunCommandApi.cancelBandcampReservation(runId, request.quantity());
+        return ResponseEntity.noContent().build();
     }
 
-    private InventoryLocation resolveToLocation(AllocateForm form) {
-        if (form.getLocationType() == LocationType.BANDCAMP) {
+    @ExceptionHandler(InsufficientInventoryException.class)
+    public ResponseEntity<Void> handleInsufficientInventory() {
+        return ResponseEntity.badRequest().build();
+    }
+
+    private InventoryLocation resolveToLocation(AllocateRequest request) {
+        if (request.locationType() == LocationType.BANDCAMP) {
             return InventoryLocation.bandcamp();
         }
-        return InventoryLocation.distributor(form.getDistributorId());
+        return InventoryLocation.distributor(request.distributorId());
     }
 }

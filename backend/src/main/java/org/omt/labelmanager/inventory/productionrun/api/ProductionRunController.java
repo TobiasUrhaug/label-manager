@@ -1,14 +1,19 @@
 package org.omt.labelmanager.inventory.productionrun.api;
 
-import org.springframework.stereotype.Controller;
+import org.omt.labelmanager.catalog.release.domain.ReleaseFormat;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-@Controller
-@RequestMapping("/labels/{labelId}/releases/{releaseId}/production-runs")
+import java.time.LocalDate;
+
+@RestController
+@RequestMapping("/api/labels/{labelId}/releases/{releaseId}/production-runs")
 public class ProductionRunController {
 
     private final ProductionRunCommandApi commandApi;
@@ -17,30 +22,33 @@ public class ProductionRunController {
         this.commandApi = commandApi;
     }
 
+    record AddProductionRunRequest(
+            ReleaseFormat format,
+            String description,
+            String manufacturer,
+            LocalDate manufacturingDate,
+            int quantity
+    ) {}
+
     @PostMapping
-    public String addProductionRun(
-            @PathVariable Long labelId,
+    public ResponseEntity<Void> addProductionRun(
             @PathVariable Long releaseId,
-            @ModelAttribute AddProductionRunForm form
+            @RequestBody AddProductionRunRequest request
     ) {
         commandApi.createProductionRun(
                 releaseId,
-                form.getFormat(),
-                form.getDescription(),
-                form.getManufacturer(),
-                form.getManufacturingDate(),
-                form.getQuantity()
+                request.format(),
+                request.description(),
+                request.manufacturer(),
+                request.manufacturingDate(),
+                request.quantity()
         );
-        return "redirect:/labels/" + labelId + "/releases/" + releaseId;
+        return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
     @DeleteMapping("/{productionRunId}")
-    public String deleteProductionRun(
-            @PathVariable Long labelId,
-            @PathVariable Long releaseId,
-            @PathVariable Long productionRunId
-    ) {
+    public ResponseEntity<Void> deleteProductionRun(@PathVariable Long productionRunId) {
         commandApi.delete(productionRunId);
-        return "redirect:/labels/" + labelId + "/releases/" + releaseId;
+        return ResponseEntity.noContent().build();
     }
 }

@@ -290,7 +290,7 @@ Delete `AllocateForm.java` and `CancelBandcampReservationForm.java`.
 - DELETE: `204`
 - Allocation validation errors: `400`
 
-- [ ] Task 9: Convert `ProductionRunController` and `AllocateController` to `@RestController` with `/api/` prefix, update tests
+- [x] Task 9: Convert `ProductionRunController` and `AllocateController` to `@RestController` with `/api/` prefix, update tests
 
 ---
 
