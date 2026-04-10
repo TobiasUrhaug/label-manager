@@ -5,6 +5,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.io.InputStreamResource;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.util.LinkedMultiValueMap;
@@ -29,7 +31,11 @@ public class ExternalInvoiceParserAdapter {
 
     public ExtractedInvoiceData extract(InputStream content, String contentType) {
         try {
-            var response = postToExternalParser(content);
+            var response = postToExternalParser(content, contentType);
+            if (response == null) {
+                log.warn("External invoice parser returned empty body");
+                return ExtractedInvoiceData.empty();
+            }
             return mapToExtractedInvoiceData(response);
         } catch (HttpStatusCodeException e) {
             logHttpError(e);
@@ -40,9 +46,13 @@ public class ExternalInvoiceParserAdapter {
         }
     }
 
-    private ExternalInvoiceResponse postToExternalParser(InputStream content) {
+    private ExternalInvoiceResponse postToExternalParser(InputStream content, String contentType) {
+        var fileHeaders = new HttpHeaders();
+        fileHeaders.setContentType(MediaType.parseMediaType(contentType));
+        var filePart = new HttpEntity<>(new InputStreamResource(content), fileHeaders);
+
         MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
-        body.add("file", new InputStreamResource(content));
+        body.add("file", filePart);
 
         return restClient.post()
                 .uri("/api/v1/extract")

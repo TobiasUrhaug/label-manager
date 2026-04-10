@@ -1,7 +1,7 @@
 # Feature: external-invoice-parser
 
 ## Status
-In Progress
+Done
 
 ## Phase History
 | Phase          | Status      | Date       |
@@ -9,7 +9,7 @@ In Progress
 | Analysis       | Done        | 2026-04-08 |
 | Design         | Done        | 2026-04-08 |
 | Implementation | In Progress | 2026-04-08 |
-| Review         | -           |            |
+| Review         | Done        | 2026-04-10 |
 
 ## Artifacts
 | File            | Purpose                          |

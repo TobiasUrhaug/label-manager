@@ -1,13 +1,13 @@
 # Progress: external-invoice-parser
 
 ## Current Phase
-Implementation
+Done
 
 ## Last Completed Task
-Task 8: Remove tess4j from build.gradle.kts
+Review Round 1 — all comments resolved
 
 ## Next Action
-Developer: Task 9 — Create .env.example at repo root
+Merge branch to main via pull request.
 
 ## Blockers
 None.
@@ -21,3 +21,6 @@ None.
 - 2026-04-09: Task 5 complete. Replaced InvoiceExtractionSystemTest: removed OcrPort/InvoiceParserPort mocks, added ExternalInvoiceParserAdapter mock, added invoice.parser props to DynamicPropertySource, updated PDF test (vatRate now null), replaced image test with returnsBadRequestForPngDocument.
 - 2026-04-09: Tasks 6 & 7 complete. Deleted OcrPort, InvoiceParserPort, ExtractInvoiceDataUseCase, TesseractOcrAdapter, TesseractProperties, TesseractConfig, OllamaInvoiceParserAdapter, OllamaProperties, OllamaConfig and corresponding test files. Removed ocr/ and llm/ directories. Build compiles cleanly; extraction tests all pass.
 - 2026-04-09: Task 8 complete. Removed tess4j dependency from build.gradle.kts. Extraction tests all pass.
+- 2026-04-09: Review Round 1 complete. comments.md written. 1 🔴 (Task 9 incomplete), 3 🟡, 2 🟢. See comments.md.
+- 2026-04-09: Developer addressed all review comments. All extraction tests pass.
+- 2026-04-10: Re-review complete. All comments resolved. Full test suite passes. Feature is Done.

@@ -48,7 +48,7 @@ class InvoiceExtractionControllerTest {
                 .thenReturn(new ExtractedInvoiceData(
                         new BigDecimal("100.00"),
                         new BigDecimal("21.00"),
-                        new BigDecimal("21"),
+                        null,
                         new BigDecimal("121.00"),
                         LocalDate.of(2024, 1, 15),
                         "INV-2024-001",
@@ -62,7 +62,7 @@ class InvoiceExtractionControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.netAmount").value(100.00))
                 .andExpect(jsonPath("$.vatAmount").value(21.00))
-                .andExpect(jsonPath("$.vatRate").value(21))
+                .andExpect(jsonPath("$.vatRate").isEmpty())
                 .andExpect(jsonPath("$.grossAmount").value(121.00))
                 .andExpect(jsonPath("$.invoiceDate").value("2024-01-15"))
                 .andExpect(jsonPath("$.invoiceReference").value("INV-2024-001"))

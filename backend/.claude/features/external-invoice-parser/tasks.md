@@ -271,7 +271,7 @@ INVOICE_PARSER_URL=https://your-invoice-parser-service.example.com
 INVOICE_PARSER_API_KEY=your-api-key-here
 ```
 
-- [ ] Task 9: Create `.env.example` documenting `INVOICE_PARSER_URL` and `INVOICE_PARSER_API_KEY`
+- [x] Task 9: Create `.env.example` documenting `INVOICE_PARSER_URL` and `INVOICE_PARSER_API_KEY`
 
 ---
 
