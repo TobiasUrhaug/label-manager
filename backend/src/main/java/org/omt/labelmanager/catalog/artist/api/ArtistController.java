@@ -1,23 +1,26 @@
 package org.omt.labelmanager.catalog.artist.api;
 
 import org.omt.labelmanager.catalog.artist.domain.Artist;
+import org.omt.labelmanager.catalog.domain.shared.Address;
+import org.omt.labelmanager.catalog.domain.shared.Person;
 import org.omt.labelmanager.identity.application.AppUserDetails;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
-@Controller
-@RequestMapping("/artists")
+@RestController
+@RequestMapping("/api/artists")
 public class ArtistController {
 
     private static final Logger log = LoggerFactory.getLogger(ArtistController.class);
@@ -33,55 +36,91 @@ public class ArtistController {
         this.artistQueryApi = artistQueryApi;
     }
 
+    record CreateArtistRequest(
+            String artistName,
+            String realName,
+            String email,
+            String street,
+            String street2,
+            String city,
+            String postalCode,
+            String country
+    ) {
+        Person toRealName() {
+            if (realName == null || realName.isBlank()) return null;
+            return new Person(realName);
+        }
+
+        Address toAddress() {
+            if (street == null || street.isBlank()) return null;
+            return new Address(street, street2, city, postalCode, country);
+        }
+    }
+
+    record UpdateArtistRequest(
+            String artistName,
+            String realName,
+            String email,
+            String street,
+            String street2,
+            String city,
+            String postalCode,
+            String country
+    ) {
+        Person toRealName() {
+            if (realName == null || realName.isBlank()) return null;
+            return new Person(realName);
+        }
+
+        Address toAddress() {
+            if (street == null || street.isBlank()) return null;
+            return new Address(street, street2, city, postalCode, country);
+        }
+    }
+
     @GetMapping("/{id}")
-    public String artistView(@PathVariable Long id, Model model) {
-        Artist artist =
-                artistQueryApi
-                        .findById(id)
-                        .orElseThrow(() -> {
-                            log.warn("Artist with id {} not found", id);
-                            return new ResponseStatusException(HttpStatus.NOT_FOUND);
-                        });
-
-        model.addAttribute("id", id);
-        model.addAttribute("artistName", artist.artistName());
-        model.addAttribute("realName", artist.realName());
-        model.addAttribute("email", artist.email());
-        model.addAttribute("address", artist.address());
-
-        return "artists/artist";
+    public Artist artist(@PathVariable Long id) {
+        return artistQueryApi
+                .findById(id)
+                .orElseThrow(() -> {
+                    log.warn("Artist with id {} not found", id);
+                    return new ResponseStatusException(HttpStatus.NOT_FOUND);
+                });
     }
 
     @PostMapping
-    public String createArtist(
+    public ResponseEntity<Void> createArtist(
             @AuthenticationPrincipal AppUserDetails user,
-            CreateArtistForm form
+            @RequestBody CreateArtistRequest request
     ) {
         artistCommandApi.createArtist(
-                form.getArtistName(),
-                form.toRealName(),
-                form.getEmail(),
-                form.toAddress(),
+                request.artistName(),
+                request.toRealName(),
+                request.email(),
+                request.toAddress(),
                 user.getId()
         );
-        return "redirect:/dashboard";
+        return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
     @PutMapping("/{id}")
-    public String updateArtist(@PathVariable Long id, UpdateArtistForm form) {
+    public ResponseEntity<Void> updateArtist(
+            @PathVariable Long id,
+            @RequestBody UpdateArtistRequest request
+    ) {
         artistCommandApi.updateArtist(
                 id,
-                form.getArtistName(),
-                form.toRealName(),
-                form.getEmail(),
-                form.toAddress()
+                request.artistName(),
+                request.toRealName(),
+                request.email(),
+                request.toAddress()
         );
-        return "redirect:/artists/" + id;
+        return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping("/{id}")
-    public String deleteArtist(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteArtist(@PathVariable Long id) {
         artistCommandApi.delete(id);
-        return "redirect:/dashboard";
+        return ResponseEntity.noContent().build();
     }
 }

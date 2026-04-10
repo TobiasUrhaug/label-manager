@@ -2,16 +2,15 @@ package org.omt.labelmanager.catalog.artist.api;
 
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
 
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
@@ -43,7 +42,7 @@ class ArtistControllerTest {
             new AppUserDetails(1L, "test@example.com", "password", "Test User");
 
     @Test
-    void artist_returnsArtistView() throws Exception {
+    void artist_returnsArtistJson() throws Exception {
         var artist = ArtistFactory.anArtist()
                 .id(1L)
                 .artistName("DJ Cool")
@@ -53,12 +52,10 @@ class ArtistControllerTest {
         when(artistQueryApi.findById(1L)).thenReturn(Optional.of(artist));
 
         mockMvc
-                .perform(get("/artists/1").with(user(testUser)))
+                .perform(get("/api/artists/1").with(user(testUser)))
                 .andExpect(status().isOk())
-                .andExpect(view().name("artists/artist"))
-                .andExpect(model().attribute("id", 1L))
-                .andExpect(model().attribute("artistName", "DJ Cool"))
-                .andExpect(model().attribute("email", "dj@cool.com"));
+                .andExpect(jsonPath("$.artistName").value("DJ Cool"))
+                .andExpect(jsonPath("$.email").value("dj@cool.com"));
     }
 
     @Test
@@ -66,21 +63,25 @@ class ArtistControllerTest {
         when(artistQueryApi.findById(999L)).thenReturn(Optional.empty());
 
         mockMvc
-                .perform(get("/artists/999").with(user(testUser)))
+                .perform(get("/api/artists/999").with(user(testUser)))
                 .andExpect(status().isNotFound());
     }
 
     @Test
-    void createArtist_callsHandlerAndRedirects() throws Exception {
+    void createArtist_returnsCreated() throws Exception {
         mockMvc
-                .perform(post("/artists")
+                .perform(post("/api/artists")
                         .with(user(testUser))
                         .with(csrf())
-                        .param("artistName", "New Artist")
-                        .param("realName", "Real Name")
-                        .param("email", "artist@email.com"))
-                .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/dashboard"));
+                        .contentType(APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "artistName": "New Artist",
+                                  "realName": "Real Name",
+                                  "email": "artist@email.com"
+                                }
+                                """))
+                .andExpect(status().isCreated());
 
         verify(artistCommandApi).createArtist(
                 "New Artist",
@@ -94,16 +95,20 @@ class ArtistControllerTest {
     @Test
     void createArtist_withAddress() throws Exception {
         mockMvc
-                .perform(post("/artists")
+                .perform(post("/api/artists")
                         .with(user(testUser))
                         .with(csrf())
-                        .param("artistName", "New Artist")
-                        .param("street", "123 Music Lane")
-                        .param("city", "Oslo")
-                        .param("postalCode", "0123")
-                        .param("country", "Norway"))
-                .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/dashboard"));
+                        .contentType(APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "artistName": "New Artist",
+                                  "street": "123 Music Lane",
+                                  "city": "Oslo",
+                                  "postalCode": "0123",
+                                  "country": "Norway"
+                                }
+                                """))
+                .andExpect(status().isCreated());
 
         verify(artistCommandApi).createArtist(
                 "New Artist",
@@ -115,21 +120,25 @@ class ArtistControllerTest {
     }
 
     @Test
-    void updateArtist_callsHandlerAndRedirects() throws Exception {
+    void updateArtist_returnsNoContent() throws Exception {
         mockMvc
-                .perform(put("/artists/1")
+                .perform(put("/api/artists/1")
                         .with(user(testUser))
                         .with(csrf())
-                        .param("artistName", "Updated Artist")
-                        .param("realName", "New Real Name")
-                        .param("email", "updated@email.com")
-                        .param("street", "456 New St")
-                        .param("street2", "Apt 2")
-                        .param("city", "Bergen")
-                        .param("postalCode", "5020")
-                        .param("country", "Norway"))
-                .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/artists/1"));
+                        .contentType(APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "artistName": "Updated Artist",
+                                  "realName": "New Real Name",
+                                  "email": "updated@email.com",
+                                  "street": "456 New St",
+                                  "street2": "Apt 2",
+                                  "city": "Bergen",
+                                  "postalCode": "5020",
+                                  "country": "Norway"
+                                }
+                                """))
+                .andExpect(status().isNoContent());
 
         verify(artistCommandApi).updateArtist(
                 1L,
@@ -141,13 +150,12 @@ class ArtistControllerTest {
     }
 
     @Test
-    void deleteArtist_callsHandlerAndRedirects() throws Exception {
+    void deleteArtist_returnsNoContent() throws Exception {
         mockMvc
-                .perform(delete("/artists/1")
+                .perform(delete("/api/artists/1")
                         .with(user(testUser))
                         .with(csrf()))
-                .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/dashboard"));
+                .andExpect(status().isNoContent());
 
         verify(artistCommandApi).delete(1L);
     }

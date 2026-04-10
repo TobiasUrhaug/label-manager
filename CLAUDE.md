@@ -6,8 +6,8 @@ This is the root of the label-manager monorepo.
 
 | Directory | Purpose |
 |-----------|---------|
-| `backend/` | Spring Boot REST API (Java). Also contains Thymeleaf templates and static JS — these are **temporary** and will be removed when the React migration is complete. |
-| `frontend/` | React SPA. Grows as Thymeleaf pages are migrated. |
+| `backend/` | Spring Boot REST API (Java). |
+| `frontend/` | React SPA. |
 | `e2e/` | Playwright end-to-end tests. |
 | `contracts/` | OpenAPI spec — the source of truth for the REST API contract between frontend and backend. |
 | `docs/features/` | Per-feature documentation produced before implementation: business rules, user stories, acceptance criteria, UX flows, and screens. See `docs/features/README.md`. |
@@ -50,25 +50,11 @@ New features follow this order. Steps 1–3 must be complete before any implemen
 
 Use `docs/features/_template/` as the starting point for each new feature (all six template files exist there).
 
-## Migration Strategy
-
-The app is migrating from Thymeleaf (server-side rendered) to a React SPA backed by a REST API.
-
-- During migration, a page may exist in **both** Thymeleaf and React simultaneously.
-- The OpenAPI spec in `contracts/openapi.yaml` must be updated whenever a new REST endpoint is introduced.
-- When all pages have been migrated, everything Thymeleaf-related in `backend/` is deleted in one cleanup pass:
-  - `src/main/resources/templates/`
-  - `src/main/resources/static/js/`
-  - `src/test/js/`
-  - `backend/package.json`, `backend/vitest.config.js`
-  - Thymeleaf and Bootstrap dependencies in `build.gradle.kts`
-
 ## Common Commands
 
 ```bash
 make build          # Build backend
 make test           # Backend Java tests
-make test-js        # JS unit tests for Thymeleaf static JS (temporary)
 make test-e2e       # Playwright e2e tests
 make start-backend  # Run backend dev server (port 8080)
 make start-frontend # Run frontend dev server (port 5173)

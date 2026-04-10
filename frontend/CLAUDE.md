@@ -1,6 +1,6 @@
 # CLAUDE.md — Frontend
 
-React SPA. Introduced as part of the gradual migration away from Thymeleaf.
+React SPA. The sole UI layer for the label-manager application.
 
 ## Key References
 
@@ -44,7 +44,3 @@ frontend-reviewer   → resolves comments → sets index.md status to Done
 Agent definitions: `.claude/agents/frontend-architect.md`, `frontend-developer.md`, `frontend-reviewer.md`
 Templates: `frontend/.claude/templates/`
 
-## Migration Notes
-
-Pages are added here as they are migrated from Thymeleaf.
-Each migrated page should have a corresponding REST endpoint in the backend and an entry in `../contracts/openapi.yaml`.

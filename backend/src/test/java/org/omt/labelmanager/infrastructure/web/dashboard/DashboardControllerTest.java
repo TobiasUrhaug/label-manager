@@ -19,7 +19,8 @@ import java.util.List;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(DashboardController.class)
 @Import(TestSecurityConfig.class)
@@ -35,29 +36,33 @@ class DashboardControllerTest {
     private ArtistQueryApi artistQueryApi;
 
     @Test
-    void dashboard_showsListOfLabels() throws Exception {
+    void dashboard_returnsLabels() throws Exception {
         var testUser = new AppUserDetails(1L, "test@example.com", "password", "Test User");
         var labelA = LabelFactory.aLabel().id(1L).name("My Label").build();
         var labelB = LabelFactory.aLabel().id(2L).name("Other Label").build();
         when(labelQueryFacade.getLabelsForUser(1L)).thenReturn(List.of(labelA, labelB));
+        when(artistQueryApi.getArtistsForUser(1L)).thenReturn(List.of());
 
-        mockMvc.perform(get("/dashboard").with(user(testUser)))
+        mockMvc.perform(get("/api/dashboard").with(user(testUser)))
                 .andExpect(status().isOk())
-                .andExpect(view().name("dashboard"))
-                .andExpect(model().attribute("labels", List.of(labelA, labelB)));
+                .andExpect(jsonPath("$.labels").isArray())
+                .andExpect(jsonPath("$.labels[0].name").value("My Label"))
+                .andExpect(jsonPath("$.labels[1].name").value("Other Label"));
     }
 
     @Test
-    void dashboard_showsListOfArtists() throws Exception {
+    void dashboard_returnsArtists() throws Exception {
         var testUser = new AppUserDetails(1L, "test@example.com", "password", "Test User");
         var artistA = ArtistFactory.anArtist().id(1L).artistName("Artist A").build();
         var artistB = ArtistFactory.anArtist().id(2L).artistName("Artist B").build();
+        when(labelQueryFacade.getLabelsForUser(1L)).thenReturn(List.of());
         when(artistQueryApi.getArtistsForUser(1L)).thenReturn(List.of(artistA, artistB));
 
-        mockMvc.perform(get("/dashboard").with(user(testUser)))
+        mockMvc.perform(get("/api/dashboard").with(user(testUser)))
                 .andExpect(status().isOk())
-                .andExpect(view().name("dashboard"))
-                .andExpect(model().attribute("artists", List.of(artistA, artistB)));
+                .andExpect(jsonPath("$.artists").isArray())
+                .andExpect(jsonPath("$.artists[0].artistName").value("Artist A"))
+                .andExpect(jsonPath("$.artists[1].artistName").value("Artist B"));
     }
 
 }

@@ -3,22 +3,29 @@ package org.omt.labelmanager.distribution.distributor.api;
 import jakarta.persistence.EntityNotFoundException;
 import org.omt.labelmanager.catalog.label.api.LabelQueryApi;
 import org.omt.labelmanager.catalog.release.api.ReleaseQueryApi;
-import org.omt.labelmanager.distribution.agreement.api.AgreementQueryApi;
 import org.omt.labelmanager.distribution.agreement.PricingAgreement;
+import org.omt.labelmanager.distribution.agreement.api.AgreementQueryApi;
+import org.omt.labelmanager.distribution.distributor.ChannelType;
+import org.omt.labelmanager.distribution.distributor.Distributor;
 import org.omt.labelmanager.inventory.productionrun.api.ProductionRunQueryApi;
 import org.omt.labelmanager.sales.distributor_return.api.DistributorReturnQueryApi;
+import org.omt.labelmanager.sales.distributor_return.domain.DistributorReturn;
 import org.omt.labelmanager.sales.sale.api.SaleQueryApi;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
+import org.omt.labelmanager.sales.sale.domain.Sale;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-@Controller
-@RequestMapping("/labels/{labelId}/distributors")
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/labels/{labelId}/distributors")
 public class DistributorController {
 
     private final DistributorCommandApi commandApi;
@@ -50,13 +57,21 @@ public class DistributorController {
         this.releaseQueryApi = releaseQueryApi;
     }
 
+    record AddDistributorRequest(String name, ChannelType channelType) {}
+
+    record DistributorDetailResponse(
+            Distributor distributor,
+            List<Sale> sales,
+            List<DistributorReturn> returns,
+            List<AgreementView> agreements
+    ) {}
+
     @GetMapping("/{distributorId}")
-    public String showDistributor(
+    public DistributorDetailResponse showDistributor(
             @PathVariable Long labelId,
-            @PathVariable Long distributorId,
-            Model model
+            @PathVariable Long distributorId
     ) {
-        var label = labelQueryApi.findById(labelId)
+        labelQueryApi.findById(labelId)
                 .orElseThrow(() -> new EntityNotFoundException("Label not found"));
         var distributor = distributorQueryApi.findById(distributorId)
                 .filter(d -> d.labelId().equals(labelId))
@@ -67,35 +82,25 @@ public class DistributorController {
                 .map(this::enrichAgreement)
                 .toList();
 
-        model.addAttribute("label", label);
-        model.addAttribute("distributor", distributor);
-        model.addAttribute("sales", sales);
-        model.addAttribute("returns", returns);
-        model.addAttribute("agreements", agreements);
-
-        return "distributor/detail";
+        return new DistributorDetailResponse(distributor, sales, returns, agreements);
     }
 
     @PostMapping
-    public String addDistributor(
+    public ResponseEntity<Void> addDistributor(
             @PathVariable Long labelId,
-            @ModelAttribute AddDistributorForm form
+            @RequestBody AddDistributorRequest request
     ) {
-        commandApi.createDistributor(
-                labelId,
-                form.getName(),
-                form.getChannelType()
-        );
-        return "redirect:/labels/" + labelId;
+        commandApi.createDistributor(labelId, request.name(), request.channelType());
+        return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
     @DeleteMapping("/{distributorId}")
-    public String deleteDistributor(
+    public ResponseEntity<Void> deleteDistributor(
             @PathVariable Long labelId,
             @PathVariable Long distributorId
     ) {
         commandApi.delete(distributorId);
-        return "redirect:/labels/" + labelId;
+        return ResponseEntity.noContent().build();
     }
 
     private AgreementView enrichAgreement(PricingAgreement agreement) {

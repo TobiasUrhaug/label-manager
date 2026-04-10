@@ -1,29 +1,31 @@
 package org.omt.labelmanager.catalog.release.api;
 
 import java.time.LocalDate;
-import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import org.omt.labelmanager.catalog.artist.api.ArtistQueryApi;
 import org.omt.labelmanager.catalog.artist.domain.Artist;
 import org.omt.labelmanager.catalog.release.domain.Release;
 import org.omt.labelmanager.catalog.release.domain.ReleaseFormat;
 import org.omt.labelmanager.catalog.release.domain.Track;
-import org.omt.labelmanager.distribution.distributor.api.DistributorQueryApi;
+import org.omt.labelmanager.catalog.release.domain.TrackDuration;
+import org.omt.labelmanager.catalog.release.domain.TrackInput;
 import org.omt.labelmanager.distribution.distributor.Distributor;
+import org.omt.labelmanager.distribution.distributor.api.DistributorQueryApi;
 import org.omt.labelmanager.finance.cost.api.CostQueryApi;
 import org.omt.labelmanager.finance.cost.domain.Cost;
-import org.omt.labelmanager.finance.cost.domain.CostType;
 import org.omt.labelmanager.identity.application.AppUserDetails;
+import org.omt.labelmanager.inventory.LocationType;
 import org.omt.labelmanager.inventory.api.DistributorInventoryView;
 import org.omt.labelmanager.inventory.api.MovementHistoryView;
 import org.omt.labelmanager.inventory.api.ProductionRunWithAllocation;
-import org.omt.labelmanager.inventory.LocationType;
-import org.omt.labelmanager.inventory.inventorymovement.api.InventoryMovementQueryApi;
 import org.omt.labelmanager.inventory.inventorymovement.InventoryMovement;
+import org.omt.labelmanager.inventory.inventorymovement.api.InventoryMovementQueryApi;
 import org.omt.labelmanager.inventory.productionrun.api.ProductionRunQueryApi;
 import org.omt.labelmanager.inventory.productionrun.domain.ProductionRun;
 import org.omt.labelmanager.sales.sale.api.SaleQueryApi;
@@ -31,24 +33,23 @@ import org.omt.labelmanager.sales.sale.domain.Sale;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
-@Controller
-@RequestMapping("/labels/{labelId}/releases")
+@RestController
+@RequestMapping("/api/labels/{labelId}/releases")
 public class ReleaseController {
 
-    private static final Logger log =
-            LoggerFactory.getLogger(ReleaseController.class);
+    private static final Logger log = LoggerFactory.getLogger(ReleaseController.class);
 
     private final ReleaseCommandApi releaseCommandApi;
     private final ReleaseQueryApi releaseQueryApi;
@@ -79,31 +80,83 @@ public class ReleaseController {
         this.saleQueryApi = saleQueryApi;
     }
 
-    @PostMapping
-    public String createRelease(
-            @PathVariable Long labelId,
-            @ModelAttribute CreateReleaseForm form
+    record TrackRequest(
+            List<Long> artistIds,
+            String name,
+            String duration,
+            List<Long> remixerIds
     ) {
-        LocalDate date = LocalDate.parse(form.getReleaseDate());
-
-        releaseCommandApi.createRelease(
-                form.getReleaseName(),
-                date,
-                labelId,
-                form.getArtistIds(),
-                form.toTrackInputs(),
-                form.toReleaseFormats()
-        );
-
-        return "redirect:/labels/" + labelId;
+        TrackInput toTrackInput(int position) {
+            return new TrackInput(
+                    artistIds != null ? artistIds : List.of(),
+                    name,
+                    TrackDuration.parse(duration),
+                    position,
+                    remixerIds != null ? remixerIds : List.of()
+            );
+        }
     }
 
+    record CreateReleaseRequest(
+            String releaseName,
+            String releaseDate,
+            List<Long> artistIds,
+            List<TrackRequest> tracks,
+            List<String> formats
+    ) {
+        List<TrackInput> toTrackInputs() {
+            if (tracks == null) return List.of();
+            return IntStream.range(0, tracks.size())
+                    .mapToObj(i -> tracks.get(i).toTrackInput(i + 1))
+                    .toList();
+        }
+
+        Set<ReleaseFormat> toReleaseFormats() {
+            if (formats == null) return Set.of();
+            return formats.stream().map(ReleaseFormat::valueOf).collect(Collectors.toSet());
+        }
+    }
+
+    record UpdateReleaseRequest(
+            String releaseName,
+            String releaseDate,
+            List<Long> artistIds,
+            List<TrackRequest> tracks,
+            List<String> formats
+    ) {
+        List<TrackInput> toTrackInputs() {
+            if (tracks == null) return List.of();
+            return IntStream.range(0, tracks.size())
+                    .mapToObj(i -> tracks.get(i).toTrackInput(i + 1))
+                    .toList();
+        }
+
+        Set<ReleaseFormat> toReleaseFormats() {
+            if (formats == null) return Set.of();
+            return formats.stream().map(ReleaseFormat::valueOf).collect(Collectors.toSet());
+        }
+    }
+
+    record ReleaseDetailResponse(
+            Long releaseId,
+            Long labelId,
+            String name,
+            LocalDate releaseDate,
+            List<Artist> artists,
+            List<TrackView> tracks,
+            Set<ReleaseFormat> formats,
+            List<Cost> costs,
+            List<ProductionRunWithAllocation> productionRuns,
+            List<Distributor> distributors,
+            List<ReleaseSaleView> releaseSales,
+            int totalUnitsSold
+    ) {}
+
     @GetMapping("/{releaseId}")
-    public String releaseView(
+    public ReleaseDetailResponse release(
             @AuthenticationPrincipal AppUserDetails user,
             @PathVariable Long labelId,
-            @PathVariable Long releaseId,
-            Model model
+            @PathVariable Long releaseId
     ) {
         Release release = releaseQueryApi
                 .findById(releaseId)
@@ -121,62 +174,61 @@ public class ReleaseController {
         List<ProductionRunWithAllocation> productionRunsWithAllocation = productionRuns.stream()
                 .map(run -> buildProductionRunWithAllocation(run, distributors))
                 .toList();
-        List<ReleaseFormat> physicalFormats = Arrays.stream(ReleaseFormat.values())
-                .filter(ReleaseFormat::isPhysical)
-                .toList();
-        List<ReleaseSaleView> releaseSales =
-                buildReleaseSales(productionRuns, distributors);
-        int totalUnitsSold = releaseSales.stream()
-                .mapToInt(ReleaseSaleView::totalUnits)
-                .sum();
+        List<ReleaseSaleView> releaseSales = buildReleaseSales(productionRuns, distributors);
+        int totalUnitsSold = releaseSales.stream().mapToInt(ReleaseSaleView::totalUnits).sum();
 
-        model.addAttribute("name", release.name());
-        model.addAttribute("labelId", labelId);
-        model.addAttribute("releaseId", releaseId);
-        model.addAttribute("releaseDate", release.releaseDate());
-        model.addAttribute("artists", resolveArtists(release.artistIds(), artistMap));
-        model.addAttribute("tracks", resolveTrackArtists(release.tracks(), artistMap));
-        model.addAttribute("formats", release.formats());
-        model.addAttribute("allArtists", allArtists);
-        model.addAttribute("allFormats", ReleaseFormat.values());
-        model.addAttribute("costs", costs);
-        model.addAttribute("allCostTypes", CostType.values());
-        model.addAttribute("productionRuns", productionRunsWithAllocation);
-        model.addAttribute("physicalFormats", physicalFormats);
-        model.addAttribute("distributors", distributors);
-        model.addAttribute("releaseSales", releaseSales);
-        model.addAttribute("totalUnitsSold", totalUnitsSold);
+        return new ReleaseDetailResponse(
+                releaseId,
+                labelId,
+                release.name(),
+                release.releaseDate(),
+                resolveArtists(release.artistIds(), artistMap),
+                resolveTrackArtists(release.tracks(), artistMap),
+                release.formats(),
+                costs,
+                productionRunsWithAllocation,
+                distributors,
+                releaseSales,
+                totalUnitsSold
+        );
+    }
 
-        return "/releases/release";
+    @PostMapping
+    public ResponseEntity<Void> createRelease(
+            @PathVariable Long labelId,
+            @RequestBody CreateReleaseRequest request
+    ) {
+        releaseCommandApi.createRelease(
+                request.releaseName(),
+                LocalDate.parse(request.releaseDate()),
+                labelId,
+                request.artistIds() != null ? request.artistIds() : List.of(),
+                request.toTrackInputs(),
+                request.toReleaseFormats()
+        );
+        return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
     @PutMapping("/{releaseId}")
-    public String updateRelease(
-            @PathVariable Long labelId,
+    public ResponseEntity<Void> updateRelease(
             @PathVariable Long releaseId,
-            @ModelAttribute UpdateReleaseForm form
+            @RequestBody UpdateReleaseRequest request
     ) {
-        LocalDate date = LocalDate.parse(form.getReleaseDate());
-
         releaseCommandApi.updateRelease(
                 releaseId,
-                form.getReleaseName(),
-                date,
-                form.getArtistIds(),
-                form.toTrackInputs(),
-                form.toReleaseFormats()
+                request.releaseName(),
+                LocalDate.parse(request.releaseDate()),
+                request.artistIds() != null ? request.artistIds() : List.of(),
+                request.toTrackInputs(),
+                request.toReleaseFormats()
         );
-
-        return "redirect:/labels/" + labelId + "/releases/" + releaseId;
+        return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping("/{releaseId}")
-    public String deleteRelease(
-            @PathVariable Long labelId,
-            @PathVariable Long releaseId
-    ) {
+    public ResponseEntity<Void> deleteRelease(@PathVariable Long releaseId) {
         releaseCommandApi.delete(releaseId);
-        return "redirect:/labels/" + labelId;
+        return ResponseEntity.noContent().build();
     }
 
     private List<Artist> resolveArtists(List<Long> artistIds, Map<Long, Artist> artistMap) {
@@ -186,10 +238,7 @@ public class ReleaseController {
                 .toList();
     }
 
-    private List<TrackView> resolveTrackArtists(
-            List<Track> tracks,
-            Map<Long, Artist> artistMap
-    ) {
+    private List<TrackView> resolveTrackArtists(List<Track> tracks, Map<Long, Artist> artistMap) {
         return tracks.stream()
                 .map(track -> new TrackView(
                         track.id(),
@@ -213,17 +262,12 @@ public class ReleaseController {
         List<InventoryMovement> movements =
                 inventoryMovementQueryApi.getMovementsForProductionRun(run.id());
 
-        List<DistributorInventoryView> distributorInventories =
-                buildDistributorInventories(currentByDistributor, distributors);
-        List<MovementHistoryView> movementHistory =
-                buildMovementHistory(movements, distributors);
-
         return new ProductionRunWithAllocation(
                 run,
                 bandcampInventory,
                 warehouseInventory,
-                distributorInventories,
-                movementHistory
+                buildDistributorInventories(currentByDistributor, distributors),
+                buildMovementHistory(movements, distributors)
         );
     }
 
@@ -276,10 +320,6 @@ public class ReleaseController {
                 .orElse("Unknown");
     }
 
-    /**
-     * Collects all sales across every production run of the release, sorted by date descending,
-     * and enriches each with the resolved distributor name.
-     */
     private List<ReleaseSaleView> buildReleaseSales(
             List<ProductionRun> productionRuns,
             List<Distributor> distributors
@@ -292,9 +332,7 @@ public class ReleaseController {
     }
 
     private ReleaseSaleView toReleaseSaleView(Sale sale, List<Distributor> distributors) {
-        int totalUnits = sale.lineItems().stream()
-                .mapToInt(item -> item.quantity())
-                .sum();
+        int totalUnits = sale.lineItems().stream().mapToInt(item -> item.quantity()).sum();
         return new ReleaseSaleView(
                 sale.id(),
                 sale.saleDate(),

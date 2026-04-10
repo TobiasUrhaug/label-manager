@@ -2,7 +2,7 @@
 
 ## Package Structure
 
-Spring Boot 4.0.0 web application (Java 25) using Thymeleaf for server-side templating with Bootstrap 5.
+Spring Boot 4.0.0 REST API (Java 25).
 
 Organized by bounded context, each following clean architecture:
 
@@ -83,7 +83,7 @@ catalog/label/
 - `persistence/` is the only sub-package besides `api/`, separating JPA artifacts from the domain record
 
 **Key principles**:
-- The `api/` package is the module's public boundary: interfaces (`CommandApi`, `QueryApi`), controllers, and form objects. It does not contain view-specific DTOs or read models assembled for Thymeleaf templates.
+- The `api/` package is the module's public boundary: interfaces (`CommandApi`, `QueryApi`), controllers, and request/response records. It does not contain view-specific DTOs assembled for presentation.
 - The `persistence/` package contains JPA entities and Spring Data repositories — public so test helpers and shared infrastructure adapters can access them.
 - Services (`LabelCommandService`, `LabelQueryService`) are package-private and live flat in the module root alongside the domain record.
 - When a module gains non-trivial business logic, promote it to the full structure.
@@ -318,34 +318,29 @@ class RegisterSaleUseCase {
 **In controllers**, if you need data from multiple modules, fetch them separately:
 ```java
 @GetMapping("/{id}")
-public String showRelease(@PathVariable Long id, Model model) {
+public ReleaseDetailResponse getRelease(@PathVariable Long id) {
     Release release = releaseQuery.findById(id).orElseThrow(...);
     Label label = labelQuery.findById(release.labelId()).orElseThrow(...);
-    model.addAttribute("release", release);
-    model.addAttribute("label", label);
-    return "release/detail";
+    return new ReleaseDetailResponse(release, label);
 }
 ```
 
-**Composite read models (views spanning multiple modules)**
+**Composite response records (aggregating data from multiple modules)**
 
-When a Thymeleaf view needs data assembled from several modules, compose it in the controller — not in a service or use case. View models are presentation concerns, not domain concerns.
+When a REST response needs data assembled from several modules, compose it in the controller — not in a service or use case. Response shaping is a presentation concern, not a domain concern.
 
 ```java
-// ✅ Controller assembles the view model from multiple module APIs
+// ✅ Controller assembles the JSON response from multiple module APIs
 @GetMapping("/{id}")
-public String showProductionRun(@PathVariable Long id, Model model) {
+public ProductionRunResponse getProductionRun(@PathVariable Long id) {
     ProductionRun run = productionRunQuery.findById(id).orElseThrow(...);
     List<ChannelAllocation> allocations = allocationQuery.getAllocationsForProductionRun(id);
     int warehouseInventory = inventoryMovementQuery.getWarehouseInventory(id);
-    model.addAttribute("run", run);
-    model.addAttribute("allocations", allocations);
-    model.addAttribute("warehouseInventory", warehouseInventory);
-    return "inventory/production-run-detail";
+    return new ProductionRunResponse(run, allocations, warehouseInventory);
 }
 ```
 
-View-specific DTOs that exist solely to carry assembled data to a template belong in the controller's package or a sibling `web/` package — not in any module's `api/` package.
+Response records that exist solely to carry assembled data belong in the controller's package or a sibling `api/` subpackage — not in any module's core `api/` package.
 
 **Avoid bidirectional module dependencies**
 
@@ -378,7 +373,7 @@ public class InsufficientInventoryException extends RuntimeException { ... }
 
 | Subdirectory | Contains | Visibility | Example |
 |--------------|----------|------------|---------|
-| `api/` | Module contracts: interfaces, controllers, forms, domain exceptions | Public | `LabelCommandApi.java`, `LabelController.java`, `LabelNotFoundException.java` |
+| `api/` | Module contracts: interfaces, controllers, request/response records, domain exceptions | Public | `LabelCommandApi.java`, `LabelController.java`, `LabelNotFoundException.java` |
 | `application/` | Use cases, API implementations | Package-private | `CreateLabelUseCase.java`, `LabelCommandApiImpl.java` |
 | `domain/` | Domain records | Public | `Label.java` |
 | `persistence/` | JPA entities, repositories | Public | `LabelEntity.java`, `LabelRepository.java` |
@@ -387,7 +382,7 @@ public class InsufficientInventoryException extends RuntimeException { ... }
 
 | Location | Contains | Visibility | Example |
 |----------|----------|------------|---------|
-| `api/` | Module contracts: interfaces, controllers, forms, domain exceptions | Public | `LabelCommandApi.java`, `LabelController.java` |
+| `api/` | Module contracts: interfaces, controllers, request/response records, domain exceptions | Public | `LabelCommandApi.java`, `LabelController.java` |
 | `persistence/` | JPA entities, repositories | Public | `LabelEntity.java`, `LabelRepository.java` |
 | module root (flat) | Domain records, command/query services | Domain records public; services package-private | `Label.java`, `LabelCommandService.java` |
 
@@ -398,50 +393,3 @@ Note: Shared infrastructure (cross-cutting concerns like security, storage) live
 - PostgreSQL (production and tests via TestContainers)
 - Flyway migrations in `src/main/resources/db/migration/`, named `V{n}__{description}.sql` (e.g., `V30__add_commission_type.sql`)
 
-## JavaScript and Frontend
-
-**CRITICAL: Never inline JavaScript in templates**
-
-JavaScript must be in separate `.js` files with corresponding tests.
-
-**File structure:**
-```
-src/main/resources/static/js/
-├── sale-form.js           # JavaScript modules
-└── ...
-
-src/test/js/
-├── sale-form.test.js      # Vitest unit tests
-└── ...
-```
-
-**Guidelines:**
-1. All JavaScript logic goes in `.js` files in `src/main/resources/static/js/`
-2. Every `.js` file needs a corresponding `.test.js` file with Vitest tests
-3. Templates should only contain HTML/Thymeleaf and minimal inline event handlers
-4. Use ES6 modules: export/import functions for testability
-
-```html
-<!-- ✅ Template -->
-<script src="/js/sale-form.js"></script>
-<button onclick="SaleForm.addLineItem()">Add Item</button>
-```
-
-```javascript
-// ✅ src/main/resources/static/js/sale-form.js
-export const SaleForm = {
-    addLineItem() { /* ... */ }
-};
-```
-
-**CSRF Tokens in Forms**
-
-All POST/PUT/DELETE forms MUST include a CSRF token:
-
-```html
-<form method="post" ...>
-    <input type="hidden" th:if="${_csrf}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
-</form>
-```
-
-Forms using `th:action` get CSRF tokens automatically. Forms with dynamic `action` attributes set via JavaScript (like modals) must include the hidden input explicitly.

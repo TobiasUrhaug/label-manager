@@ -8,7 +8,7 @@ import org.omt.labelmanager.inventory.MovementType;
  *
  * <p>Location names ({@code fromLocation}, {@code toLocation}) are pre-resolved
  * to human-readable strings (e.g. "Warehouse", "Direct Sales", "External (sold)")
- * so that templates do not need to perform distributor lookups.
+ * so that clients do not need to perform distributor lookups.
  */
 public record MovementHistoryView(
         Instant occurredAt,
