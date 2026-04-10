@@ -111,7 +111,7 @@ Delete `CreateArtistForm.java` and `UpdateArtistForm.java`. Replace with inline 
 - `updateArtist_*` → PUT with JSON body, assert `status().isNoContent()`
 - `deleteArtist_*` → assert `status().isNoContent()`
 
-- [ ] Task 3: Convert `ArtistController` to `@RestController` at `/api/artists`, delete old form classes, update test
+- [x] Task 3: Convert `ArtistController` to `@RestController` at `/api/artists`, delete old form classes, update test
 
 ---
 
