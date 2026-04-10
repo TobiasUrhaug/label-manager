@@ -17,10 +17,10 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf
                         .spa()
-                        .ignoringRequestMatchers("/api/auth/register")
+                        .ignoringRequestMatchers("/api/auth/register", "/swagger-ui/**", "/v3/api-docs/**")
                 )
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/login", "/api/auth/register").permitAll()
+                        .requestMatchers("/login", "/api/auth/register", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .formLogin(form -> form
@@ -31,6 +31,9 @@ public class SecurityConfig {
                 .logout(logout -> logout
                         .logoutSuccessHandler(spaLogoutSuccessHandler())
                         .permitAll()
+                )
+                .httpBasic(basic -> basic
+                        .authenticationEntryPoint(authenticationEntryPoint())
                 )
                 .exceptionHandling(ex -> ex
                         .authenticationEntryPoint(authenticationEntryPoint())

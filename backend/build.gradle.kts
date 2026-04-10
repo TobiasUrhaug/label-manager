@@ -44,6 +44,7 @@ dependencies {
     implementation(platform("software.amazon.awssdk:bom:2.31.59"))
     implementation("software.amazon.awssdk:s3")
 
+	implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.6")
 	developmentOnly("org.springframework.boot:spring-boot-devtools")
 	testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
