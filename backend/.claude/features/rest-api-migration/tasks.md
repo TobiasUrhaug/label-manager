@@ -257,7 +257,7 @@ Delete `RegisterCostForm.java` if its fields can be bound directly via `@Request
 - PUT: multipart request → `204`
 - Document download: `200` with correct content-type header (existing assertions likely already correct)
 
-- [ ] Task 8: Convert `CostController` to `@RestController` with `/api/` prefix, update test
+- [x] Task 8: Convert `CostController` to `@RestController` with `/api/` prefix, update test
 
 ---
 

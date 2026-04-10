@@ -5,16 +5,16 @@ import org.omt.labelmanager.finance.shared.DocumentUpload;
 import org.omt.labelmanager.finance.shared.RetrievedDocument;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.Set;
 
-@Controller
+@RestController
 public class CostController {
 
     private static final Set<String> ALLOWED_CONTENT_TYPES = Set.of(
@@ -33,8 +33,8 @@ public class CostController {
         this.costCommandFacade = costCommandFacade;
     }
 
-    @PostMapping("/labels/{labelId}/releases/{releaseId}/costs")
-    public String registerCostForRelease(
+    @PostMapping("/api/labels/{labelId}/releases/{releaseId}/costs")
+    public ResponseEntity<Void> registerCostForRelease(
             @PathVariable Long labelId,
             @PathVariable Long releaseId,
             RegisterCostForm form,
@@ -51,11 +51,11 @@ public class CostController {
                 form.getDocumentReference(),
                 toDocumentUpload(document)
         );
-        return "redirect:/labels/" + labelId + "/releases/" + releaseId;
+        return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
-    @PostMapping("/labels/{labelId}/costs")
-    public String registerCostForLabel(
+    @PostMapping("/api/labels/{labelId}/costs")
+    public ResponseEntity<Void> registerCostForLabel(
             @PathVariable Long labelId,
             RegisterCostForm form,
             @RequestParam(value = "document", required = false) MultipartFile document
@@ -71,10 +71,10 @@ public class CostController {
                 form.getDocumentReference(),
                 toDocumentUpload(document)
         );
-        return "redirect:/labels/" + labelId;
+        return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
-    @GetMapping("/costs/{costId}/document")
+    @GetMapping("/api/costs/{costId}/document")
     public ResponseEntity<InputStreamResource> getDocument(
             @PathVariable Long costId,
             @RequestParam(defaultValue = "view") String action
@@ -93,27 +93,27 @@ public class CostController {
                 .body(new InputStreamResource(document.content()));
     }
 
-    @DeleteMapping("/labels/{labelId}/releases/{releaseId}/costs/{costId}")
-    public String deleteCostForRelease(
+    @DeleteMapping("/api/labels/{labelId}/releases/{releaseId}/costs/{costId}")
+    public ResponseEntity<Void> deleteCostForRelease(
             @PathVariable Long labelId,
             @PathVariable Long releaseId,
             @PathVariable Long costId
     ) {
         costCommandFacade.deleteCost(costId);
-        return "redirect:/labels/" + labelId + "/releases/" + releaseId;
+        return ResponseEntity.noContent().build();
     }
 
-    @DeleteMapping("/labels/{labelId}/costs/{costId}")
-    public String deleteCostForLabel(
+    @DeleteMapping("/api/labels/{labelId}/costs/{costId}")
+    public ResponseEntity<Void> deleteCostForLabel(
             @PathVariable Long labelId,
             @PathVariable Long costId
     ) {
         costCommandFacade.deleteCost(costId);
-        return "redirect:/labels/" + labelId;
+        return ResponseEntity.noContent().build();
     }
 
-    @PutMapping("/labels/{labelId}/releases/{releaseId}/costs/{costId}")
-    public String updateCostForRelease(
+    @PutMapping("/api/labels/{labelId}/releases/{releaseId}/costs/{costId}")
+    public ResponseEntity<Void> updateCostForRelease(
             @PathVariable Long labelId,
             @PathVariable Long releaseId,
             @PathVariable Long costId,
@@ -131,11 +131,11 @@ public class CostController {
                 form.getDocumentReference(),
                 toDocumentUpload(document)
         );
-        return "redirect:/labels/" + labelId + "/releases/" + releaseId;
+        return ResponseEntity.noContent().build();
     }
 
-    @PutMapping("/labels/{labelId}/costs/{costId}")
-    public String updateCostForLabel(
+    @PutMapping("/api/labels/{labelId}/costs/{costId}")
+    public ResponseEntity<Void> updateCostForLabel(
             @PathVariable Long labelId,
             @PathVariable Long costId,
             RegisterCostForm form,
@@ -152,7 +152,7 @@ public class CostController {
                 form.getDocumentReference(),
                 toDocumentUpload(document)
         );
-        return "redirect:/labels/" + labelId;
+        return ResponseEntity.noContent().build();
     }
 
     private DocumentUpload toDocumentUpload(MultipartFile file) throws IOException {
