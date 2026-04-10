@@ -21,9 +21,9 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.util.List;
 import java.util.Optional;
 
-import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -55,7 +55,7 @@ class LabelControllerTest {
             new AppUserDetails(1L, "test@example.com", "password", "Test User");
 
     @Test
-    void label_redirectsToALabel() throws Exception {
+    void label_returnsLabelJson() throws Exception {
         var label = LabelFactory.aLabel()
                 .id(1L)
                 .name("My Label")
@@ -74,59 +74,65 @@ class LabelControllerTest {
         when(distributorQueryService.findByLabelId(1L)).thenReturn(List.of(distributor));
 
         mockMvc
-                .perform(get("/labels/1").with(user(testUser)))
+                .perform(get("/api/labels/1").with(user(testUser)))
                 .andExpect(status().isOk())
-                .andExpect(view().name("labels/label"))
-                .andExpect(model().attribute("name", "My Label"))
-                .andExpect(model().attribute("id", 1L))
-                .andExpect(model().attribute("email", "contact@mylabel.com"))
-                .andExpect(model().attribute("website", "https://mylabel.com"))
-                .andExpect(model().attribute("releases", hasSize(1)))
-                .andExpect(model().attribute("artists", hasSize(1)))
-                .andExpect(model().attribute("distributors", hasSize(1)));
+                .andExpect(jsonPath("$.name").value("My Label"))
+                .andExpect(jsonPath("$.email").value("contact@mylabel.com"))
+                .andExpect(jsonPath("$.website").value("https://mylabel.com"))
+                .andExpect(jsonPath("$.releases").isArray())
+                .andExpect(jsonPath("$.artists").isArray())
+                .andExpect(jsonPath("$.distributors").isArray());
     }
 
     @Test
     void label_returns404_whenResourceNotFound() throws Exception {
         when(labelQueryFacade.findById(1123L)).thenReturn(Optional.empty());
 
-        mockMvc.perform(get("/labels/1123").with(user(testUser)))
+        mockMvc.perform(get("/api/labels/1123").with(user(testUser)))
                 .andExpect(status().isNotFound());
     }
 
     @Test
-    void createLabel_callsHandlerAndRedirects() throws Exception {
+    void createLabel_returnsCreated() throws Exception {
         mockMvc
-                .perform(post("/labels")
+                .perform(post("/api/labels")
                         .with(user(testUser))
                         .with(csrf())
-                        .param("labelName", "New Label")
-                        .param("email", "info@newlabel.com")
-                        .param("website", "https://newlabel.com"))
-                .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/dashboard"));
+                        .contentType(APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "labelName": "New Label",
+                                  "email": "info@newlabel.com",
+                                  "website": "https://newlabel.com"
+                                }
+                                """))
+                .andExpect(status().isCreated());
 
         verify(labelCommandFacade).createLabel(
                 "New Label", "info@newlabel.com", "https://newlabel.com", null, null, 1L);
     }
 
     @Test
-    void updateLabel_callsHandlerAndRedirects() throws Exception {
+    void updateLabel_returnsNoContent() throws Exception {
         mockMvc
-                .perform(put("/labels/1")
+                .perform(put("/api/labels/1")
                         .with(user(testUser))
                         .with(csrf())
-                        .param("labelName", "Updated Label")
-                        .param("email", "updated@label.com")
-                        .param("website", "https://updated.com")
-                        .param("ownerName", "New Owner")
-                        .param("street", "456 New St")
-                        .param("street2", "Suite 100")
-                        .param("city", "Bergen")
-                        .param("postalCode", "5020")
-                        .param("country", "Norway"))
-                .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/labels/1"));
+                        .contentType(APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "labelName": "Updated Label",
+                                  "email": "updated@label.com",
+                                  "website": "https://updated.com",
+                                  "ownerName": "New Owner",
+                                  "street": "456 New St",
+                                  "street2": "Suite 100",
+                                  "city": "Bergen",
+                                  "postalCode": "5020",
+                                  "country": "Norway"
+                                }
+                                """))
+                .andExpect(status().isNoContent());
 
         verify(labelCommandFacade).updateLabel(
                 1L,
@@ -138,4 +144,14 @@ class LabelControllerTest {
         );
     }
 
+    @Test
+    void deleteLabel_returnsNoContent() throws Exception {
+        mockMvc
+                .perform(delete("/api/labels/1")
+                        .with(user(testUser))
+                        .with(csrf()))
+                .andExpect(status().isNoContent());
+
+        verify(labelCommandFacade).delete(1L);
+    }
 }

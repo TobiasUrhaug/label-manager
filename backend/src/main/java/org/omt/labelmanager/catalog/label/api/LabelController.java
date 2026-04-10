@@ -2,28 +2,26 @@ package org.omt.labelmanager.catalog.label.api;
 
 import org.omt.labelmanager.catalog.artist.api.ArtistQueryApi;
 import org.omt.labelmanager.catalog.artist.domain.Artist;
-import org.omt.labelmanager.catalog.release.domain.Release;
-import org.omt.labelmanager.catalog.release.domain.ReleaseFormat;
-import org.omt.labelmanager.catalog.release.api.ReleaseQueryApi;
+import org.omt.labelmanager.catalog.domain.shared.Address;
+import org.omt.labelmanager.catalog.domain.shared.Person;
 import org.omt.labelmanager.catalog.label.domain.Label;
-import org.omt.labelmanager.identity.application.AppUserDetails;
-import org.omt.labelmanager.distribution.distributor.api.DistributorQueryApi;
-import org.omt.labelmanager.distribution.distributor.ChannelType;
+import org.omt.labelmanager.catalog.release.api.ReleaseQueryApi;
+import org.omt.labelmanager.catalog.release.domain.Release;
 import org.omt.labelmanager.distribution.distributor.Distributor;
+import org.omt.labelmanager.distribution.distributor.api.DistributorQueryApi;
+import org.omt.labelmanager.identity.application.AppUserDetails;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
-
-@Controller
-@RequestMapping("/labels")
+@RestController
+@RequestMapping("/api/labels")
 public class LabelController {
 
     private static final Logger log = LoggerFactory.getLogger(LabelController.class);
@@ -35,7 +33,8 @@ public class LabelController {
     private final DistributorQueryApi distributorQueryApi;
 
     public LabelController(
-            LabelCommandApi labelCommandHandler, LabelQueryApi labelQueryFacade,
+            LabelCommandApi labelCommandHandler,
+            LabelQueryApi labelQueryFacade,
             ReleaseQueryApi releaseQueryFacade,
             ArtistQueryApi artistQueryApi,
             DistributorQueryApi distributorQueryApi
@@ -47,72 +46,119 @@ public class LabelController {
         this.distributorQueryApi = distributorQueryApi;
     }
 
-    @GetMapping("/{id}")
-    public String labelView(
-            @AuthenticationPrincipal AppUserDetails user,
-            @PathVariable Long id,
-            Model model
+    record LabelDetailResponse(
+            Long id,
+            String name,
+            String email,
+            String website,
+            Address address,
+            Person owner,
+            List<Release> releases,
+            List<Artist> artists,
+            List<Distributor> distributors
+    ) {}
+
+    record CreateLabelRequest(
+            String labelName,
+            String email,
+            String website,
+            String ownerName,
+            String street,
+            String street2,
+            String city,
+            String postalCode,
+            String country
     ) {
-        Label label =
-                labelQueryFacade
-                        .findById(id)
-                        .orElseThrow(() -> {
-                            log.warn("Label with id {} not found", id);
-                            return new ResponseStatusException(HttpStatus.NOT_FOUND);
-                        });
+        Person toOwner() {
+            if (ownerName == null || ownerName.isBlank()) return null;
+            return new Person(ownerName);
+        }
+
+        Address toAddress() {
+            if (street == null || street.isBlank()) return null;
+            return new Address(street, street2, city, postalCode, country);
+        }
+    }
+
+    record UpdateLabelRequest(
+            String labelName,
+            String email,
+            String website,
+            String ownerName,
+            String street,
+            String street2,
+            String city,
+            String postalCode,
+            String country
+    ) {
+        Person toOwner() {
+            if (ownerName == null || ownerName.isBlank()) return null;
+            return new Person(ownerName);
+        }
+
+        Address toAddress() {
+            if (street == null || street.isBlank()) return null;
+            return new Address(street, street2, city, postalCode, country);
+        }
+    }
+
+    @GetMapping("/{id}")
+    public LabelDetailResponse label(
+            @AuthenticationPrincipal AppUserDetails user,
+            @PathVariable Long id
+    ) {
+        Label label = labelQueryFacade
+                .findById(id)
+                .orElseThrow(() -> {
+                    log.warn("Label with id {} not found", id);
+                    return new ResponseStatusException(HttpStatus.NOT_FOUND);
+                });
 
         List<Release> releases = releaseQueryFacade.getReleasesForLabel(id);
         List<Artist> artists = artistQueryApi.getArtistsForUser(user.getId());
         List<Distributor> distributors = distributorQueryApi.findByLabelId(id);
 
-        model.addAttribute("name", label.name());
-        model.addAttribute("id", id);
-        model.addAttribute("email", label.email());
-        model.addAttribute("website", label.website());
-        model.addAttribute("address", label.address());
-        model.addAttribute("owner", label.owner());
-        model.addAttribute("releases", releases);
-        model.addAttribute("artists", artists);
-        model.addAttribute("allFormats", ReleaseFormat.values());
-        model.addAttribute("distributors", distributors);
-        model.addAttribute("allChannelTypes", ChannelType.values());
-
-        return "labels/label";
+        return new LabelDetailResponse(
+                label.id(), label.name(), label.email(), label.website(),
+                label.address(), label.owner(), releases, artists, distributors
+        );
     }
 
     @PostMapping
-    public String createLabel(
+    public ResponseEntity<Void> createLabel(
             @AuthenticationPrincipal AppUserDetails user,
-            CreateLabelForm form
+            @RequestBody CreateLabelRequest request
     ) {
         labelCommandHandler.createLabel(
-                form.getLabelName(),
-                form.getEmail(),
-                form.getWebsite(),
-                form.toAddress(),
-                form.toOwner(),
+                request.labelName(),
+                request.email(),
+                request.website(),
+                request.toAddress(),
+                request.toOwner(),
                 user.getId()
         );
-        return "redirect:/dashboard";
-    }
-
-    @DeleteMapping("/{id}")
-    public String deleteLabel(@PathVariable Long id) {
-        labelCommandHandler.delete(id);
-        return "redirect:/dashboard";
+        return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
     @PutMapping("/{id}")
-    public String updateLabel(@PathVariable Long id, UpdateLabelForm form) {
+    public ResponseEntity<Void> updateLabel(
+            @PathVariable Long id,
+            @RequestBody UpdateLabelRequest request
+    ) {
         labelCommandHandler.updateLabel(
                 id,
-                form.getLabelName(),
-                form.getEmail(),
-                form.getWebsite(),
-                form.toAddress(),
-                form.toOwner()
+                request.labelName(),
+                request.email(),
+                request.website(),
+                request.toAddress(),
+                request.toOwner()
         );
-        return "redirect:/labels/" + id;
+        return ResponseEntity.noContent().build();
     }
 
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteLabel(@PathVariable Long id) {
+        labelCommandHandler.delete(id);
+        return ResponseEntity.noContent().build();
+    }
 }

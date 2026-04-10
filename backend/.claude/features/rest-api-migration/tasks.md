@@ -138,7 +138,7 @@ Delete `CreateLabelForm.java` and `UpdateLabelForm.java`. The tests for `UpdateL
 - PUT: JSON body → `204`
 - DELETE: `204`
 
-- [ ] Task 4: Convert `LabelController` to `@RestController` at `/api/labels`, delete old form classes and form test, update controller test
+- [x] Task 4: Convert `LabelController` to `@RestController` at `/api/labels`, delete old form classes and form test, update controller test
 
 ---
 
