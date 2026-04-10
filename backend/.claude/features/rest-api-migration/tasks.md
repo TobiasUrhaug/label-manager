@@ -194,7 +194,7 @@ Delete `AddDistributorForm.java`.
 - POST: JSON body → `201`
 - DELETE: `204`
 
-- [ ] Task 6: Convert `DistributorController` to `@RestController` at `/api/labels/{labelId}/distributors`, delete form class, update test
+- [x] Task 6: Convert `DistributorController` to `@RestController` at `/api/labels/{labelId}/distributors`, delete form class, update test
 
 ---
 
