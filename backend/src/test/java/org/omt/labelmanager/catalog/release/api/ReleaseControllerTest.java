@@ -1,17 +1,16 @@
 package org.omt.labelmanager.catalog.release.api;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -22,18 +21,15 @@ import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.omt.labelmanager.catalog.artist.api.ArtistQueryApi;
 import org.omt.labelmanager.catalog.artist.domain.ArtistFactory;
-import org.omt.labelmanager.catalog.label.LabelFactory;
-import org.omt.labelmanager.catalog.label.api.LabelQueryApi;
 import org.omt.labelmanager.catalog.release.ReleaseFactory;
 import org.omt.labelmanager.catalog.release.TrackFactory;
 import org.omt.labelmanager.catalog.release.domain.ReleaseFormat;
-import org.omt.labelmanager.distribution.distributor.api.DistributorQueryApi;
 import org.omt.labelmanager.distribution.distributor.ChannelType;
 import org.omt.labelmanager.distribution.distributor.DistributorFactory;
+import org.omt.labelmanager.distribution.distributor.api.DistributorQueryApi;
 import org.omt.labelmanager.finance.cost.api.CostQueryApi;
 import org.omt.labelmanager.finance.domain.shared.Money;
 import org.omt.labelmanager.identity.application.AppUserDetails;
-import org.omt.labelmanager.inventory.api.ProductionRunWithAllocation;
 import org.omt.labelmanager.inventory.inventorymovement.api.InventoryMovementQueryApi;
 import org.omt.labelmanager.inventory.productionrun.api.ProductionRunQueryApi;
 import org.omt.labelmanager.inventory.productionrun.domain.ProductionRunFactory;
@@ -53,9 +49,6 @@ class ReleaseControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
-
-    @MockitoBean
-    private LabelQueryApi labelQueryFacade;
 
     @MockitoBean
     private ReleaseCommandApi releaseCommandFacade;
@@ -85,11 +78,9 @@ class ReleaseControllerTest {
             new AppUserDetails(1L, "test@example.com", "password", "Test User");
 
     @Test
-    void release_returnsReleaseViewAndPopulatedModel() throws Exception {
-        var label = LabelFactory.aLabel().id(1L).name("My Label").build();
-        var releaseDate = LocalDate.now();
+    void release_returnsReleaseJson() throws Exception {
+        var releaseDate = LocalDate.of(2026, 3, 15);
         var artist = ArtistFactory.anArtist().id(1L).artistName("Test Artist").build();
-        var anotherArtist = ArtistFactory.anArtist().id(2L).artistName("Another Artist").build();
         var track = TrackFactory.aTrack()
                 .artistId(1L)
                 .name("Test Track")
@@ -101,28 +92,21 @@ class ReleaseControllerTest {
                 .id(4L)
                 .name("First Release")
                 .releaseDate(releaseDate)
-                .labelId(label.id())
+                .labelId(1L)
                 .artistId(1L)
                 .tracks(List.of(track))
                 .formats(formats)
                 .build();
 
-        when(labelQueryFacade.findById(1L)).thenReturn(Optional.of(label));
         when(releaseQueryFacade.findById(4L)).thenReturn(Optional.of(release));
-        when(artistQueryApi.getArtistsForUser(1L)).thenReturn(List.of(artist, anotherArtist));
+        when(artistQueryApi.getArtistsForUser(1L)).thenReturn(List.of(artist));
 
-        mockMvc.perform(get("/labels/1/releases/4").with(user(testUser)))
+        mockMvc.perform(get("/api/labels/1/releases/4").with(user(testUser)))
                 .andExpect(status().isOk())
-                .andExpect(view().name("/releases/release"))
-                .andExpect(model().attribute("name", "First Release"))
-                .andExpect(model().attribute("labelId", 1L))
-                .andExpect(model().attribute("releaseId", 4L))
-                .andExpect(model().attribute("releaseDate", releaseDate))
-                .andExpect(model().attribute("artists", List.of(artist)))
-                .andExpect(model().attributeExists("tracks"))
-                .andExpect(model().attribute("formats", formats))
-                .andExpect(model().attribute("allArtists", List.of(artist, anotherArtist)))
-                .andExpect(model().attribute("allFormats", ReleaseFormat.values()));
+                .andExpect(jsonPath("$.name").value("First Release"))
+                .andExpect(jsonPath("$.artists").isArray())
+                .andExpect(jsonPath("$.tracks").isArray())
+                .andExpect(jsonPath("$.tracks[0].name").value("Test Track"));
     }
 
     @Test
@@ -135,23 +119,15 @@ class ReleaseControllerTest {
         when(productionRunQueryService.findByReleaseId(4L)).thenReturn(List.of(productionRun));
         when(inventoryMovementQueryApi.getWarehouseInventory(10L)).thenReturn(200);
         when(inventoryMovementQueryApi.getBandcampInventory(10L)).thenReturn(25);
-        when(inventoryMovementQueryApi.getCurrentInventoryByDistributor(10L))
-                .thenReturn(Map.of());
-        when(inventoryMovementQueryApi.getMovementsForProductionRun(10L))
-                .thenReturn(List.of());
+        when(inventoryMovementQueryApi.getCurrentInventoryByDistributor(10L)).thenReturn(Map.of());
+        when(inventoryMovementQueryApi.getMovementsForProductionRun(10L)).thenReturn(List.of());
 
-        var result = mockMvc.perform(get("/labels/1/releases/4").with(user(testUser)))
+        mockMvc.perform(get("/api/labels/1/releases/4").with(user(testUser)))
                 .andExpect(status().isOk())
-                .andReturn();
-
-        @SuppressWarnings("unchecked")
-        var productionRuns = (List<ProductionRunWithAllocation>) result.getModelAndView()
-                .getModel().get("productionRuns");
-        assertThat(productionRuns).hasSize(1);
-        assertThat(productionRuns.get(0).warehouseInventory()).isEqualTo(700);
-        assertThat(productionRuns.get(0).bandcampInventory()).isEqualTo(25);
-        assertThat(productionRuns.get(0).distributorInventories()).isEmpty();
-        assertThat(productionRuns.get(0).movements()).isEmpty();
+                .andExpect(jsonPath("$.productionRuns[0].warehouseInventory").value(700))
+                .andExpect(jsonPath("$.productionRuns[0].bandcampInventory").value(25))
+                .andExpect(jsonPath("$.productionRuns[0].distributorInventories").isEmpty())
+                .andExpect(jsonPath("$.productionRuns[0].movements").isEmpty());
     }
 
     @Test
@@ -159,74 +135,75 @@ class ReleaseControllerTest {
         var release = ReleaseFactory.aRelease().id(4L).labelId(1L).build();
         var productionRun = ProductionRunFactory.aProductionRun()
                 .id(10L).releaseId(4L).quantity(500).build();
-        var alphaDistributor = DistributorFactory.aDistributor()
-                .id(1L).name("Alpha Records").build();
-        var betaDistributor = DistributorFactory.aDistributor()
-                .id(2L).name("Beta Distribution").build();
+        var alphaDistributor = DistributorFactory.aDistributor().id(1L).name("Alpha Records").build();
+        var betaDistributor = DistributorFactory.aDistributor().id(2L).name("Beta Distribution").build();
 
         when(releaseQueryFacade.findById(4L)).thenReturn(Optional.of(release));
         when(productionRunQueryService.findByReleaseId(4L)).thenReturn(List.of(productionRun));
-        when(distributorQueryService.findByLabelId(1L))
-                .thenReturn(List.of(alphaDistributor, betaDistributor));
+        when(distributorQueryService.findByLabelId(1L)).thenReturn(List.of(alphaDistributor, betaDistributor));
         when(inventoryMovementQueryApi.getWarehouseInventory(10L)).thenReturn(350);
-        when(inventoryMovementQueryApi.getCurrentInventoryByDistributor(10L))
-                .thenReturn(Map.of(1L, 80, 2L, 30));
-        when(inventoryMovementQueryApi.getMovementsForProductionRun(10L))
-                .thenReturn(List.of());
+        when(inventoryMovementQueryApi.getCurrentInventoryByDistributor(10L)).thenReturn(Map.of(1L, 80, 2L, 30));
+        when(inventoryMovementQueryApi.getMovementsForProductionRun(10L)).thenReturn(List.of());
 
-        var result = mockMvc.perform(get("/labels/1/releases/4").with(user(testUser)))
+        mockMvc.perform(get("/api/labels/1/releases/4").with(user(testUser)))
                 .andExpect(status().isOk())
-                .andReturn();
-
-        @SuppressWarnings("unchecked")
-        var productionRuns = (List<ProductionRunWithAllocation>) result.getModelAndView()
-                .getModel().get("productionRuns");
-        var distributorInventories = productionRuns.get(0).distributorInventories();
-        assertThat(distributorInventories).hasSize(2);
-
-        // Results are sorted alphabetically by name
-        var alpha = distributorInventories.get(0);
-        assertThat(alpha.name()).isEqualTo("Alpha Records");
-        assertThat(alpha.current()).isEqualTo(80);
-
-        var beta = distributorInventories.get(1);
-        assertThat(beta.name()).isEqualTo("Beta Distribution");
-        assertThat(beta.current()).isEqualTo(30);
+                .andExpect(jsonPath("$.productionRuns[0].distributorInventories[0].name").value("Alpha Records"))
+                .andExpect(jsonPath("$.productionRuns[0].distributorInventories[0].current").value(80))
+                .andExpect(jsonPath("$.productionRuns[0].distributorInventories[1].name").value("Beta Distribution"))
+                .andExpect(jsonPath("$.productionRuns[0].distributorInventories[1].current").value(30));
     }
 
     @Test
-    void release_returns404_whenResourceNotFound() throws Exception {
-        when(labelQueryFacade.findById(1123L)).thenReturn(Optional.empty());
+    void release_returns404_whenNotFound() throws Exception {
+        when(releaseQueryFacade.findById(999L)).thenReturn(Optional.empty());
 
-        mockMvc.perform(get("/labels/1123").with(user(testUser)))
+        mockMvc.perform(get("/api/labels/1/releases/999").with(user(testUser)))
                 .andExpect(status().isNotFound());
     }
 
     @Test
-    void deleteRelease_callsHandlerAndRedirectsToLabel() throws Exception {
-        mockMvc.perform(delete("/labels/1/releases/5")
+    void createRelease_returnsCreated() throws Exception {
+        mockMvc.perform(post("/api/labels/1/releases")
                         .with(user(testUser))
-                        .with(csrf()))
-                .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/labels/1"));
+                        .with(csrf())
+                        .contentType(APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "releaseName": "New Release",
+                                  "releaseDate": "2026-06-15",
+                                  "artistIds": [1, 2],
+                                  "tracks": [],
+                                  "formats": ["VINYL"]
+                                }
+                                """))
+                .andExpect(status().isCreated());
 
-        verify(releaseCommandFacade).delete(5L);
+        verify(releaseCommandFacade).createRelease(
+                org.mockito.ArgumentMatchers.eq("New Release"),
+                org.mockito.ArgumentMatchers.eq(LocalDate.of(2026, 6, 15)),
+                org.mockito.ArgumentMatchers.eq(1L),
+                org.mockito.ArgumentMatchers.anyList(),
+                org.mockito.ArgumentMatchers.anyList(),
+                org.mockito.ArgumentMatchers.anySet()
+        );
     }
 
     @Test
-    void updateRelease_callsHandlerAndRedirectsToRelease() throws Exception {
-        mockMvc.perform(put("/labels/1/releases/5")
+    void updateRelease_returnsNoContent() throws Exception {
+        mockMvc.perform(put("/api/labels/1/releases/5")
                         .with(user(testUser))
                         .with(csrf())
-                        .param("releaseName", "Updated Release")
-                        .param("releaseDate", "2026-06-15")
-                        .param("artistIds", "1", "2")
-                        .param("tracks[0].name", "Track 1")
-                        .param("tracks[0].duration", "3:30")
-                        .param("tracks[0].artistIds", "1")
-                        .param("formats", "VINYL", "CD"))
-                .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/labels/1/releases/5"));
+                        .contentType(APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "releaseName": "Updated Release",
+                                  "releaseDate": "2026-06-15",
+                                  "artistIds": [1, 2],
+                                  "tracks": [],
+                                  "formats": ["VINYL", "CD"]
+                                }
+                                """))
+                .andExpect(status().isNoContent());
 
         verify(releaseCommandFacade).updateRelease(
                 org.mockito.ArgumentMatchers.eq(5L),
@@ -239,6 +216,16 @@ class ReleaseControllerTest {
     }
 
     @Test
+    void deleteRelease_returnsNoContent() throws Exception {
+        mockMvc.perform(delete("/api/labels/1/releases/5")
+                        .with(user(testUser))
+                        .with(csrf()))
+                .andExpect(status().isNoContent());
+
+        verify(releaseCommandFacade).delete(5L);
+    }
+
+    @Test
     void release_populatesReleaseSalesAcrossProductionRuns() throws Exception {
         var release = ReleaseFactory.aRelease().id(4L).labelId(1L).build();
         var productionRun = ProductionRunFactory.aProductionRun()
@@ -246,7 +233,7 @@ class ReleaseControllerTest {
         var distributor = DistributorFactory.aDistributor()
                 .id(1L).name("Cargo Records").channelType(ChannelType.DISTRIBUTOR).build();
         var lineItem = new SaleLineItem(1L, 4L,
-                org.omt.labelmanager.catalog.release.domain.ReleaseFormat.VINYL,
+                ReleaseFormat.VINYL,
                 30, Money.of(BigDecimal.valueOf(15)), Money.of(BigDecimal.valueOf(450)));
         var sale = new Sale(10L, 1L, 1L, LocalDate.of(2026, 1, 10),
                 ChannelType.DISTRIBUTOR, null, List.of(lineItem),
@@ -255,24 +242,14 @@ class ReleaseControllerTest {
         when(releaseQueryFacade.findById(4L)).thenReturn(Optional.of(release));
         when(productionRunQueryService.findByReleaseId(4L)).thenReturn(List.of(productionRun));
         when(distributorQueryService.findByLabelId(1L)).thenReturn(List.of(distributor));
-        when(inventoryMovementQueryApi.getCurrentInventoryByDistributor(10L))
-                .thenReturn(Map.of());
+        when(inventoryMovementQueryApi.getCurrentInventoryByDistributor(10L)).thenReturn(Map.of());
         when(inventoryMovementQueryApi.getMovementsForProductionRun(10L)).thenReturn(List.of());
         when(saleQueryApi.getSalesForProductionRun(10L)).thenReturn(List.of(sale));
 
-        var result = mockMvc.perform(get("/labels/1/releases/4").with(user(testUser)))
+        mockMvc.perform(get("/api/labels/1/releases/4").with(user(testUser)))
                 .andExpect(status().isOk())
-                .andReturn();
-
-        @SuppressWarnings("unchecked")
-        var releaseSales = (List<ReleaseSaleView>) result.getModelAndView()
-                .getModel().get("releaseSales");
-        assertThat(releaseSales).hasSize(1);
-        assertThat(releaseSales.get(0).distributorName()).isEqualTo("Cargo Records");
-        assertThat(releaseSales.get(0).totalUnits()).isEqualTo(30);
-        assertThat(releaseSales.get(0).totalRevenue().amount())
-                .isEqualByComparingTo(BigDecimal.valueOf(450));
-
-        assertThat(result.getModelAndView().getModel().get("totalUnitsSold")).isEqualTo(30);
+                .andExpect(jsonPath("$.releaseSales[0].distributorName").value("Cargo Records"))
+                .andExpect(jsonPath("$.releaseSales[0].totalUnits").value(30))
+                .andExpect(jsonPath("$.totalUnitsSold").value(30));
     }
 }

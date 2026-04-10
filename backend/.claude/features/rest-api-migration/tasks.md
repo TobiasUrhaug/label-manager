@@ -169,7 +169,7 @@ Delete `CreateReleaseForm.java`, `UpdateReleaseForm.java`, and `api/UpdateReleas
 - PUT: JSON body → `204`
 - DELETE: `204`
 
-- [ ] Task 5: Convert `ReleaseController` to `@RestController` at `/api/labels/{labelId}/releases`, delete form classes and form test, update controller test
+- [x] Task 5: Convert `ReleaseController` to `@RestController` at `/api/labels/{labelId}/releases`, delete form classes and form test, update controller test
 
 ---
 
