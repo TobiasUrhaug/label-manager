@@ -325,7 +325,7 @@ Delete `RegisterSaleForm.java`, `EditSaleForm.java`, `SaleLineItemForm.java`.
 - PUT: JSON body → `200`
 - DELETE: `204`
 
-- [ ] Task 10: Convert `SaleController` to `@RestController` at `/api/labels/{labelId}/sales`, remove form-showing endpoints, delete form classes, update test
+- [x] Task 10: Convert `SaleController` to `@RestController` at `/api/labels/{labelId}/sales`, remove form-showing endpoints, delete form classes, update test
 
 ---
 
