@@ -1,7 +1,7 @@
 # Tasks: rest-api-migration
 
 ## Status
-In Progress
+In Review
 
 ## Goal
 
@@ -374,7 +374,7 @@ Verify the SPA handlers (success, failure, logout, entry point) are still presen
 
 Run `./gradlew build` to confirm.
 
-- [ ] Task 12: Clean up `SecurityConfig` — remove Thymeleaf-era `permitAll()` paths
+- [x] Task 12: Clean up `SecurityConfig` — remove Thymeleaf-era `permitAll()` paths
 
 ---
 
@@ -403,7 +403,7 @@ Note: `spring-boot-starter-webmvc` (not `-test`) stays — the REST API still us
 
 Run `./gradlew build` then `./gradlew test` to confirm everything passes.
 
-- [ ] Task 13: Delete templates, static JS, JS test files, package.json, vitest.config.js; remove Thymeleaf deps from build.gradle.kts; verify build and tests pass
+- [x] Task 13: Delete templates, static JS, JS test files, package.json, vitest.config.js; remove Thymeleaf deps from build.gradle.kts; verify build and tests pass
 
 ---
 
@@ -420,7 +420,7 @@ The root `CLAUDE.md` and `backend/CLAUDE.md` contain language about the Thymelea
 **`backend/CLAUDE.md`:**
 - No migration-specific language to remove; check for any references to Thymeleaf patterns
 
-- [ ] Task 14: Update root CLAUDE.md and backend CLAUDE.md to remove Thymeleaf migration language
+- [x] Task 14: Update root CLAUDE.md and backend CLAUDE.md to remove Thymeleaf migration language
 
 ---
 

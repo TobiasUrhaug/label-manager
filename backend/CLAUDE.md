@@ -66,5 +66,4 @@ Reviewer  → resolves comments → updates index.md status to Done
 ./gradlew test                              # All Java tests
 ./gradlew test --tests LabelControllerTest  # Single test class
 ./gradlew checkstyleMain checkstyleTest     # Checkstyle
-npm run test                                # JavaScript unit tests (Thymeleaf static JS — temporary)
 ```
