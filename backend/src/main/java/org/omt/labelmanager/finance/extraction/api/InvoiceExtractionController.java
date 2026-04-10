@@ -19,9 +19,7 @@ public class InvoiceExtractionController {
     private static final Logger log = LoggerFactory.getLogger(InvoiceExtractionController.class);
 
     private static final Set<String> ALLOWED_CONTENT_TYPES = Set.of(
-            "application/pdf",
-            "image/png",
-            "image/jpeg"
+            "application/pdf"
     );
 
     private final ExtractionCommandApi extractionCommandApi;
