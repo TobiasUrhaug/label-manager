@@ -1,4 +1,4 @@
-package org.omt.labelmanager.infrastructure.web;
+package org.omt.labelmanager.web;
 
 import jakarta.persistence.EntityNotFoundException;
 import org.omt.labelmanager.inventory.InsufficientInventoryException;

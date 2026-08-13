@@ -30,9 +30,9 @@ paths:
         '401':
           description: Invalid username or password.
           content:
-            application/json:
+            application/problem+json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '#/components/schemas/ProblemDetail'
 
   /logout:
     post:
@@ -46,9 +46,9 @@ paths:
         '401':
           description: No active session.
           content:
-            application/json:
+            application/problem+json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '#/components/schemas/ProblemDetail'
 
   /api/session:
     get:
@@ -67,9 +67,9 @@ paths:
         '401':
           description: Not authenticated — no valid session cookie present.
           content:
-            application/json:
+            application/problem+json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '#/components/schemas/ProblemDetail'
 
 components:
   securitySchemes:
@@ -99,13 +99,30 @@ components:
         username:
           type: string
 
-    ErrorResponse:
+    ProblemDetail:
+      description: |
+        RFC 9457 problem details. Every error response in this API uses this shape,
+        served as `application/problem+json`.
       type: object
       required:
-        - message
+        - status
       properties:
-        message:
+        type:
           type: string
+          format: uri
+          default: 'about:blank'
+        title:
+          type: string
+          description: Short, human-readable summary of the problem type.
+        status:
+          type: integer
+          description: The HTTP status code.
+        detail:
+          type: string
+          description: Human-readable explanation specific to this occurrence.
+        instance:
+          type: string
+          format: uri
 
 security:
   - cookieAuth: []

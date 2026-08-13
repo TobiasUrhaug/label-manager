@@ -2,10 +2,10 @@ package org.omt.labelmanager.identity.api.user;
 
 import org.omt.labelmanager.identity.application.UserCRUDHandler;
 import org.omt.labelmanager.identity.domain.user.EmailAlreadyExistsException;
-import org.omt.labelmanager.infrastructure.security.ErrorResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -35,7 +35,10 @@ public class RegisterController {
         } catch (EmailAlreadyExistsException e) {
             log.warn("Registration failed: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.CONFLICT)
-                    .body(new ErrorResponse("An account with this email already exists."));
+                    .body(
+                            ProblemDetail.forStatusAndDetail(
+                                    HttpStatus.CONFLICT,
+                                    "An account with this email already exists."));
         }
     }
 

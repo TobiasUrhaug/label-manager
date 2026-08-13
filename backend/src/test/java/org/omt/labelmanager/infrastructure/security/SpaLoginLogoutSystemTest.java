@@ -59,7 +59,7 @@ class SpaLoginLogoutSystemTest extends AbstractIntegrationTest {
     }
 
     @Test
-    void postLogin_withWrongPassword_returns401WithErrorBody() {
+    void postLogin_withWrongPassword_returns401ProblemDetail() {
         String xsrfToken = fetchXsrfToken();
 
         HttpHeaders headers = new HttpHeaders();
@@ -75,27 +75,27 @@ class SpaLoginLogoutSystemTest extends AbstractIntegrationTest {
                 restTemplate.postForEntity("/login", new HttpEntity<>(body, headers), String.class);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
-        assertThat(response.getHeaders().getContentType()).isNotNull();
-        assertThat(
-                        response.getHeaders()
-                                .getContentType()
-                                .isCompatibleWith(MediaType.APPLICATION_JSON))
-                .isTrue();
-        assertThat(response.getBody()).contains("Invalid credentials.");
+        assertThat(response.getHeaders().getContentType())
+                .isNotNull()
+                .matches(it -> it.isCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON));
+        assertThat(response.getBody())
+                .contains("\"status\":401")
+                .contains("Invalid credentials.")
+                .doesNotContain("\"properties\"");
     }
 
     @Test
-    void apiRequest_withoutSession_returns401WithJsonBody() {
+    void apiRequest_withoutSession_returns401ProblemDetail() {
         ResponseEntity<String> response = restTemplate.getForEntity("/api/session", String.class);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
-        assertThat(response.getHeaders().getContentType()).isNotNull();
-        assertThat(
-                        response.getHeaders()
-                                .getContentType()
-                                .isCompatibleWith(MediaType.APPLICATION_JSON))
-                .isTrue();
-        assertThat(response.getBody()).contains("message");
+        assertThat(response.getHeaders().getContentType())
+                .isNotNull()
+                .matches(it -> it.isCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON));
+        assertThat(response.getBody())
+                .contains("\"status\":401")
+                .contains("Authentication required.")
+                .doesNotContain("\"properties\"");
     }
 
     @Test
