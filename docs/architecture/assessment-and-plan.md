@@ -784,7 +784,24 @@ Every phase leaves `./gradlew build` green and the app deployable.
 
 ---
 
-### Phase 0 — Make the build tell the truth
+### Phase 0 — Make the build tell the truth ✅ *done, branch `feature/backend-phase-0`*
+
+**What actually differed from the plan below**, all verified:
+
+- **Testcontainers was a major upgrade, not an unpin.** The BOM manages 2.0.2 and 2.x prefixes its
+  module artifacts, so three of four coordinates had to change. No test sources needed editing.
+- **The suite has 333 tests, not 318** — see F1. Final count is 336 (333 + 2 recovered + 1 new).
+- **Checkstyle's `LineLength` and `Indentation` were removed rather than burned down** (a deviation
+  from Q5). google-java-format and checkstyle disagreed irreconcilably: the formatter will not split
+  long string literals its own continuation indent pushed past 100 columns, and checkstyle does not
+  model a switch *expression* wrapped as an assignment continuation. Keeping both meant the gate
+  could never go green. Spotless now owns layout and `spotlessCheck` runs as part of `check`;
+  checkstyle keeps naming, braces, imports and javadoc. One source of truth per concern.
+- **`MethodName` was relaxed** to `^[a-z][a-zA-Z0-9_]*$` so test data builders can keep the
+  article-prefixed convention (`aLabel()`, `aRelease()`), rather than renaming six well-named methods
+  to satisfy a pattern.
+- **`PackageName` is suppressed for `sales/distributor_return`** until Phase 2 renames it, so those
+  files churn once rather than twice.
 
 **Changes.** Drop the five Testcontainers `1.20.1` pins; let the BOM manage them (F1). Move
 `src/test/.../SaleLineItemProcessorTest.java` into `backend/` so it compiles (F11). Delete
