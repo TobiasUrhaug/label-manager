@@ -1,4 +1,4 @@
-package org.omt.labelmanager.sales.distributor_return.api;
+package org.omt.labelmanager.sales.distributorreturn.api;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -31,8 +31,8 @@ import org.omt.labelmanager.distribution.distributor.Distributor;
 import org.omt.labelmanager.distribution.distributor.api.DistributorQueryApi;
 import org.omt.labelmanager.identity.application.AppUserDetails;
 import org.omt.labelmanager.inventory.InsufficientInventoryException;
-import org.omt.labelmanager.sales.distributor_return.domain.DistributorReturn;
-import org.omt.labelmanager.sales.distributor_return.domain.ReturnLineItem;
+import org.omt.labelmanager.sales.distributorreturn.domain.DistributorReturn;
+import org.omt.labelmanager.sales.distributorreturn.domain.ReturnLineItem;
 import org.omt.labelmanager.shared.Format;
 import org.omt.labelmanager.test.TestSecurityConfig;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -1,4 +1,4 @@
-package org.omt.labelmanager.sales.distributor_return.infrastructure;
+package org.omt.labelmanager.sales.distributorreturn.infrastructure;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

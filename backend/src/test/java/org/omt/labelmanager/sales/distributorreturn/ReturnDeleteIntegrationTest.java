@@ -1,4 +1,4 @@
-package org.omt.labelmanager.sales.distributor_return;
+package org.omt.labelmanager.sales.distributorreturn;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -19,9 +19,9 @@ import org.omt.labelmanager.inventory.inventorymovement.api.InventoryMovementCom
 import org.omt.labelmanager.inventory.inventorymovement.api.InventoryMovementQueryApi;
 import org.omt.labelmanager.inventory.inventorymovement.persistence.InventoryMovementRepository;
 import org.omt.labelmanager.inventory.productionrun.ProductionRunTestHelper;
-import org.omt.labelmanager.sales.distributor_return.api.DistributorReturnCommandApi;
-import org.omt.labelmanager.sales.distributor_return.api.DistributorReturnQueryApi;
-import org.omt.labelmanager.sales.distributor_return.domain.ReturnLineItemInput;
+import org.omt.labelmanager.sales.distributorreturn.api.DistributorReturnCommandApi;
+import org.omt.labelmanager.sales.distributorreturn.api.DistributorReturnQueryApi;
+import org.omt.labelmanager.sales.distributorreturn.domain.ReturnLineItemInput;
 import org.omt.labelmanager.shared.Format;
 import org.springframework.beans.factory.annotation.Autowired;
 

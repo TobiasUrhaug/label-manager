@@ -34,14 +34,6 @@
 
   <module name="SuppressWarningsFilter"/>
 
-  <!-- Temporary: the sales/distributor_return package name contains an underscore. Renaming it
-       is deferred to the phase that moves controllers into web/, so the rename lands with the
-       other package moves rather than churning these files twice. Delete this filter then. -->
-  <module name="SuppressionSingleFilter">
-    <property name="checks" value="PackageName"/>
-    <property name="files" value=".*[\\/]distributor_return[\\/].*"/>
-  </module>
-
   <!-- https://checkstyle.org/filters/suppressionfilter.html -->
   <module name="SuppressionFilter">
     <property name="file" value="${org.checkstyle.google.suppressionfilter.config}"

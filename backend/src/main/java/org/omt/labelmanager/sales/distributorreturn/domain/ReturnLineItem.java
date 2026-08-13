@@ -1,4 +1,4 @@
-package org.omt.labelmanager.sales.distributor_return.domain;
+package org.omt.labelmanager.sales.distributorreturn.domain;
 
 import org.omt.labelmanager.shared.Format;
 

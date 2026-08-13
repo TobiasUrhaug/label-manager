@@ -1,4 +1,4 @@
-package org.omt.labelmanager.sales.distributor_return.infrastructure;
+package org.omt.labelmanager.sales.distributorreturn.infrastructure;
 
 import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;

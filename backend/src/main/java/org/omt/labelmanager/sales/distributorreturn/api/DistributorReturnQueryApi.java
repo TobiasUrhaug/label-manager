@@ -1,8 +1,8 @@
-package org.omt.labelmanager.sales.distributor_return.api;
+package org.omt.labelmanager.sales.distributorreturn.api;
 
 import java.util.List;
 import java.util.Optional;
-import org.omt.labelmanager.sales.distributor_return.domain.DistributorReturn;
+import org.omt.labelmanager.sales.distributorreturn.domain.DistributorReturn;
 
 /** Public query interface for reading distributor return data. */
 public interface DistributorReturnQueryApi {

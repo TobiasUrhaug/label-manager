@@ -1,4 +1,4 @@
-package org.omt.labelmanager.sales.distributor_return.api;
+package org.omt.labelmanager.sales.distributorreturn.api;
 
 import jakarta.persistence.EntityNotFoundException;
 import java.time.Instant;
@@ -9,9 +9,9 @@ import org.omt.labelmanager.catalog.release.api.ReleaseQueryApi;
 import org.omt.labelmanager.distribution.distributor.Distributor;
 import org.omt.labelmanager.distribution.distributor.api.DistributorQueryApi;
 import org.omt.labelmanager.inventory.InsufficientInventoryException;
-import org.omt.labelmanager.sales.distributor_return.domain.DistributorReturn;
-import org.omt.labelmanager.sales.distributor_return.domain.ReturnLineItem;
-import org.omt.labelmanager.sales.distributor_return.domain.ReturnLineItemInput;
+import org.omt.labelmanager.sales.distributorreturn.domain.DistributorReturn;
+import org.omt.labelmanager.sales.distributorreturn.domain.ReturnLineItem;
+import org.omt.labelmanager.sales.distributorreturn.domain.ReturnLineItemInput;
 import org.omt.labelmanager.shared.Format;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

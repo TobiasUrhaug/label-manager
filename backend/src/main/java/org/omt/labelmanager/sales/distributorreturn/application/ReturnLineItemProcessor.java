@@ -1,13 +1,13 @@
-package org.omt.labelmanager.sales.distributor_return.application;
+package org.omt.labelmanager.sales.distributorreturn.application;
 
 import jakarta.persistence.EntityNotFoundException;
 import org.omt.labelmanager.catalog.release.api.ReleaseQueryApi;
 import org.omt.labelmanager.inventory.InsufficientInventoryException;
 import org.omt.labelmanager.inventory.inventorymovement.api.InventoryMovementQueryApi;
 import org.omt.labelmanager.inventory.productionrun.api.ProductionRunQueryApi;
-import org.omt.labelmanager.sales.distributor_return.domain.ReturnLineItemInput;
-import org.omt.labelmanager.sales.distributor_return.infrastructure.DistributorReturnEntity;
-import org.omt.labelmanager.sales.distributor_return.infrastructure.ReturnLineItemEntity;
+import org.omt.labelmanager.sales.distributorreturn.domain.ReturnLineItemInput;
+import org.omt.labelmanager.sales.distributorreturn.infrastructure.DistributorReturnEntity;
+import org.omt.labelmanager.sales.distributorreturn.infrastructure.ReturnLineItemEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;

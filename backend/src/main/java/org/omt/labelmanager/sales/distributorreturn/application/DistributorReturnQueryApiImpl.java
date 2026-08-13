@@ -1,10 +1,10 @@
-package org.omt.labelmanager.sales.distributor_return.application;
+package org.omt.labelmanager.sales.distributorreturn.application;
 
 import java.util.List;
 import java.util.Optional;
-import org.omt.labelmanager.sales.distributor_return.api.DistributorReturnQueryApi;
-import org.omt.labelmanager.sales.distributor_return.domain.DistributorReturn;
-import org.omt.labelmanager.sales.distributor_return.infrastructure.DistributorReturnRepository;
+import org.omt.labelmanager.sales.distributorreturn.api.DistributorReturnQueryApi;
+import org.omt.labelmanager.sales.distributorreturn.domain.DistributorReturn;
+import org.omt.labelmanager.sales.distributorreturn.infrastructure.DistributorReturnRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

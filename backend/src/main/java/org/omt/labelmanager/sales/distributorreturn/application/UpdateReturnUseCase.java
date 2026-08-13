@@ -1,4 +1,4 @@
-package org.omt.labelmanager.sales.distributor_return.application;
+package org.omt.labelmanager.sales.distributorreturn.application;
 
 import jakarta.persistence.EntityNotFoundException;
 import java.time.LocalDate;
@@ -8,8 +8,8 @@ import java.util.Map;
 import org.omt.labelmanager.inventory.InventoryLocation;
 import org.omt.labelmanager.inventory.MovementType;
 import org.omt.labelmanager.inventory.inventorymovement.api.InventoryMovementCommandApi;
-import org.omt.labelmanager.sales.distributor_return.domain.ReturnLineItemInput;
-import org.omt.labelmanager.sales.distributor_return.infrastructure.DistributorReturnRepository;
+import org.omt.labelmanager.sales.distributorreturn.domain.ReturnLineItemInput;
+import org.omt.labelmanager.sales.distributorreturn.infrastructure.DistributorReturnRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;

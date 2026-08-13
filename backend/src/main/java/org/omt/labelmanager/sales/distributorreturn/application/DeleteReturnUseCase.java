@@ -1,9 +1,9 @@
-package org.omt.labelmanager.sales.distributor_return.application;
+package org.omt.labelmanager.sales.distributorreturn.application;
 
 import jakarta.persistence.EntityNotFoundException;
 import org.omt.labelmanager.inventory.MovementType;
 import org.omt.labelmanager.inventory.inventorymovement.api.InventoryMovementCommandApi;
-import org.omt.labelmanager.sales.distributor_return.infrastructure.DistributorReturnRepository;
+import org.omt.labelmanager.sales.distributorreturn.infrastructure.DistributorReturnRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;

@@ -1,10 +1,10 @@
-package org.omt.labelmanager.sales.distributor_return.application;
+package org.omt.labelmanager.sales.distributorreturn.application;
 
 import java.time.LocalDate;
 import java.util.List;
-import org.omt.labelmanager.sales.distributor_return.api.DistributorReturnCommandApi;
-import org.omt.labelmanager.sales.distributor_return.domain.DistributorReturn;
-import org.omt.labelmanager.sales.distributor_return.domain.ReturnLineItemInput;
+import org.omt.labelmanager.sales.distributorreturn.api.DistributorReturnCommandApi;
+import org.omt.labelmanager.sales.distributorreturn.domain.DistributorReturn;
+import org.omt.labelmanager.sales.distributorreturn.domain.ReturnLineItemInput;
 import org.springframework.stereotype.Service;
 
 @Service

@@ -1,9 +1,9 @@
-package org.omt.labelmanager.sales.distributor_return.api;
+package org.omt.labelmanager.sales.distributorreturn.api;
 
 import java.time.LocalDate;
 import java.util.List;
-import org.omt.labelmanager.sales.distributor_return.domain.DistributorReturn;
-import org.omt.labelmanager.sales.distributor_return.domain.ReturnLineItemInput;
+import org.omt.labelmanager.sales.distributorreturn.domain.DistributorReturn;
+import org.omt.labelmanager.sales.distributorreturn.domain.ReturnLineItemInput;
 
 /** Public command interface for creating, editing, and deleting distributor returns. */
 public interface DistributorReturnCommandApi {
