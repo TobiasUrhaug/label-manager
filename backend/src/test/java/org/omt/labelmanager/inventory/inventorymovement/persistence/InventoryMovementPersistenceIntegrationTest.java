@@ -9,7 +9,6 @@ import org.junit.jupiter.api.Test;
 import org.omt.labelmanager.AbstractIntegrationTest;
 import org.omt.labelmanager.catalog.label.LabelTestHelper;
 import org.omt.labelmanager.catalog.release.ReleaseTestHelper;
-import org.omt.labelmanager.catalog.release.domain.ReleaseFormat;
 import org.omt.labelmanager.distribution.distributor.ChannelType;
 import org.omt.labelmanager.distribution.distributor.persistence.DistributorEntity;
 import org.omt.labelmanager.distribution.distributor.persistence.DistributorRepository;
@@ -17,6 +16,7 @@ import org.omt.labelmanager.inventory.LocationType;
 import org.omt.labelmanager.inventory.MovementType;
 import org.omt.labelmanager.inventory.productionrun.persistence.ProductionRunEntity;
 import org.omt.labelmanager.inventory.productionrun.persistence.ProductionRunRepository;
+import org.omt.labelmanager.shared.Format;
 import org.springframework.beans.factory.annotation.Autowired;
 
 public class InventoryMovementPersistenceIntegrationTest extends AbstractIntegrationTest {
@@ -47,7 +47,7 @@ public class InventoryMovementPersistenceIntegrationTest extends AbstractIntegra
                 productionRunRepository.save(
                         new ProductionRunEntity(
                                 releaseId,
-                                ReleaseFormat.VINYL,
+                                Format.VINYL,
                                 "First pressing",
                                 "Plant A",
                                 LocalDate.of(2025, 1, 1),

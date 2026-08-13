@@ -1,10 +1,10 @@
 package org.omt.labelmanager.inventory.productionrun;
 
 import java.time.LocalDate;
-import org.omt.labelmanager.catalog.release.domain.ReleaseFormat;
 import org.omt.labelmanager.inventory.productionrun.domain.ProductionRun;
 import org.omt.labelmanager.inventory.productionrun.persistence.ProductionRunEntity;
 import org.omt.labelmanager.inventory.productionrun.persistence.ProductionRunRepository;
+import org.omt.labelmanager.shared.Format;
 import org.springframework.stereotype.Component;
 
 /**
@@ -20,7 +20,7 @@ public class ProductionRunTestHelper {
         this.repository = repository;
     }
 
-    public ProductionRun createProductionRun(Long releaseId, ReleaseFormat format, int quantity) {
+    public ProductionRun createProductionRun(Long releaseId, Format format, int quantity) {
         var entity =
                 new ProductionRunEntity(
                         releaseId,
@@ -35,7 +35,7 @@ public class ProductionRunTestHelper {
 
     public ProductionRun createProductionRun(
             Long releaseId,
-            ReleaseFormat format,
+            Format format,
             String description,
             String manufacturer,
             LocalDate manufacturingDate,

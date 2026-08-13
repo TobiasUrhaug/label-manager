@@ -7,9 +7,9 @@ import org.junit.jupiter.api.Test;
 import org.omt.labelmanager.AbstractIntegrationTest;
 import org.omt.labelmanager.catalog.label.LabelTestHelper;
 import org.omt.labelmanager.catalog.release.ReleaseTestHelper;
-import org.omt.labelmanager.catalog.release.domain.ReleaseFormat;
 import org.omt.labelmanager.inventory.productionrun.api.ProductionRunCommandApi;
 import org.omt.labelmanager.inventory.productionrun.api.ProductionRunQueryApi;
+import org.omt.labelmanager.shared.Format;
 import org.springframework.beans.factory.annotation.Autowired;
 
 class DeleteProductionRunIntegrationTest extends AbstractIntegrationTest {
@@ -30,7 +30,7 @@ class DeleteProductionRunIntegrationTest extends AbstractIntegrationTest {
         var productionRun =
                 commandApi.createProductionRun(
                         releaseId,
-                        ReleaseFormat.VINYL,
+                        Format.VINYL,
                         "Original pressing",
                         "Record Industry",
                         LocalDate.of(2025, 1, 1),

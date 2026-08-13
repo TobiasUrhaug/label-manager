@@ -15,7 +15,7 @@ import jakarta.persistence.Table;
 import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Set;
-import org.omt.labelmanager.catalog.release.domain.ReleaseFormat;
+import org.omt.labelmanager.shared.Format;
 
 @Entity
 @Table(name = "release")
@@ -36,7 +36,7 @@ public class ReleaseEntity {
     @CollectionTable(name = "release_format", joinColumns = @JoinColumn(name = "release_id"))
     @Column(name = "format")
     @Enumerated(EnumType.STRING)
-    private Set<ReleaseFormat> formats = new HashSet<>();
+    private Set<Format> formats = new HashSet<>();
 
     public ReleaseEntity() {}
 
@@ -79,11 +79,11 @@ public class ReleaseEntity {
         this.labelId = labelId;
     }
 
-    public Set<ReleaseFormat> getFormats() {
+    public Set<Format> getFormats() {
         return formats;
     }
 
-    public void setFormats(Set<ReleaseFormat> formats) {
+    public void setFormats(Set<Format> formats) {
         this.formats = formats;
     }
 }

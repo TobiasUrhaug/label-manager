@@ -12,7 +12,6 @@ import org.junit.jupiter.api.Test;
 import org.omt.labelmanager.AbstractIntegrationTest;
 import org.omt.labelmanager.catalog.label.LabelTestHelper;
 import org.omt.labelmanager.catalog.release.ReleaseTestHelper;
-import org.omt.labelmanager.catalog.release.domain.ReleaseFormat;
 import org.omt.labelmanager.distribution.distributor.ChannelType;
 import org.omt.labelmanager.distribution.distributor.persistence.DistributorEntity;
 import org.omt.labelmanager.distribution.distributor.persistence.DistributorRepository;
@@ -21,6 +20,7 @@ import org.omt.labelmanager.inventory.inventorymovement.api.InventoryMovementCom
 import org.omt.labelmanager.inventory.inventorymovement.api.InventoryMovementQueryApi;
 import org.omt.labelmanager.inventory.productionrun.persistence.ProductionRunEntity;
 import org.omt.labelmanager.inventory.productionrun.persistence.ProductionRunRepository;
+import org.omt.labelmanager.shared.Format;
 import org.springframework.beans.factory.annotation.Autowired;
 
 public class QueryMovementIntegrationTest extends AbstractIntegrationTest {
@@ -53,7 +53,7 @@ public class QueryMovementIntegrationTest extends AbstractIntegrationTest {
                 productionRunRepository.save(
                         new ProductionRunEntity(
                                 releaseId,
-                                ReleaseFormat.VINYL,
+                                Format.VINYL,
                                 "First pressing",
                                 "Plant A",
                                 LocalDate.of(2025, 1, 1),
@@ -172,7 +172,7 @@ public class QueryMovementIntegrationTest extends AbstractIntegrationTest {
                 productionRunRepository.save(
                         new ProductionRunEntity(
                                 releaseId,
-                                ReleaseFormat.VINYL,
+                                Format.VINYL,
                                 "Second pressing",
                                 "Plant B",
                                 LocalDate.of(2025, 6, 1),

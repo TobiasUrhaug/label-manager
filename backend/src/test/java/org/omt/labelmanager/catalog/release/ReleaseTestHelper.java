@@ -4,11 +4,11 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Set;
 import org.omt.labelmanager.catalog.release.api.ReleaseCommandApi;
-import org.omt.labelmanager.catalog.release.domain.ReleaseFormat;
 import org.omt.labelmanager.catalog.release.domain.TrackDuration;
 import org.omt.labelmanager.catalog.release.domain.TrackInput;
 import org.omt.labelmanager.catalog.release.infrastructure.ReleaseEntity;
 import org.omt.labelmanager.catalog.release.infrastructure.ReleaseRepository;
+import org.omt.labelmanager.shared.Format;
 import org.springframework.stereotype.Component;
 
 /**
@@ -40,7 +40,7 @@ public class ReleaseTestHelper {
                                 TrackDuration.ofSeconds(180),
                                 1,
                                 List.of())),
-                Set.of(ReleaseFormat.DIGITAL));
+                Set.of(Format.DIGITAL));
         return releaseRepository.findByName(name).orElseThrow().getId();
     }
 

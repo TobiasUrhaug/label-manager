@@ -11,7 +11,6 @@ import java.util.stream.IntStream;
 import org.omt.labelmanager.catalog.artist.api.ArtistQueryApi;
 import org.omt.labelmanager.catalog.artist.domain.Artist;
 import org.omt.labelmanager.catalog.release.domain.Release;
-import org.omt.labelmanager.catalog.release.domain.ReleaseFormat;
 import org.omt.labelmanager.catalog.release.domain.Track;
 import org.omt.labelmanager.catalog.release.domain.TrackDuration;
 import org.omt.labelmanager.catalog.release.domain.TrackInput;
@@ -30,6 +29,7 @@ import org.omt.labelmanager.inventory.productionrun.api.ProductionRunQueryApi;
 import org.omt.labelmanager.inventory.productionrun.domain.ProductionRun;
 import org.omt.labelmanager.sales.sale.api.SaleQueryApi;
 import org.omt.labelmanager.sales.sale.domain.Sale;
+import org.omt.labelmanager.shared.Format;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -105,11 +105,11 @@ public class ReleaseController {
                     .toList();
         }
 
-        Set<ReleaseFormat> toReleaseFormats() {
+        Set<Format> toFormats() {
             if (formats == null) {
                 return Set.of();
             }
-            return formats.stream().map(ReleaseFormat::valueOf).collect(Collectors.toSet());
+            return formats.stream().map(Format::valueOf).collect(Collectors.toSet());
         }
     }
 
@@ -128,11 +128,11 @@ public class ReleaseController {
                     .toList();
         }
 
-        Set<ReleaseFormat> toReleaseFormats() {
+        Set<Format> toFormats() {
             if (formats == null) {
                 return Set.of();
             }
-            return formats.stream().map(ReleaseFormat::valueOf).collect(Collectors.toSet());
+            return formats.stream().map(Format::valueOf).collect(Collectors.toSet());
         }
     }
 
@@ -143,7 +143,7 @@ public class ReleaseController {
             LocalDate releaseDate,
             List<Artist> artists,
             List<TrackView> tracks,
-            Set<ReleaseFormat> formats,
+            Set<Format> formats,
             List<Cost> costs,
             List<ProductionRunWithAllocation> productionRuns,
             List<Distributor> distributors,
@@ -201,7 +201,7 @@ public class ReleaseController {
                 labelId,
                 request.artistIds() != null ? request.artistIds() : List.of(),
                 request.toTrackInputs(),
-                request.toReleaseFormats());
+                request.toFormats());
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
@@ -214,7 +214,7 @@ public class ReleaseController {
                 LocalDate.parse(request.releaseDate()),
                 request.artistIds() != null ? request.artistIds() : List.of(),
                 request.toTrackInputs(),
-                request.toReleaseFormats());
+                request.toFormats());
         return ResponseEntity.noContent().build();
     }
 

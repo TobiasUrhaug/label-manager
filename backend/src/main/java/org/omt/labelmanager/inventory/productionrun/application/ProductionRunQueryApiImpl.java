@@ -2,11 +2,11 @@ package org.omt.labelmanager.inventory.productionrun.application;
 
 import java.util.List;
 import java.util.Optional;
-import org.omt.labelmanager.catalog.release.domain.ReleaseFormat;
 import org.omt.labelmanager.inventory.productionrun.api.ProductionRunQueryApi;
 import org.omt.labelmanager.inventory.productionrun.domain.ProductionRun;
 import org.omt.labelmanager.inventory.productionrun.persistence.ProductionRunEntity;
 import org.omt.labelmanager.inventory.productionrun.persistence.ProductionRunRepository;
+import org.omt.labelmanager.shared.Format;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -31,7 +31,7 @@ class ProductionRunQueryApiImpl implements ProductionRunQueryApi {
     }
 
     @Override
-    public Optional<ProductionRun> findMostRecent(Long releaseId, ReleaseFormat format) {
+    public Optional<ProductionRun> findMostRecent(Long releaseId, Format format) {
         return repository
                 .findTopByReleaseIdAndFormatOrderByManufacturingDateDesc(releaseId, format)
                 .map(ProductionRun::fromEntity);

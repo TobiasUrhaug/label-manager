@@ -2,7 +2,7 @@ package org.omt.labelmanager.inventory.productionrun.domain;
 
 import java.time.LocalDate;
 import java.util.concurrent.atomic.AtomicLong;
-import org.omt.labelmanager.catalog.release.domain.ReleaseFormat;
+import org.omt.labelmanager.shared.Format;
 
 public final class ProductionRunFactory {
 
@@ -22,7 +22,7 @@ public final class ProductionRunFactory {
 
         private Long id = counter.getAndIncrement();
         private Long releaseId = 1L;
-        private ReleaseFormat format = ReleaseFormat.VINYL;
+        private Format format = Format.VINYL;
         private String description = "Original pressing";
         private String manufacturer = "Record Industry";
         private LocalDate manufacturingDate = LocalDate.of(2025, 1, 1);
@@ -40,7 +40,7 @@ public final class ProductionRunFactory {
             return this;
         }
 
-        public Builder format(ReleaseFormat format) {
+        public Builder format(Format format) {
             this.format = format;
             return this;
         }

@@ -11,7 +11,6 @@ import org.junit.jupiter.api.Test;
 import org.omt.labelmanager.AbstractIntegrationTest;
 import org.omt.labelmanager.catalog.label.LabelTestHelper;
 import org.omt.labelmanager.catalog.release.ReleaseTestHelper;
-import org.omt.labelmanager.catalog.release.domain.ReleaseFormat;
 import org.omt.labelmanager.distribution.distributor.ChannelType;
 import org.omt.labelmanager.distribution.distributor.api.DistributorQueryApi;
 import org.omt.labelmanager.inventory.InventoryLocation;
@@ -23,6 +22,7 @@ import org.omt.labelmanager.inventory.productionrun.ProductionRunTestHelper;
 import org.omt.labelmanager.sales.distributor_return.api.DistributorReturnCommandApi;
 import org.omt.labelmanager.sales.distributor_return.api.DistributorReturnQueryApi;
 import org.omt.labelmanager.sales.distributor_return.domain.ReturnLineItemInput;
+import org.omt.labelmanager.shared.Format;
 import org.springframework.beans.factory.annotation.Autowired;
 
 class ReturnDeleteIntegrationTest extends AbstractIntegrationTest {
@@ -66,7 +66,7 @@ class ReturnDeleteIntegrationTest extends AbstractIntegrationTest {
         releaseId = releaseTestHelper.createReleaseEntity("Test Release", labelId);
 
         var productionRun =
-                productionRunTestHelper.createProductionRun(releaseId, ReleaseFormat.VINYL, 100);
+                productionRunTestHelper.createProductionRun(releaseId, Format.VINYL, 100);
         productionRunId = productionRun.id();
 
         inventoryMovementCommandApi.recordMovement(
@@ -86,7 +86,7 @@ class ReturnDeleteIntegrationTest extends AbstractIntegrationTest {
                         distributorId,
                         LocalDate.of(2026, 2, 1),
                         null,
-                        List.of(new ReturnLineItemInput(releaseId, ReleaseFormat.VINYL, 10)));
+                        List.of(new ReturnLineItemInput(releaseId, Format.VINYL, 10)));
 
         returnCommandApi.deleteReturn(distributorReturn.id());
 
@@ -101,7 +101,7 @@ class ReturnDeleteIntegrationTest extends AbstractIntegrationTest {
                         distributorId,
                         LocalDate.of(2026, 2, 1),
                         null,
-                        List.of(new ReturnLineItemInput(releaseId, ReleaseFormat.VINYL, 10)));
+                        List.of(new ReturnLineItemInput(releaseId, Format.VINYL, 10)));
 
         // After registration, distributor has 40 units
         assertThat(inventoryMovementQueryApi.getCurrentInventory(productionRunId, distributorId))
@@ -122,7 +122,7 @@ class ReturnDeleteIntegrationTest extends AbstractIntegrationTest {
                         distributorId,
                         LocalDate.of(2026, 2, 1),
                         null,
-                        List.of(new ReturnLineItemInput(releaseId, ReleaseFormat.VINYL, 10)));
+                        List.of(new ReturnLineItemInput(releaseId, Format.VINYL, 10)));
 
         returnCommandApi.deleteReturn(distributorReturn.id());
 

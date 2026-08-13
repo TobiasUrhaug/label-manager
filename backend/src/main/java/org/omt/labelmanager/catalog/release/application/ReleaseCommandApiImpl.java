@@ -4,8 +4,8 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Set;
 import org.omt.labelmanager.catalog.release.api.ReleaseCommandApi;
-import org.omt.labelmanager.catalog.release.domain.ReleaseFormat;
 import org.omt.labelmanager.catalog.release.domain.TrackInput;
+import org.omt.labelmanager.shared.Format;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -31,7 +31,7 @@ class ReleaseCommandApiImpl implements ReleaseCommandApi {
             Long labelId,
             List<Long> artistIds,
             List<TrackInput> tracks,
-            Set<ReleaseFormat> formats) {
+            Set<Format> formats) {
         createReleaseUseCase.execute(name, releaseDate, labelId, artistIds, tracks, formats);
     }
 
@@ -42,7 +42,7 @@ class ReleaseCommandApiImpl implements ReleaseCommandApi {
             LocalDate releaseDate,
             List<Long> artistIds,
             List<TrackInput> tracks,
-            Set<ReleaseFormat> formats) {
+            Set<Format> formats) {
         updateReleaseUseCase.execute(id, name, releaseDate, artistIds, tracks, formats);
     }
 

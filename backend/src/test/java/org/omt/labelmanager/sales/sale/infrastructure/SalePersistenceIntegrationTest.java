@@ -10,9 +10,9 @@ import org.junit.jupiter.api.Test;
 import org.omt.labelmanager.AbstractIntegrationTest;
 import org.omt.labelmanager.catalog.label.LabelTestHelper;
 import org.omt.labelmanager.catalog.release.ReleaseTestHelper;
-import org.omt.labelmanager.catalog.release.domain.ReleaseFormat;
 import org.omt.labelmanager.distribution.distributor.ChannelType;
 import org.omt.labelmanager.distribution.distributor.DistributorTestHelper;
+import org.omt.labelmanager.shared.Format;
 import org.springframework.beans.factory.annotation.Autowired;
 
 class SalePersistenceIntegrationTest extends AbstractIntegrationTest {
@@ -58,8 +58,7 @@ class SalePersistenceIntegrationTest extends AbstractIntegrationTest {
                         "EUR");
 
         var lineItem =
-                new SaleLineItemEntity(
-                        releaseId, ReleaseFormat.VINYL, 5, new BigDecimal("15.00"), "EUR");
+                new SaleLineItemEntity(releaseId, Format.VINYL, 5, new BigDecimal("15.00"), "EUR");
         sale.addLineItem(lineItem);
 
         var saved = saleRepository.save(sale);
@@ -86,8 +85,7 @@ class SalePersistenceIntegrationTest extends AbstractIntegrationTest {
                         "Sale 1",
                         "EUR");
         var lineItem1 =
-                new SaleLineItemEntity(
-                        releaseId, ReleaseFormat.VINYL, 2, new BigDecimal("10.00"), "EUR");
+                new SaleLineItemEntity(releaseId, Format.VINYL, 2, new BigDecimal("10.00"), "EUR");
         sale1.addLineItem(lineItem1);
         saleRepository.save(sale1);
 
@@ -100,8 +98,7 @@ class SalePersistenceIntegrationTest extends AbstractIntegrationTest {
                         "Sale 2",
                         "EUR");
         var lineItem2 =
-                new SaleLineItemEntity(
-                        releaseId, ReleaseFormat.CD, 3, new BigDecimal("12.00"), "EUR");
+                new SaleLineItemEntity(releaseId, Format.CD, 3, new BigDecimal("12.00"), "EUR");
         sale2.addLineItem(lineItem2);
         saleRepository.save(sale2);
 
@@ -123,8 +120,7 @@ class SalePersistenceIntegrationTest extends AbstractIntegrationTest {
                         "Sale 1",
                         "EUR");
         var lineItem1 =
-                new SaleLineItemEntity(
-                        releaseId, ReleaseFormat.VINYL, 2, new BigDecimal("10.00"), "EUR");
+                new SaleLineItemEntity(releaseId, Format.VINYL, 2, new BigDecimal("10.00"), "EUR");
         sale1.addLineItem(lineItem1);
         saleRepository.save(sale1);
 
@@ -137,8 +133,7 @@ class SalePersistenceIntegrationTest extends AbstractIntegrationTest {
                         "Sale 2",
                         "EUR");
         var lineItem2 =
-                new SaleLineItemEntity(
-                        releaseId, ReleaseFormat.CD, 3, new BigDecimal("12.00"), "EUR");
+                new SaleLineItemEntity(releaseId, Format.CD, 3, new BigDecimal("12.00"), "EUR");
         sale2.addLineItem(lineItem2);
         saleRepository.save(sale2);
 
@@ -165,8 +160,7 @@ class SalePersistenceIntegrationTest extends AbstractIntegrationTest {
                         "Sale with items",
                         "EUR");
         var lineItem =
-                new SaleLineItemEntity(
-                        releaseId, ReleaseFormat.VINYL, 2, new BigDecimal("10.00"), "EUR");
+                new SaleLineItemEntity(releaseId, Format.VINYL, 2, new BigDecimal("10.00"), "EUR");
         sale.addLineItem(lineItem);
         var saved = saleRepository.save(sale);
 

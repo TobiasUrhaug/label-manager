@@ -10,7 +10,6 @@ import org.junit.jupiter.api.Test;
 import org.omt.labelmanager.AbstractIntegrationTest;
 import org.omt.labelmanager.catalog.label.LabelTestHelper;
 import org.omt.labelmanager.catalog.release.ReleaseTestHelper;
-import org.omt.labelmanager.catalog.release.domain.ReleaseFormat;
 import org.omt.labelmanager.distribution.distributor.ChannelType;
 import org.omt.labelmanager.distribution.distributor.api.DistributorQueryApi;
 import org.omt.labelmanager.inventory.InsufficientInventoryException;
@@ -23,6 +22,7 @@ import org.omt.labelmanager.inventory.inventorymovement.persistence.InventoryMov
 import org.omt.labelmanager.inventory.productionrun.ProductionRunTestHelper;
 import org.omt.labelmanager.sales.distributor_return.api.DistributorReturnCommandApi;
 import org.omt.labelmanager.sales.distributor_return.domain.ReturnLineItemInput;
+import org.omt.labelmanager.shared.Format;
 import org.springframework.beans.factory.annotation.Autowired;
 
 class ReturnRegistrationIntegrationTest extends AbstractIntegrationTest {
@@ -64,7 +64,7 @@ class ReturnRegistrationIntegrationTest extends AbstractIntegrationTest {
         releaseId = releaseTestHelper.createReleaseEntity("Test Release", labelId);
 
         var productionRun =
-                productionRunTestHelper.createProductionRun(releaseId, ReleaseFormat.VINYL, 100);
+                productionRunTestHelper.createProductionRun(releaseId, Format.VINYL, 100);
         productionRunId = productionRun.id();
 
         // Allocate 50 units to the distributor so they have inventory to return
@@ -79,7 +79,7 @@ class ReturnRegistrationIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     void registerReturn_createsReturnWithLineItems() {
-        var lineItems = List.of(new ReturnLineItemInput(releaseId, ReleaseFormat.VINYL, 10));
+        var lineItems = List.of(new ReturnLineItemInput(releaseId, Format.VINYL, 10));
 
         var distributorReturn =
                 returnCommandApi.registerReturn(
@@ -100,7 +100,7 @@ class ReturnRegistrationIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     void registerReturn_createsReturnInventoryMovement() {
-        var lineItems = List.of(new ReturnLineItemInput(releaseId, ReleaseFormat.VINYL, 10));
+        var lineItems = List.of(new ReturnLineItemInput(releaseId, Format.VINYL, 10));
 
         var distributorReturn =
                 returnCommandApi.registerReturn(
@@ -130,7 +130,7 @@ class ReturnRegistrationIntegrationTest extends AbstractIntegrationTest {
                 inventoryMovementQueryApi.getCurrentInventory(productionRunId, distributorId);
         int warehouseBefore = inventoryMovementQueryApi.getWarehouseInventory(productionRunId);
 
-        var lineItems = List.of(new ReturnLineItemInput(releaseId, ReleaseFormat.VINYL, 10));
+        var lineItems = List.of(new ReturnLineItemInput(releaseId, Format.VINYL, 10));
 
         returnCommandApi.registerReturn(
                 labelId, distributorId, LocalDate.of(2026, 2, 1), null, lineItems);
@@ -148,7 +148,7 @@ class ReturnRegistrationIntegrationTest extends AbstractIntegrationTest {
         var lineItems =
                 List.of(
                         new ReturnLineItemInput(
-                                releaseId, ReleaseFormat.VINYL, 100) // more than 50 allocated
+                                releaseId, Format.VINYL, 100) // more than 50 allocated
                         );
 
         assertThatThrownBy(
@@ -179,7 +179,7 @@ class ReturnRegistrationIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     void registerReturn_withNonExistentLabel_throwsException() {
-        var lineItems = List.of(new ReturnLineItemInput(releaseId, ReleaseFormat.VINYL, 5));
+        var lineItems = List.of(new ReturnLineItemInput(releaseId, Format.VINYL, 5));
 
         assertThatThrownBy(
                         () ->
@@ -201,7 +201,7 @@ class ReturnRegistrationIntegrationTest extends AbstractIntegrationTest {
                         .orElseThrow()
                         .id();
 
-        var lineItems = List.of(new ReturnLineItemInput(releaseId, ReleaseFormat.VINYL, 5));
+        var lineItems = List.of(new ReturnLineItemInput(releaseId, Format.VINYL, 5));
 
         assertThatThrownBy(
                         () ->

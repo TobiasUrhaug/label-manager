@@ -6,12 +6,12 @@ import java.time.LocalDate;
 import java.util.List;
 import org.omt.labelmanager.catalog.label.api.LabelQueryApi;
 import org.omt.labelmanager.catalog.release.api.ReleaseQueryApi;
-import org.omt.labelmanager.catalog.release.domain.ReleaseFormat;
 import org.omt.labelmanager.distribution.distributor.ChannelType;
 import org.omt.labelmanager.inventory.InsufficientInventoryException;
 import org.omt.labelmanager.sales.sale.domain.Sale;
 import org.omt.labelmanager.sales.sale.domain.SaleLineItem;
 import org.omt.labelmanager.sales.sale.domain.SaleLineItemInput;
+import org.omt.labelmanager.shared.Format;
 import org.omt.labelmanager.shared.Money;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -45,8 +45,7 @@ public class SaleController {
         this.releaseQueryApi = releaseQueryApi;
     }
 
-    record LineItemRequest(
-            Long releaseId, ReleaseFormat format, int quantity, BigDecimal unitPrice) {
+    record LineItemRequest(Long releaseId, Format format, int quantity, BigDecimal unitPrice) {
         SaleLineItemInput toInput() {
             return new SaleLineItemInput(releaseId, format, quantity, Money.of(unitPrice));
         }
@@ -75,7 +74,7 @@ public class SaleController {
             Long id,
             Long releaseId,
             String releaseName,
-            ReleaseFormat format,
+            Format format,
             int quantity,
             Money unitPrice,
             Money lineTotal) {}

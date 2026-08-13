@@ -1,12 +1,12 @@
 package org.omt.labelmanager.inventory.productionrun.application;
 
 import java.time.LocalDate;
-import org.omt.labelmanager.catalog.release.domain.ReleaseFormat;
 import org.omt.labelmanager.inventory.InventoryLocation;
 import org.omt.labelmanager.inventory.productionrun.api.ProductionRunCommandApi;
 import org.omt.labelmanager.inventory.productionrun.domain.ProductionRun;
 import org.omt.labelmanager.inventory.productionrun.persistence.ProductionRunEntity;
 import org.omt.labelmanager.inventory.productionrun.persistence.ProductionRunRepository;
+import org.omt.labelmanager.shared.Format;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -34,7 +34,7 @@ class ProductionRunCommandApiImpl implements ProductionRunCommandApi {
     @Transactional
     public ProductionRun createProductionRun(
             Long releaseId,
-            ReleaseFormat format,
+            Format format,
             String description,
             String manufacturer,
             LocalDate manufacturingDate,
