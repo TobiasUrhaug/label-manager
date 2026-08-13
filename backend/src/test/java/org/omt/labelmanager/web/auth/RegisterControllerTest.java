@@ -1,8 +1,9 @@
 package org.omt.labelmanager.web.auth;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -29,8 +30,6 @@ class RegisterControllerTest {
 
     @Test
     void register_returns201AndNoBody() throws Exception {
-        when(userCommandApi.registerUser(any(), any(), any())).thenReturn(null);
-
         mockMvc.perform(
                         post("/api/auth/register")
                                 .contentType(MediaType.APPLICATION_JSON)
@@ -49,9 +48,42 @@ class RegisterControllerTest {
     }
 
     @Test
+    void register_returns400ProblemDetail_whenEmailMissing() throws Exception {
+        mockMvc.perform(
+                        post("/api/auth/register")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(
+                                        """
+                                        {
+                                          "password": "secret",
+                                          "displayName": "No Email"
+                                        }
+                                        """))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+                .andExpect(jsonPath("$.status").value(400));
+
+        verifyNoInteractions(userCommandApi);
+    }
+
+    @Test
+    void register_returns400ProblemDetail_whenBodyIsMalformed() throws Exception {
+        mockMvc.perform(
+                        post("/api/auth/register")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("{ not json"))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+                .andExpect(jsonPath("$.status").value(400));
+
+        verifyNoInteractions(userCommandApi);
+    }
+
+    @Test
     void register_returns409ProblemDetail_whenEmailTaken() throws Exception {
-        when(userCommandApi.registerUser(any(), any(), any()))
-                .thenThrow(new EmailAlreadyExistsException("taken@example.com"));
+        doThrow(new EmailAlreadyExistsException("taken@example.com"))
+                .when(userCommandApi)
+                .registerUser(any(), any(), any());
 
         mockMvc.perform(
                         post("/api/auth/register")

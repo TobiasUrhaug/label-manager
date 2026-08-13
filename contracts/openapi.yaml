@@ -39,12 +39,11 @@ paths:
       operationId: logout
       summary: Invalidate the current session
       description: |
-        Ends the authenticated session. Requires an active session cookie.
+        Ends the session. Requires a valid CSRF token, but not a session — logout is
+        permitted to anyone and is idempotent.
       responses:
         '200':
-          description: |
-            Logout successful. Session has been invalidated. Also returned when there was
-            no session to begin with — logout is permitted to anyone and is idempotent.
+          description: Session invalidated, or there was none to invalidate.
         '403':
           description: The CSRF token was missing or stale.
           content:
@@ -70,6 +69,12 @@ paths:
       responses:
         '201':
           description: Account created. The response has no body.
+        '400':
+          description: A required field was missing or blank, or the body was not valid JSON.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
         '409':
           description: An account with this email already exists.
           content:

@@ -1,5 +1,8 @@
 package org.omt.labelmanager.web.auth;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
 import org.omt.labelmanager.identity.api.user.EmailAlreadyExistsException;
 import org.omt.labelmanager.identity.api.user.UserCommandApi;
 import org.slf4j.Logger;
@@ -25,7 +28,7 @@ public class RegisterController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<?> register(@RequestBody RegisterRequest request) {
+    public ResponseEntity<ProblemDetail> register(@Valid @RequestBody RegisterRequest request) {
         log.info("Registration attempt for email '{}'", request.email());
         try {
             userCommandApi.registerUser(request.email(), request.password(), request.displayName());
@@ -41,5 +44,8 @@ public class RegisterController {
         }
     }
 
-    record RegisterRequest(String email, String password, String displayName) {}
+    record RegisterRequest(
+            @NotBlank @Email String email,
+            @NotBlank String password,
+            @NotBlank String displayName) {}
 }

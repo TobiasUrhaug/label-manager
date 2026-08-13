@@ -13,9 +13,9 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.omt.labelmanager.identity.api.user.EmailAlreadyExistsException;
-import org.omt.labelmanager.identity.domain.user.User;
 import org.omt.labelmanager.identity.infrastructure.persistence.user.UserEntity;
 import org.omt.labelmanager.identity.infrastructure.persistence.user.UserRepository;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 @ExtendWith(MockitoExtension.class)
@@ -33,21 +33,19 @@ class UserCommandApiImplTest {
     }
 
     @Test
-    void registerUser_createsUserWithEncodedPassword() {
+    void registerUser_storesTheUserWithAnEncodedPassword() {
         when(userRepository.existsByEmail("new@example.com")).thenReturn(false);
         when(passwordEncoder.encode("rawPassword")).thenReturn("encodedPassword");
         when(userRepository.save(any(UserEntity.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
-        User user = userCommandApi.registerUser("new@example.com", "rawPassword", "New User");
-
-        assertThat(user.email()).isEqualTo("new@example.com");
-        assertThat(user.password()).isEqualTo("encodedPassword");
-        assertThat(user.displayName()).isEqualTo("New User");
+        userCommandApi.registerUser("new@example.com", "rawPassword", "New User");
 
         ArgumentCaptor<UserEntity> captor = ArgumentCaptor.forClass(UserEntity.class);
         verify(userRepository).save(captor.capture());
+        assertThat(captor.getValue().getEmail()).isEqualTo("new@example.com");
         assertThat(captor.getValue().getPassword()).isEqualTo("encodedPassword");
+        assertThat(captor.getValue().getDisplayName()).isEqualTo("New User");
     }
 
     @Test
@@ -60,5 +58,18 @@ class UserCommandApiImplTest {
                                         "existing@example.com", "password", "Name"))
                 .isInstanceOf(EmailAlreadyExistsException.class)
                 .hasMessageContaining("existing@example.com");
+    }
+
+    @Test
+    void registerUser_throwsEmailAlreadyExists_whenAConcurrentInsertWinsTheRace() {
+        when(userRepository.existsByEmail("racing@example.com")).thenReturn(false);
+        when(passwordEncoder.encode(any())).thenReturn("encoded");
+        when(userRepository.save(any(UserEntity.class)))
+                .thenThrow(new DataIntegrityViolationException("app_user_email_key"));
+
+        assertThatThrownBy(
+                        () -> userCommandApi.registerUser("racing@example.com", "password", "Name"))
+                .isInstanceOf(EmailAlreadyExistsException.class)
+                .hasMessageContaining("racing@example.com");
     }
 }

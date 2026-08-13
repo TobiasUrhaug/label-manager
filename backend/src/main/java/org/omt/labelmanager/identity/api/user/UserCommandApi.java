@@ -1,18 +1,18 @@
 package org.omt.labelmanager.identity.api.user;
 
-import org.omt.labelmanager.identity.domain.user.User;
-
 /** Write-side contract for creating users. */
 public interface UserCommandApi {
 
     /**
      * Registers a new user with an encoded password.
      *
+     * <p>Returns nothing: the stored user carries the bcrypt hash, and no caller has a reason to
+     * see it.
+     *
      * @param email the email address, which doubles as the login name
      * @param password the raw password, encoded before it is stored
      * @param displayName the name shown in the UI
-     * @return the stored user
      * @throws EmailAlreadyExistsException if a user with that email is already stored
      */
-    User registerUser(String email, String password, String displayName);
+    void registerUser(String email, String password, String displayName);
 }
