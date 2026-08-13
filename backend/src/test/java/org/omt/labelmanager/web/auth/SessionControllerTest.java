@@ -1,4 +1,4 @@
-package org.omt.labelmanager.identity.api.user;
+package org.omt.labelmanager.web.auth;
 
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;

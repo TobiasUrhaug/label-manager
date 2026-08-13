@@ -1,4 +1,4 @@
-package org.omt.labelmanager.identity.api.user;
+package org.omt.labelmanager.web.auth;
 
 import java.security.Principal;
 import org.springframework.web.bind.annotation.GetMapping;
