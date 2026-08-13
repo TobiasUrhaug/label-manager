@@ -1,10 +1,16 @@
 package org.omt.labelmanager.catalog.label.infrastructure;
 
-import jakarta.persistence.*;
+import jakarta.persistence.AttributeOverride;
+import jakarta.persistence.Column;
+import jakarta.persistence.Embedded;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import java.util.Objects;
 import org.omt.labelmanager.catalog.infrastructure.persistence.shared.AddressEmbeddable;
 import org.omt.labelmanager.catalog.infrastructure.persistence.shared.PersonEmbeddable;
-
-import java.util.Objects;
 
 @Entity
 @Table(name = "label")
@@ -14,8 +20,7 @@ public class LabelEntity {
     private String email;
     private String website;
 
-    @Embedded
-    private AddressEmbeddable address;
+    @Embedded private AddressEmbeddable address;
 
     @Embedded
     @AttributeOverride(name = "name", column = @Column(name = "owner_name"))
@@ -28,8 +33,7 @@ public class LabelEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    protected LabelEntity() {
-    }
+    protected LabelEntity() {}
 
     public LabelEntity(String name, String email, String website) {
         this.name = name;
@@ -102,5 +106,4 @@ public class LabelEntity {
     public int hashCode() {
         return Objects.hash(name, id);
     }
-
 }

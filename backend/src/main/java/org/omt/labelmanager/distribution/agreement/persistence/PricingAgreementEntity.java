@@ -1,10 +1,16 @@
 package org.omt.labelmanager.distribution.agreement.persistence;
 
-import jakarta.persistence.*;
-import org.omt.labelmanager.distribution.agreement.CommissionType;
-
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import java.math.BigDecimal;
 import java.time.Instant;
+import org.omt.labelmanager.distribution.agreement.CommissionType;
 
 @Entity
 @Table(name = "pricing_agreement")
@@ -33,16 +39,14 @@ public class PricingAgreementEntity {
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
 
-    protected PricingAgreementEntity() {
-    }
+    protected PricingAgreementEntity() {}
 
     public PricingAgreementEntity(
             Long distributorId,
             Long productionRunId,
             BigDecimal unitPrice,
             CommissionType commissionType,
-            BigDecimal commissionValue
-    ) {
+            BigDecimal commissionValue) {
         this.distributorId = distributorId;
         this.productionRunId = productionRunId;
         this.unitPrice = unitPrice;

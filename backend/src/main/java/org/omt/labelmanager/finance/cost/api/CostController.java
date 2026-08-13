@@ -1,5 +1,7 @@
 package org.omt.labelmanager.finance.cost.api;
 
+import java.io.IOException;
+import java.util.Set;
 import org.omt.labelmanager.finance.cost.domain.CostOwner;
 import org.omt.labelmanager.finance.shared.DocumentUpload;
 import org.omt.labelmanager.finance.shared.RetrievedDocument;
@@ -8,24 +10,27 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
-
-import java.io.IOException;
-import java.util.Set;
 
 @RestController
 public class CostController {
 
-    private static final Set<String> ALLOWED_CONTENT_TYPES = Set.of(
-            "application/pdf",
-            "image/png",
-            "image/jpeg",
-            "application/msword",
-            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-            "application/vnd.ms-excel",
-            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-    );
+    private static final Set<String> ALLOWED_CONTENT_TYPES =
+            Set.of(
+                    "application/pdf",
+                    "image/png",
+                    "image/jpeg",
+                    "application/msword",
+                    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                    "application/vnd.ms-excel",
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
 
     private final CostCommandApi costCommandFacade;
 
@@ -38,8 +43,8 @@ public class CostController {
             @PathVariable Long labelId,
             @PathVariable Long releaseId,
             RegisterCostForm form,
-            @RequestParam(value = "document", required = false) MultipartFile document
-    ) throws IOException {
+            @RequestParam(value = "document", required = false) MultipartFile document)
+            throws IOException {
         costCommandFacade.registerCost(
                 form.toNetAmount(),
                 form.toVatAmount(),
@@ -49,8 +54,7 @@ public class CostController {
                 form.getDescription(),
                 CostOwner.release(releaseId),
                 form.getDocumentReference(),
-                toDocumentUpload(document)
-        );
+                toDocumentUpload(document));
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
@@ -58,8 +62,8 @@ public class CostController {
     public ResponseEntity<Void> registerCostForLabel(
             @PathVariable Long labelId,
             RegisterCostForm form,
-            @RequestParam(value = "document", required = false) MultipartFile document
-    ) throws IOException {
+            @RequestParam(value = "document", required = false) MultipartFile document)
+            throws IOException {
         costCommandFacade.registerCost(
                 form.toNetAmount(),
                 form.toVatAmount(),
@@ -69,22 +73,22 @@ public class CostController {
                 form.getDescription(),
                 CostOwner.label(labelId),
                 form.getDocumentReference(),
-                toDocumentUpload(document)
-        );
+                toDocumentUpload(document));
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
     @GetMapping("/api/costs/{costId}/document")
     public ResponseEntity<InputStreamResource> getDocument(
-            @PathVariable Long costId,
-            @RequestParam(defaultValue = "view") String action
-    ) {
-        RetrievedDocument document = costCommandFacade.retrieveDocument(costId)
-                .orElseThrow(() -> new DocumentNotFoundException(costId));
+            @PathVariable Long costId, @RequestParam(defaultValue = "view") String action) {
+        RetrievedDocument document =
+                costCommandFacade
+                        .retrieveDocument(costId)
+                        .orElseThrow(() -> new DocumentNotFoundException(costId));
 
-        String disposition = "download".equals(action)
-                ? "attachment; filename=\"" + document.filename() + "\""
-                : "inline; filename=\"" + document.filename() + "\"";
+        String disposition =
+                "download".equals(action)
+                        ? "attachment; filename=\"" + document.filename() + "\""
+                        : "inline; filename=\"" + document.filename() + "\"";
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, disposition)
@@ -95,19 +99,14 @@ public class CostController {
 
     @DeleteMapping("/api/labels/{labelId}/releases/{releaseId}/costs/{costId}")
     public ResponseEntity<Void> deleteCostForRelease(
-            @PathVariable Long labelId,
-            @PathVariable Long releaseId,
-            @PathVariable Long costId
-    ) {
+            @PathVariable Long labelId, @PathVariable Long releaseId, @PathVariable Long costId) {
         costCommandFacade.deleteCost(costId);
         return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping("/api/labels/{labelId}/costs/{costId}")
     public ResponseEntity<Void> deleteCostForLabel(
-            @PathVariable Long labelId,
-            @PathVariable Long costId
-    ) {
+            @PathVariable Long labelId, @PathVariable Long costId) {
         costCommandFacade.deleteCost(costId);
         return ResponseEntity.noContent().build();
     }
@@ -118,8 +117,8 @@ public class CostController {
             @PathVariable Long releaseId,
             @PathVariable Long costId,
             RegisterCostForm form,
-            @RequestParam(value = "document", required = false) MultipartFile document
-    ) throws IOException {
+            @RequestParam(value = "document", required = false) MultipartFile document)
+            throws IOException {
         costCommandFacade.updateCost(
                 costId,
                 form.toNetAmount(),
@@ -129,8 +128,7 @@ public class CostController {
                 form.getIncurredOn(),
                 form.getDescription(),
                 form.getDocumentReference(),
-                toDocumentUpload(document)
-        );
+                toDocumentUpload(document));
         return ResponseEntity.noContent().build();
     }
 
@@ -139,8 +137,8 @@ public class CostController {
             @PathVariable Long labelId,
             @PathVariable Long costId,
             RegisterCostForm form,
-            @RequestParam(value = "document", required = false) MultipartFile document
-    ) throws IOException {
+            @RequestParam(value = "document", required = false) MultipartFile document)
+            throws IOException {
         costCommandFacade.updateCost(
                 costId,
                 form.toNetAmount(),
@@ -150,8 +148,7 @@ public class CostController {
                 form.getIncurredOn(),
                 form.getDescription(),
                 form.getDocumentReference(),
-                toDocumentUpload(document)
-        );
+                toDocumentUpload(document));
         return ResponseEntity.noContent().build();
     }
 
@@ -165,10 +162,6 @@ public class CostController {
             throw new InvalidDocumentTypeException(contentType);
         }
 
-        return new DocumentUpload(
-                file.getOriginalFilename(),
-                contentType,
-                file.getInputStream()
-        );
+        return new DocumentUpload(file.getOriginalFilename(), contentType, file.getInputStream());
     }
 }
