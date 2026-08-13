@@ -27,7 +27,8 @@ spring:
   flyway:
     enabled: true
     locations: classpath:db/migration
-    baseline-on-migrate: true
+    # No baseline-on-migrate: an unrecognised database should fail to start rather than be
+    # silently baselined at the current version, skipping every migration before it.
 
 server:
   tomcat:
