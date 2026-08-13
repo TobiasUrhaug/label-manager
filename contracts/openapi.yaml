@@ -98,6 +98,78 @@ paths:
               schema:
                 $ref: '#/components/schemas/ProblemDetail'
 
+  /api/artists:
+    get:
+      operationId: listArtists
+      summary: List the artists belonging to the caller
+      description: |
+        Scoped to the authenticated user. Replaces the artist list that used to be
+        bundled into `GET /api/labels/{labelId}`.
+      responses:
+        '200':
+          description: The caller's artists, possibly empty.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Artist'
+    post:
+      operationId: createArtist
+      summary: Create an artist owned by the caller
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ArtistRequest'
+      responses:
+        '201':
+          description: Artist created. The response has no body.
+
+  /api/artists/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+    get:
+      operationId: getArtist
+      summary: Get one artist
+      responses:
+        '200':
+          description: The artist.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Artist'
+        '404':
+          description: No artist with that id.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+    put:
+      operationId: updateArtist
+      summary: Replace an artist's details
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ArtistRequest'
+      responses:
+        '204':
+          description: Artist updated.
+    delete:
+      operationId: deleteArtist
+      summary: Delete an artist
+      responses:
+        '204':
+          description: Artist deleted.
+
 components:
   securitySchemes:
     cookieAuth:
@@ -117,6 +189,86 @@ components:
         password:
           type: string
           format: password
+
+    Address:
+      type: object
+      nullable: true
+      properties:
+        street:
+          type: string
+        street2:
+          type: string
+          nullable: true
+        city:
+          type: string
+        postalCode:
+          type: string
+        country:
+          type: string
+
+    Person:
+      type: object
+      nullable: true
+      required:
+        - name
+      properties:
+        name:
+          type: string
+
+    Artist:
+      type: object
+      required:
+        - id
+        - artistName
+        - userId
+      properties:
+        id:
+          type: integer
+          format: int64
+        artistName:
+          type: string
+        realName:
+          $ref: '#/components/schemas/Person'
+        email:
+          type: string
+          nullable: true
+        address:
+          $ref: '#/components/schemas/Address'
+        userId:
+          type: integer
+          format: int64
+
+    ArtistRequest:
+      description: |
+        Address and real name are sent flat and assembled server-side; a blank `street`
+        means no address, a blank `realName` means none.
+      type: object
+      required:
+        - artistName
+      properties:
+        artistName:
+          type: string
+        realName:
+          type: string
+          nullable: true
+        email:
+          type: string
+          nullable: true
+        street:
+          type: string
+          nullable: true
+        street2:
+          type: string
+          nullable: true
+        city:
+          type: string
+          nullable: true
+        postalCode:
+          type: string
+          nullable: true
+        country:
+          type: string
+          nullable: true
 
     RegisterRequest:
       type: object

@@ -1,4 +1,4 @@
-package org.omt.labelmanager.catalog.artist.api;
+package org.omt.labelmanager.web.catalog;
 
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -12,8 +12,11 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
+import org.omt.labelmanager.catalog.artist.api.ArtistCommandApi;
+import org.omt.labelmanager.catalog.artist.api.ArtistQueryApi;
 import org.omt.labelmanager.catalog.artist.domain.ArtistFactory;
 import org.omt.labelmanager.catalog.domain.shared.Address;
 import org.omt.labelmanager.catalog.domain.shared.Person;
@@ -56,11 +59,26 @@ class ArtistControllerTest {
     }
 
     @Test
-    void artist_returns404_whenNotFound() throws Exception {
+    void artist_returns404ProblemDetail_whenNotFound() throws Exception {
         when(artistQueryApi.findById(999L)).thenReturn(Optional.empty());
 
         mockMvc.perform(get("/api/artists/999").with(user(testUser)))
-                .andExpect(status().isNotFound());
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.status").value(404))
+                .andExpect(jsonPath("$.detail").value("Artist not found: 999"));
+    }
+
+    @Test
+    void artists_returnsOnlyTheCallersArtists() throws Exception {
+        var mine = ArtistFactory.anArtist().id(1L).artistName("DJ Cool").build();
+        when(artistQueryApi.getArtistsForUser(1L)).thenReturn(List.of(mine));
+
+        mockMvc.perform(get("/api/artists").with(user(testUser)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isArray())
+                .andExpect(jsonPath("$[0].artistName").value("DJ Cool"));
+
+        verify(artistQueryApi).getArtistsForUser(1L);
     }
 
     @Test
