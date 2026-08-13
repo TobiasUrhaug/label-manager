@@ -1,4 +1,4 @@
-package org.omt.labelmanager.infrastructure.web.dashboard;
+package org.omt.labelmanager.web.dashboard;
 
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
@@ -12,7 +12,6 @@ import org.omt.labelmanager.catalog.artist.api.ArtistQueryApi;
 import org.omt.labelmanager.catalog.artist.domain.ArtistFactory;
 import org.omt.labelmanager.catalog.label.LabelFactory;
 import org.omt.labelmanager.catalog.label.api.LabelQueryApi;
-import org.omt.labelmanager.dashboard.DashboardController;
 import org.omt.labelmanager.identity.api.user.AppUserDetails;
 import org.omt.labelmanager.test.TestSecurityConfig;
 import org.springframework.beans.factory.annotation.Autowired;

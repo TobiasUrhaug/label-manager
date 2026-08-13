@@ -1,4 +1,4 @@
-package org.omt.labelmanager.dashboard;
+package org.omt.labelmanager.web.dashboard;
 
 import java.util.List;
 import org.omt.labelmanager.catalog.artist.api.ArtistQueryApi;
