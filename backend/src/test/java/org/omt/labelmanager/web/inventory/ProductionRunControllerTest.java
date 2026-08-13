@@ -1,4 +1,4 @@
-package org.omt.labelmanager.inventory.productionrun.api;
+package org.omt.labelmanager.web.inventory;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -14,6 +14,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import java.time.LocalDate;
 import org.junit.jupiter.api.Test;
 import org.omt.labelmanager.identity.api.user.AppUserDetails;
+import org.omt.labelmanager.inventory.productionrun.api.ProductionRunCommandApi;
 import org.omt.labelmanager.shared.Format;
 import org.omt.labelmanager.test.TestSecurityConfig;
 import org.springframework.beans.factory.annotation.Autowired;

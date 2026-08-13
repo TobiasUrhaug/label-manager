@@ -1,6 +1,7 @@
-package org.omt.labelmanager.inventory.productionrun.api;
+package org.omt.labelmanager.web.inventory;
 
 import java.time.LocalDate;
+import org.omt.labelmanager.inventory.productionrun.api.ProductionRunCommandApi;
 import org.omt.labelmanager.shared.Format;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

@@ -1,4 +1,4 @@
-package org.omt.labelmanager.inventory.api;
+package org.omt.labelmanager.web.inventory;
 
 import java.time.Instant;
 import org.omt.labelmanager.inventory.MovementType;
