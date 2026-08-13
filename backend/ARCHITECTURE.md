@@ -62,31 +62,33 @@ catalog/release/
 For CRUD-dominant modules (e.g., `label`, `artist`, `distributor`):
 
 ```
-catalog/label/
+distribution/distributor/
 ├── api/
-│   ├── LabelCommandApi.java       # Public interface (mutations) — only if other modules depend on this module
-│   ├── LabelQueryApi.java         # Public interface (queries) — only if other modules depend on this module
-│   └── LabelController.java       # Public HTTP interface
+│   ├── DistributorCommandApi.java  # Public interface (mutations) — only if other modules depend on this module
+│   ├── DistributorQueryApi.java    # Public interface (queries) — only if other modules depend on this module
+│   ├── Distributor.java            # Public domain record — part of the API's return type
+│   ├── ChannelType.java            # Public enum used in that record
+│   └── DistributorController.java  # Public HTTP interface
 │
-├── persistence/                   # public
-│   ├── LabelEntity.java           # JPA entity
-│   └── LabelRepository.java       # Spring Data repository
+├── persistence/                    # public
+│   ├── DistributorEntity.java      # JPA entity
+│   └── DistributorRepository.java  # Spring Data repository
 │
-├── Label.java                     # Public domain record
-├── LabelCommandService.java       # package-private: handles all mutations directly
-└── LabelQueryService.java         # package-private: handles all queries directly
+├── DistributorCommandService.java  # package-private: handles all mutations directly
+└── DistributorQueryService.java    # package-private: handles all queries directly
 ```
 
 **Key differences from full structure:**
-- No separate `application/`, `domain/`, or `persistence/` sub-packages — domain records and services live flat in the module root
+- No separate `application/` or `domain/` sub-packages — services live flat in the module root and the domain record sits in `api/` next to the interfaces that return it
 - No separate `*UseCase` classes — the service handles CRUD operations directly
 - `CommandApi`/`QueryApi` interfaces are only needed if other modules depend on this module. If only the controller calls the service, skip the interfaces entirely and inject the service directly. (Indicated by the "— only if other modules depend on this module" note in the diagram above.)
 - `persistence/` is the only sub-package besides `api/`, separating JPA artifacts from the domain record
 
 **Key principles**:
-- The `api/` package is the module's public boundary: interfaces (`CommandApi`, `QueryApi`), controllers, and request/response records. It does not contain view-specific DTOs assembled for presentation.
+- The `api/` package is the module's public boundary: interfaces (`CommandApi`, `QueryApi`), the domain records and enums they expose, and domain exceptions and events. It does not contain view-specific DTOs assembled for presentation.
+- In a simplified module, everything a caller outside the module needs is reachable from `api/` alone. A type another module imports from the module root is a boundary leak — that is where the package-private services live. (`persistence/` stays public for test helpers and infrastructure adapters, as below.)
 - The `persistence/` package contains JPA entities and Spring Data repositories — public so test helpers and shared infrastructure adapters can access them.
-- Services (`LabelCommandService`, `LabelQueryService`) are package-private and live flat in the module root alongside the domain record.
+- Services (`DistributorCommandService`, `DistributorQueryService`) are package-private and live flat in the module root.
 - When a module gains non-trivial business logic, promote it to the full structure.
 
 ### Encapsulation Rules
@@ -410,9 +412,9 @@ public class InsufficientInventoryException extends RuntimeException { ... }
 
 | Location | Contains | Visibility | Example |
 |----------|----------|------------|---------|
-| `api/` | Module contracts: interfaces, controllers, request/response records, domain exceptions, domain events | Public | `LabelCommandApi.java`, `LabelController.java` |
-| `persistence/` | JPA entities, repositories | Public | `LabelEntity.java`, `LabelRepository.java` |
-| module root (flat) | Domain records, command/query services | Domain records public; services package-private | `Label.java`, `LabelCommandService.java` |
+| `api/` | Module contracts: interfaces, domain records and enums, controllers, request/response records, domain exceptions, domain events | Public | `DistributorQueryApi.java`, `Distributor.java`, `ChannelType.java` |
+| `persistence/` | JPA entities, repositories | Public | `DistributorEntity.java`, `DistributorRepository.java` |
+| module root (flat) | Command/query services | Package-private | `DistributorCommandService.java` |
 
 Note: Shared infrastructure (cross-cutting concerns like security, storage) lives in the `infrastructure/` **bounded context**, not within individual modules.
 

@@ -2,6 +2,8 @@ package org.omt.labelmanager.distribution.distributor;
 
 import java.util.List;
 import java.util.Optional;
+import org.omt.labelmanager.distribution.distributor.api.ChannelType;
+import org.omt.labelmanager.distribution.distributor.api.Distributor;
 import org.omt.labelmanager.distribution.distributor.api.DistributorQueryApi;
 import org.omt.labelmanager.distribution.distributor.persistence.DistributorRepository;
 import org.springframework.stereotype.Service;

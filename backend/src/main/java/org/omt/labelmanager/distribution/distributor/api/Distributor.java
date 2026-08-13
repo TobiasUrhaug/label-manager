@@ -1,4 +1,4 @@
-package org.omt.labelmanager.distribution.distributor;
+package org.omt.labelmanager.distribution.distributor.api;
 
 import org.omt.labelmanager.distribution.distributor.persistence.DistributorEntity;
 

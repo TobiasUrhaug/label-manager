@@ -2,8 +2,6 @@ package org.omt.labelmanager.distribution.distributor.api;
 
 import java.util.List;
 import java.util.Optional;
-import org.omt.labelmanager.distribution.distributor.ChannelType;
-import org.omt.labelmanager.distribution.distributor.Distributor;
 
 public interface DistributorQueryApi {
 

@@ -18,8 +18,6 @@ import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.omt.labelmanager.catalog.label.api.LabelQueryApi;
 import org.omt.labelmanager.catalog.release.api.ReleaseQueryApi;
-import org.omt.labelmanager.distribution.agreement.CommissionType;
-import org.omt.labelmanager.distribution.agreement.PricingAgreement;
 import org.omt.labelmanager.distribution.distributor.api.DistributorQueryApi;
 import org.omt.labelmanager.identity.application.AppUserDetails;
 import org.omt.labelmanager.inventory.inventorymovement.api.InventoryMovementQueryApi;

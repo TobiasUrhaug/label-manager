@@ -2,7 +2,6 @@ package org.omt.labelmanager.distribution.agreement.api;
 
 import java.util.List;
 import java.util.Optional;
-import org.omt.labelmanager.distribution.agreement.PricingAgreement;
 
 public interface AgreementQueryApi {
 

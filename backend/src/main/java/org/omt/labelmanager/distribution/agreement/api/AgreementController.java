@@ -1,7 +1,6 @@
 package org.omt.labelmanager.distribution.agreement.api;
 
 import java.math.BigDecimal;
-import org.omt.labelmanager.distribution.agreement.CommissionType;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;

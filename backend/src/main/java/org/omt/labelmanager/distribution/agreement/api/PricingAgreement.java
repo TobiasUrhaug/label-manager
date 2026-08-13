@@ -1,4 +1,4 @@
-package org.omt.labelmanager.distribution.agreement;
+package org.omt.labelmanager.distribution.agreement.api;
 
 import java.math.BigDecimal;
 import java.time.Instant;

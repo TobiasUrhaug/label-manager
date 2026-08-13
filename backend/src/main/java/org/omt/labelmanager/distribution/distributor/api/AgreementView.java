@@ -1,7 +1,7 @@
 package org.omt.labelmanager.distribution.distributor.api;
 
 import java.math.RoundingMode;
-import org.omt.labelmanager.distribution.agreement.PricingAgreement;
+import org.omt.labelmanager.distribution.agreement.api.PricingAgreement;
 
 public record AgreementView(PricingAgreement agreement, String productionRunDisplayName) {
 

@@ -10,7 +10,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.math.BigDecimal;
 import java.time.Instant;
-import org.omt.labelmanager.distribution.agreement.CommissionType;
+import org.omt.labelmanager.distribution.agreement.api.CommissionType;
 
 @Entity
 @Table(name = "pricing_agreement")

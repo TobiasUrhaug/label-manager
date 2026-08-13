@@ -6,6 +6,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import java.math.BigDecimal;
 import java.time.Instant;
 import org.junit.jupiter.api.Test;
+import org.omt.labelmanager.distribution.agreement.api.CommissionType;
+import org.omt.labelmanager.distribution.agreement.api.PricingAgreement;
 
 class PricingAgreementTest {
 
