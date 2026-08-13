@@ -1,4 +1,4 @@
-package org.omt.labelmanager.catalog.release.api;
+package org.omt.labelmanager.web.catalog;
 
 import java.time.LocalDate;
 import java.util.Comparator;
@@ -10,6 +10,8 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import org.omt.labelmanager.catalog.artist.api.ArtistQueryApi;
 import org.omt.labelmanager.catalog.artist.domain.Artist;
+import org.omt.labelmanager.catalog.release.api.ReleaseCommandApi;
+import org.omt.labelmanager.catalog.release.api.ReleaseQueryApi;
 import org.omt.labelmanager.catalog.release.domain.Release;
 import org.omt.labelmanager.catalog.release.domain.Track;
 import org.omt.labelmanager.catalog.release.domain.TrackDuration;

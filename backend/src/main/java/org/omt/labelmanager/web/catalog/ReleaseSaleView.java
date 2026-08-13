@@ -1,4 +1,4 @@
-package org.omt.labelmanager.catalog.release.api;
+package org.omt.labelmanager.web.catalog;
 
 import java.time.LocalDate;
 import org.omt.labelmanager.shared.Money;
