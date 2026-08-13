@@ -15,7 +15,8 @@ public class SpaApiAuthenticationEntryPoint implements AuthenticationEntryPoint 
     public void commence(
             HttpServletRequest request,
             HttpServletResponse response,
-            AuthenticationException authException) throws IOException {
+            AuthenticationException authException)
+            throws IOException {
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         response.setContentType("application/json;charset=UTF-8");
         MAPPER.writeValue(response.getWriter(), new ErrorResponse("Authentication required."));

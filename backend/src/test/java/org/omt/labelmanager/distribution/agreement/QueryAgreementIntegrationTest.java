@@ -1,5 +1,8 @@
 package org.omt.labelmanager.distribution.agreement;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.math.BigDecimal;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.omt.labelmanager.AbstractIntegrationTest;
@@ -8,39 +11,27 @@ import org.omt.labelmanager.catalog.release.ReleaseTestHelper;
 import org.omt.labelmanager.catalog.release.domain.ReleaseFormat;
 import org.omt.labelmanager.distribution.agreement.api.AgreementCommandApi;
 import org.omt.labelmanager.distribution.agreement.api.AgreementQueryApi;
-import org.omt.labelmanager.distribution.agreement.CommissionType;
 import org.omt.labelmanager.distribution.agreement.persistence.PricingAgreementRepository;
-import org.omt.labelmanager.distribution.distributor.DistributorTestHelper;
 import org.omt.labelmanager.distribution.distributor.ChannelType;
+import org.omt.labelmanager.distribution.distributor.DistributorTestHelper;
 import org.omt.labelmanager.inventory.productionrun.ProductionRunTestHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.math.BigDecimal;
-
-import static org.assertj.core.api.Assertions.assertThat;
-
 public class QueryAgreementIntegrationTest extends AbstractIntegrationTest {
 
-    @Autowired
-    private AgreementCommandApi agreementCommandApi;
+    @Autowired private AgreementCommandApi agreementCommandApi;
 
-    @Autowired
-    private AgreementQueryApi agreementQueryApi;
+    @Autowired private AgreementQueryApi agreementQueryApi;
 
-    @Autowired
-    private PricingAgreementRepository repository;
+    @Autowired private PricingAgreementRepository repository;
 
-    @Autowired
-    private LabelTestHelper labelTestHelper;
+    @Autowired private LabelTestHelper labelTestHelper;
 
-    @Autowired
-    private DistributorTestHelper distributorTestHelper;
+    @Autowired private DistributorTestHelper distributorTestHelper;
 
-    @Autowired
-    private ReleaseTestHelper releaseTestHelper;
+    @Autowired private ReleaseTestHelper releaseTestHelper;
 
-    @Autowired
-    private ProductionRunTestHelper productionRunTestHelper;
+    @Autowired private ProductionRunTestHelper productionRunTestHelper;
 
     private Long distributorId;
     private Long productionRunId;
@@ -50,7 +41,9 @@ public class QueryAgreementIntegrationTest extends AbstractIntegrationTest {
         repository.deleteAll();
 
         var label = labelTestHelper.createLabel("Test Label");
-        var distributor = distributorTestHelper.createDistributor(label.id(), "Test Distributor", ChannelType.DISTRIBUTOR);
+        var distributor =
+                distributorTestHelper.createDistributor(
+                        label.id(), "Test Distributor", ChannelType.DISTRIBUTOR);
         distributorId = distributor.id();
 
         Long releaseId = releaseTestHelper.createReleaseEntity("Test Album", label.id());
@@ -60,7 +53,13 @@ public class QueryAgreementIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     void findById_returnsAgreement_whenItExists() {
-        var created = agreementCommandApi.create(distributorId, productionRunId, new BigDecimal("10.00"), CommissionType.PERCENTAGE, new BigDecimal("10.00"));
+        var created =
+                agreementCommandApi.create(
+                        distributorId,
+                        productionRunId,
+                        new BigDecimal("10.00"),
+                        CommissionType.PERCENTAGE,
+                        new BigDecimal("10.00"));
 
         var found = agreementQueryApi.findById(created.id());
 
@@ -75,7 +74,12 @@ public class QueryAgreementIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     void findByDistributorId_returnsAllAgreementsForDistributor() {
-        agreementCommandApi.create(distributorId, productionRunId, new BigDecimal("10.00"), CommissionType.PERCENTAGE, new BigDecimal("10.00"));
+        agreementCommandApi.create(
+                distributorId,
+                productionRunId,
+                new BigDecimal("10.00"),
+                CommissionType.PERCENTAGE,
+                new BigDecimal("10.00"));
 
         var agreements = agreementQueryApi.findByDistributorId(distributorId);
 
@@ -90,13 +94,24 @@ public class QueryAgreementIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     void existsByDistributorIdAndProductionRunId_returnsTrue_whenAgreementExists() {
-        agreementCommandApi.create(distributorId, productionRunId, new BigDecimal("10.00"), CommissionType.PERCENTAGE, new BigDecimal("10.00"));
+        agreementCommandApi.create(
+                distributorId,
+                productionRunId,
+                new BigDecimal("10.00"),
+                CommissionType.PERCENTAGE,
+                new BigDecimal("10.00"));
 
-        assertThat(agreementQueryApi.existsByDistributorIdAndProductionRunId(distributorId, productionRunId)).isTrue();
+        assertThat(
+                        agreementQueryApi.existsByDistributorIdAndProductionRunId(
+                                distributorId, productionRunId))
+                .isTrue();
     }
 
     @Test
     void existsByDistributorIdAndProductionRunId_returnsFalse_whenNoAgreementExists() {
-        assertThat(agreementQueryApi.existsByDistributorIdAndProductionRunId(distributorId, productionRunId)).isFalse();
+        assertThat(
+                        agreementQueryApi.existsByDistributorIdAndProductionRunId(
+                                distributorId, productionRunId))
+                .isFalse();
     }
 }

@@ -9,8 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 class DeleteReleaseUseCase {
 
-    private static final Logger log =
-            LoggerFactory.getLogger(DeleteReleaseUseCase.class);
+    private static final Logger log = LoggerFactory.getLogger(DeleteReleaseUseCase.class);
 
     private final ReleaseRepository releaseRepository;
 

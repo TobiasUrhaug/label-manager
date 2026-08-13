@@ -5,7 +5,6 @@ record ExternalInvoiceResponse(
         String invoiceReference,
         MoneyAmount netAmount,
         MoneyAmount vatAmount,
-        MoneyAmount totalAmount
-) {
+        MoneyAmount totalAmount) {
     record MoneyAmount(String amount, String currency) {}
 }

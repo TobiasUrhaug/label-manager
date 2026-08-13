@@ -1,5 +1,8 @@
 package org.omt.labelmanager.sales.distributor_return;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
 import java.time.LocalDate;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -8,8 +11,8 @@ import org.omt.labelmanager.AbstractIntegrationTest;
 import org.omt.labelmanager.catalog.label.LabelTestHelper;
 import org.omt.labelmanager.catalog.release.ReleaseTestHelper;
 import org.omt.labelmanager.catalog.release.domain.ReleaseFormat;
-import org.omt.labelmanager.distribution.distributor.api.DistributorQueryApi;
 import org.omt.labelmanager.distribution.distributor.ChannelType;
+import org.omt.labelmanager.distribution.distributor.api.DistributorQueryApi;
 import org.omt.labelmanager.inventory.InsufficientInventoryException;
 import org.omt.labelmanager.inventory.InventoryLocation;
 import org.omt.labelmanager.inventory.LocationType;
@@ -22,34 +25,23 @@ import org.omt.labelmanager.sales.distributor_return.api.DistributorReturnComman
 import org.omt.labelmanager.sales.distributor_return.domain.ReturnLineItemInput;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-
 class ReturnRegistrationIntegrationTest extends AbstractIntegrationTest {
 
-    @Autowired
-    private DistributorReturnCommandApi returnCommandApi;
+    @Autowired private DistributorReturnCommandApi returnCommandApi;
 
-    @Autowired
-    private InventoryMovementQueryApi inventoryMovementQueryApi;
+    @Autowired private InventoryMovementQueryApi inventoryMovementQueryApi;
 
-    @Autowired
-    private InventoryMovementRepository inventoryMovementRepository;
+    @Autowired private InventoryMovementRepository inventoryMovementRepository;
 
-    @Autowired
-    private LabelTestHelper labelTestHelper;
+    @Autowired private LabelTestHelper labelTestHelper;
 
-    @Autowired
-    private ReleaseTestHelper releaseTestHelper;
+    @Autowired private ReleaseTestHelper releaseTestHelper;
 
-    @Autowired
-    private ProductionRunTestHelper productionRunTestHelper;
+    @Autowired private ProductionRunTestHelper productionRunTestHelper;
 
-    @Autowired
-    private InventoryMovementCommandApi inventoryMovementCommandApi;
+    @Autowired private InventoryMovementCommandApi inventoryMovementCommandApi;
 
-    @Autowired
-    private DistributorQueryApi distributorQueryApi;
+    @Autowired private DistributorQueryApi distributorQueryApi;
 
     private Long labelId;
     private Long distributorId;
@@ -63,36 +55,39 @@ class ReturnRegistrationIntegrationTest extends AbstractIntegrationTest {
         var label = labelTestHelper.createLabelWithDirectDistributor("Test Label");
         labelId = label.id();
 
-        distributorId = distributorQueryApi
-                .findByLabelIdAndChannelType(labelId, ChannelType.DIRECT)
-                .orElseThrow()
-                .id();
+        distributorId =
+                distributorQueryApi
+                        .findByLabelIdAndChannelType(labelId, ChannelType.DIRECT)
+                        .orElseThrow()
+                        .id();
 
         releaseId = releaseTestHelper.createReleaseEntity("Test Release", labelId);
 
-        var productionRun = productionRunTestHelper.createProductionRun(
-                releaseId, ReleaseFormat.VINYL, 100
-        );
+        var productionRun =
+                productionRunTestHelper.createProductionRun(releaseId, ReleaseFormat.VINYL, 100);
         productionRunId = productionRun.id();
 
         // Allocate 50 units to the distributor so they have inventory to return
         inventoryMovementCommandApi.recordMovement(
-                productionRunId, InventoryLocation.warehouse(),
-                InventoryLocation.distributor(distributorId), 50, MovementType.ALLOCATION, null);
+                productionRunId,
+                InventoryLocation.warehouse(),
+                InventoryLocation.distributor(distributorId),
+                50,
+                MovementType.ALLOCATION,
+                null);
     }
 
     @Test
     void registerReturn_createsReturnWithLineItems() {
-        var lineItems = List.of(
-                new ReturnLineItemInput(releaseId, ReleaseFormat.VINYL, 10)
-        );
+        var lineItems = List.of(new ReturnLineItemInput(releaseId, ReleaseFormat.VINYL, 10));
 
-        var distributorReturn = returnCommandApi.registerReturn(
-                labelId, distributorId,
-                LocalDate.of(2026, 2, 1),
-                "Monthly return",
-                lineItems
-        );
+        var distributorReturn =
+                returnCommandApi.registerReturn(
+                        labelId,
+                        distributorId,
+                        LocalDate.of(2026, 2, 1),
+                        "Monthly return",
+                        lineItems);
 
         assertThat(distributorReturn.id()).isNotNull();
         assertThat(distributorReturn.labelId()).isEqualTo(labelId);
@@ -105,22 +100,18 @@ class ReturnRegistrationIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     void registerReturn_createsReturnInventoryMovement() {
-        var lineItems = List.of(
-                new ReturnLineItemInput(releaseId, ReleaseFormat.VINYL, 10)
-        );
+        var lineItems = List.of(new ReturnLineItemInput(releaseId, ReleaseFormat.VINYL, 10));
 
-        var distributorReturn = returnCommandApi.registerReturn(
-                labelId, distributorId,
-                LocalDate.of(2026, 2, 1),
-                null,
-                lineItems
-        );
+        var distributorReturn =
+                returnCommandApi.registerReturn(
+                        labelId, distributorId, LocalDate.of(2026, 2, 1), null, lineItems);
 
-        var returnMovements = inventoryMovementRepository
-                .findByProductionRunIdOrderByOccurredAtDesc(productionRunId)
-                .stream()
-                .filter(m -> m.getMovementType() == MovementType.RETURN)
-                .toList();
+        var returnMovements =
+                inventoryMovementRepository
+                        .findByProductionRunIdOrderByOccurredAtDesc(productionRunId)
+                        .stream()
+                        .filter(m -> m.getMovementType() == MovementType.RETURN)
+                        .toList();
 
         assertThat(returnMovements).hasSize(1);
         assertThat(returnMovements.getFirst().getFromLocationType())
@@ -135,25 +126,17 @@ class ReturnRegistrationIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     void registerReturn_decreasesDistributorInventoryAndIncreasesWarehouse() {
-        int distributorBefore = inventoryMovementQueryApi.getCurrentInventory(
-                productionRunId, distributorId
-        );
+        int distributorBefore =
+                inventoryMovementQueryApi.getCurrentInventory(productionRunId, distributorId);
         int warehouseBefore = inventoryMovementQueryApi.getWarehouseInventory(productionRunId);
 
-        var lineItems = List.of(
-                new ReturnLineItemInput(releaseId, ReleaseFormat.VINYL, 10)
-        );
+        var lineItems = List.of(new ReturnLineItemInput(releaseId, ReleaseFormat.VINYL, 10));
 
         returnCommandApi.registerReturn(
-                labelId, distributorId,
-                LocalDate.of(2026, 2, 1),
-                null,
-                lineItems
-        );
+                labelId, distributorId, LocalDate.of(2026, 2, 1), null, lineItems);
 
-        int distributorAfter = inventoryMovementQueryApi.getCurrentInventory(
-                productionRunId, distributorId
-        );
+        int distributorAfter =
+                inventoryMovementQueryApi.getCurrentInventory(productionRunId, distributorId);
         int warehouseAfter = inventoryMovementQueryApi.getWarehouseInventory(productionRunId);
 
         assertThat(distributorAfter).isEqualTo(distributorBefore - 10);
@@ -162,61 +145,72 @@ class ReturnRegistrationIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     void registerReturn_withInsufficientInventory_throwsException() {
-        var lineItems = List.of(
-                new ReturnLineItemInput(releaseId, ReleaseFormat.VINYL, 100) // more than 50 allocated
-        );
+        var lineItems =
+                List.of(
+                        new ReturnLineItemInput(
+                                releaseId, ReleaseFormat.VINYL, 100) // more than 50 allocated
+                        );
 
-        assertThatThrownBy(() -> returnCommandApi.registerReturn(
-                labelId, distributorId,
-                LocalDate.of(2026, 2, 1),
-                null,
-                lineItems
-        )).isInstanceOf(InsufficientInventoryException.class)
+        assertThatThrownBy(
+                        () ->
+                                returnCommandApi.registerReturn(
+                                        labelId,
+                                        distributorId,
+                                        LocalDate.of(2026, 2, 1),
+                                        null,
+                                        lineItems))
+                .isInstanceOf(InsufficientInventoryException.class)
                 .hasMessageContaining("Insufficient inventory");
     }
 
     @Test
     void registerReturn_withEmptyLineItems_throwsException() {
-        assertThatThrownBy(() -> returnCommandApi.registerReturn(
-                labelId, distributorId,
-                LocalDate.of(2026, 2, 1),
-                null,
-                List.of()
-        )).isInstanceOf(IllegalArgumentException.class)
+        assertThatThrownBy(
+                        () ->
+                                returnCommandApi.registerReturn(
+                                        labelId,
+                                        distributorId,
+                                        LocalDate.of(2026, 2, 1),
+                                        null,
+                                        List.of()))
+                .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("at least one line item");
     }
 
     @Test
     void registerReturn_withNonExistentLabel_throwsException() {
-        var lineItems = List.of(
-                new ReturnLineItemInput(releaseId, ReleaseFormat.VINYL, 5)
-        );
+        var lineItems = List.of(new ReturnLineItemInput(releaseId, ReleaseFormat.VINYL, 5));
 
-        assertThatThrownBy(() -> returnCommandApi.registerReturn(
-                99999L, distributorId,
-                LocalDate.of(2026, 2, 1),
-                null,
-                lineItems
-        )).hasMessageContaining("Label not found");
+        assertThatThrownBy(
+                        () ->
+                                returnCommandApi.registerReturn(
+                                        99999L,
+                                        distributorId,
+                                        LocalDate.of(2026, 2, 1),
+                                        null,
+                                        lineItems))
+                .hasMessageContaining("Label not found");
     }
 
     @Test
     void registerReturn_withDistributorFromDifferentLabel_throwsException() {
         var otherLabel = labelTestHelper.createLabelWithDirectDistributor("Other Label");
-        Long otherDistributorId = distributorQueryApi
-                .findByLabelIdAndChannelType(otherLabel.id(), ChannelType.DIRECT)
-                .orElseThrow()
-                .id();
+        Long otherDistributorId =
+                distributorQueryApi
+                        .findByLabelIdAndChannelType(otherLabel.id(), ChannelType.DIRECT)
+                        .orElseThrow()
+                        .id();
 
-        var lineItems = List.of(
-                new ReturnLineItemInput(releaseId, ReleaseFormat.VINYL, 5)
-        );
+        var lineItems = List.of(new ReturnLineItemInput(releaseId, ReleaseFormat.VINYL, 5));
 
-        assertThatThrownBy(() -> returnCommandApi.registerReturn(
-                labelId, otherDistributorId, // distributor from a different label
-                LocalDate.of(2026, 2, 1),
-                null,
-                lineItems
-        )).hasMessageContaining("not found for label");
+        assertThatThrownBy(
+                        () ->
+                                returnCommandApi.registerReturn(
+                                        labelId,
+                                        otherDistributorId, // distributor from a different label
+                                        LocalDate.of(2026, 2, 1),
+                                        null,
+                                        lineItems))
+                .hasMessageContaining("not found for label");
     }
 }

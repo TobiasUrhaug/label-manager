@@ -4,14 +4,12 @@ import java.util.List;
 import java.util.Map;
 import org.omt.labelmanager.inventory.inventorymovement.InventoryMovement;
 
-/**
- * Public API for inventory movement query operations.
- */
+/** Public API for inventory movement query operations. */
 public interface InventoryMovementQueryApi {
 
     /**
-     * Returns all inventory movements for a production run, sorted by
-     * {@code occurredAt} descending.
+     * Returns all inventory movements for a production run, sorted by {@code occurredAt}
+     * descending.
      *
      * @param productionRunId the production run ID
      * @return movements, newest first
@@ -19,9 +17,8 @@ public interface InventoryMovementQueryApi {
     List<InventoryMovement> findByProductionRunId(Long productionRunId);
 
     /**
-     * Returns all inventory movements for a production run, sorted by
-     * {@code occurredAt} descending.
-     * Alias for {@link #findByProductionRunId(Long)} with a more descriptive name.
+     * Returns all inventory movements for a production run, sorted by {@code occurredAt}
+     * descending. Alias for {@link #findByProductionRunId(Long)} with a more descriptive name.
      *
      * @param productionRunId the production run ID
      * @return movements, newest first
@@ -34,7 +31,7 @@ public interface InventoryMovementQueryApi {
      * <p>Result = SUM(inbound to distributor) − SUM(outbound from distributor)
      *
      * @param productionRunId the production run
-     * @param distributorId   the distributor
+     * @param distributorId the distributor
      * @return current inventory quantity (may be 0 if fully sold or never allocated)
      */
     int getCurrentInventory(Long productionRunId, Long distributorId);
@@ -60,8 +57,8 @@ public interface InventoryMovementQueryApi {
     int getBandcampInventory(Long productionRunId);
 
     /**
-     * Returns distinct production run IDs that have at least one ALLOCATION movement
-     * to the given distributor.
+     * Returns distinct production run IDs that have at least one ALLOCATION movement to the given
+     * distributor.
      *
      * @param distributorId the distributor
      * @return list of distinct production run IDs

@@ -12,14 +12,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 public class DeleteArtistIntegrationTest extends AbstractIntegrationTest {
 
-    @Autowired
-    ArtistCommandApi artistCommandApi;
+    @Autowired ArtistCommandApi artistCommandApi;
 
-    @Autowired
-    ArtistQueryApi artistQueryApi;
+    @Autowired ArtistQueryApi artistQueryApi;
 
-    @Autowired
-    ArtistRepository artistRepository;
+    @Autowired ArtistRepository artistRepository;
 
     @Test
     void deleteArtist_removesFromDatabase() {

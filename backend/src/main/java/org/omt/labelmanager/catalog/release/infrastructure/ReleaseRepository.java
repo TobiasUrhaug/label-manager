@@ -9,5 +9,4 @@ public interface ReleaseRepository extends JpaRepository<ReleaseEntity, Long> {
     List<ReleaseEntity> findByLabelId(Long labelId);
 
     Optional<ReleaseEntity> findByName(String name);
-
 }

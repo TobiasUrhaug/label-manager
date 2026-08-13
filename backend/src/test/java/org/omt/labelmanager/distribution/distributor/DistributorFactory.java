@@ -6,8 +6,7 @@ public final class DistributorFactory {
 
     private static final AtomicLong counter = new AtomicLong(1);
 
-    private DistributorFactory() {
-    }
+    private DistributorFactory() {}
 
     public static Builder aDistributor() {
         return new Builder();
@@ -24,8 +23,7 @@ public final class DistributorFactory {
         private String name = "Direct Sales";
         private ChannelType channelType = ChannelType.DIRECT;
 
-        private Builder() {
-        }
+        private Builder() {}
 
         public Builder id(Long id) {
             this.id = id;

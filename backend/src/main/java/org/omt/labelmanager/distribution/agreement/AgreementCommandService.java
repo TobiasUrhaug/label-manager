@@ -1,5 +1,6 @@
 package org.omt.labelmanager.distribution.agreement;
 
+import java.math.BigDecimal;
 import org.omt.labelmanager.distribution.agreement.api.AgreementCommandApi;
 import org.omt.labelmanager.distribution.agreement.api.AgreementNotFoundException;
 import org.omt.labelmanager.distribution.agreement.api.DuplicateAgreementException;
@@ -9,8 +10,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.math.BigDecimal;
 
 @Service
 class AgreementCommandService implements AgreementCommandApi {
@@ -30,31 +29,53 @@ class AgreementCommandService implements AgreementCommandApi {
             Long productionRunId,
             BigDecimal unitPrice,
             CommissionType commissionType,
-            BigDecimal commissionValue
-    ) {
+            BigDecimal commissionValue) {
         if (repository.existsByDistributorIdAndProductionRunId(distributorId, productionRunId)) {
             throw new DuplicateAgreementException(distributorId, productionRunId);
         }
 
-        new PricingAgreement(null, distributorId, productionRunId, unitPrice, commissionType, commissionValue, null);
+        new PricingAgreement(
+                null,
+                distributorId,
+                productionRunId,
+                unitPrice,
+                commissionType,
+                commissionValue,
+                null);
 
         PricingAgreementEntity entity =
-                new PricingAgreementEntity(distributorId, productionRunId, unitPrice, commissionType, commissionValue);
+                new PricingAgreementEntity(
+                        distributorId, productionRunId, unitPrice, commissionType, commissionValue);
         entity = repository.save(entity);
-        log.info("Created pricing agreement {} for distributor {} and production run {}",
-                entity.getId(), distributorId, productionRunId);
+        log.info(
+                "Created pricing agreement {} for distributor {} and production run {}",
+                entity.getId(),
+                distributorId,
+                productionRunId);
 
         return PricingAgreement.fromEntity(entity);
     }
 
     @Override
     @Transactional
-    public PricingAgreement update(Long agreementId, BigDecimal unitPrice, CommissionType commissionType, BigDecimal commissionValue) {
-        PricingAgreementEntity entity = repository.findById(agreementId)
-                .orElseThrow(() -> new AgreementNotFoundException(agreementId));
+    public PricingAgreement update(
+            Long agreementId,
+            BigDecimal unitPrice,
+            CommissionType commissionType,
+            BigDecimal commissionValue) {
+        PricingAgreementEntity entity =
+                repository
+                        .findById(agreementId)
+                        .orElseThrow(() -> new AgreementNotFoundException(agreementId));
 
-        new PricingAgreement(entity.getId(), entity.getDistributorId(), entity.getProductionRunId(),
-                unitPrice, commissionType, commissionValue, entity.getCreatedAt());
+        new PricingAgreement(
+                entity.getId(),
+                entity.getDistributorId(),
+                entity.getProductionRunId(),
+                unitPrice,
+                commissionType,
+                commissionValue,
+                entity.getCreatedAt());
 
         entity.setUnitPrice(unitPrice);
         entity.setCommissionType(commissionType);

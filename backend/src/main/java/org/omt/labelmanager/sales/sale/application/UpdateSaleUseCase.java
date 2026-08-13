@@ -30,8 +30,7 @@ class UpdateSaleUseCase {
             SaleRepository saleRepository,
             InventoryMovementCommandApi inventoryMovementCommandApi,
             SaleLineItemProcessor lineItemProcessor,
-            SaleConverter saleConverter
-    ) {
+            SaleConverter saleConverter) {
         this.saleRepository = saleRepository;
         this.inventoryMovementCommandApi = inventoryMovementCommandApi;
         this.lineItemProcessor = lineItemProcessor;
@@ -39,25 +38,24 @@ class UpdateSaleUseCase {
     }
 
     /**
-     * Updates a sale's date, notes, and line items. The distributor and channel type are
-     * immutable after registration — they are read from the persisted entity. If the wrong
-     * distributor was used, delete the sale and register a new one.
+     * Updates a sale's date, notes, and line items. The distributor and channel type are immutable
+     * after registration — they are read from the persisted entity. If the wrong distributor was
+     * used, delete the sale and register a new one.
      */
     @Transactional
     public Sale execute(
-            Long saleId,
-            LocalDate saleDate,
-            String notes,
-            List<SaleLineItemInput> lineItems
-    ) {
+            Long saleId, LocalDate saleDate, String notes, List<SaleLineItemInput> lineItems) {
         if (lineItems == null || lineItems.isEmpty()) {
             throw new IllegalArgumentException("Sale must contain at least one line item");
         }
 
         log.info("Updating sale {} with {} line items", saleId, lineItems.size());
 
-        var saleEntity = saleRepository.findById(saleId)
-                .orElseThrow(() -> new EntityNotFoundException("Sale not found: " + saleId));
+        var saleEntity =
+                saleRepository
+                        .findById(saleId)
+                        .orElseThrow(
+                                () -> new EntityNotFoundException("Sale not found: " + saleId));
 
         // 1. Reverse old inventory movements (restores inventory to distributor)
         inventoryMovementCommandApi.deleteMovementsByReference(MovementType.SALE, saleId);
@@ -71,12 +69,9 @@ class UpdateSaleUseCase {
         Long distributorId = saleEntity.getDistributorId();
         Map<SaleLineItemInput, Long> productionRunIds = new LinkedHashMap<>();
         for (var lineItemInput : lineItems) {
-            Long productionRunId = lineItemProcessor.validateAndAdd(
-                    lineItemInput,
-                    saleEntity.getLabelId(),
-                    distributorId,
-                    saleEntity
-            );
+            Long productionRunId =
+                    lineItemProcessor.validateAndAdd(
+                            lineItemInput, saleEntity.getLabelId(), distributorId, saleEntity);
             productionRunIds.put(lineItemInput, productionRunId);
         }
 
@@ -91,14 +86,14 @@ class UpdateSaleUseCase {
                     InventoryLocation.external(),
                     entry.getKey().quantity(),
                     MovementType.SALE,
-                    savedSale.getId()
-            );
+                    savedSale.getId());
         }
 
-        log.info("Sale {} updated successfully with total amount {}",
-                savedSale.getId(), savedSale.getTotalAmount());
+        log.info(
+                "Sale {} updated successfully with total amount {}",
+                savedSale.getId(),
+                savedSale.getTotalAmount());
 
         return saleConverter.toSale(savedSale);
     }
-
 }

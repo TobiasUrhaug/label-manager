@@ -1,8 +1,7 @@
 package org.omt.labelmanager.finance.cost.api;
 
-import org.omt.labelmanager.finance.cost.domain.Cost;
-
 import java.util.List;
+import org.omt.labelmanager.finance.cost.domain.Cost;
 
 public interface CostQueryApi {
 
@@ -11,5 +10,4 @@ public interface CostQueryApi {
     List<Cost> getCostsForLabel(Long labelId);
 
     List<Cost> getCostsForUser(Long userId);
-
 }

@@ -1,30 +1,25 @@
 package org.omt.labelmanager.distribution.distributor;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.omt.labelmanager.AbstractIntegrationTest;
 import org.omt.labelmanager.catalog.label.LabelTestHelper;
 import org.omt.labelmanager.distribution.distributor.api.DistributorCommandApi;
 import org.omt.labelmanager.distribution.distributor.api.DistributorQueryApi;
-import org.omt.labelmanager.distribution.distributor.ChannelType;
 import org.omt.labelmanager.distribution.distributor.persistence.DistributorRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 public class DeleteDistributorIntegrationTest extends AbstractIntegrationTest {
 
-    @Autowired
-    private DistributorCommandApi distributorCommandApi;
+    @Autowired private DistributorCommandApi distributorCommandApi;
 
-    @Autowired
-    private DistributorQueryApi distributorQueryApi;
+    @Autowired private DistributorQueryApi distributorQueryApi;
 
-    @Autowired
-    private DistributorRepository distributorRepository;
+    @Autowired private DistributorRepository distributorRepository;
 
-    @Autowired
-    private LabelTestHelper labelTestHelper;
+    @Autowired private LabelTestHelper labelTestHelper;
 
     private Long labelId;
 
@@ -38,11 +33,8 @@ public class DeleteDistributorIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     void delete_removesDistributorFromDatabase() {
-        var distributor = distributorCommandApi.createDistributor(
-                labelId,
-                "Bandcamp",
-                ChannelType.DIRECT
-        );
+        var distributor =
+                distributorCommandApi.createDistributor(labelId, "Bandcamp", ChannelType.DIRECT);
 
         boolean deleted = distributorCommandApi.delete(distributor.id());
 

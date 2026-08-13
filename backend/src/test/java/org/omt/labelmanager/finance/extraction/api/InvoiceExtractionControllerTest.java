@@ -26,39 +26,35 @@ import org.springframework.test.web.servlet.MockMvc;
 @Import(TestSecurityConfig.class)
 class InvoiceExtractionControllerTest {
 
-    @Autowired
-    private MockMvc mockMvc;
+    @Autowired private MockMvc mockMvc;
 
-    @MockitoBean
-    private ExtractionCommandApi extractionCommandApi;
+    @MockitoBean private ExtractionCommandApi extractionCommandApi;
 
     private final AppUserDetails testUser =
             new AppUserDetails(1L, "test@example.com", "password", "Test User");
 
     @Test
     void extractsInvoiceDataFromPdf() throws Exception {
-        MockMultipartFile document = new MockMultipartFile(
-                "document",
-                "invoice.pdf",
-                "application/pdf",
-                "pdf content".getBytes()
-        );
+        MockMultipartFile document =
+                new MockMultipartFile(
+                        "document", "invoice.pdf", "application/pdf", "pdf content".getBytes());
 
         when(extractionCommandApi.extract(any(), eq("application/pdf")))
-                .thenReturn(new ExtractedInvoiceData(
-                        new BigDecimal("100.00"),
-                        new BigDecimal("21.00"),
-                        null,
-                        new BigDecimal("121.00"),
-                        LocalDate.of(2024, 1, 15),
-                        "INV-2024-001",
-                        "EUR"
-                ));
+                .thenReturn(
+                        new ExtractedInvoiceData(
+                                new BigDecimal("100.00"),
+                                new BigDecimal("21.00"),
+                                null,
+                                new BigDecimal("121.00"),
+                                LocalDate.of(2024, 1, 15),
+                                "INV-2024-001",
+                                "EUR"));
 
-        mockMvc.perform(multipart("/api/costs/extract")
-                        .file(document)
-                        .with(user(testUser))
-                        .with(csrf()))
+        mockMvc.perform(
+                        multipart("/api/costs/extract")
+                                .file(document)
+                                .with(user(testUser))
+                                .with(csrf()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.netAmount").value(100.00))
                 .andExpect(jsonPath("$.vatAmount").value(21.00))
@@ -71,79 +67,68 @@ class InvoiceExtractionControllerTest {
 
     @Test
     void returnsBadRequestForPngDocument() throws Exception {
-        MockMultipartFile document = new MockMultipartFile(
-                "document",
-                "invoice.png",
-                "image/png",
-                "image content".getBytes()
-        );
+        MockMultipartFile document =
+                new MockMultipartFile(
+                        "document", "invoice.png", "image/png", "image content".getBytes());
 
-        mockMvc.perform(multipart("/api/costs/extract")
-                        .file(document)
-                        .with(user(testUser))
-                        .with(csrf()))
+        mockMvc.perform(
+                        multipart("/api/costs/extract")
+                                .file(document)
+                                .with(user(testUser))
+                                .with(csrf()))
                 .andExpect(status().isBadRequest());
     }
 
     @Test
     void returnsBadRequestForJpegDocument() throws Exception {
-        MockMultipartFile document = new MockMultipartFile(
-                "document",
-                "invoice.jpg",
-                "image/jpeg",
-                "image content".getBytes()
-        );
+        MockMultipartFile document =
+                new MockMultipartFile(
+                        "document", "invoice.jpg", "image/jpeg", "image content".getBytes());
 
-        mockMvc.perform(multipart("/api/costs/extract")
-                        .file(document)
-                        .with(user(testUser))
-                        .with(csrf()))
+        mockMvc.perform(
+                        multipart("/api/costs/extract")
+                                .file(document)
+                                .with(user(testUser))
+                                .with(csrf()))
                 .andExpect(status().isBadRequest());
     }
 
     @Test
     void returnsBadRequestForUnsupportedContentType() throws Exception {
-        MockMultipartFile document = new MockMultipartFile(
-                "document",
-                "invoice.doc",
-                "application/msword",
-                "doc content".getBytes()
-        );
+        MockMultipartFile document =
+                new MockMultipartFile(
+                        "document", "invoice.doc", "application/msword", "doc content".getBytes());
 
-        mockMvc.perform(multipart("/api/costs/extract")
-                        .file(document)
-                        .with(user(testUser))
-                        .with(csrf()))
+        mockMvc.perform(
+                        multipart("/api/costs/extract")
+                                .file(document)
+                                .with(user(testUser))
+                                .with(csrf()))
                 .andExpect(status().isBadRequest());
     }
 
     @Test
     void returnsBadRequestWhenNoDocumentProvided() throws Exception {
-        mockMvc.perform(multipart("/api/costs/extract")
-                        .with(user(testUser))
-                        .with(csrf()))
+        mockMvc.perform(multipart("/api/costs/extract").with(user(testUser)).with(csrf()))
                 .andExpect(status().isBadRequest());
     }
 
     @Test
     void returnsEmptyDataWhenExtractionFails() throws Exception {
-        MockMultipartFile document = new MockMultipartFile(
-                "document",
-                "invoice.pdf",
-                "application/pdf",
-                "pdf content".getBytes()
-        );
+        MockMultipartFile document =
+                new MockMultipartFile(
+                        "document", "invoice.pdf", "application/pdf", "pdf content".getBytes());
 
         when(extractionCommandApi.extract(any(), eq("application/pdf")))
                 .thenReturn(ExtractedInvoiceData.empty());
 
-        mockMvc.perform(multipart("/api/costs/extract")
-                        .file(document)
-                        .with(user(testUser))
-                        .with(csrf()))
+        mockMvc.perform(
+                        multipart("/api/costs/extract")
+                                .file(document)
+                                .with(user(testUser))
+                                .with(csrf()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.netAmount").isEmpty())
                 .andExpect(jsonPath("$.invoiceReference").isEmpty());
     }
-
 }

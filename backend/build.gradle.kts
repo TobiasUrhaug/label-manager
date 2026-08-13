@@ -4,6 +4,18 @@ plugins {
 	jacoco
 	id("org.springframework.boot") version "4.0.0"
 	id("io.spring.dependency-management") version "1.1.7"
+	id("com.diffplug.spotless") version "7.0.2"
+}
+
+spotless {
+	java {
+		// AOSP variant: 4-space indent and a 100-column limit, matching the Indentation
+		// and LineLength rules in config/checkstyle/checkstyle.xml.
+		googleJavaFormat("1.28.0").aosp()
+		removeUnusedImports()
+		trimTrailingWhitespace()
+		endWithNewline()
+	}
 }
 
 group = "org.omt"

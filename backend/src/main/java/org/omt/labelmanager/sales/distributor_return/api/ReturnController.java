@@ -7,8 +7,8 @@ import java.util.List;
 import org.omt.labelmanager.catalog.label.api.LabelQueryApi;
 import org.omt.labelmanager.catalog.release.api.ReleaseQueryApi;
 import org.omt.labelmanager.catalog.release.domain.ReleaseFormat;
-import org.omt.labelmanager.distribution.distributor.api.DistributorQueryApi;
 import org.omt.labelmanager.distribution.distributor.Distributor;
+import org.omt.labelmanager.distribution.distributor.api.DistributorQueryApi;
 import org.omt.labelmanager.inventory.InsufficientInventoryException;
 import org.omt.labelmanager.sales.distributor_return.domain.DistributorReturn;
 import org.omt.labelmanager.sales.distributor_return.domain.ReturnLineItem;
@@ -40,8 +40,7 @@ public class ReturnController {
             DistributorReturnQueryApi returnQueryApi,
             LabelQueryApi labelQueryApi,
             ReleaseQueryApi releaseQueryApi,
-            DistributorQueryApi distributorQueryApi
-    ) {
+            DistributorQueryApi distributorQueryApi) {
         this.returnCommandApi = returnCommandApi;
         this.returnQueryApi = returnQueryApi;
         this.labelQueryApi = labelQueryApi;
@@ -59,14 +58,14 @@ public class ReturnController {
             Long distributorId,
             LocalDate returnDate,
             String notes,
-            List<ReturnLineItemRequest> lineItems
-    ) {
+            List<ReturnLineItemRequest> lineItems) {
         List<ReturnLineItemInput> toLineItemInputs() {
             return lineItems.stream().map(ReturnLineItemRequest::toInput).toList();
         }
     }
 
-    record UpdateReturnRequest(LocalDate returnDate, String notes, List<ReturnLineItemRequest> lineItems) {
+    record UpdateReturnRequest(
+            LocalDate returnDate, String notes, List<ReturnLineItemRequest> lineItems) {
         List<ReturnLineItemInput> toLineItemInputs() {
             return lineItems.stream().map(ReturnLineItemRequest::toInput).toList();
         }
@@ -80,8 +79,7 @@ public class ReturnController {
             Long releaseId,
             String releaseName,
             ReleaseFormat format,
-            int quantity
-    ) {}
+            int quantity) {}
 
     record ReturnDetailResponse(
             Long id,
@@ -91,12 +89,12 @@ public class ReturnController {
             String notes,
             Instant createdAt,
             Distributor distributor,
-            List<EnrichedReturnLineItem> lineItems
-    ) {}
+            List<EnrichedReturnLineItem> lineItems) {}
 
     @GetMapping
     public ReturnListResponse listReturns(@PathVariable Long labelId) {
-        labelQueryApi.findById(labelId)
+        labelQueryApi
+                .findById(labelId)
                 .orElseThrow(() -> new EntityNotFoundException("Label not found"));
         var returns = returnQueryApi.getReturnsForLabel(labelId);
         var distributors = distributorQueryApi.findByLabelId(labelId);
@@ -105,79 +103,79 @@ public class ReturnController {
 
     @PostMapping
     public ResponseEntity<Void> registerReturn(
-            @PathVariable Long labelId,
-            @RequestBody RegisterReturnRequest request
-    ) {
+            @PathVariable Long labelId, @RequestBody RegisterReturnRequest request) {
         returnCommandApi.registerReturn(
                 labelId,
                 request.distributorId(),
                 request.returnDate(),
                 request.notes(),
-                request.toLineItemInputs()
-        );
+                request.toLineItemInputs());
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
     @GetMapping("/{returnId}")
     public ReturnDetailResponse viewReturn(
-            @PathVariable Long labelId,
-            @PathVariable Long returnId
-    ) {
-        labelQueryApi.findById(labelId)
+            @PathVariable Long labelId, @PathVariable Long returnId) {
+        labelQueryApi
+                .findById(labelId)
                 .orElseThrow(() -> new EntityNotFoundException("Label not found"));
-        var distributorReturn = returnQueryApi.findById(returnId)
-                .orElseThrow(() -> new EntityNotFoundException("Return not found"));
-        var distributor = distributorQueryApi.findById(distributorReturn.distributorId())
-                .orElseThrow(() -> new EntityNotFoundException("Distributor not found"));
-        var lineItems = distributorReturn.lineItems().stream()
-                .map(this::enrichLineItem)
-                .toList();
+        var distributorReturn =
+                returnQueryApi
+                        .findById(returnId)
+                        .orElseThrow(() -> new EntityNotFoundException("Return not found"));
+        var distributor =
+                distributorQueryApi
+                        .findById(distributorReturn.distributorId())
+                        .orElseThrow(() -> new EntityNotFoundException("Distributor not found"));
+        var lineItems = distributorReturn.lineItems().stream().map(this::enrichLineItem).toList();
         return new ReturnDetailResponse(
-                distributorReturn.id(), distributorReturn.labelId(),
-                distributorReturn.distributorId(), distributorReturn.returnDate(),
-                distributorReturn.notes(), distributorReturn.createdAt(),
-                distributor, lineItems
-        );
+                distributorReturn.id(),
+                distributorReturn.labelId(),
+                distributorReturn.distributorId(),
+                distributorReturn.returnDate(),
+                distributorReturn.notes(),
+                distributorReturn.createdAt(),
+                distributor,
+                lineItems);
     }
 
     @PutMapping("/{returnId}")
     public DistributorReturn updateReturn(
             @PathVariable Long labelId,
             @PathVariable Long returnId,
-            @RequestBody UpdateReturnRequest request
-    ) {
+            @RequestBody UpdateReturnRequest request) {
         returnCommandApi.updateReturn(
-                returnId,
-                request.returnDate(),
-                request.notes(),
-                request.toLineItemInputs()
-        );
-        return returnQueryApi.findById(returnId)
+                returnId, request.returnDate(), request.notes(), request.toLineItemInputs());
+        return returnQueryApi
+                .findById(returnId)
                 .orElseThrow(() -> new EntityNotFoundException("Return not found"));
     }
 
     @DeleteMapping("/{returnId}")
     public ResponseEntity<Void> deleteReturn(
-            @PathVariable Long labelId,
-            @PathVariable Long returnId
-    ) {
+            @PathVariable Long labelId, @PathVariable Long returnId) {
         returnCommandApi.deleteReturn(returnId);
         return ResponseEntity.noContent().build();
     }
 
-    @ExceptionHandler({IllegalStateException.class, IllegalArgumentException.class,
-            InsufficientInventoryException.class})
+    @ExceptionHandler({
+        IllegalStateException.class,
+        IllegalArgumentException.class,
+        InsufficientInventoryException.class
+    })
     public ResponseEntity<Void> handleBadRequest() {
         return ResponseEntity.badRequest().build();
     }
 
     private EnrichedReturnLineItem enrichLineItem(ReturnLineItem item) {
-        var releaseName = releaseQueryApi.findById(item.releaseId())
-                .map(r -> r.name())
-                .orElse("Unknown");
+        var releaseName =
+                releaseQueryApi.findById(item.releaseId()).map(r -> r.name()).orElse("Unknown");
         return new EnrichedReturnLineItem(
-                item.id(), item.returnId(), item.releaseId(), releaseName,
-                item.format(), item.quantity()
-        );
+                item.id(),
+                item.returnId(),
+                item.releaseId(),
+                releaseName,
+                item.format(),
+                item.quantity());
     }
 }

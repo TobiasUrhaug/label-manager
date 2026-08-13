@@ -12,8 +12,8 @@ import org.omt.labelmanager.AbstractIntegrationTest;
 import org.omt.labelmanager.catalog.label.LabelTestHelper;
 import org.omt.labelmanager.catalog.release.ReleaseTestHelper;
 import org.omt.labelmanager.catalog.release.domain.ReleaseFormat;
-import org.omt.labelmanager.distribution.distributor.api.DistributorQueryApi;
 import org.omt.labelmanager.distribution.distributor.ChannelType;
+import org.omt.labelmanager.distribution.distributor.api.DistributorQueryApi;
 import org.omt.labelmanager.finance.domain.shared.Money;
 import org.omt.labelmanager.inventory.InsufficientInventoryException;
 import org.omt.labelmanager.inventory.InventoryLocation;
@@ -30,26 +30,19 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 class SaleEditIntegrationTest extends AbstractIntegrationTest {
 
-    @Autowired
-    private SaleCommandApi saleCommandApi;
+    @Autowired private SaleCommandApi saleCommandApi;
 
-    @Autowired
-    private LabelTestHelper labelTestHelper;
+    @Autowired private LabelTestHelper labelTestHelper;
 
-    @Autowired
-    private ReleaseTestHelper releaseTestHelper;
+    @Autowired private ReleaseTestHelper releaseTestHelper;
 
-    @Autowired
-    private ProductionRunTestHelper productionRunTestHelper;
+    @Autowired private ProductionRunTestHelper productionRunTestHelper;
 
-    @Autowired
-    private DistributorQueryApi distributorQueryApi;
+    @Autowired private DistributorQueryApi distributorQueryApi;
 
-    @Autowired
-    private InventoryMovementCommandApi inventoryMovementCommandApi;
+    @Autowired private InventoryMovementCommandApi inventoryMovementCommandApi;
 
-    @Autowired
-    private InventoryMovementQueryApi inventoryMovementQueryApi;
+    @Autowired private InventoryMovementQueryApi inventoryMovementQueryApi;
 
     private Long labelId;
     private Long releaseId;
@@ -61,36 +54,48 @@ class SaleEditIntegrationTest extends AbstractIntegrationTest {
         var label = labelTestHelper.createLabelWithDirectDistributor("Edit Test Label");
         labelId = label.id();
 
-        directDistributorId = distributorQueryApi
-                .findByLabelIdAndChannelType(labelId, ChannelType.DIRECT)
-                .orElseThrow()
-                .id();
+        directDistributorId =
+                distributorQueryApi
+                        .findByLabelIdAndChannelType(labelId, ChannelType.DIRECT)
+                        .orElseThrow()
+                        .id();
 
         releaseId = releaseTestHelper.createReleaseEntity("Edit Test Release", labelId);
 
-        var productionRun = productionRunTestHelper.createProductionRun(
-                releaseId, ReleaseFormat.VINYL, "First pressing", "Plant A",
-                LocalDate.of(2025, 1, 1), 100
-        );
+        var productionRun =
+                productionRunTestHelper.createProductionRun(
+                        releaseId,
+                        ReleaseFormat.VINYL,
+                        "First pressing",
+                        "Plant A",
+                        LocalDate.of(2025, 1, 1),
+                        100);
         productionRunId = productionRun.id();
 
         inventoryMovementCommandApi.recordMovement(
-                productionRunId, InventoryLocation.warehouse(),
-                InventoryLocation.distributor(directDistributorId), 80, MovementType.ALLOCATION, null);
+                productionRunId,
+                InventoryLocation.warehouse(),
+                InventoryLocation.distributor(directDistributorId),
+                80,
+                MovementType.ALLOCATION,
+                null);
     }
 
     @Test
     void updateSale_updatesDateNotesAndLineItems() {
         var original = registerDirectSale(5, LocalDate.of(2026, 1, 10));
 
-        var updated = saleCommandApi.updateSale(
-                original.id(),
-                LocalDate.of(2026, 5, 1),
-                "Updated notes",
-                List.of(new SaleLineItemInput(
-                        releaseId, ReleaseFormat.VINYL, 8,
-                        Money.of(new BigDecimal("20.00"))))
-        );
+        var updated =
+                saleCommandApi.updateSale(
+                        original.id(),
+                        LocalDate.of(2026, 5, 1),
+                        "Updated notes",
+                        List.of(
+                                new SaleLineItemInput(
+                                        releaseId,
+                                        ReleaseFormat.VINYL,
+                                        8,
+                                        Money.of(new BigDecimal("20.00")))));
 
         assertThat(updated.saleDate()).isEqualTo(LocalDate.of(2026, 5, 1));
         assertThat(updated.notes()).isEqualTo("Updated notes");
@@ -109,15 +114,16 @@ class SaleEditIntegrationTest extends AbstractIntegrationTest {
                 original.id(),
                 original.saleDate(),
                 null,
-                List.of(new SaleLineItemInput(
-                        releaseId, ReleaseFormat.VINYL, 20,
-                        Money.of(new BigDecimal("15.00"))))
-        );
+                List.of(
+                        new SaleLineItemInput(
+                                releaseId,
+                                ReleaseFormat.VINYL,
+                                20,
+                                Money.of(new BigDecimal("15.00")))));
 
         // Old movements deleted + new ones recorded: 80 - 20 = 60
-        int currentInventory = inventoryMovementQueryApi.getCurrentInventory(
-                productionRunId, directDistributorId
-        );
+        int currentInventory =
+                inventoryMovementQueryApi.getCurrentInventory(productionRunId, directDistributorId);
         assertThat(currentInventory).isEqualTo(60);
     }
 
@@ -127,18 +133,22 @@ class SaleEditIntegrationTest extends AbstractIntegrationTest {
         // After selling 10: current inventory = 70; without restoration, 75 would fail.
         // But old movements are deleted first, restoring inventory to 80, so 75 is valid.
 
-        var updated = saleCommandApi.updateSale(
-                original.id(),
-                original.saleDate(),
-                null,
-                List.of(new SaleLineItemInput(
-                        releaseId, ReleaseFormat.VINYL, 75,
-                        Money.of(new BigDecimal("15.00"))))
-        );
+        var updated =
+                saleCommandApi.updateSale(
+                        original.id(),
+                        original.saleDate(),
+                        null,
+                        List.of(
+                                new SaleLineItemInput(
+                                        releaseId,
+                                        ReleaseFormat.VINYL,
+                                        75,
+                                        Money.of(new BigDecimal("15.00")))));
 
         assertThat(updated.lineItems().getFirst().quantity()).isEqualTo(75);
-        assertThat(inventoryMovementQueryApi
-                .getCurrentInventory(productionRunId, directDistributorId))
+        assertThat(
+                        inventoryMovementQueryApi.getCurrentInventory(
+                                productionRunId, directDistributorId))
                 .isEqualTo(5); // 80 - 75
     }
 
@@ -146,24 +156,35 @@ class SaleEditIntegrationTest extends AbstractIntegrationTest {
     void updateSale_withInsufficientInventory_throwsException() {
         var original = registerDirectSale(5, LocalDate.of(2026, 2, 1));
 
-        assertThatThrownBy(() -> saleCommandApi.updateSale(
-                original.id(),
-                original.saleDate(),
-                null,
-                List.of(new SaleLineItemInput(
-                        releaseId, ReleaseFormat.VINYL, 200, // more than the 80 available
-                        Money.of(new BigDecimal("15.00"))))
-        )).isInstanceOf(InsufficientInventoryException.class);
+        assertThatThrownBy(
+                        () ->
+                                saleCommandApi.updateSale(
+                                        original.id(),
+                                        original.saleDate(),
+                                        null,
+                                        List.of(
+                                                new SaleLineItemInput(
+                                                        releaseId,
+                                                        ReleaseFormat.VINYL,
+                                                        200, // more than the 80 available
+                                                        Money.of(new BigDecimal("15.00"))))))
+                .isInstanceOf(InsufficientInventoryException.class);
     }
 
     // ── helpers ──────────────────────────────────────────────────────────────
 
     private Sale registerDirectSale(int quantity, LocalDate date) {
         return saleCommandApi.registerSale(
-                labelId, date, ChannelType.DIRECT, null, null,
-                List.of(new SaleLineItemInput(
-                        releaseId, ReleaseFormat.VINYL, quantity,
-                        Money.of(new BigDecimal("15.00"))))
-        );
+                labelId,
+                date,
+                ChannelType.DIRECT,
+                null,
+                null,
+                List.of(
+                        new SaleLineItemInput(
+                                releaseId,
+                                ReleaseFormat.VINYL,
+                                quantity,
+                                Money.of(new BigDecimal("15.00")))));
     }
 }

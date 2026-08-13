@@ -12,18 +12,10 @@ public interface LabelCommandApi {
             String website,
             Address address,
             Person owner,
-            Long userId
-    );
+            Long userId);
 
     void delete(Long id);
 
     void updateLabel(
-            Long id,
-            String name,
-            String email,
-            String website,
-            Address address,
-            Person owner
-    );
-
+            Long id, String name, String email, String website, Address address, Person owner);
 }

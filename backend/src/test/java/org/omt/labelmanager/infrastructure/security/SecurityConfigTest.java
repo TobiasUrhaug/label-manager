@@ -10,8 +10,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 class SecurityConfigTest extends AbstractIntegrationTest {
 
-    @Autowired
-    private PasswordEncoder passwordEncoder;
+    @Autowired private PasswordEncoder passwordEncoder;
 
     @Test
     void passwordEncoder_isBCrypt() {
@@ -27,5 +26,4 @@ class SecurityConfigTest extends AbstractIntegrationTest {
         assertThat(passwordEncoder.matches(rawPassword, encoded)).isTrue();
         assertThat(passwordEncoder.matches("wrongPassword", encoded)).isFalse();
     }
-
 }

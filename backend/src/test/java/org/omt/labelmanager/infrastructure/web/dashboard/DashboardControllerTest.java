@@ -1,5 +1,12 @@
 package org.omt.labelmanager.infrastructure.web.dashboard;
 
+import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.omt.labelmanager.catalog.artist.api.ArtistQueryApi;
 import org.omt.labelmanager.catalog.artist.domain.ArtistFactory;
@@ -14,26 +21,15 @@ import org.springframework.context.annotation.Import;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.util.List;
-
-import static org.mockito.Mockito.when;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
 @WebMvcTest(DashboardController.class)
 @Import(TestSecurityConfig.class)
 class DashboardControllerTest {
 
-    @Autowired
-    private MockMvc mockMvc;
+    @Autowired private MockMvc mockMvc;
 
-    @MockitoBean
-    private LabelQueryApi labelQueryFacade;
+    @MockitoBean private LabelQueryApi labelQueryFacade;
 
-    @MockitoBean
-    private ArtistQueryApi artistQueryApi;
+    @MockitoBean private ArtistQueryApi artistQueryApi;
 
     @Test
     void dashboard_returnsLabels() throws Exception {
@@ -64,5 +60,4 @@ class DashboardControllerTest {
                 .andExpect(jsonPath("$.artists[0].artistName").value("Artist A"))
                 .andExpect(jsonPath("$.artists[1].artistName").value("Artist B"));
     }
-
 }

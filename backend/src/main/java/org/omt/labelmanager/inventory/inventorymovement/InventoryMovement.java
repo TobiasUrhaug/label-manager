@@ -8,12 +8,13 @@ import org.omt.labelmanager.inventory.inventorymovement.persistence.InventoryMov
 /**
  * Represents a single inventory transfer between two locations.
  *
- * <p>All quantities are positive. Direction is expressed by {@code fromLocationType} and
- * {@code toLocationType}. Standard patterns:
+ * <p>All quantities are positive. Direction is expressed by {@code fromLocationType} and {@code
+ * toLocationType}. Standard patterns:
+ *
  * <ul>
- *   <li>Allocation: {@code WAREHOUSE → DISTRIBUTOR(toLocationId)}</li>
- *   <li>Sale:       {@code DISTRIBUTOR(fromLocationId) → EXTERNAL}</li>
- *   <li>Return:     {@code DISTRIBUTOR(fromLocationId) → WAREHOUSE}</li>
+ *   <li>Allocation: {@code WAREHOUSE → DISTRIBUTOR(toLocationId)}
+ *   <li>Sale: {@code DISTRIBUTOR(fromLocationId) → EXTERNAL}
+ *   <li>Return: {@code DISTRIBUTOR(fromLocationId) → WAREHOUSE}
  * </ul>
  */
 public record InventoryMovement(
@@ -26,8 +27,7 @@ public record InventoryMovement(
         int quantity,
         MovementType movementType,
         Instant occurredAt,
-        Long referenceId
-) {
+        Long referenceId) {
 
     public static InventoryMovement fromEntity(InventoryMovementEntity entity) {
         return new InventoryMovement(
@@ -40,7 +40,6 @@ public record InventoryMovement(
                 entity.getQuantity(),
                 entity.getMovementType(),
                 entity.getOccurredAt(),
-                entity.getReferenceId()
-        );
+                entity.getReferenceId());
     }
 }

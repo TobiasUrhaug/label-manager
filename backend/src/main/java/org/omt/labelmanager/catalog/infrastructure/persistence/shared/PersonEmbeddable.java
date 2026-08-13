@@ -8,8 +8,7 @@ public class PersonEmbeddable {
 
     private String name;
 
-    protected PersonEmbeddable() {
-    }
+    protected PersonEmbeddable() {}
 
     public PersonEmbeddable(String name) {
         this.name = name;

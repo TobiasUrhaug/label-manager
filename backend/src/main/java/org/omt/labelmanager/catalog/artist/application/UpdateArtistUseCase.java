@@ -23,23 +23,21 @@ class UpdateArtistUseCase {
 
     @Transactional
     public void execute(
-            Long id,
-            String artistName,
-            Person realName,
-            String email,
-            Address address
-    ) {
+            Long id, String artistName, Person realName, String email, Address address) {
         log.info("Updating artist {}", id);
-        repository.findById(id).ifPresent(entity -> {
-            entity.setArtistName(artistName);
-            if (realName != null) {
-                entity.setRealName(PersonEmbeddable.fromPerson(realName));
-            }
-            entity.setEmail(email);
-            if (address != null) {
-                entity.setAddress(AddressEmbeddable.fromAddress(address));
-            }
-            repository.save(entity);
-        });
+        repository
+                .findById(id)
+                .ifPresent(
+                        entity -> {
+                            entity.setArtistName(artistName);
+                            if (realName != null) {
+                                entity.setRealName(PersonEmbeddable.fromPerson(realName));
+                            }
+                            entity.setEmail(email);
+                            if (address != null) {
+                                entity.setAddress(AddressEmbeddable.fromAddress(address));
+                            }
+                            repository.save(entity);
+                        });
     }
 }

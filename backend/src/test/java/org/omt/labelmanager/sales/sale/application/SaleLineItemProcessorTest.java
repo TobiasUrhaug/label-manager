@@ -34,27 +34,21 @@ class SaleLineItemProcessorTest {
     private static final long PRODUCTION_RUN_ID = 100L;
     private static final long DISTRIBUTOR_ID = 200L;
 
-    @Mock
-    private ReleaseQueryApi releaseQueryApi;
+    @Mock private ReleaseQueryApi releaseQueryApi;
 
-    @Mock
-    private ProductionRunQueryApi productionRunQueryApi;
+    @Mock private ProductionRunQueryApi productionRunQueryApi;
 
-    @Mock
-    private InventoryMovementQueryApi inventoryMovementQueryApi;
+    @Mock private InventoryMovementQueryApi inventoryMovementQueryApi;
 
-    @Mock
-    private SaleEntity saleEntity;
+    @Mock private SaleEntity saleEntity;
 
     private SaleLineItemProcessor subject;
 
     @BeforeEach
     void setUp() {
-        subject = new SaleLineItemProcessor(
-                releaseQueryApi,
-                productionRunQueryApi,
-                inventoryMovementQueryApi
-        );
+        subject =
+                new SaleLineItemProcessor(
+                        releaseQueryApi, productionRunQueryApi, inventoryMovementQueryApi);
     }
 
     @Test
@@ -69,8 +63,10 @@ class SaleLineItemProcessorTest {
         when(inventoryMovementQueryApi.getCurrentInventory(PRODUCTION_RUN_ID, DISTRIBUTOR_ID))
                 .thenReturn(0);
 
-        assertThatThrownBy(() -> subject.validateAndAdd(
-                lineItemInput, LABEL_ID, DISTRIBUTOR_ID, saleEntity))
+        assertThatThrownBy(
+                        () ->
+                                subject.validateAndAdd(
+                                        lineItemInput, LABEL_ID, DISTRIBUTOR_ID, saleEntity))
                 .isInstanceOf(InsufficientInventoryException.class);
     }
 
@@ -93,17 +89,32 @@ class SaleLineItemProcessorTest {
     }
 
     private Release releaseWithId(long releaseId) {
-        return new Release(releaseId, "Test Album", LocalDate.now(), LABEL_ID,
-                List.of(), List.of(), Set.of(ReleaseFormat.VINYL));
+        return new Release(
+                releaseId,
+                "Test Album",
+                LocalDate.now(),
+                LABEL_ID,
+                List.of(),
+                List.of(),
+                Set.of(ReleaseFormat.VINYL));
     }
 
     private ProductionRun productionRunWithId(long productionRunId) {
-        return new ProductionRun(productionRunId, RELEASE_ID, ReleaseFormat.VINYL,
-                null, "Manufacturer", LocalDate.now(), 500);
+        return new ProductionRun(
+                productionRunId,
+                RELEASE_ID,
+                ReleaseFormat.VINYL,
+                null,
+                "Manufacturer",
+                LocalDate.now(),
+                500);
     }
 
     private SaleLineItemInput lineItemFor(long releaseId, int quantity) {
         return new SaleLineItemInput(
-                releaseId, ReleaseFormat.VINYL, quantity, new Money(new BigDecimal("15.00"), "EUR"));
+                releaseId,
+                ReleaseFormat.VINYL,
+                quantity,
+                new Money(new BigDecimal("15.00"), "EUR"));
     }
 }

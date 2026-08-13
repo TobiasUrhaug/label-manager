@@ -1,11 +1,10 @@
 package org.omt.labelmanager.distribution.agreement;
 
+import java.util.List;
+import java.util.Optional;
 import org.omt.labelmanager.distribution.agreement.api.AgreementQueryApi;
 import org.omt.labelmanager.distribution.agreement.persistence.PricingAgreementRepository;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
-import java.util.Optional;
 
 @Service
 class AgreementQueryService implements AgreementQueryApi {
@@ -29,7 +28,8 @@ class AgreementQueryService implements AgreementQueryApi {
     }
 
     @Override
-    public boolean existsByDistributorIdAndProductionRunId(Long distributorId, Long productionRunId) {
+    public boolean existsByDistributorIdAndProductionRunId(
+            Long distributorId, Long productionRunId) {
         return repository.existsByDistributorIdAndProductionRunId(distributorId, productionRunId);
     }
 }

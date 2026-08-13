@@ -33,25 +33,16 @@ public class DistributorReturnEntity {
     @Column(name = "notes")
     private String notes;
 
-    @OneToMany(
-            mappedBy = "distributorReturn",
-            cascade = CascadeType.ALL,
-            orphanRemoval = true
-    )
+    @OneToMany(mappedBy = "distributorReturn", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ReturnLineItemEntity> lineItems = new ArrayList<>();
 
     @Column(name = "created_at", nullable = false)
     private Instant createdAt = Instant.now();
 
-    protected DistributorReturnEntity() {
-    }
+    protected DistributorReturnEntity() {}
 
     public DistributorReturnEntity(
-            Long labelId,
-            Long distributorId,
-            LocalDate returnDate,
-            String notes
-    ) {
+            Long labelId, Long distributorId, LocalDate returnDate, String notes) {
         this.labelId = labelId;
         this.distributorId = distributorId;
         this.returnDate = returnDate;
@@ -64,9 +55,9 @@ public class DistributorReturnEntity {
     }
 
     /**
-     * Removes all line items from this return. Used when editing a return to replace
-     * the existing line items with a new set. Orphan removal on the OneToMany
-     * relationship ensures the cleared items are deleted from the database.
+     * Removes all line items from this return. Used when editing a return to replace the existing
+     * line items with a new set. Orphan removal on the OneToMany relationship ensures the cleared
+     * items are deleted from the database.
      */
     public void clearLineItems() {
         lineItems.clear();

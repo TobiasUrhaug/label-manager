@@ -17,8 +17,7 @@ import org.springframework.stereotype.Service;
 @Service
 class ReleaseQueryApiImpl implements ReleaseQueryApi {
 
-    private static final Logger log =
-            LoggerFactory.getLogger(ReleaseQueryApiImpl.class);
+    private static final Logger log = LoggerFactory.getLogger(ReleaseQueryApiImpl.class);
 
     private final ReleaseRepository releaseRepository;
     private final LabelQueryApi labelQueryFacade;
@@ -29,8 +28,7 @@ class ReleaseQueryApiImpl implements ReleaseQueryApi {
             ReleaseRepository releaseRepository,
             LabelQueryApi labelQueryFacade,
             ReleaseArtistRepository releaseArtistRepository,
-            BuildTracksUseCase buildTracks
-    ) {
+            BuildTracksUseCase buildTracks) {
         this.releaseRepository = releaseRepository;
         this.labelQueryFacade = labelQueryFacade;
         this.releaseArtistRepository = releaseArtistRepository;
@@ -38,8 +36,7 @@ class ReleaseQueryApiImpl implements ReleaseQueryApi {
     }
 
     public Optional<Release> findById(Long id) {
-        Optional<ReleaseEntity> releaseEntity =
-                releaseRepository.findById(id);
+        Optional<ReleaseEntity> releaseEntity = releaseRepository.findById(id);
         if (releaseEntity.isEmpty()) {
             log.debug("Release with id {} not found", id);
             return Optional.empty();
@@ -53,17 +50,10 @@ class ReleaseQueryApiImpl implements ReleaseQueryApi {
             throw new IllegalArgumentException("Label not found");
         }
 
-        List<ReleaseEntity> releaseEntities =
-                releaseRepository.findByLabelId(labelId);
-        List<Release> releases = releaseEntities.stream()
-                .map(this::buildRelease)
-                .toList();
+        List<ReleaseEntity> releaseEntities = releaseRepository.findByLabelId(labelId);
+        List<Release> releases = releaseEntities.stream().map(this::buildRelease).toList();
 
-        log.debug(
-                "Retrieved {} releases for label {}",
-                releases.size(),
-                labelId
-        );
+        log.debug("Retrieved {} releases for label {}", releases.size(), labelId);
         return releases;
     }
 
@@ -73,16 +63,10 @@ class ReleaseQueryApiImpl implements ReleaseQueryApi {
 
     private Release buildRelease(ReleaseEntity releaseEntity) {
         List<Long> artistIds =
-                releaseArtistRepository.findArtistIdsByReleaseId(
-                        releaseEntity.getId()
-                );
+                releaseArtistRepository.findArtistIdsByReleaseId(releaseEntity.getId());
 
-        List<Track> tracks = buildTracks.buildTracksForRelease(
-                releaseEntity.getId()
-        );
+        List<Track> tracks = buildTracks.buildTracksForRelease(releaseEntity.getId());
 
-        return ReleaseMapper.fromEntity(
-                releaseEntity, artistIds, tracks
-        );
+        return ReleaseMapper.fromEntity(releaseEntity, artistIds, tracks);
     }
 }

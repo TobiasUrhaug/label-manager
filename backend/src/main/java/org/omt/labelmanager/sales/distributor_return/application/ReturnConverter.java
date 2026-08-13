@@ -14,15 +14,17 @@ import org.springframework.stereotype.Service;
 class ReturnConverter {
 
     DistributorReturn toReturn(DistributorReturnEntity entity) {
-        List<ReturnLineItem> lineItems = entity.getLineItems().stream()
-                .map(item -> new ReturnLineItem(
-                        item.getId(),
-                        entity.getId(),
-                        item.getReleaseId(),
-                        item.getFormat(),
-                        item.getQuantity()
-                ))
-                .toList();
+        List<ReturnLineItem> lineItems =
+                entity.getLineItems().stream()
+                        .map(
+                                item ->
+                                        new ReturnLineItem(
+                                                item.getId(),
+                                                entity.getId(),
+                                                item.getReleaseId(),
+                                                item.getFormat(),
+                                                item.getQuantity()))
+                        .toList();
 
         return new DistributorReturn(
                 entity.getId(),
@@ -31,7 +33,6 @@ class ReturnConverter {
                 entity.getReturnDate(),
                 entity.getNotes(),
                 lineItems,
-                entity.getCreatedAt()
-        );
+                entity.getCreatedAt());
     }
 }

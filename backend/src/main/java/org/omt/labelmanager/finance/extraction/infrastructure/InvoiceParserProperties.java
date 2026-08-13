@@ -6,7 +6,4 @@ import org.springframework.validation.annotation.Validated;
 
 @ConfigurationProperties("invoice.parser")
 @Validated
-record InvoiceParserProperties(
-        @NotBlank String url,
-        @NotBlank String apiKey
-) {}
+record InvoiceParserProperties(@NotBlank String url, @NotBlank String apiKey) {}

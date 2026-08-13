@@ -29,7 +29,5 @@ class LabelManagerApplicationTests {
     }
 
     @Test
-    void contextLoads() {
-    }
-
+    void contextLoads() {}
 }

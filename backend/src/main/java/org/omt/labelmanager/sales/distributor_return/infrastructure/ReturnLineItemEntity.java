@@ -35,8 +35,7 @@ public class ReturnLineItemEntity {
     @Column(name = "quantity", nullable = false)
     private int quantity;
 
-    protected ReturnLineItemEntity() {
-    }
+    protected ReturnLineItemEntity() {}
 
     public ReturnLineItemEntity(Long releaseId, ReleaseFormat format, int quantity) {
         this.releaseId = releaseId;

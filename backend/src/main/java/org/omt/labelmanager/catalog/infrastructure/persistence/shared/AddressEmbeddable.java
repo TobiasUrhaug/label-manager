@@ -12,15 +12,10 @@ public class AddressEmbeddable {
     private String postalCode;
     private String country;
 
-    protected AddressEmbeddable() {
-    }
+    protected AddressEmbeddable() {}
 
     public AddressEmbeddable(
-            String street,
-            String street2,
-            String city,
-            String postalCode,
-            String country) {
+            String street, String street2, String city, String postalCode, String country) {
         this.street = street;
         this.street2 = street2;
         this.city = city;
@@ -37,8 +32,7 @@ public class AddressEmbeddable {
                 address.street2(),
                 address.city(),
                 address.postalCode(),
-                address.country()
-        );
+                address.country());
     }
 
     public String getStreet() {

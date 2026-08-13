@@ -1,26 +1,22 @@
 package org.omt.labelmanager.distribution.distributor;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.omt.labelmanager.AbstractIntegrationTest;
 import org.omt.labelmanager.catalog.label.LabelTestHelper;
 import org.omt.labelmanager.distribution.distributor.api.DistributorCommandApi;
-import org.omt.labelmanager.distribution.distributor.ChannelType;
 import org.omt.labelmanager.distribution.distributor.persistence.DistributorRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 public class CreateDistributorIntegrationTest extends AbstractIntegrationTest {
 
-    @Autowired
-    private DistributorCommandApi distributorCommandApi;
+    @Autowired private DistributorCommandApi distributorCommandApi;
 
-    @Autowired
-    private DistributorRepository distributorRepository;
+    @Autowired private DistributorRepository distributorRepository;
 
-    @Autowired
-    private LabelTestHelper labelTestHelper;
+    @Autowired private LabelTestHelper labelTestHelper;
 
     private Long labelId;
 
@@ -34,11 +30,8 @@ public class CreateDistributorIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     void createDistributor_persistsDistributorWithAllFields() {
-        var distributor = distributorCommandApi.createDistributor(
-                labelId,
-                "Bandcamp",
-                ChannelType.DIRECT
-        );
+        var distributor =
+                distributorCommandApi.createDistributor(labelId, "Bandcamp", ChannelType.DIRECT);
 
         assertThat(distributor.id()).isNotNull();
         assertThat(distributor.labelId()).isEqualTo(labelId);
@@ -48,22 +41,18 @@ public class CreateDistributorIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     void createDistributor_worksWithDistributorType() {
-        var distributor = distributorCommandApi.createDistributor(
-                labelId,
-                "Cargo Records",
-                ChannelType.DISTRIBUTOR
-        );
+        var distributor =
+                distributorCommandApi.createDistributor(
+                        labelId, "Cargo Records", ChannelType.DISTRIBUTOR);
 
         assertThat(distributor.channelType()).isEqualTo(ChannelType.DISTRIBUTOR);
     }
 
     @Test
     void createDistributor_worksWithRecordStoreType() {
-        var distributor = distributorCommandApi.createDistributor(
-                labelId,
-                "Local Record Shop",
-                ChannelType.RECORD_STORE
-        );
+        var distributor =
+                distributorCommandApi.createDistributor(
+                        labelId, "Local Record Shop", ChannelType.RECORD_STORE);
 
         assertThat(distributor.channelType()).isEqualTo(ChannelType.RECORD_STORE);
     }

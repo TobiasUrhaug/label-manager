@@ -14,34 +14,25 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 public class UpdateLabelIntegrationTest extends AbstractIntegrationTest {
 
-    @Autowired
-    LabelCommandApi labelCommandApi;
+    @Autowired LabelCommandApi labelCommandApi;
 
-    @Autowired
-    LabelQueryApi labelQueryApi;
+    @Autowired LabelQueryApi labelQueryApi;
 
-    @Autowired
-    UserRepository userRepository;
+    @Autowired UserRepository userRepository;
 
     @Test
     void updateLabel_updatesAllFields() {
         var user = createTestUser("update-test@example.com");
-        var label = labelCommandApi.createLabel(
-                "Original Name",
-                "original@email.com",
-                "https://original.com",
-                null,
-                null,
-                user.getId()
-        );
+        var label =
+                labelCommandApi.createLabel(
+                        "Original Name",
+                        "original@email.com",
+                        "https://original.com",
+                        null,
+                        null,
+                        user.getId());
 
-        var newAddress = new Address(
-                "456 Oak Ave",
-                null,
-                "Bergen",
-                "5020",
-                "Norway"
-        );
+        var newAddress = new Address("456 Oak Ave", null, "Bergen", "5020", "Norway");
         var newOwner = new Person("Jane Smith");
 
         labelCommandApi.updateLabel(
@@ -50,8 +41,7 @@ public class UpdateLabelIntegrationTest extends AbstractIntegrationTest {
                 "updated@email.com",
                 "https://updated.com",
                 newAddress,
-                newOwner
-        );
+                newOwner);
 
         var updatedLabel = labelQueryApi.findById(label.id()).orElseThrow();
         assertThat(updatedLabel.name()).isEqualTo("Updated Name");
@@ -62,8 +52,6 @@ public class UpdateLabelIntegrationTest extends AbstractIntegrationTest {
     }
 
     private UserEntity createTestUser(String email) {
-        return userRepository.save(
-                new UserEntity(email, "password", "Test User")
-        );
+        return userRepository.save(new UserEntity(email, "password", "Test User"));
     }
 }

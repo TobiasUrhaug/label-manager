@@ -27,32 +27,33 @@ class UpdateReturnUseCase {
     UpdateReturnUseCase(
             DistributorReturnRepository returnRepository,
             InventoryMovementCommandApi inventoryMovementCommandApi,
-            ReturnLineItemProcessor lineItemProcessor
-    ) {
+            ReturnLineItemProcessor lineItemProcessor) {
         this.returnRepository = returnRepository;
         this.inventoryMovementCommandApi = inventoryMovementCommandApi;
         this.lineItemProcessor = lineItemProcessor;
     }
 
     /**
-     * Updates a return's date, notes, and line items. The distributor is immutable
-     * after registration. Old RETURN movements are deleted and new ones are recorded.
+     * Updates a return's date, notes, and line items. The distributor is immutable after
+     * registration. Old RETURN movements are deleted and new ones are recorded.
      */
     @Transactional
     public void execute(
             Long returnId,
             LocalDate returnDate,
             String notes,
-            List<ReturnLineItemInput> lineItems
-    ) {
+            List<ReturnLineItemInput> lineItems) {
         if (lineItems == null || lineItems.isEmpty()) {
             throw new IllegalArgumentException("Return must contain at least one line item");
         }
 
         log.info("Updating return {} with {} line items", returnId, lineItems.size());
 
-        var returnEntity = returnRepository.findById(returnId)
-                .orElseThrow(() -> new EntityNotFoundException("Return not found: " + returnId));
+        var returnEntity =
+                returnRepository
+                        .findById(returnId)
+                        .orElseThrow(
+                                () -> new EntityNotFoundException("Return not found: " + returnId));
 
         // 1. Reverse old inventory movements (restores inventory to distributor)
         inventoryMovementCommandApi.deleteMovementsByReference(MovementType.RETURN, returnId);
@@ -66,12 +67,9 @@ class UpdateReturnUseCase {
         Long distributorId = returnEntity.getDistributorId();
         Map<ReturnLineItemInput, Long> productionRunIds = new LinkedHashMap<>();
         for (var lineItemInput : lineItems) {
-            Long productionRunId = lineItemProcessor.validateAndAdd(
-                    lineItemInput,
-                    returnEntity.getLabelId(),
-                    distributorId,
-                    returnEntity
-            );
+            Long productionRunId =
+                    lineItemProcessor.validateAndAdd(
+                            lineItemInput, returnEntity.getLabelId(), distributorId, returnEntity);
             productionRunIds.put(lineItemInput, productionRunId);
         }
 
@@ -86,8 +84,7 @@ class UpdateReturnUseCase {
                     InventoryLocation.warehouse(),
                     entry.getKey().quantity(),
                     MovementType.RETURN,
-                    returnId
-            );
+                    returnId);
         }
 
         log.info("Return {} updated successfully", returnId);

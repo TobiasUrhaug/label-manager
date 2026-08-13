@@ -1,14 +1,21 @@
 package org.omt.labelmanager.finance.cost;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
+import java.io.ByteArrayInputStream;
+import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.omt.labelmanager.catalog.release.ReleaseTestHelper;
 import org.omt.labelmanager.catalog.label.LabelTestHelper;
+import org.omt.labelmanager.catalog.release.ReleaseTestHelper;
+import org.omt.labelmanager.finance.cost.api.CostCommandApi;
 import org.omt.labelmanager.finance.cost.domain.CostOwner;
 import org.omt.labelmanager.finance.cost.domain.CostOwnerType;
 import org.omt.labelmanager.finance.cost.domain.CostType;
 import org.omt.labelmanager.finance.cost.domain.VatAmount;
-import org.omt.labelmanager.finance.cost.api.CostCommandApi;
 import org.omt.labelmanager.finance.cost.infrastructure.CostRepository;
 import org.omt.labelmanager.finance.domain.shared.Money;
 import org.omt.labelmanager.finance.shared.DocumentUpload;
@@ -28,14 +35,6 @@ import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
 import software.amazon.awssdk.services.s3.model.HeadBucketRequest;
 import software.amazon.awssdk.services.s3.model.NoSuchBucketException;
 
-import java.io.ByteArrayInputStream;
-import java.math.BigDecimal;
-import java.nio.charset.StandardCharsets;
-import java.time.LocalDate;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-
 @Testcontainers
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class CostCommandIntegrationTest {
@@ -44,17 +43,13 @@ public class CostCommandIntegrationTest {
     private static final String MINIO_ACCESS_KEY = "minioadmin";
     private static final String MINIO_SECRET_KEY = "minioadmin";
 
-    @Autowired
-    CostCommandApi costCommandFacade;
+    @Autowired CostCommandApi costCommandFacade;
 
-    @Autowired
-    CostRepository costRepository;
+    @Autowired CostRepository costRepository;
 
-    @Autowired
-    LabelTestHelper labelTestHelper;
+    @Autowired LabelTestHelper labelTestHelper;
 
-    @Autowired
-    ReleaseTestHelper releaseTestHelper;
+    @Autowired ReleaseTestHelper releaseTestHelper;
 
     @Container
     static PostgreSQLContainer<?> postgres =
@@ -64,20 +59,23 @@ public class CostCommandIntegrationTest {
                     .withPassword("test");
 
     @Container
-    static MinIOContainer minIO = new MinIOContainer("minio/minio:latest")
-            .withUserName(MINIO_ACCESS_KEY)
-            .withPassword(MINIO_SECRET_KEY);
+    static MinIOContainer minIO =
+            new MinIOContainer("minio/minio:latest")
+                    .withUserName(MINIO_ACCESS_KEY)
+                    .withPassword(MINIO_SECRET_KEY);
 
     @BeforeAll
     static void setUpBucket() {
-        S3Client s3Client = S3Client.builder()
-                .endpointOverride(java.net.URI.create(minIO.getS3URL()))
-                .region(Region.US_EAST_1)
-                .credentialsProvider(StaticCredentialsProvider.create(
-                        AwsBasicCredentials.create(MINIO_ACCESS_KEY, MINIO_SECRET_KEY)
-                ))
-                .forcePathStyle(true)
-                .build();
+        S3Client s3Client =
+                S3Client.builder()
+                        .endpointOverride(java.net.URI.create(minIO.getS3URL()))
+                        .region(Region.US_EAST_1)
+                        .credentialsProvider(
+                                StaticCredentialsProvider.create(
+                                        AwsBasicCredentials.create(
+                                                MINIO_ACCESS_KEY, MINIO_SECRET_KEY)))
+                        .forcePathStyle(true)
+                        .build();
 
         try {
             s3Client.headBucket(HeadBucketRequest.builder().bucket(BUCKET).build());
@@ -101,8 +99,7 @@ public class CostCommandIntegrationTest {
     @Test
     void registersCostForRelease() {
         var label = labelTestHelper.createLabel("Test Label");
-        Long releaseId = releaseTestHelper.createReleaseEntity(
-                "Test Release", label.id());
+        Long releaseId = releaseTestHelper.createReleaseEntity("Test Release", label.id());
 
         costCommandFacade.registerCost(
                 Money.of(new BigDecimal("100.00")),
@@ -112,11 +109,11 @@ public class CostCommandIntegrationTest {
                 LocalDate.of(2024, 6, 15),
                 "Mastering for album",
                 CostOwner.release(releaseId),
-                "INV-2024-001"
-        );
+                "INV-2024-001");
 
-        var costs = costRepository.findByOwnerOwnerTypeAndOwnerOwnerId(
-                CostOwnerType.RELEASE, releaseId);
+        var costs =
+                costRepository.findByOwnerOwnerTypeAndOwnerOwnerId(
+                        CostOwnerType.RELEASE, releaseId);
         assertThat(costs).hasSize(1);
         assertThat(costs.getFirst().getNetAmount()).isEqualTo(new BigDecimal("100.00"));
         assertThat(costs.getFirst().getDescription()).isEqualTo("Mastering for album");
@@ -134,55 +131,61 @@ public class CostCommandIntegrationTest {
                 LocalDate.of(2024, 7, 1),
                 "Website hosting",
                 CostOwner.label(label.id()),
-                null
-        );
+                null);
 
-        var costs = costRepository.findByOwnerOwnerTypeAndOwnerOwnerId(
-                CostOwnerType.LABEL, label.id());
+        var costs =
+                costRepository.findByOwnerOwnerTypeAndOwnerOwnerId(CostOwnerType.LABEL, label.id());
         assertThat(costs).hasSize(1);
         assertThat(costs.getFirst().getCostType()).isEqualTo(CostType.HOSTING);
     }
 
     @Test
     void throwsWhenReleaseNotFound() {
-        assertThatThrownBy(() -> costCommandFacade.registerCost(
-                Money.of(new BigDecimal("100.00")),
-                new VatAmount(Money.of(new BigDecimal("25.00")), new BigDecimal("0.25")),
-                Money.of(new BigDecimal("125.00")),
-                CostType.MASTERING,
-                LocalDate.of(2024, 6, 15),
-                "Mastering",
-                CostOwner.release(99999L),
-                null
-        )).isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(
+                        () ->
+                                costCommandFacade.registerCost(
+                                        Money.of(new BigDecimal("100.00")),
+                                        new VatAmount(
+                                                Money.of(new BigDecimal("25.00")),
+                                                new BigDecimal("0.25")),
+                                        Money.of(new BigDecimal("125.00")),
+                                        CostType.MASTERING,
+                                        LocalDate.of(2024, 6, 15),
+                                        "Mastering",
+                                        CostOwner.release(99999L),
+                                        null))
+                .isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
     void throwsWhenLabelNotFound() {
-        assertThatThrownBy(() -> costCommandFacade.registerCost(
-                Money.of(new BigDecimal("100.00")),
-                new VatAmount(Money.of(new BigDecimal("25.00")), new BigDecimal("0.25")),
-                Money.of(new BigDecimal("125.00")),
-                CostType.HOSTING,
-                LocalDate.of(2024, 6, 15),
-                "Hosting",
-                CostOwner.label(99999L),
-                null
-        )).isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(
+                        () ->
+                                costCommandFacade.registerCost(
+                                        Money.of(new BigDecimal("100.00")),
+                                        new VatAmount(
+                                                Money.of(new BigDecimal("25.00")),
+                                                new BigDecimal("0.25")),
+                                        Money.of(new BigDecimal("125.00")),
+                                        CostType.HOSTING,
+                                        LocalDate.of(2024, 6, 15),
+                                        "Hosting",
+                                        CostOwner.label(99999L),
+                                        null))
+                .isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
     void registersCostWithDocumentUpload() {
         var label = labelTestHelper.createLabel("Label With Document");
-        Long releaseId = releaseTestHelper.createReleaseEntity(
-                "Release With Invoice", label.id());
+        Long releaseId = releaseTestHelper.createReleaseEntity("Release With Invoice", label.id());
 
         String documentContent = "Invoice PDF content";
-        var document = new DocumentUpload(
-                "invoice.pdf",
-                "application/pdf",
-                new ByteArrayInputStream(documentContent.getBytes(StandardCharsets.UTF_8))
-        );
+        var document =
+                new DocumentUpload(
+                        "invoice.pdf",
+                        "application/pdf",
+                        new ByteArrayInputStream(documentContent.getBytes(StandardCharsets.UTF_8)));
 
         costCommandFacade.registerCost(
                 Money.of(new BigDecimal("200.00")),
@@ -193,11 +196,11 @@ public class CostCommandIntegrationTest {
                 "Mastering with invoice",
                 CostOwner.release(releaseId),
                 "INV-2024-001",
-                document
-        );
+                document);
 
-        var costs = costRepository.findByOwnerOwnerTypeAndOwnerOwnerId(
-                CostOwnerType.RELEASE, releaseId);
+        var costs =
+                costRepository.findByOwnerOwnerTypeAndOwnerOwnerId(
+                        CostOwnerType.RELEASE, releaseId);
         assertThat(costs).hasSize(1);
         assertThat(costs.getFirst().getDocumentReference()).isEqualTo("INV-2024-001");
         assertThat(costs.getFirst().getDocumentStorageKey())

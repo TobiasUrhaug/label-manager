@@ -15,8 +15,7 @@ class ArtistCommandApiImpl implements ArtistCommandApi {
     ArtistCommandApiImpl(
             CreateArtistUseCase createArtist,
             UpdateArtistUseCase updateArtist,
-            DeleteArtistUseCase deleteArtist
-    ) {
+            DeleteArtistUseCase deleteArtist) {
         this.createArtist = createArtist;
         this.updateArtist = updateArtist;
         this.deleteArtist = deleteArtist;
@@ -24,23 +23,13 @@ class ArtistCommandApiImpl implements ArtistCommandApi {
 
     @Override
     public void createArtist(
-            String artistName,
-            Person realName,
-            String email,
-            Address address,
-            Long userId
-    ) {
+            String artistName, Person realName, String email, Address address, Long userId) {
         createArtist.execute(artistName, realName, email, address, userId);
     }
 
     @Override
     public void updateArtist(
-            Long id,
-            String artistName,
-            Person realName,
-            String email,
-            Address address
-    ) {
+            Long id, String artistName, Person realName, String email, Address address) {
         updateArtist.execute(id, artistName, realName, email, address);
     }
 

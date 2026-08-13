@@ -1,10 +1,7 @@
 package org.omt.labelmanager.finance.cost.application;
 
-import org.omt.labelmanager.finance.cost.infrastructure.CostRepository;
-import org.omt.labelmanager.finance.cost.infrastructure.CostEntity;
-import org.omt.labelmanager.finance.cost.infrastructure.CostOwnerEmbeddable;
-import org.omt.labelmanager.finance.cost.CostMapper;
-
+import java.time.LocalDate;
+import java.util.Optional;
 import org.omt.labelmanager.finance.cost.api.CostCommandApi;
 import org.omt.labelmanager.finance.cost.domain.CostOwner;
 import org.omt.labelmanager.finance.cost.domain.CostType;
@@ -13,9 +10,6 @@ import org.omt.labelmanager.finance.domain.shared.Money;
 import org.omt.labelmanager.finance.shared.DocumentUpload;
 import org.omt.labelmanager.finance.shared.RetrievedDocument;
 import org.springframework.stereotype.Service;
-
-import java.time.LocalDate;
-import java.util.Optional;
 
 @Service
 class CostCommandApiImpl implements CostCommandApi {
@@ -29,8 +23,7 @@ class CostCommandApiImpl implements CostCommandApi {
             RegisterCostUseCase registerCostUseCase,
             UpdateCostUseCase updateCostUseCase,
             DeleteCostUseCase deleteCostUseCase,
-            RetrieveCostDocumentUseCase retrieveCostDocumentUseCase
-    ) {
+            RetrieveCostDocumentUseCase retrieveCostDocumentUseCase) {
         this.registerCostUseCase = registerCostUseCase;
         this.updateCostUseCase = updateCostUseCase;
         this.deleteCostUseCase = deleteCostUseCase;
@@ -46,8 +39,7 @@ class CostCommandApiImpl implements CostCommandApi {
             LocalDate incurredOn,
             String description,
             CostOwner owner,
-            String documentReference
-    ) {
+            String documentReference) {
         registerCostUseCase.registerCost(
                 netAmount,
                 vat,
@@ -56,8 +48,7 @@ class CostCommandApiImpl implements CostCommandApi {
                 incurredOn,
                 description,
                 owner,
-                documentReference
-        );
+                documentReference);
     }
 
     @Override
@@ -70,8 +61,7 @@ class CostCommandApiImpl implements CostCommandApi {
             String description,
             CostOwner owner,
             String documentReference,
-            DocumentUpload document
-    ) {
+            DocumentUpload document) {
         registerCostUseCase.registerCost(
                 netAmount,
                 vat,
@@ -81,8 +71,7 @@ class CostCommandApiImpl implements CostCommandApi {
                 description,
                 owner,
                 documentReference,
-                document
-        );
+                document);
     }
 
     @Override
@@ -94,8 +83,7 @@ class CostCommandApiImpl implements CostCommandApi {
             CostType type,
             LocalDate incurredOn,
             String description,
-            String documentReference
-    ) {
+            String documentReference) {
         return updateCostUseCase.updateCost(
                 costId,
                 netAmount,
@@ -104,8 +92,7 @@ class CostCommandApiImpl implements CostCommandApi {
                 type,
                 incurredOn,
                 description,
-                documentReference
-        );
+                documentReference);
     }
 
     @Override
@@ -118,8 +105,7 @@ class CostCommandApiImpl implements CostCommandApi {
             LocalDate incurredOn,
             String description,
             String documentReference,
-            DocumentUpload document
-    ) {
+            DocumentUpload document) {
         return updateCostUseCase.updateCost(
                 costId,
                 netAmount,
@@ -129,8 +115,7 @@ class CostCommandApiImpl implements CostCommandApi {
                 incurredOn,
                 description,
                 documentReference,
-                document
-        );
+                document);
     }
 
     @Override

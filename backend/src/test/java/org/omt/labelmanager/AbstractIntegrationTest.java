@@ -6,9 +6,9 @@ import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.PostgreSQLContainer;
 
 /**
- * Base class for integration tests with shared TestContainers setup.
- * Spring context is cached and reused across all subclasses with identical configuration.
- * The static container is started once and shared across all test classes.
+ * Base class for integration tests with shared TestContainers setup. Spring context is cached and
+ * reused across all subclasses with identical configuration. The static container is started once
+ * and shared across all test classes.
  */
 @SpringBootTest
 public abstract class AbstractIntegrationTest {

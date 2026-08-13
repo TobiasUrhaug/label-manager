@@ -30,24 +30,25 @@ class ExtractedInvoiceDataTest {
 
     @Test
     void hasAnyDataReturnsTrueWhenNetAmountIsPresent() {
-        var data = new ExtractedInvoiceData(
-                new BigDecimal("100.00"), null, null, null, null, null, null);
+        var data =
+                new ExtractedInvoiceData(
+                        new BigDecimal("100.00"), null, null, null, null, null, null);
 
         assertThat(data.hasAnyData()).isTrue();
     }
 
     @Test
     void hasAnyDataReturnsTrueWhenOnlyInvoiceDateIsPresent() {
-        var data = new ExtractedInvoiceData(
-                null, null, null, null, LocalDate.of(2024, 1, 15), null, null);
+        var data =
+                new ExtractedInvoiceData(
+                        null, null, null, null, LocalDate.of(2024, 1, 15), null, null);
 
         assertThat(data.hasAnyData()).isTrue();
     }
 
     @Test
     void hasAnyDataReturnsTrueWhenOnlyCurrencyIsPresent() {
-        var data = new ExtractedInvoiceData(
-                null, null, null, null, null, null, "EUR");
+        var data = new ExtractedInvoiceData(null, null, null, null, null, null, "EUR");
 
         assertThat(data.hasAnyData()).isTrue();
     }

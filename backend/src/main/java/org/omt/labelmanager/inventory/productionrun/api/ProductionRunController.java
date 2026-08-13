@@ -1,5 +1,6 @@
 package org.omt.labelmanager.inventory.productionrun.api;
 
+import java.time.LocalDate;
 import org.omt.labelmanager.catalog.release.domain.ReleaseFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -9,8 +10,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.time.LocalDate;
 
 @RestController
 @RequestMapping("/api/labels/{labelId}/releases/{releaseId}/production-runs")
@@ -27,22 +26,18 @@ public class ProductionRunController {
             String description,
             String manufacturer,
             LocalDate manufacturingDate,
-            int quantity
-    ) {}
+            int quantity) {}
 
     @PostMapping
     public ResponseEntity<Void> addProductionRun(
-            @PathVariable Long releaseId,
-            @RequestBody AddProductionRunRequest request
-    ) {
+            @PathVariable Long releaseId, @RequestBody AddProductionRunRequest request) {
         commandApi.createProductionRun(
                 releaseId,
                 request.format(),
                 request.description(),
                 request.manufacturer(),
                 request.manufacturingDate(),
-                request.quantity()
-        );
+                request.quantity());
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 

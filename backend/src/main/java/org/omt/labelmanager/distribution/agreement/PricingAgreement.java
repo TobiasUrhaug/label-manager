@@ -1,9 +1,8 @@
 package org.omt.labelmanager.distribution.agreement;
 
-import org.omt.labelmanager.distribution.agreement.persistence.PricingAgreementEntity;
-
 import java.math.BigDecimal;
 import java.time.Instant;
+import org.omt.labelmanager.distribution.agreement.persistence.PricingAgreementEntity;
 
 public record PricingAgreement(
         Long id,
@@ -12,8 +11,7 @@ public record PricingAgreement(
         BigDecimal unitPrice,
         CommissionType commissionType,
         BigDecimal commissionValue,
-        Instant createdAt
-) {
+        Instant createdAt) {
 
     public PricingAgreement {
         if (unitPrice == null || unitPrice.compareTo(BigDecimal.ZERO) <= 0) {
@@ -24,9 +22,11 @@ public record PricingAgreement(
                 throw new IllegalArgumentException("Commission value must be greater than zero");
             }
         } else {
-            if (commissionValue == null || commissionValue.compareTo(BigDecimal.ZERO) < 0
+            if (commissionValue == null
+                    || commissionValue.compareTo(BigDecimal.ZERO) < 0
                     || commissionValue.compareTo(new BigDecimal("100")) > 0) {
-                throw new IllegalArgumentException("Commission percentage must be between 0 and 100");
+                throw new IllegalArgumentException(
+                        "Commission percentage must be between 0 and 100");
             }
         }
     }
@@ -39,7 +39,6 @@ public record PricingAgreement(
                 entity.getUnitPrice(),
                 entity.getCommissionType(),
                 entity.getCommissionValue(),
-                entity.getCreatedAt()
-        );
+                entity.getCreatedAt());
     }
 }

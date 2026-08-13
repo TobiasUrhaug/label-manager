@@ -1,5 +1,8 @@
 package org.omt.labelmanager.sales.distributor_return;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
 import jakarta.persistence.EntityNotFoundException;
 import java.time.LocalDate;
 import java.util.List;
@@ -9,8 +12,8 @@ import org.omt.labelmanager.AbstractIntegrationTest;
 import org.omt.labelmanager.catalog.label.LabelTestHelper;
 import org.omt.labelmanager.catalog.release.ReleaseTestHelper;
 import org.omt.labelmanager.catalog.release.domain.ReleaseFormat;
-import org.omt.labelmanager.distribution.distributor.api.DistributorQueryApi;
 import org.omt.labelmanager.distribution.distributor.ChannelType;
+import org.omt.labelmanager.distribution.distributor.api.DistributorQueryApi;
 import org.omt.labelmanager.inventory.InventoryLocation;
 import org.omt.labelmanager.inventory.MovementType;
 import org.omt.labelmanager.inventory.inventorymovement.api.InventoryMovementCommandApi;
@@ -22,37 +25,25 @@ import org.omt.labelmanager.sales.distributor_return.api.DistributorReturnQueryA
 import org.omt.labelmanager.sales.distributor_return.domain.ReturnLineItemInput;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-
 class ReturnDeleteIntegrationTest extends AbstractIntegrationTest {
 
-    @Autowired
-    private DistributorReturnCommandApi returnCommandApi;
+    @Autowired private DistributorReturnCommandApi returnCommandApi;
 
-    @Autowired
-    private DistributorReturnQueryApi returnQueryApi;
+    @Autowired private DistributorReturnQueryApi returnQueryApi;
 
-    @Autowired
-    private InventoryMovementQueryApi inventoryMovementQueryApi;
+    @Autowired private InventoryMovementQueryApi inventoryMovementQueryApi;
 
-    @Autowired
-    private InventoryMovementRepository inventoryMovementRepository;
+    @Autowired private InventoryMovementRepository inventoryMovementRepository;
 
-    @Autowired
-    private LabelTestHelper labelTestHelper;
+    @Autowired private LabelTestHelper labelTestHelper;
 
-    @Autowired
-    private ReleaseTestHelper releaseTestHelper;
+    @Autowired private ReleaseTestHelper releaseTestHelper;
 
-    @Autowired
-    private ProductionRunTestHelper productionRunTestHelper;
+    @Autowired private ProductionRunTestHelper productionRunTestHelper;
 
-    @Autowired
-    private InventoryMovementCommandApi inventoryMovementCommandApi;
+    @Autowired private InventoryMovementCommandApi inventoryMovementCommandApi;
 
-    @Autowired
-    private DistributorQueryApi distributorQueryApi;
+    @Autowired private DistributorQueryApi distributorQueryApi;
 
     private Long labelId;
     private Long distributorId;
@@ -66,31 +57,36 @@ class ReturnDeleteIntegrationTest extends AbstractIntegrationTest {
         var label = labelTestHelper.createLabelWithDirectDistributor("Test Label");
         labelId = label.id();
 
-        distributorId = distributorQueryApi
-                .findByLabelIdAndChannelType(labelId, ChannelType.DIRECT)
-                .orElseThrow()
-                .id();
+        distributorId =
+                distributorQueryApi
+                        .findByLabelIdAndChannelType(labelId, ChannelType.DIRECT)
+                        .orElseThrow()
+                        .id();
 
         releaseId = releaseTestHelper.createReleaseEntity("Test Release", labelId);
 
-        var productionRun = productionRunTestHelper.createProductionRun(
-                releaseId, ReleaseFormat.VINYL, 100
-        );
+        var productionRun =
+                productionRunTestHelper.createProductionRun(releaseId, ReleaseFormat.VINYL, 100);
         productionRunId = productionRun.id();
 
         inventoryMovementCommandApi.recordMovement(
-                productionRunId, InventoryLocation.warehouse(),
-                InventoryLocation.distributor(distributorId), 50, MovementType.ALLOCATION, null);
+                productionRunId,
+                InventoryLocation.warehouse(),
+                InventoryLocation.distributor(distributorId),
+                50,
+                MovementType.ALLOCATION,
+                null);
     }
 
     @Test
     void deleteReturn_removesReturnFromDatabase() {
-        var distributorReturn = returnCommandApi.registerReturn(
-                labelId, distributorId,
-                LocalDate.of(2026, 2, 1),
-                null,
-                List.of(new ReturnLineItemInput(releaseId, ReleaseFormat.VINYL, 10))
-        );
+        var distributorReturn =
+                returnCommandApi.registerReturn(
+                        labelId,
+                        distributorId,
+                        LocalDate.of(2026, 2, 1),
+                        null,
+                        List.of(new ReturnLineItemInput(releaseId, ReleaseFormat.VINYL, 10)));
 
         returnCommandApi.deleteReturn(distributorReturn.id());
 
@@ -99,12 +95,13 @@ class ReturnDeleteIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     void deleteReturn_restoresDistributorInventory() {
-        var distributorReturn = returnCommandApi.registerReturn(
-                labelId, distributorId,
-                LocalDate.of(2026, 2, 1),
-                null,
-                List.of(new ReturnLineItemInput(releaseId, ReleaseFormat.VINYL, 10))
-        );
+        var distributorReturn =
+                returnCommandApi.registerReturn(
+                        labelId,
+                        distributorId,
+                        LocalDate.of(2026, 2, 1),
+                        null,
+                        List.of(new ReturnLineItemInput(releaseId, ReleaseFormat.VINYL, 10)));
 
         // After registration, distributor has 40 units
         assertThat(inventoryMovementQueryApi.getCurrentInventory(productionRunId, distributorId))
@@ -119,21 +116,27 @@ class ReturnDeleteIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     void deleteReturn_removesReturnMovements() {
-        var distributorReturn = returnCommandApi.registerReturn(
-                labelId, distributorId,
-                LocalDate.of(2026, 2, 1),
-                null,
-                List.of(new ReturnLineItemInput(releaseId, ReleaseFormat.VINYL, 10))
-        );
+        var distributorReturn =
+                returnCommandApi.registerReturn(
+                        labelId,
+                        distributorId,
+                        LocalDate.of(2026, 2, 1),
+                        null,
+                        List.of(new ReturnLineItemInput(releaseId, ReleaseFormat.VINYL, 10)));
 
         returnCommandApi.deleteReturn(distributorReturn.id());
 
-        var remainingReturnMovements = inventoryMovementRepository
-                .findByProductionRunIdOrderByOccurredAtDesc(productionRunId)
-                .stream()
-                .filter(m -> m.getMovementType() == MovementType.RETURN
-                        && distributorReturn.id().equals(m.getReferenceId()))
-                .toList();
+        var remainingReturnMovements =
+                inventoryMovementRepository
+                        .findByProductionRunIdOrderByOccurredAtDesc(productionRunId)
+                        .stream()
+                        .filter(
+                                m ->
+                                        m.getMovementType() == MovementType.RETURN
+                                                && distributorReturn
+                                                        .id()
+                                                        .equals(m.getReferenceId()))
+                        .toList();
 
         assertThat(remainingReturnMovements).isEmpty();
     }

@@ -2,8 +2,7 @@ package org.omt.labelmanager.catalog.domain.shared;
 
 public final class PersonFactory {
 
-    private PersonFactory() {
-    }
+    private PersonFactory() {}
 
     public static Builder aPerson() {
         return new Builder();
@@ -17,8 +16,7 @@ public final class PersonFactory {
 
         private String name = "Default Person";
 
-        private Builder() {
-        }
+        private Builder() {}
 
         public Builder name(String name) {
             this.name = name;

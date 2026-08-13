@@ -13,14 +13,14 @@ import org.omt.labelmanager.AbstractIntegrationTest;
 import org.omt.labelmanager.catalog.label.LabelTestHelper;
 import org.omt.labelmanager.catalog.release.ReleaseTestHelper;
 import org.omt.labelmanager.catalog.release.domain.ReleaseFormat;
-import org.omt.labelmanager.distribution.distributor.api.DistributorQueryApi;
 import org.omt.labelmanager.distribution.distributor.ChannelType;
+import org.omt.labelmanager.distribution.distributor.api.DistributorQueryApi;
 import org.omt.labelmanager.finance.domain.shared.Money;
 import org.omt.labelmanager.inventory.InventoryLocation;
 import org.omt.labelmanager.inventory.MovementType;
+import org.omt.labelmanager.inventory.inventorymovement.InventoryMovement;
 import org.omt.labelmanager.inventory.inventorymovement.api.InventoryMovementCommandApi;
 import org.omt.labelmanager.inventory.inventorymovement.api.InventoryMovementQueryApi;
-import org.omt.labelmanager.inventory.inventorymovement.InventoryMovement;
 import org.omt.labelmanager.inventory.productionrun.ProductionRunTestHelper;
 import org.omt.labelmanager.sales.sale.api.SaleCommandApi;
 import org.omt.labelmanager.sales.sale.api.SaleQueryApi;
@@ -32,29 +32,21 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 class SaleDeleteIntegrationTest extends AbstractIntegrationTest {
 
-    @Autowired
-    private SaleCommandApi saleCommandApi;
+    @Autowired private SaleCommandApi saleCommandApi;
 
-    @Autowired
-    private SaleQueryApi saleQueryApi;
+    @Autowired private SaleQueryApi saleQueryApi;
 
-    @Autowired
-    private LabelTestHelper labelTestHelper;
+    @Autowired private LabelTestHelper labelTestHelper;
 
-    @Autowired
-    private ReleaseTestHelper releaseTestHelper;
+    @Autowired private ReleaseTestHelper releaseTestHelper;
 
-    @Autowired
-    private ProductionRunTestHelper productionRunTestHelper;
+    @Autowired private ProductionRunTestHelper productionRunTestHelper;
 
-    @Autowired
-    private DistributorQueryApi distributorQueryApi;
+    @Autowired private DistributorQueryApi distributorQueryApi;
 
-    @Autowired
-    private InventoryMovementCommandApi inventoryMovementCommandApi;
+    @Autowired private InventoryMovementCommandApi inventoryMovementCommandApi;
 
-    @Autowired
-    private InventoryMovementQueryApi inventoryMovementQueryApi;
+    @Autowired private InventoryMovementQueryApi inventoryMovementQueryApi;
 
     private Long labelId;
     private Long releaseId;
@@ -66,22 +58,31 @@ class SaleDeleteIntegrationTest extends AbstractIntegrationTest {
         var label = labelTestHelper.createLabelWithDirectDistributor("Delete Test Label");
         labelId = label.id();
 
-        directDistributorId = distributorQueryApi
-                .findByLabelIdAndChannelType(labelId, ChannelType.DIRECT)
-                .orElseThrow()
-                .id();
+        directDistributorId =
+                distributorQueryApi
+                        .findByLabelIdAndChannelType(labelId, ChannelType.DIRECT)
+                        .orElseThrow()
+                        .id();
 
         releaseId = releaseTestHelper.createReleaseEntity("Delete Test Release", labelId);
 
-        var productionRun = productionRunTestHelper.createProductionRun(
-                releaseId, ReleaseFormat.VINYL, "First pressing", "Plant A",
-                LocalDate.of(2025, 1, 1), 100
-        );
+        var productionRun =
+                productionRunTestHelper.createProductionRun(
+                        releaseId,
+                        ReleaseFormat.VINYL,
+                        "First pressing",
+                        "Plant A",
+                        LocalDate.of(2025, 1, 1),
+                        100);
         productionRunId = productionRun.id();
 
         inventoryMovementCommandApi.recordMovement(
-                productionRunId, InventoryLocation.warehouse(),
-                InventoryLocation.distributor(directDistributorId), 80, MovementType.ALLOCATION, null);
+                productionRunId,
+                InventoryLocation.warehouse(),
+                InventoryLocation.distributor(directDistributorId),
+                80,
+                MovementType.ALLOCATION,
+                null);
     }
 
     @Test
@@ -96,13 +97,17 @@ class SaleDeleteIntegrationTest extends AbstractIntegrationTest {
     @Test
     void deleteSale_reversesInventoryMovements() {
         var sale = registerDirectSale(10);
-        assertThat(inventoryMovementQueryApi.getCurrentInventory(
-                productionRunId, directDistributorId)).isEqualTo(70); // 80 - 10
+        assertThat(
+                        inventoryMovementQueryApi.getCurrentInventory(
+                                productionRunId, directDistributorId))
+                .isEqualTo(70); // 80 - 10
 
         saleCommandApi.deleteSale(sale.id());
 
-        assertThat(inventoryMovementQueryApi.getCurrentInventory(
-                productionRunId, directDistributorId)).isEqualTo(80); // fully restored
+        assertThat(
+                        inventoryMovementQueryApi.getCurrentInventory(
+                                productionRunId, directDistributorId))
+                .isEqualTo(80); // fully restored
     }
 
     @Test
@@ -113,9 +118,12 @@ class SaleDeleteIntegrationTest extends AbstractIntegrationTest {
 
         List<InventoryMovement> movements =
                 inventoryMovementQueryApi.getMovementsForProductionRun(productionRunId);
-        boolean hasSaleMovement = movements.stream()
-                .anyMatch(m -> m.movementType() == MovementType.SALE
-                        && m.referenceId().equals(sale.id()));
+        boolean hasSaleMovement =
+                movements.stream()
+                        .anyMatch(
+                                m ->
+                                        m.movementType() == MovementType.SALE
+                                                && m.referenceId().equals(sale.id()));
         assertThat(hasSaleMovement).isFalse();
     }
 
@@ -130,10 +138,16 @@ class SaleDeleteIntegrationTest extends AbstractIntegrationTest {
 
     private Sale registerDirectSale(int quantity) {
         return saleCommandApi.registerSale(
-                labelId, LocalDate.of(2026, 2, 1), ChannelType.DIRECT, null, null,
-                List.of(new SaleLineItemInput(
-                        releaseId, ReleaseFormat.VINYL, quantity,
-                        Money.of(new BigDecimal("15.00"))))
-        );
+                labelId,
+                LocalDate.of(2026, 2, 1),
+                ChannelType.DIRECT,
+                null,
+                null,
+                List.of(
+                        new SaleLineItemInput(
+                                releaseId,
+                                ReleaseFormat.VINYL,
+                                quantity,
+                                Money.of(new BigDecimal("15.00")))));
     }
 }

@@ -11,11 +11,10 @@ public class InsufficientInventoryException extends RuntimeException {
     private final int available;
 
     public InsufficientInventoryException(int requested, int available) {
-        super(String.format(
-                "Insufficient inventory: requested %d but only %d available",
-                requested,
-                available
-        ));
+        super(
+                String.format(
+                        "Insufficient inventory: requested %d but only %d available",
+                        requested, available));
         this.requested = requested;
         this.available = available;
     }

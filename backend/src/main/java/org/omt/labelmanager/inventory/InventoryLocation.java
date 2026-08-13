@@ -3,9 +3,8 @@ package org.omt.labelmanager.inventory;
 /**
  * Identifies one endpoint of an inventory movement.
  *
- * <p>Combines a {@link LocationType} with an optional location ID
- * (required only for {@link LocationType#DISTRIBUTOR}).
- * Factory methods enforce these constraints and make call sites
+ * <p>Combines a {@link LocationType} with an optional location ID (required only for {@link
+ * LocationType#DISTRIBUTOR}). Factory methods enforce these constraints and make call sites
  * self-documenting.
  */
 public record InventoryLocation(LocationType type, Long id) {
@@ -15,9 +14,7 @@ public record InventoryLocation(LocationType type, Long id) {
     }
 
     public static InventoryLocation distributor(Long distributorId) {
-        return new InventoryLocation(
-                LocationType.DISTRIBUTOR, distributorId
-        );
+        return new InventoryLocation(LocationType.DISTRIBUTOR, distributorId);
     }
 
     public static InventoryLocation external() {

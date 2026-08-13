@@ -12,9 +12,8 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 /**
  * Renders exceptions that cross a controller boundary as RFC 9457 ProblemDetail responses.
  *
- * <p>Replaces the Thymeleaf-era handler that returned view names ({@code "error/404"}) after
- * the template engine was removed, leaving those responses with an empty body and no content
- * type.
+ * <p>Replaces the Thymeleaf-era handler that returned view names ({@code "error/404"}) after the
+ * template engine was removed, leaving those responses with an empty body and no content type.
  *
  * <p>Controller-local {@code @ExceptionHandler} methods take precedence over this advice; it
  * supplies the default for controllers that do not declare their own.

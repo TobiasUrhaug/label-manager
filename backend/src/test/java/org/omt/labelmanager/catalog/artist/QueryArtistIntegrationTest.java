@@ -14,14 +14,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 public class QueryArtistIntegrationTest extends AbstractIntegrationTest {
 
-    @Autowired
-    ArtistQueryApi artistQueryApi;
+    @Autowired ArtistQueryApi artistQueryApi;
 
-    @Autowired
-    ArtistRepository artistRepository;
+    @Autowired ArtistRepository artistRepository;
 
-    @Autowired
-    UserRepository userRepository;
+    @Autowired UserRepository userRepository;
 
     @Test
     void findById_returnsArtist() {

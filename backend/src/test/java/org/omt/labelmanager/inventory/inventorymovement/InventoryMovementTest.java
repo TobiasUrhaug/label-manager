@@ -1,12 +1,12 @@
 package org.omt.labelmanager.inventory.inventorymovement;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.omt.labelmanager.inventory.inventorymovement.InventoryMovementFactory.anInventoryMovement;
+
 import java.time.Instant;
 import org.junit.jupiter.api.Test;
 import org.omt.labelmanager.inventory.LocationType;
 import org.omt.labelmanager.inventory.MovementType;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.omt.labelmanager.inventory.inventorymovement.InventoryMovementFactory.anInventoryMovement;
 
 class InventoryMovementTest {
 
@@ -14,18 +14,19 @@ class InventoryMovementTest {
     void shouldCreateAllocationMovementWithCorrectFields() {
         Instant occurredAt = Instant.parse("2025-06-15T14:30:00Z");
 
-        InventoryMovement movement = anInventoryMovement()
-                .id(42L)
-                .productionRunId(10L)
-                .fromLocationType(LocationType.WAREHOUSE)
-                .fromLocationId(null)
-                .toLocationType(LocationType.DISTRIBUTOR)
-                .toLocationId(5L)
-                .quantity(200)
-                .movementType(MovementType.ALLOCATION)
-                .occurredAt(occurredAt)
-                .referenceId(99L)
-                .build();
+        InventoryMovement movement =
+                anInventoryMovement()
+                        .id(42L)
+                        .productionRunId(10L)
+                        .fromLocationType(LocationType.WAREHOUSE)
+                        .fromLocationId(null)
+                        .toLocationType(LocationType.DISTRIBUTOR)
+                        .toLocationId(5L)
+                        .quantity(200)
+                        .movementType(MovementType.ALLOCATION)
+                        .occurredAt(occurredAt)
+                        .referenceId(99L)
+                        .build();
 
         assertThat(movement.id()).isEqualTo(42L);
         assertThat(movement.productionRunId()).isEqualTo(10L);
@@ -41,15 +42,16 @@ class InventoryMovementTest {
 
     @Test
     void shouldCreateSaleMovementWithDistributorAsSource() {
-        InventoryMovement movement = anInventoryMovement()
-                .fromLocationType(LocationType.DISTRIBUTOR)
-                .fromLocationId(7L)
-                .toLocationType(LocationType.EXTERNAL)
-                .toLocationId(null)
-                .quantity(50)
-                .movementType(MovementType.SALE)
-                .referenceId(null)
-                .build();
+        InventoryMovement movement =
+                anInventoryMovement()
+                        .fromLocationType(LocationType.DISTRIBUTOR)
+                        .fromLocationId(7L)
+                        .toLocationType(LocationType.EXTERNAL)
+                        .toLocationId(null)
+                        .quantity(50)
+                        .movementType(MovementType.SALE)
+                        .referenceId(null)
+                        .build();
 
         assertThat(movement.fromLocationType()).isEqualTo(LocationType.DISTRIBUTOR);
         assertThat(movement.fromLocationId()).isEqualTo(7L);
@@ -61,9 +63,7 @@ class InventoryMovementTest {
 
     @Test
     void shouldAllowNullReferenceId() {
-        InventoryMovement movement = anInventoryMovement()
-                .referenceId(null)
-                .build();
+        InventoryMovement movement = anInventoryMovement().referenceId(null).build();
 
         assertThat(movement.referenceId()).isNull();
     }

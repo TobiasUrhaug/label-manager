@@ -5,7 +5,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Set;
-
 import org.junit.jupiter.api.Test;
 import org.omt.labelmanager.AbstractIntegrationTest;
 import org.omt.labelmanager.catalog.artist.ArtistTestHelper;
@@ -18,23 +17,17 @@ import org.omt.labelmanager.catalog.release.domain.TrackInput;
 import org.omt.labelmanager.catalog.release.infrastructure.ReleaseRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 
-public class CreateReleaseWithRemixersIntegrationTest
-        extends AbstractIntegrationTest {
+public class CreateReleaseWithRemixersIntegrationTest extends AbstractIntegrationTest {
 
-    @Autowired
-    LabelTestHelper labelTestHelper;
+    @Autowired LabelTestHelper labelTestHelper;
 
-    @Autowired
-    ArtistTestHelper artistTestHelper;
+    @Autowired ArtistTestHelper artistTestHelper;
 
-    @Autowired
-    ReleaseCommandApi releaseCommandApi;
+    @Autowired ReleaseCommandApi releaseCommandApi;
 
-    @Autowired
-    ReleaseQueryApi releaseQueryApi;
+    @Autowired ReleaseQueryApi releaseQueryApi;
 
-    @Autowired
-    ReleaseRepository releaseRepository;
+    @Autowired ReleaseRepository releaseRepository;
 
     @Test
     void createRelease_persistsRemixersForTracks() {
@@ -43,13 +36,13 @@ public class CreateReleaseWithRemixersIntegrationTest
         var remixer1 = artistTestHelper.createArtist("Remixer 1");
         var remixer2 = artistTestHelper.createArtist("Remixer 2");
 
-        var trackInput = new TrackInput(
-                List.of(artist.id()),
-                "Test Track",
-                TrackDuration.parse("3:30"),
-                1,
-                List.of(remixer1.id(), remixer2.id())
-        );
+        var trackInput =
+                new TrackInput(
+                        List.of(artist.id()),
+                        "Test Track",
+                        TrackDuration.parse("3:30"),
+                        1,
+                        List.of(remixer1.id(), remixer2.id()));
 
         releaseCommandApi.createRelease(
                 "Release With Remixers",
@@ -57,16 +50,11 @@ public class CreateReleaseWithRemixersIntegrationTest
                 label.id(),
                 List.of(artist.id()),
                 List.of(trackInput),
-                Set.of(ReleaseFormat.DIGITAL)
-        );
+                Set.of(ReleaseFormat.DIGITAL));
 
-        var releaseEntity = releaseRepository
-                .findByName("Release With Remixers")
-                .orElseThrow();
+        var releaseEntity = releaseRepository.findByName("Release With Remixers").orElseThrow();
 
-        var release = releaseQueryApi.findById(
-                releaseEntity.getId()
-        ).orElseThrow();
+        var release = releaseQueryApi.findById(releaseEntity.getId()).orElseThrow();
 
         assertThat(release.tracks()).hasSize(1);
         assertThat(release.tracks().get(0).remixerIds())
@@ -78,13 +66,13 @@ public class CreateReleaseWithRemixersIntegrationTest
         var label = labelTestHelper.createLabel("Test Label");
         var artist = artistTestHelper.createArtist("Main Artist");
 
-        var trackInput = new TrackInput(
-                List.of(artist.id()),
-                "Test Track",
-                TrackDuration.parse("3:30"),
-                1,
-                List.of()
-        );
+        var trackInput =
+                new TrackInput(
+                        List.of(artist.id()),
+                        "Test Track",
+                        TrackDuration.parse("3:30"),
+                        1,
+                        List.of());
 
         releaseCommandApi.createRelease(
                 "Release Without Remixers",
@@ -92,16 +80,11 @@ public class CreateReleaseWithRemixersIntegrationTest
                 label.id(),
                 List.of(artist.id()),
                 List.of(trackInput),
-                Set.of(ReleaseFormat.DIGITAL)
-        );
+                Set.of(ReleaseFormat.DIGITAL));
 
-        var releaseEntity = releaseRepository
-                .findByName("Release Without Remixers")
-                .orElseThrow();
+        var releaseEntity = releaseRepository.findByName("Release Without Remixers").orElseThrow();
 
-        var release = releaseQueryApi.findById(
-                releaseEntity.getId()
-        ).orElseThrow();
+        var release = releaseQueryApi.findById(releaseEntity.getId()).orElseThrow();
 
         assertThat(release.tracks()).hasSize(1);
         assertThat(release.tracks().get(0).remixerIds()).isEmpty();

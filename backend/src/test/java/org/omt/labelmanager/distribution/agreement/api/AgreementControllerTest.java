@@ -35,29 +35,21 @@ import org.springframework.test.web.servlet.MockMvc;
 @Import(TestSecurityConfig.class)
 class AgreementControllerTest {
 
-    @Autowired
-    private MockMvc mockMvc;
+    @Autowired private MockMvc mockMvc;
 
-    @MockitoBean
-    private AgreementCommandApi commandApi;
+    @MockitoBean private AgreementCommandApi commandApi;
 
-    @MockitoBean
-    private AgreementQueryApi queryApi;
+    @MockitoBean private AgreementQueryApi queryApi;
 
-    @MockitoBean
-    private DistributorQueryApi distributorQueryApi;
+    @MockitoBean private DistributorQueryApi distributorQueryApi;
 
-    @MockitoBean
-    private LabelQueryApi labelQueryApi;
+    @MockitoBean private LabelQueryApi labelQueryApi;
 
-    @MockitoBean
-    private InventoryMovementQueryApi inventoryMovementQueryApi;
+    @MockitoBean private InventoryMovementQueryApi inventoryMovementQueryApi;
 
-    @MockitoBean
-    private ProductionRunQueryApi productionRunQueryApi;
+    @MockitoBean private ProductionRunQueryApi productionRunQueryApi;
 
-    @MockitoBean
-    private ReleaseQueryApi releaseQueryApi;
+    @MockitoBean private ReleaseQueryApi releaseQueryApi;
 
     private final AppUserDetails testUser =
             new AppUserDetails(1L, "test@example.com", "password", "Test User");
@@ -69,16 +61,26 @@ class AgreementControllerTest {
 
     @Test
     void createAgreement_withValidData_returnsCreated() throws Exception {
-        var agreement = agreement(AGREEMENT_ID, DISTRIBUTOR_ID, RUN_ID,
-                new BigDecimal("9.99"), CommissionType.PERCENTAGE, new BigDecimal("15.00"));
+        var agreement =
+                agreement(
+                        AGREEMENT_ID,
+                        DISTRIBUTOR_ID,
+                        RUN_ID,
+                        new BigDecimal("9.99"),
+                        CommissionType.PERCENTAGE,
+                        new BigDecimal("15.00"));
         when(commandApi.create(any(), any(), any(), any(), any())).thenReturn(agreement);
 
-        mockMvc.perform(post("/api/labels/{labelId}/distributors/{distributorId}/agreements",
-                        LABEL_ID, DISTRIBUTOR_ID)
-                        .with(user(testUser))
-                        .with(csrf())
-                        .contentType(APPLICATION_JSON)
-                        .content("""
+        mockMvc.perform(
+                        post(
+                                        "/api/labels/{labelId}/distributors/{distributorId}/agreements",
+                                        LABEL_ID,
+                                        DISTRIBUTOR_ID)
+                                .with(user(testUser))
+                                .with(csrf())
+                                .contentType(APPLICATION_JSON)
+                                .content(
+                                        """
                                 {
                                   "productionRunId": 20,
                                   "unitPrice": 9.99,
@@ -88,22 +90,37 @@ class AgreementControllerTest {
                                 """))
                 .andExpect(status().isCreated());
 
-        verify(commandApi).create(eq(DISTRIBUTOR_ID), eq(RUN_ID),
-                eq(new BigDecimal("9.99")), eq(CommissionType.PERCENTAGE), eq(new BigDecimal("15.00")));
+        verify(commandApi)
+                .create(
+                        eq(DISTRIBUTOR_ID),
+                        eq(RUN_ID),
+                        eq(new BigDecimal("9.99")),
+                        eq(CommissionType.PERCENTAGE),
+                        eq(new BigDecimal("15.00")));
     }
 
     @Test
     void createAgreement_withFixedAmount_returnsCreated() throws Exception {
-        var agreement = agreement(AGREEMENT_ID, DISTRIBUTOR_ID, RUN_ID,
-                new BigDecimal("9.99"), CommissionType.FIXED_AMOUNT, new BigDecimal("2.50"));
+        var agreement =
+                agreement(
+                        AGREEMENT_ID,
+                        DISTRIBUTOR_ID,
+                        RUN_ID,
+                        new BigDecimal("9.99"),
+                        CommissionType.FIXED_AMOUNT,
+                        new BigDecimal("2.50"));
         when(commandApi.create(any(), any(), any(), any(), any())).thenReturn(agreement);
 
-        mockMvc.perform(post("/api/labels/{labelId}/distributors/{distributorId}/agreements",
-                        LABEL_ID, DISTRIBUTOR_ID)
-                        .with(user(testUser))
-                        .with(csrf())
-                        .contentType(APPLICATION_JSON)
-                        .content("""
+        mockMvc.perform(
+                        post(
+                                        "/api/labels/{labelId}/distributors/{distributorId}/agreements",
+                                        LABEL_ID,
+                                        DISTRIBUTOR_ID)
+                                .with(user(testUser))
+                                .with(csrf())
+                                .contentType(APPLICATION_JSON)
+                                .content(
+                                        """
                                 {
                                   "productionRunId": 20,
                                   "unitPrice": 9.99,
@@ -113,8 +130,13 @@ class AgreementControllerTest {
                                 """))
                 .andExpect(status().isCreated());
 
-        verify(commandApi).create(eq(DISTRIBUTOR_ID), eq(RUN_ID),
-                eq(new BigDecimal("9.99")), eq(CommissionType.FIXED_AMOUNT), eq(new BigDecimal("2.50")));
+        verify(commandApi)
+                .create(
+                        eq(DISTRIBUTOR_ID),
+                        eq(RUN_ID),
+                        eq(new BigDecimal("9.99")),
+                        eq(CommissionType.FIXED_AMOUNT),
+                        eq(new BigDecimal("2.50")));
     }
 
     @Test
@@ -122,12 +144,16 @@ class AgreementControllerTest {
         when(commandApi.create(any(), any(), any(), any(), any()))
                 .thenThrow(new DuplicateAgreementException(DISTRIBUTOR_ID, RUN_ID));
 
-        mockMvc.perform(post("/api/labels/{labelId}/distributors/{distributorId}/agreements",
-                        LABEL_ID, DISTRIBUTOR_ID)
-                        .with(user(testUser))
-                        .with(csrf())
-                        .contentType(APPLICATION_JSON)
-                        .content("""
+        mockMvc.perform(
+                        post(
+                                        "/api/labels/{labelId}/distributors/{distributorId}/agreements",
+                                        LABEL_ID,
+                                        DISTRIBUTOR_ID)
+                                .with(user(testUser))
+                                .with(csrf())
+                                .contentType(APPLICATION_JSON)
+                                .content(
+                                        """
                                 {
                                   "productionRunId": 20,
                                   "unitPrice": 9.99,
@@ -143,12 +169,16 @@ class AgreementControllerTest {
         when(commandApi.create(any(), any(), any(), any(), any()))
                 .thenThrow(new IllegalArgumentException("Unit price must be greater than zero"));
 
-        mockMvc.perform(post("/api/labels/{labelId}/distributors/{distributorId}/agreements",
-                        LABEL_ID, DISTRIBUTOR_ID)
-                        .with(user(testUser))
-                        .with(csrf())
-                        .contentType(APPLICATION_JSON)
-                        .content("""
+        mockMvc.perform(
+                        post(
+                                        "/api/labels/{labelId}/distributors/{distributorId}/agreements",
+                                        LABEL_ID,
+                                        DISTRIBUTOR_ID)
+                                .with(user(testUser))
+                                .with(csrf())
+                                .contentType(APPLICATION_JSON)
+                                .content(
+                                        """
                                 {
                                   "productionRunId": 20,
                                   "unitPrice": 0.00,
@@ -161,17 +191,28 @@ class AgreementControllerTest {
 
     @Test
     void updateAgreement_withValidData_returnsNoContent() throws Exception {
-        var agreement = agreement(AGREEMENT_ID, DISTRIBUTOR_ID, RUN_ID,
-                new BigDecimal("12.00"), CommissionType.PERCENTAGE, new BigDecimal("20.00"));
+        var agreement =
+                agreement(
+                        AGREEMENT_ID,
+                        DISTRIBUTOR_ID,
+                        RUN_ID,
+                        new BigDecimal("12.00"),
+                        CommissionType.PERCENTAGE,
+                        new BigDecimal("20.00"));
         when(queryApi.findById(AGREEMENT_ID)).thenReturn(Optional.of(agreement));
         when(commandApi.update(any(), any(), any(), any())).thenReturn(agreement);
 
-        mockMvc.perform(put("/api/labels/{labelId}/distributors/{distributorId}/agreements/{id}",
-                        LABEL_ID, DISTRIBUTOR_ID, AGREEMENT_ID)
-                        .with(user(testUser))
-                        .with(csrf())
-                        .contentType(APPLICATION_JSON)
-                        .content("""
+        mockMvc.perform(
+                        put(
+                                        "/api/labels/{labelId}/distributors/{distributorId}/agreements/{id}",
+                                        LABEL_ID,
+                                        DISTRIBUTOR_ID,
+                                        AGREEMENT_ID)
+                                .with(user(testUser))
+                                .with(csrf())
+                                .contentType(APPLICATION_JSON)
+                                .content(
+                                        """
                                 {
                                   "unitPrice": 12.00,
                                   "commissionType": "PERCENTAGE",
@@ -180,23 +221,39 @@ class AgreementControllerTest {
                                 """))
                 .andExpect(status().isNoContent());
 
-        verify(commandApi).update(eq(AGREEMENT_ID), eq(new BigDecimal("12.00")),
-                eq(CommissionType.PERCENTAGE), eq(new BigDecimal("20.00")));
+        verify(commandApi)
+                .update(
+                        eq(AGREEMENT_ID),
+                        eq(new BigDecimal("12.00")),
+                        eq(CommissionType.PERCENTAGE),
+                        eq(new BigDecimal("20.00")));
     }
 
     @Test
-    void updateAgreement_whenAgreementBelongsToDifferentDistributor_returnsNotFound() throws Exception {
+    void updateAgreement_whenAgreementBelongsToDifferentDistributor_returnsNotFound()
+            throws Exception {
         var otherDistributorId = 99L;
-        var agreement = agreement(AGREEMENT_ID, otherDistributorId, RUN_ID,
-                new BigDecimal("12.00"), CommissionType.PERCENTAGE, new BigDecimal("20.00"));
+        var agreement =
+                agreement(
+                        AGREEMENT_ID,
+                        otherDistributorId,
+                        RUN_ID,
+                        new BigDecimal("12.00"),
+                        CommissionType.PERCENTAGE,
+                        new BigDecimal("20.00"));
         when(queryApi.findById(AGREEMENT_ID)).thenReturn(Optional.of(agreement));
 
-        mockMvc.perform(put("/api/labels/{labelId}/distributors/{distributorId}/agreements/{id}",
-                        LABEL_ID, DISTRIBUTOR_ID, AGREEMENT_ID)
-                        .with(user(testUser))
-                        .with(csrf())
-                        .contentType(APPLICATION_JSON)
-                        .content("""
+        mockMvc.perform(
+                        put(
+                                        "/api/labels/{labelId}/distributors/{distributorId}/agreements/{id}",
+                                        LABEL_ID,
+                                        DISTRIBUTOR_ID,
+                                        AGREEMENT_ID)
+                                .with(user(testUser))
+                                .with(csrf())
+                                .contentType(APPLICATION_JSON)
+                                .content(
+                                        """
                                 {
                                   "unitPrice": 12.00,
                                   "commissionType": "PERCENTAGE",
@@ -208,36 +265,68 @@ class AgreementControllerTest {
 
     @Test
     void deleteAgreement_returnsNoContent() throws Exception {
-        var agreement = agreement(AGREEMENT_ID, DISTRIBUTOR_ID, RUN_ID,
-                new BigDecimal("9.99"), CommissionType.PERCENTAGE, new BigDecimal("15.00"));
+        var agreement =
+                agreement(
+                        AGREEMENT_ID,
+                        DISTRIBUTOR_ID,
+                        RUN_ID,
+                        new BigDecimal("9.99"),
+                        CommissionType.PERCENTAGE,
+                        new BigDecimal("15.00"));
         when(queryApi.findById(AGREEMENT_ID)).thenReturn(Optional.of(agreement));
 
-        mockMvc.perform(delete("/api/labels/{labelId}/distributors/{distributorId}/agreements/{id}",
-                        LABEL_ID, DISTRIBUTOR_ID, AGREEMENT_ID)
-                        .with(user(testUser))
-                        .with(csrf()))
+        mockMvc.perform(
+                        delete(
+                                        "/api/labels/{labelId}/distributors/{distributorId}/agreements/{id}",
+                                        LABEL_ID,
+                                        DISTRIBUTOR_ID,
+                                        AGREEMENT_ID)
+                                .with(user(testUser))
+                                .with(csrf()))
                 .andExpect(status().isNoContent());
 
         verify(commandApi).delete(AGREEMENT_ID);
     }
 
     @Test
-    void deleteAgreement_whenAgreementBelongsToDifferentDistributor_returnsNotFound() throws Exception {
+    void deleteAgreement_whenAgreementBelongsToDifferentDistributor_returnsNotFound()
+            throws Exception {
         var otherDistributorId = 99L;
-        var agreement = agreement(AGREEMENT_ID, otherDistributorId, RUN_ID,
-                new BigDecimal("9.99"), CommissionType.PERCENTAGE, new BigDecimal("15.00"));
+        var agreement =
+                agreement(
+                        AGREEMENT_ID,
+                        otherDistributorId,
+                        RUN_ID,
+                        new BigDecimal("9.99"),
+                        CommissionType.PERCENTAGE,
+                        new BigDecimal("15.00"));
         when(queryApi.findById(AGREEMENT_ID)).thenReturn(Optional.of(agreement));
 
-        mockMvc.perform(delete("/api/labels/{labelId}/distributors/{distributorId}/agreements/{id}",
-                        LABEL_ID, DISTRIBUTOR_ID, AGREEMENT_ID)
-                        .with(user(testUser))
-                        .with(csrf()))
+        mockMvc.perform(
+                        delete(
+                                        "/api/labels/{labelId}/distributors/{distributorId}/agreements/{id}",
+                                        LABEL_ID,
+                                        DISTRIBUTOR_ID,
+                                        AGREEMENT_ID)
+                                .with(user(testUser))
+                                .with(csrf()))
                 .andExpect(status().isNotFound());
     }
 
-    private PricingAgreement agreement(Long id, Long distributorId, Long productionRunId,
-            BigDecimal unitPrice, CommissionType commissionType, BigDecimal commissionValue) {
-        return new PricingAgreement(id, distributorId, productionRunId,
-                unitPrice, commissionType, commissionValue, Instant.now());
+    private PricingAgreement agreement(
+            Long id,
+            Long distributorId,
+            Long productionRunId,
+            BigDecimal unitPrice,
+            CommissionType commissionType,
+            BigDecimal commissionValue) {
+        return new PricingAgreement(
+                id,
+                distributorId,
+                productionRunId,
+                unitPrice,
+                commissionType,
+                commissionValue,
+                Instant.now());
     }
 }

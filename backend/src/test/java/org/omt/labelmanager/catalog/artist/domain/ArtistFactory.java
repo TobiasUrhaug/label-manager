@@ -31,8 +31,7 @@ public final class ArtistFactory {
         private Address address = null;
         private Long userId = 1L;
 
-        private Builder() {
-        }
+        private Builder() {}
 
         public Builder id(Long id) {
             this.id = id;

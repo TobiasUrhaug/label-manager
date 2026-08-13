@@ -27,13 +27,11 @@ public final class TrackFactory {
         private Long id = counter.getAndIncrement();
         private List<Long> artistIds = new ArrayList<>();
         private String name = "Default Track";
-        private TrackDuration duration =
-                TrackDuration.ofSeconds(180);
+        private TrackDuration duration = TrackDuration.ofSeconds(180);
         private Integer position = 1;
         private List<Long> remixerIds = new ArrayList<>();
 
-        private Builder() {
-        }
+        private Builder() {}
 
         public Builder id(Long id) {
             this.id = id;
@@ -81,9 +79,7 @@ public final class TrackFactory {
         }
 
         public Track build() {
-            return new Track(
-                    id, artistIds, name, duration, position, remixerIds
-            );
+            return new Track(id, artistIds, name, duration, position, remixerIds);
         }
     }
 }

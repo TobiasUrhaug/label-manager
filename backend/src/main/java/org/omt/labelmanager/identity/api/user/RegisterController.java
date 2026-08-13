@@ -28,7 +28,8 @@ public class RegisterController {
     public ResponseEntity<?> register(@RequestBody RegisterRequest request) {
         log.info("Registration attempt for email '{}'", request.email());
         try {
-            userCRUDHandler.registerUser(request.email(), request.password(), request.displayName());
+            userCRUDHandler.registerUser(
+                    request.email(), request.password(), request.displayName());
             log.info("User registered successfully: {}", request.email());
             return ResponseEntity.status(HttpStatus.CREATED).build();
         } catch (EmailAlreadyExistsException e) {

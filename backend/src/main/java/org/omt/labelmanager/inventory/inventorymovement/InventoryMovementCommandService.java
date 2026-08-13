@@ -31,37 +31,34 @@ class InventoryMovementCommandService implements InventoryMovementCommandApi {
             InventoryLocation to,
             int quantity,
             MovementType movementType,
-            Long referenceId
-    ) {
-        var movement = new InventoryMovementEntity(
-                productionRunId,
-                from.type(),
-                from.id(),
-                to.type(),
-                to.id(),
-                quantity,
-                movementType,
-                Instant.now(),
-                referenceId
-        );
+            Long referenceId) {
+        var movement =
+                new InventoryMovementEntity(
+                        productionRunId,
+                        from.type(),
+                        from.id(),
+                        to.type(),
+                        to.id(),
+                        quantity,
+                        movementType,
+                        Instant.now(),
+                        referenceId);
         repository.save(movement);
         log.debug(
                 "Recorded {} movement of {} units for production"
-                + " run {} ({} → {}), referenceId={}",
-                movementType, quantity, productionRunId,
-                from, to, referenceId
-        );
+                        + " run {} ({} → {}), referenceId={}",
+                movementType,
+                quantity,
+                productionRunId,
+                from,
+                to,
+                referenceId);
     }
 
     @Override
     @Transactional
-    public void deleteMovementsByReference(
-            MovementType movementType, Long referenceId
-    ) {
+    public void deleteMovementsByReference(MovementType movementType, Long referenceId) {
         repository.deleteByMovementTypeAndReferenceId(movementType, referenceId);
-        log.debug(
-                "Deleted all {} movements with referenceId={}",
-                movementType, referenceId
-        );
+        log.debug("Deleted all {} movements with referenceId={}", movementType, referenceId);
     }
 }

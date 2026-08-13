@@ -6,14 +6,14 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-public interface InventoryMovementRepository
-        extends JpaRepository<InventoryMovementEntity, Long> {
+public interface InventoryMovementRepository extends JpaRepository<InventoryMovementEntity, Long> {
 
     List<InventoryMovementEntity> findByProductionRunIdOrderByOccurredAtDesc(Long productionRunId);
 
     void deleteByMovementTypeAndReferenceId(MovementType movementType, Long referenceId);
 
-    @Query("""
+    @Query(
+            """
             SELECT DISTINCT m.productionRunId
             FROM InventoryMovementEntity m
             WHERE m.toLocationType = 'DISTRIBUTOR'

@@ -50,8 +50,7 @@ public class InventoryMovementEntity {
     @Column(name = "reference_id")
     private Long referenceId;
 
-    protected InventoryMovementEntity() {
-    }
+    protected InventoryMovementEntity() {}
 
     public InventoryMovementEntity(
             Long productionRunId,
@@ -62,8 +61,7 @@ public class InventoryMovementEntity {
             int quantity,
             MovementType movementType,
             Instant occurredAt,
-            Long referenceId
-    ) {
+            Long referenceId) {
         this.productionRunId = productionRunId;
         this.fromLocationType = fromLocationType;
         this.fromLocationId = fromLocationId;

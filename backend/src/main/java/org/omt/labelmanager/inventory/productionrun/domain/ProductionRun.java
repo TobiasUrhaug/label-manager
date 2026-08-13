@@ -1,9 +1,8 @@
 package org.omt.labelmanager.inventory.productionrun.domain;
 
+import java.time.LocalDate;
 import org.omt.labelmanager.catalog.release.domain.ReleaseFormat;
 import org.omt.labelmanager.inventory.productionrun.persistence.ProductionRunEntity;
-
-import java.time.LocalDate;
 
 public record ProductionRun(
         Long id,
@@ -12,8 +11,7 @@ public record ProductionRun(
         String description,
         String manufacturer,
         LocalDate manufacturingDate,
-        int quantity
-) {
+        int quantity) {
 
     public static ProductionRun fromEntity(ProductionRunEntity entity) {
         return new ProductionRun(
@@ -23,8 +21,6 @@ public record ProductionRun(
                 entity.getDescription(),
                 entity.getManufacturer(),
                 entity.getManufacturingDate(),
-                entity.getQuantity()
-        );
+                entity.getQuantity());
     }
-
 }

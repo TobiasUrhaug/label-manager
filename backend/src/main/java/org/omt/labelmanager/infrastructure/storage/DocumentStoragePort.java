@@ -1,13 +1,12 @@
 package org.omt.labelmanager.infrastructure.storage;
 
+import java.io.InputStream;
 import org.omt.labelmanager.finance.shared.RetrievedDocument;
 
-import java.io.InputStream;
-
 /**
- * Port for storing and retrieving documents across the application.
- * Used for invoices, receipts, contracts, and other business documents.
- * Implementations may use S3, local filesystem, or other storage backends.
+ * Port for storing and retrieving documents across the application. Used for invoices, receipts,
+ * contracts, and other business documents. Implementations may use S3, local filesystem, or other
+ * storage backends.
  */
 public interface DocumentStoragePort {
 

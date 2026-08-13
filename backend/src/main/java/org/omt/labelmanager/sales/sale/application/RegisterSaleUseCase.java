@@ -6,9 +6,9 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import org.omt.labelmanager.catalog.label.api.LabelQueryApi;
-import org.omt.labelmanager.distribution.distributor.api.DistributorQueryApi;
 import org.omt.labelmanager.distribution.distributor.ChannelType;
 import org.omt.labelmanager.distribution.distributor.Distributor;
+import org.omt.labelmanager.distribution.distributor.api.DistributorQueryApi;
 import org.omt.labelmanager.inventory.InventoryLocation;
 import org.omt.labelmanager.inventory.MovementType;
 import org.omt.labelmanager.inventory.inventorymovement.api.InventoryMovementCommandApi;
@@ -39,8 +39,7 @@ class RegisterSaleUseCase {
             DistributorQueryApi distributorQueryApi,
             InventoryMovementCommandApi inventoryMovementCommandApi,
             SaleLineItemProcessor lineItemProcessor,
-            SaleConverter saleConverter
-    ) {
+            SaleConverter saleConverter) {
         this.saleRepository = saleRepository;
         this.labelQueryApi = labelQueryApi;
         this.distributorQueryApi = distributorQueryApi;
@@ -56,14 +55,12 @@ class RegisterSaleUseCase {
             ChannelType channel,
             String notes,
             Long distributorId,
-            List<SaleLineItemInput> lineItems
-    ) {
+            List<SaleLineItemInput> lineItems) {
         if (lineItems == null || lineItems.isEmpty()) {
             throw new IllegalArgumentException("Sale must contain at least one line item");
         }
 
-        log.info("Registering sale for label {} with {} line items",
-                labelId, lineItems.size());
+        log.info("Registering sale for label {} with {} line items", labelId, lineItems.size());
 
         // 1. Validate label exists
         if (!labelQueryApi.exists(labelId)) {
@@ -74,21 +71,21 @@ class RegisterSaleUseCase {
         Distributor distributor = determineDistributor(labelId, channel, distributorId);
 
         // 3. Create sale entity
-        var saleEntity = new SaleEntity(
-                labelId,
-                distributor.id(),
-                saleDate,
-                channel,
-                notes,
-                lineItems.getFirst().unitPrice().currency()
-        );
+        var saleEntity =
+                new SaleEntity(
+                        labelId,
+                        distributor.id(),
+                        saleDate,
+                        channel,
+                        notes,
+                        lineItems.getFirst().unitPrice().currency());
 
         // 4. Validate each line item and cache its production run ID for step 6
         Map<SaleLineItemInput, Long> productionRunIds = new LinkedHashMap<>();
         for (var lineItemInput : lineItems) {
-            Long productionRunId = lineItemProcessor.validateAndAdd(
-                    lineItemInput, labelId, distributor.id(), saleEntity
-            );
+            Long productionRunId =
+                    lineItemProcessor.validateAndAdd(
+                            lineItemInput, labelId, distributor.id(), saleEntity);
             productionRunIds.put(lineItemInput, productionRunId);
         }
 
@@ -103,49 +100,53 @@ class RegisterSaleUseCase {
                     InventoryLocation.external(),
                     entry.getKey().quantity(),
                     MovementType.SALE,
-                    savedSale.getId()
-            );
+                    savedSale.getId());
         }
 
-        log.info("Sale registered successfully with ID {} and total amount {}",
-                savedSale.getId(), savedSale.getTotalAmount());
+        log.info(
+                "Sale registered successfully with ID {} and total amount {}",
+                savedSale.getId(),
+                savedSale.getTotalAmount());
 
         return saleConverter.toSale(savedSale);
     }
 
     private Distributor determineDistributor(
-            Long labelId,
-            ChannelType channel,
-            Long distributorId
-    ) {
+            Long labelId, ChannelType channel, Long distributorId) {
         if (channel == ChannelType.DIRECT) {
             return distributorQueryApi
                     .findByLabelIdAndChannelType(labelId, ChannelType.DIRECT)
-                    .orElseThrow(() -> new EntityNotFoundException(
-                            "DIRECT distributor not found for label: " + labelId
-                    ));
+                    .orElseThrow(
+                            () ->
+                                    new EntityNotFoundException(
+                                            "DIRECT distributor not found for label: " + labelId));
         }
 
         if (distributorId == null) {
             throw new IllegalArgumentException(
-                    "Distributor must be specified for " + channel + " sales"
-            );
+                    "Distributor must be specified for " + channel + " sales");
         }
 
-        var distributor = distributorQueryApi
-                .findById(distributorId)
-                .filter(d -> d.labelId().equals(labelId))
-                .orElseThrow(() -> new EntityNotFoundException(
-                        "Distributor " + distributorId
-                                + " not found for label " + labelId
-                ));
+        var distributor =
+                distributorQueryApi
+                        .findById(distributorId)
+                        .filter(d -> d.labelId().equals(labelId))
+                        .orElseThrow(
+                                () ->
+                                        new EntityNotFoundException(
+                                                "Distributor "
+                                                        + distributorId
+                                                        + " not found for label "
+                                                        + labelId));
 
         if (distributor.channelType() != channel) {
             throw new IllegalArgumentException(
-                    "Distributor '" + distributor.name()
-                            + "' (type: " + distributor.channelType()
-                            + ") does not match channel type: " + channel
-            );
+                    "Distributor '"
+                            + distributor.name()
+                            + "' (type: "
+                            + distributor.channelType()
+                            + ") does not match channel type: "
+                            + channel);
         }
 
         return distributor;

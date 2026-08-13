@@ -27,8 +27,8 @@ import org.omt.labelmanager.catalog.label.domain.Label;
 import org.omt.labelmanager.catalog.release.api.ReleaseQueryApi;
 import org.omt.labelmanager.catalog.release.domain.Release;
 import org.omt.labelmanager.catalog.release.domain.ReleaseFormat;
-import org.omt.labelmanager.distribution.distributor.api.DistributorQueryApi;
 import org.omt.labelmanager.distribution.distributor.ChannelType;
+import org.omt.labelmanager.distribution.distributor.api.DistributorQueryApi;
 import org.omt.labelmanager.finance.domain.shared.Money;
 import org.omt.labelmanager.identity.application.AppUserDetails;
 import org.omt.labelmanager.inventory.InsufficientInventoryException;
@@ -45,23 +45,17 @@ import org.springframework.test.web.servlet.MockMvc;
 @Import(TestSecurityConfig.class)
 class SaleControllerTest {
 
-    @Autowired
-    private MockMvc mockMvc;
+    @Autowired private MockMvc mockMvc;
 
-    @MockitoBean
-    private SaleCommandApi saleCommandApi;
+    @MockitoBean private SaleCommandApi saleCommandApi;
 
-    @MockitoBean
-    private SaleQueryApi saleQueryApi;
+    @MockitoBean private SaleQueryApi saleQueryApi;
 
-    @MockitoBean
-    private LabelQueryApi labelQueryApi;
+    @MockitoBean private LabelQueryApi labelQueryApi;
 
-    @MockitoBean
-    private ReleaseQueryApi releaseQueryApi;
+    @MockitoBean private ReleaseQueryApi releaseQueryApi;
 
-    @MockitoBean
-    private DistributorQueryApi distributorQueryApi;
+    @MockitoBean private DistributorQueryApi distributorQueryApi;
 
     private final AppUserDetails testUser =
             new AppUserDetails(1L, "test@example.com", "password", "Test User");
@@ -77,28 +71,38 @@ class SaleControllerTest {
     void setUp() {
         testLabel = new Label(LABEL_ID, "Test Label", null, null, null, null, 1L);
 
-        var lineItem = new SaleLineItem(
-                1L, RELEASE_ID,
-                ReleaseFormat.VINYL,
-                5,
-                Money.of(new BigDecimal("15.00")),
-                Money.of(new BigDecimal("75.00"))
-        );
-        testSale = new Sale(
-                SALE_ID, LABEL_ID, 10L,
-                LocalDate.of(2026, 1, 15),
-                ChannelType.DIRECT,
-                "Original notes",
-                List.of(lineItem),
-                Money.of(new BigDecimal("75.00"))
-        );
+        var lineItem =
+                new SaleLineItem(
+                        1L,
+                        RELEASE_ID,
+                        ReleaseFormat.VINYL,
+                        5,
+                        Money.of(new BigDecimal("15.00")),
+                        Money.of(new BigDecimal("75.00")));
+        testSale =
+                new Sale(
+                        SALE_ID,
+                        LABEL_ID,
+                        10L,
+                        LocalDate.of(2026, 1, 15),
+                        ChannelType.DIRECT,
+                        "Original notes",
+                        List.of(lineItem),
+                        Money.of(new BigDecimal("75.00")));
 
         when(labelQueryApi.findById(LABEL_ID)).thenReturn(Optional.of(testLabel));
         when(saleQueryApi.findById(SALE_ID)).thenReturn(Optional.of(testSale));
-        when(releaseQueryApi.findById(RELEASE_ID)).thenReturn(Optional.of(
-                new Release(RELEASE_ID, "Test Release", null, LABEL_ID, List.of(), List.of(),
-                        java.util.Set.of())
-        ));
+        when(releaseQueryApi.findById(RELEASE_ID))
+                .thenReturn(
+                        Optional.of(
+                                new Release(
+                                        RELEASE_ID,
+                                        "Test Release",
+                                        null,
+                                        LABEL_ID,
+                                        List.of(),
+                                        List.of(),
+                                        java.util.Set.of())));
     }
 
     // ── GET list ──────────────────────────────────────────────────────────────
@@ -123,11 +127,13 @@ class SaleControllerTest {
         when(saleCommandApi.registerSale(any(), any(), any(), any(), any(), any()))
                 .thenReturn(testSale);
 
-        mockMvc.perform(post("/api/labels/{labelId}/sales", LABEL_ID)
-                        .with(user(testUser))
-                        .with(csrf())
-                        .contentType(APPLICATION_JSON)
-                        .content("""
+        mockMvc.perform(
+                        post("/api/labels/{labelId}/sales", LABEL_ID)
+                                .with(user(testUser))
+                                .with(csrf())
+                                .contentType(APPLICATION_JSON)
+                                .content(
+                                        """
                                 {
                                   "saleDate": "2026-01-15",
                                   "channel": "DIRECT",
@@ -146,11 +152,13 @@ class SaleControllerTest {
         when(saleCommandApi.registerSale(any(), any(), any(), any(), any(), any()))
                 .thenReturn(testSale);
 
-        mockMvc.perform(post("/api/labels/{labelId}/sales", LABEL_ID)
-                        .with(user(testUser))
-                        .with(csrf())
-                        .contentType(APPLICATION_JSON)
-                        .content("""
+        mockMvc.perform(
+                        post("/api/labels/{labelId}/sales", LABEL_ID)
+                                .with(user(testUser))
+                                .with(csrf())
+                                .contentType(APPLICATION_JSON)
+                                .content(
+                                        """
                                 {
                                   "saleDate": "2026-01-15",
                                   "channel": "DIRECT",
@@ -163,26 +171,29 @@ class SaleControllerTest {
                                 """))
                 .andExpect(status().isCreated());
 
-        verify(saleCommandApi).registerSale(
-                eq(LABEL_ID),
-                eq(LocalDate.of(2026, 1, 15)),
-                eq(ChannelType.DIRECT),
-                eq("Test notes"),
-                eq(null),
-                any()
-        );
+        verify(saleCommandApi)
+                .registerSale(
+                        eq(LABEL_ID),
+                        eq(LocalDate.of(2026, 1, 15)),
+                        eq(ChannelType.DIRECT),
+                        eq("Test notes"),
+                        eq(null),
+                        any());
     }
 
     @Test
     void registerSale_returnsBadRequest_onInsufficientInventory() throws Exception {
         doThrow(new InsufficientInventoryException(999, 0))
-                .when(saleCommandApi).registerSale(any(), any(), any(), any(), any(), any());
+                .when(saleCommandApi)
+                .registerSale(any(), any(), any(), any(), any(), any());
 
-        mockMvc.perform(post("/api/labels/{labelId}/sales", LABEL_ID)
-                        .with(user(testUser))
-                        .with(csrf())
-                        .contentType(APPLICATION_JSON)
-                        .content("""
+        mockMvc.perform(
+                        post("/api/labels/{labelId}/sales", LABEL_ID)
+                                .with(user(testUser))
+                                .with(csrf())
+                                .contentType(APPLICATION_JSON)
+                                .content(
+                                        """
                                 {
                                   "saleDate": "2026-01-15",
                                   "channel": "DIRECT",
@@ -200,8 +211,9 @@ class SaleControllerTest {
 
     @Test
     void viewSale_returnsOkWithEnrichedLineItems() throws Exception {
-        mockMvc.perform(get("/api/labels/{labelId}/sales/{saleId}", LABEL_ID, SALE_ID)
-                        .with(user(testUser)))
+        mockMvc.perform(
+                        get("/api/labels/{labelId}/sales/{saleId}", LABEL_ID, SALE_ID)
+                                .with(user(testUser)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(SALE_ID.intValue()))
                 .andExpect(jsonPath("$.saleDate").value("2026-01-15"))
@@ -216,11 +228,13 @@ class SaleControllerTest {
     void updateSale_returnsOkWithUpdatedSale() throws Exception {
         when(saleCommandApi.updateSale(any(), any(), any(), any())).thenReturn(testSale);
 
-        mockMvc.perform(put("/api/labels/{labelId}/sales/{saleId}", LABEL_ID, SALE_ID)
-                        .with(user(testUser))
-                        .with(csrf())
-                        .contentType(APPLICATION_JSON)
-                        .content("""
+        mockMvc.perform(
+                        put("/api/labels/{labelId}/sales/{saleId}", LABEL_ID, SALE_ID)
+                                .with(user(testUser))
+                                .with(csrf())
+                                .contentType(APPLICATION_JSON)
+                                .content(
+                                        """
                                 {
                                   "saleDate": "2026-01-20",
                                   "notes": "Updated notes",
@@ -237,11 +251,13 @@ class SaleControllerTest {
     void updateSale_callsCommandWithCorrectParameters() throws Exception {
         when(saleCommandApi.updateSale(any(), any(), any(), any())).thenReturn(testSale);
 
-        mockMvc.perform(put("/api/labels/{labelId}/sales/{saleId}", LABEL_ID, SALE_ID)
-                        .with(user(testUser))
-                        .with(csrf())
-                        .contentType(APPLICATION_JSON)
-                        .content("""
+        mockMvc.perform(
+                        put("/api/labels/{labelId}/sales/{saleId}", LABEL_ID, SALE_ID)
+                                .with(user(testUser))
+                                .with(csrf())
+                                .contentType(APPLICATION_JSON)
+                                .content(
+                                        """
                                 {
                                   "saleDate": "2026-01-20",
                                   "notes": "Updated notes",
@@ -252,24 +268,23 @@ class SaleControllerTest {
                                 """))
                 .andExpect(status().isOk());
 
-        verify(saleCommandApi).updateSale(
-                eq(SALE_ID),
-                eq(LocalDate.of(2026, 1, 20)),
-                eq("Updated notes"),
-                any()
-        );
+        verify(saleCommandApi)
+                .updateSale(eq(SALE_ID), eq(LocalDate.of(2026, 1, 20)), eq("Updated notes"), any());
     }
 
     @Test
     void updateSale_returnsBadRequest_onInsufficientInventory() throws Exception {
         doThrow(new InsufficientInventoryException(999, 0))
-                .when(saleCommandApi).updateSale(anyLong(), any(), any(), any());
+                .when(saleCommandApi)
+                .updateSale(anyLong(), any(), any(), any());
 
-        mockMvc.perform(put("/api/labels/{labelId}/sales/{saleId}", LABEL_ID, SALE_ID)
-                        .with(user(testUser))
-                        .with(csrf())
-                        .contentType(APPLICATION_JSON)
-                        .content("""
+        mockMvc.perform(
+                        put("/api/labels/{labelId}/sales/{saleId}", LABEL_ID, SALE_ID)
+                                .with(user(testUser))
+                                .with(csrf())
+                                .contentType(APPLICATION_JSON)
+                                .content(
+                                        """
                                 {
                                   "saleDate": "2026-01-20",
                                   "notes": "",
@@ -285,17 +300,19 @@ class SaleControllerTest {
 
     @Test
     void deleteSale_returnsNoContent() throws Exception {
-        mockMvc.perform(delete("/api/labels/{labelId}/sales/{saleId}", LABEL_ID, SALE_ID)
-                        .with(user(testUser))
-                        .with(csrf()))
+        mockMvc.perform(
+                        delete("/api/labels/{labelId}/sales/{saleId}", LABEL_ID, SALE_ID)
+                                .with(user(testUser))
+                                .with(csrf()))
                 .andExpect(status().isNoContent());
     }
 
     @Test
     void deleteSale_callsDeleteSaleWithCorrectId() throws Exception {
-        mockMvc.perform(delete("/api/labels/{labelId}/sales/{saleId}", LABEL_ID, SALE_ID)
-                        .with(user(testUser))
-                        .with(csrf()))
+        mockMvc.perform(
+                        delete("/api/labels/{labelId}/sales/{saleId}", LABEL_ID, SALE_ID)
+                                .with(user(testUser))
+                                .with(csrf()))
                 .andExpect(status().isNoContent());
 
         verify(saleCommandApi).deleteSale(SALE_ID);

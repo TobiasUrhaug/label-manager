@@ -27,9 +27,9 @@ import org.omt.labelmanager.catalog.label.domain.Label;
 import org.omt.labelmanager.catalog.release.api.ReleaseQueryApi;
 import org.omt.labelmanager.catalog.release.domain.Release;
 import org.omt.labelmanager.catalog.release.domain.ReleaseFormat;
-import org.omt.labelmanager.distribution.distributor.api.DistributorQueryApi;
 import org.omt.labelmanager.distribution.distributor.ChannelType;
 import org.omt.labelmanager.distribution.distributor.Distributor;
+import org.omt.labelmanager.distribution.distributor.api.DistributorQueryApi;
 import org.omt.labelmanager.identity.application.AppUserDetails;
 import org.omt.labelmanager.inventory.InsufficientInventoryException;
 import org.omt.labelmanager.sales.distributor_return.domain.DistributorReturn;
@@ -45,23 +45,17 @@ import org.springframework.test.web.servlet.MockMvc;
 @Import(TestSecurityConfig.class)
 class ReturnControllerTest {
 
-    @Autowired
-    private MockMvc mockMvc;
+    @Autowired private MockMvc mockMvc;
 
-    @MockitoBean
-    private DistributorReturnCommandApi returnCommandApi;
+    @MockitoBean private DistributorReturnCommandApi returnCommandApi;
 
-    @MockitoBean
-    private DistributorReturnQueryApi returnQueryApi;
+    @MockitoBean private DistributorReturnQueryApi returnQueryApi;
 
-    @MockitoBean
-    private LabelQueryApi labelQueryApi;
+    @MockitoBean private LabelQueryApi labelQueryApi;
 
-    @MockitoBean
-    private ReleaseQueryApi releaseQueryApi;
+    @MockitoBean private ReleaseQueryApi releaseQueryApi;
 
-    @MockitoBean
-    private DistributorQueryApi distributorQueryApi;
+    @MockitoBean private DistributorQueryApi distributorQueryApi;
 
     private final AppUserDetails testUser =
             new AppUserDetails(1L, "test@example.com", "password", "Test User");
@@ -78,25 +72,35 @@ class ReturnControllerTest {
     void setUp() {
         var testLabel = new Label(LABEL_ID, "Test Label", null, null, null, null, 1L);
         var lineItem = new ReturnLineItem(1L, RETURN_ID, RELEASE_ID, ReleaseFormat.VINYL, 5);
-        testReturn = new DistributorReturn(
-                RETURN_ID, LABEL_ID, DISTRIBUTOR_ID,
-                LocalDate.of(2026, 1, 15),
-                "Original notes",
-                List.of(lineItem),
-                Instant.now()
-        );
-        testDistributor = new Distributor(DISTRIBUTOR_ID, LABEL_ID, "Test Distributor",
-                ChannelType.DISTRIBUTOR);
+        testReturn =
+                new DistributorReturn(
+                        RETURN_ID,
+                        LABEL_ID,
+                        DISTRIBUTOR_ID,
+                        LocalDate.of(2026, 1, 15),
+                        "Original notes",
+                        List.of(lineItem),
+                        Instant.now());
+        testDistributor =
+                new Distributor(
+                        DISTRIBUTOR_ID, LABEL_ID, "Test Distributor", ChannelType.DISTRIBUTOR);
 
         when(labelQueryApi.findById(LABEL_ID)).thenReturn(Optional.of(testLabel));
         when(returnQueryApi.findById(RETURN_ID)).thenReturn(Optional.of(testReturn));
         when(returnQueryApi.getReturnsForLabel(LABEL_ID)).thenReturn(List.of(testReturn));
         when(distributorQueryApi.findByLabelId(LABEL_ID)).thenReturn(List.of(testDistributor));
         when(distributorQueryApi.findById(DISTRIBUTOR_ID)).thenReturn(Optional.of(testDistributor));
-        when(releaseQueryApi.findById(RELEASE_ID)).thenReturn(Optional.of(
-                new Release(RELEASE_ID, "Test Release", null, LABEL_ID,
-                        List.of(), List.of(), java.util.Set.of())
-        ));
+        when(releaseQueryApi.findById(RELEASE_ID))
+                .thenReturn(
+                        Optional.of(
+                                new Release(
+                                        RELEASE_ID,
+                                        "Test Release",
+                                        null,
+                                        LABEL_ID,
+                                        List.of(),
+                                        List.of(),
+                                        java.util.Set.of())));
     }
 
     // ── GET list ──────────────────────────────────────────────────────────────
@@ -118,11 +122,13 @@ class ReturnControllerTest {
         when(returnCommandApi.registerReturn(any(), any(), any(), any(), any()))
                 .thenReturn(testReturn);
 
-        mockMvc.perform(post("/api/labels/{labelId}/returns", LABEL_ID)
-                        .with(user(testUser))
-                        .with(csrf())
-                        .contentType(APPLICATION_JSON)
-                        .content("""
+        mockMvc.perform(
+                        post("/api/labels/{labelId}/returns", LABEL_ID)
+                                .with(user(testUser))
+                                .with(csrf())
+                                .contentType(APPLICATION_JSON)
+                                .content(
+                                        """
                                 {
                                   "distributorId": 5,
                                   "returnDate": "2026-01-15",
@@ -140,11 +146,13 @@ class ReturnControllerTest {
         when(returnCommandApi.registerReturn(any(), any(), any(), any(), any()))
                 .thenReturn(testReturn);
 
-        mockMvc.perform(post("/api/labels/{labelId}/returns", LABEL_ID)
-                        .with(user(testUser))
-                        .with(csrf())
-                        .contentType(APPLICATION_JSON)
-                        .content("""
+        mockMvc.perform(
+                        post("/api/labels/{labelId}/returns", LABEL_ID)
+                                .with(user(testUser))
+                                .with(csrf())
+                                .contentType(APPLICATION_JSON)
+                                .content(
+                                        """
                                 {
                                   "distributorId": 5,
                                   "returnDate": "2026-01-15",
@@ -156,25 +164,28 @@ class ReturnControllerTest {
                                 """))
                 .andExpect(status().isCreated());
 
-        verify(returnCommandApi).registerReturn(
-                eq(LABEL_ID),
-                eq(DISTRIBUTOR_ID),
-                eq(LocalDate.of(2026, 1, 15)),
-                eq("Test notes"),
-                any()
-        );
+        verify(returnCommandApi)
+                .registerReturn(
+                        eq(LABEL_ID),
+                        eq(DISTRIBUTOR_ID),
+                        eq(LocalDate.of(2026, 1, 15)),
+                        eq("Test notes"),
+                        any());
     }
 
     @Test
     void registerReturn_returnsBadRequest_onInsufficientInventory() throws Exception {
         doThrow(new InsufficientInventoryException(999, 0))
-                .when(returnCommandApi).registerReturn(any(), any(), any(), any(), any());
+                .when(returnCommandApi)
+                .registerReturn(any(), any(), any(), any(), any());
 
-        mockMvc.perform(post("/api/labels/{labelId}/returns", LABEL_ID)
-                        .with(user(testUser))
-                        .with(csrf())
-                        .contentType(APPLICATION_JSON)
-                        .content("""
+        mockMvc.perform(
+                        post("/api/labels/{labelId}/returns", LABEL_ID)
+                                .with(user(testUser))
+                                .with(csrf())
+                                .contentType(APPLICATION_JSON)
+                                .content(
+                                        """
                                 {
                                   "distributorId": 5,
                                   "returnDate": "2026-01-15",
@@ -191,8 +202,9 @@ class ReturnControllerTest {
 
     @Test
     void viewReturn_returnsOkWithEnrichedLineItemsAndDistributor() throws Exception {
-        mockMvc.perform(get("/api/labels/{labelId}/returns/{returnId}", LABEL_ID, RETURN_ID)
-                        .with(user(testUser)))
+        mockMvc.perform(
+                        get("/api/labels/{labelId}/returns/{returnId}", LABEL_ID, RETURN_ID)
+                                .with(user(testUser)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(RETURN_ID.intValue()))
                 .andExpect(jsonPath("$.returnDate").value("2026-01-15"))
@@ -206,11 +218,13 @@ class ReturnControllerTest {
 
     @Test
     void updateReturn_returnsOkWithUpdatedReturn() throws Exception {
-        mockMvc.perform(put("/api/labels/{labelId}/returns/{returnId}", LABEL_ID, RETURN_ID)
-                        .with(user(testUser))
-                        .with(csrf())
-                        .contentType(APPLICATION_JSON)
-                        .content("""
+        mockMvc.perform(
+                        put("/api/labels/{labelId}/returns/{returnId}", LABEL_ID, RETURN_ID)
+                                .with(user(testUser))
+                                .with(csrf())
+                                .contentType(APPLICATION_JSON)
+                                .content(
+                                        """
                                 {
                                   "returnDate": "2026-01-20",
                                   "notes": "Updated notes",
@@ -225,11 +239,13 @@ class ReturnControllerTest {
 
     @Test
     void updateReturn_callsCommandWithCorrectParameters() throws Exception {
-        mockMvc.perform(put("/api/labels/{labelId}/returns/{returnId}", LABEL_ID, RETURN_ID)
-                        .with(user(testUser))
-                        .with(csrf())
-                        .contentType(APPLICATION_JSON)
-                        .content("""
+        mockMvc.perform(
+                        put("/api/labels/{labelId}/returns/{returnId}", LABEL_ID, RETURN_ID)
+                                .with(user(testUser))
+                                .with(csrf())
+                                .contentType(APPLICATION_JSON)
+                                .content(
+                                        """
                                 {
                                   "returnDate": "2026-01-20",
                                   "notes": "Updated notes",
@@ -240,24 +256,24 @@ class ReturnControllerTest {
                                 """))
                 .andExpect(status().isOk());
 
-        verify(returnCommandApi).updateReturn(
-                eq(RETURN_ID),
-                eq(LocalDate.of(2026, 1, 20)),
-                eq("Updated notes"),
-                any()
-        );
+        verify(returnCommandApi)
+                .updateReturn(
+                        eq(RETURN_ID), eq(LocalDate.of(2026, 1, 20)), eq("Updated notes"), any());
     }
 
     @Test
     void updateReturn_returnsBadRequest_onInsufficientInventory() throws Exception {
         doThrow(new InsufficientInventoryException(999, 0))
-                .when(returnCommandApi).updateReturn(anyLong(), any(), any(), any());
+                .when(returnCommandApi)
+                .updateReturn(anyLong(), any(), any(), any());
 
-        mockMvc.perform(put("/api/labels/{labelId}/returns/{returnId}", LABEL_ID, RETURN_ID)
-                        .with(user(testUser))
-                        .with(csrf())
-                        .contentType(APPLICATION_JSON)
-                        .content("""
+        mockMvc.perform(
+                        put("/api/labels/{labelId}/returns/{returnId}", LABEL_ID, RETURN_ID)
+                                .with(user(testUser))
+                                .with(csrf())
+                                .contentType(APPLICATION_JSON)
+                                .content(
+                                        """
                                 {
                                   "returnDate": "2026-01-20",
                                   "notes": "",
@@ -273,17 +289,19 @@ class ReturnControllerTest {
 
     @Test
     void deleteReturn_returnsNoContent() throws Exception {
-        mockMvc.perform(delete("/api/labels/{labelId}/returns/{returnId}", LABEL_ID, RETURN_ID)
-                        .with(user(testUser))
-                        .with(csrf()))
+        mockMvc.perform(
+                        delete("/api/labels/{labelId}/returns/{returnId}", LABEL_ID, RETURN_ID)
+                                .with(user(testUser))
+                                .with(csrf()))
                 .andExpect(status().isNoContent());
     }
 
     @Test
     void deleteReturn_callsDeleteReturnWithCorrectId() throws Exception {
-        mockMvc.perform(delete("/api/labels/{labelId}/returns/{returnId}", LABEL_ID, RETURN_ID)
-                        .with(user(testUser))
-                        .with(csrf()))
+        mockMvc.perform(
+                        delete("/api/labels/{labelId}/returns/{returnId}", LABEL_ID, RETURN_ID)
+                                .with(user(testUser))
+                                .with(csrf()))
                 .andExpect(status().isNoContent());
 
         verify(returnCommandApi).deleteReturn(RETURN_ID);

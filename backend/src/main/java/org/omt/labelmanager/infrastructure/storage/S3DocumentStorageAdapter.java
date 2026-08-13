@@ -2,7 +2,6 @@ package org.omt.labelmanager.infrastructure.storage;
 
 import java.io.InputStream;
 import java.util.UUID;
-import org.omt.labelmanager.infrastructure.storage.DocumentStoragePort;
 import org.omt.labelmanager.finance.shared.RetrievedDocument;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,11 +35,12 @@ public class S3DocumentStorageAdapter implements DocumentStoragePort {
         try {
             byte[] bytes = content.readAllBytes();
 
-            PutObjectRequest request = PutObjectRequest.builder()
-                    .bucket(properties.bucket())
-                    .key(key)
-                    .contentType(contentType)
-                    .build();
+            PutObjectRequest request =
+                    PutObjectRequest.builder()
+                            .bucket(properties.bucket())
+                            .key(key)
+                            .contentType(contentType)
+                            .build();
 
             s3Client.putObject(request, RequestBody.fromBytes(bytes));
             log.debug("Document stored successfully");
@@ -57,24 +57,20 @@ public class S3DocumentStorageAdapter implements DocumentStoragePort {
         log.info("Retrieving document with key '{}'", storageKey);
 
         try {
-            GetObjectRequest request = GetObjectRequest.builder()
-                    .bucket(properties.bucket())
-                    .key(storageKey)
-                    .build();
+            GetObjectRequest request =
+                    GetObjectRequest.builder().bucket(properties.bucket()).key(storageKey).build();
 
             ResponseInputStream<GetObjectResponse> response = s3Client.getObject(request);
             GetObjectResponse metadata = response.response();
 
             String filename = extractFilename(storageKey);
-            log.debug("Document retrieved: filename='{}', contentType='{}'",
-                    filename, metadata.contentType());
+            log.debug(
+                    "Document retrieved: filename='{}', contentType='{}'",
+                    filename,
+                    metadata.contentType());
 
             return new RetrievedDocument(
-                    response,
-                    metadata.contentType(),
-                    filename,
-                    metadata.contentLength()
-            );
+                    response, metadata.contentType(), filename, metadata.contentLength());
         } catch (Exception e) {
             log.error("Failed to retrieve document '{}': {}", storageKey, e.getMessage());
             throw new DocumentStorageException("Failed to retrieve document: " + storageKey, e);
@@ -86,10 +82,11 @@ public class S3DocumentStorageAdapter implements DocumentStoragePort {
         log.info("Deleting document with key '{}'", storageKey);
 
         try {
-            DeleteObjectRequest request = DeleteObjectRequest.builder()
-                    .bucket(properties.bucket())
-                    .key(storageKey)
-                    .build();
+            DeleteObjectRequest request =
+                    DeleteObjectRequest.builder()
+                            .bucket(properties.bucket())
+                            .key(storageKey)
+                            .build();
 
             s3Client.deleteObject(request);
             log.debug("Document deleted successfully");

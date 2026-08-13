@@ -29,14 +29,12 @@ public class ArtistEntity {
 
     private String email;
 
-    @Embedded
-    private AddressEmbeddable address;
+    @Embedded private AddressEmbeddable address;
 
     @Column(name = "user_id")
     private Long userId;
 
-    protected ArtistEntity() {
-    }
+    protected ArtistEntity() {}
 
     public ArtistEntity(String artistName) {
         this.artistName = artistName;

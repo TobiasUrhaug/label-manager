@@ -1,14 +1,11 @@
 package org.omt.labelmanager.sales.sale.domain;
 
+import java.time.LocalDate;
+import java.util.List;
 import org.omt.labelmanager.distribution.distributor.ChannelType;
 import org.omt.labelmanager.finance.domain.shared.Money;
 
-import java.time.LocalDate;
-import java.util.List;
-
-/**
- * Represents a sale transaction attributed to a specific distributor.
- */
+/** Represents a sale transaction attributed to a specific distributor. */
 public record Sale(
         Long id,
         Long labelId,
@@ -17,6 +14,4 @@ public record Sale(
         ChannelType channel,
         String notes,
         List<SaleLineItem> lineItems,
-        Money totalAmount
-) {
-}
+        Money totalAmount) {}

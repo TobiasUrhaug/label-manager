@@ -19,11 +19,9 @@ import org.omt.labelmanager.inventory.inventorymovement.api.InventoryMovementQue
 @ExtendWith(MockitoExtension.class)
 class CancelBandcampReservationUseCaseTest {
 
-    @Mock
-    private InventoryMovementQueryApi inventoryMovementQueryApi;
+    @Mock private InventoryMovementQueryApi inventoryMovementQueryApi;
 
-    @Mock
-    private InventoryMovementCommandApi inventoryMovementCommandApi;
+    @Mock private InventoryMovementCommandApi inventoryMovementCommandApi;
 
     private CancelBandcampReservationUseCase subject;
 
@@ -31,7 +29,9 @@ class CancelBandcampReservationUseCaseTest {
 
     @BeforeEach
     void setUp() {
-        subject = new CancelBandcampReservationUseCase(inventoryMovementQueryApi, inventoryMovementCommandApi);
+        subject =
+                new CancelBandcampReservationUseCase(
+                        inventoryMovementQueryApi, inventoryMovementCommandApi);
     }
 
     @Test
@@ -40,14 +40,14 @@ class CancelBandcampReservationUseCaseTest {
 
         assertThatNoException().isThrownBy(() -> subject.execute(RUN_ID, 20));
 
-        verify(inventoryMovementCommandApi).recordMovement(
-                RUN_ID,
-                InventoryLocation.bandcamp(),
-                InventoryLocation.warehouse(),
-                20,
-                MovementType.RETURN,
-                null
-        );
+        verify(inventoryMovementCommandApi)
+                .recordMovement(
+                        RUN_ID,
+                        InventoryLocation.bandcamp(),
+                        InventoryLocation.warehouse(),
+                        20,
+                        MovementType.RETURN,
+                        null);
     }
 
     @Test
@@ -56,14 +56,14 @@ class CancelBandcampReservationUseCaseTest {
 
         assertThatNoException().isThrownBy(() -> subject.execute(RUN_ID, 40));
 
-        verify(inventoryMovementCommandApi).recordMovement(
-                RUN_ID,
-                InventoryLocation.bandcamp(),
-                InventoryLocation.warehouse(),
-                40,
-                MovementType.RETURN,
-                null
-        );
+        verify(inventoryMovementCommandApi)
+                .recordMovement(
+                        RUN_ID,
+                        InventoryLocation.bandcamp(),
+                        InventoryLocation.warehouse(),
+                        40,
+                        MovementType.RETURN,
+                        null);
     }
 
     @Test

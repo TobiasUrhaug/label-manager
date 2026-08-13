@@ -2,8 +2,7 @@ package org.omt.labelmanager.catalog.domain.shared;
 
 public final class AddressFactory {
 
-    private AddressFactory() {
-    }
+    private AddressFactory() {}
 
     public static Builder anAddress() {
         return new Builder();
@@ -21,8 +20,7 @@ public final class AddressFactory {
         private String postalCode = "0123";
         private String country = "Norway";
 
-        private Builder() {
-        }
+        private Builder() {}
 
         public Builder street(String street) {
             this.street = street;

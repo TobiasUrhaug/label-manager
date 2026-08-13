@@ -17,8 +17,7 @@ class DistributorReturnCommandApiImpl implements DistributorReturnCommandApi {
     DistributorReturnCommandApiImpl(
             RegisterReturnUseCase registerReturn,
             UpdateReturnUseCase updateReturn,
-            DeleteReturnUseCase deleteReturn
-    ) {
+            DeleteReturnUseCase deleteReturn) {
         this.registerReturn = registerReturn;
         this.updateReturn = updateReturn;
         this.deleteReturn = deleteReturn;
@@ -30,8 +29,7 @@ class DistributorReturnCommandApiImpl implements DistributorReturnCommandApi {
             Long distributorId,
             LocalDate returnDate,
             String notes,
-            List<ReturnLineItemInput> lineItems
-    ) {
+            List<ReturnLineItemInput> lineItems) {
         return registerReturn.execute(labelId, distributorId, returnDate, notes, lineItems);
     }
 
@@ -40,8 +38,7 @@ class DistributorReturnCommandApiImpl implements DistributorReturnCommandApi {
             Long returnId,
             LocalDate returnDate,
             String notes,
-            List<ReturnLineItemInput> lineItems
-    ) {
+            List<ReturnLineItemInput> lineItems) {
         updateReturn.execute(returnId, returnDate, notes, lineItems);
     }
 

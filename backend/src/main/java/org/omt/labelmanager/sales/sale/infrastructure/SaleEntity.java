@@ -10,13 +10,12 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
-import org.omt.labelmanager.distribution.distributor.ChannelType;
-
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import org.omt.labelmanager.distribution.distributor.ChannelType;
 
 @Entity
 @Table(name = "sale")
@@ -42,11 +41,7 @@ public class SaleEntity {
     @Column(name = "notes")
     private String notes;
 
-    @OneToMany(
-            mappedBy = "sale",
-            cascade = CascadeType.ALL,
-            orphanRemoval = true
-    )
+    @OneToMany(mappedBy = "sale", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<SaleLineItemEntity> lineItems = new ArrayList<>();
 
     @Column(name = "total_amount", nullable = false)
@@ -58,8 +53,7 @@ public class SaleEntity {
     @Column(name = "created_at", nullable = false)
     private Instant createdAt = Instant.now();
 
-    protected SaleEntity() {
-    }
+    protected SaleEntity() {}
 
     public SaleEntity(
             Long labelId,
@@ -67,8 +61,7 @@ public class SaleEntity {
             LocalDate saleDate,
             ChannelType channel,
             String notes,
-            String currency
-    ) {
+            String currency) {
         this.labelId = labelId;
         this.distributorId = distributorId;
         this.saleDate = saleDate;
@@ -85,9 +78,9 @@ public class SaleEntity {
     }
 
     /**
-     * Removes all line items from this sale. Used when editing a sale to replace
-     * the existing line items with a new set. Orphan removal on the OneToMany
-     * relationship ensures the cleared items are deleted from the database.
+     * Removes all line items from this sale. Used when editing a sale to replace the existing line
+     * items with a new set. Orphan removal on the OneToMany relationship ensures the cleared items
+     * are deleted from the database.
      */
     public void clearLineItems() {
         lineItems.clear();
@@ -103,9 +96,10 @@ public class SaleEntity {
     }
 
     private void recalculateTotal() {
-        this.totalAmount = lineItems.stream()
-                .map(SaleLineItemEntity::getLineTotal)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        this.totalAmount =
+                lineItems.stream()
+                        .map(SaleLineItemEntity::getLineTotal)
+                        .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
     public Long getId() {

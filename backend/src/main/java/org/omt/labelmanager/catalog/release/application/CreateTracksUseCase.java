@@ -18,37 +18,27 @@ class CreateTracksUseCase {
     CreateTracksUseCase(
             TrackRepository trackRepository,
             TrackArtistRepository trackArtistRepository,
-            TrackRemixerRepository trackRemixerRepository
-    ) {
+            TrackRemixerRepository trackRemixerRepository) {
         this.trackRepository = trackRepository;
         this.trackArtistRepository = trackArtistRepository;
         this.trackRemixerRepository = trackRemixerRepository;
     }
 
-    public void createTracksForRelease(
-            List<TrackInput> tracks,
-            Long releaseId
-    ) {
+    public void createTracksForRelease(List<TrackInput> tracks, Long releaseId) {
         for (TrackInput trackInput : tracks) {
             TrackEntity trackEntity = new TrackEntity();
             trackEntity.setName(trackInput.name());
-            trackEntity.setDurationSeconds(
-                    trackInput.duration().totalSeconds()
-            );
+            trackEntity.setDurationSeconds(trackInput.duration().totalSeconds());
             trackEntity.setPosition(trackInput.position());
             trackEntity.setReleaseId(releaseId);
             trackRepository.save(trackEntity);
 
             for (Long artistId : trackInput.artistIds()) {
-                trackArtistRepository.addArtistToTrack(
-                        trackEntity.getId(), artistId
-                );
+                trackArtistRepository.addArtistToTrack(trackEntity.getId(), artistId);
             }
 
             for (Long remixerId : trackInput.remixerIds()) {
-                trackRemixerRepository.addRemixerToTrack(
-                        trackEntity.getId(), remixerId
-                );
+                trackRemixerRepository.addRemixerToTrack(trackEntity.getId(), remixerId);
             }
         }
     }

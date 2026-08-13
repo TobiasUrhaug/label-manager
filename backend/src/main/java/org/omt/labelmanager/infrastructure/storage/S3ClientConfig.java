@@ -18,12 +18,10 @@ public class S3ClientConfig {
         return S3Client.builder()
                 .endpointOverride(URI.create(properties.endpoint()))
                 .region(Region.of(properties.region()))
-                .credentialsProvider(StaticCredentialsProvider.create(
-                        AwsBasicCredentials.create(
-                                properties.accessKey(),
-                                properties.secretKey()
-                        )
-                ))
+                .credentialsProvider(
+                        StaticCredentialsProvider.create(
+                                AwsBasicCredentials.create(
+                                        properties.accessKey(), properties.secretKey())))
                 .forcePathStyle(true)
                 .build();
     }

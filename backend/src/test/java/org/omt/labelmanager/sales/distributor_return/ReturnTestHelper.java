@@ -9,8 +9,8 @@ import org.omt.labelmanager.sales.distributor_return.domain.ReturnLineItemInput;
 import org.springframework.stereotype.Component;
 
 /**
- * Public helper for creating test return data.
- * Used by integration tests in other modules that need return fixtures.
+ * Public helper for creating test return data. Used by integration tests in other modules that need
+ * return fixtures.
  */
 @Component
 public class ReturnTestHelper {
@@ -21,21 +21,14 @@ public class ReturnTestHelper {
         this.returnCommandApi = returnCommandApi;
     }
 
-    /**
-     * Creates a return with a single line item.
-     */
+    /** Creates a return with a single line item. */
     public DistributorReturn createReturn(
-            Long labelId,
-            Long distributorId,
-            Long releaseId,
-            ReleaseFormat format,
-            int quantity
-    ) {
+            Long labelId, Long distributorId, Long releaseId, ReleaseFormat format, int quantity) {
         return returnCommandApi.registerReturn(
-                labelId, distributorId,
+                labelId,
+                distributorId,
                 LocalDate.now(),
                 null,
-                List.of(new ReturnLineItemInput(releaseId, format, quantity))
-        );
+                List.of(new ReturnLineItemInput(releaseId, format, quantity)));
     }
 }

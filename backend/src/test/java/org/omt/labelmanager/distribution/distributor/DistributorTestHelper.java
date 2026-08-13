@@ -1,14 +1,12 @@
 package org.omt.labelmanager.distribution.distributor;
 
 import org.omt.labelmanager.distribution.distributor.api.DistributorCommandApi;
-import org.omt.labelmanager.distribution.distributor.ChannelType;
-import org.omt.labelmanager.distribution.distributor.Distributor;
 import org.springframework.stereotype.Component;
 
 /**
- * Public helper for creating test distributor data.
- * Used by integration tests in other modules that need distributor fixtures,
- * without reaching into the distributor module's package-private infrastructure.
+ * Public helper for creating test distributor data. Used by integration tests in other modules that
+ * need distributor fixtures, without reaching into the distributor module's package-private
+ * infrastructure.
  */
 @Component
 public class DistributorTestHelper {
@@ -22,8 +20,8 @@ public class DistributorTestHelper {
     /**
      * Creates a distributor for the given label.
      *
-     * @param labelId     the owning label
-     * @param name        the distributor name
+     * @param labelId the owning label
+     * @param name the distributor name
      * @param channelType the channel type (DIRECT, DISTRIBUTOR, etc.)
      * @return the created distributor
      */

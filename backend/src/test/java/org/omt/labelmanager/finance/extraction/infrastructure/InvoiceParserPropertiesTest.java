@@ -7,8 +7,8 @@ import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 
 class InvoiceParserPropertiesTest {
 
-    private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
-            .withUserConfiguration(InvoiceParserConfiguration.class);
+    private final ApplicationContextRunner contextRunner =
+            new ApplicationContextRunner().withUserConfiguration(InvoiceParserConfiguration.class);
 
     @Test
     void contextFailsToLoad_whenUrlPropertyIsMissing() {
@@ -28,9 +28,7 @@ class InvoiceParserPropertiesTest {
     void contextLoads_whenBothPropertiesArePresent() {
         contextRunner
                 .withPropertyValues(
-                        "invoice.parser.url=http://test-parser",
-                        "invoice.parser.api-key=test-key"
-                )
+                        "invoice.parser.url=http://test-parser", "invoice.parser.api-key=test-key")
                 .run(context -> assertThat(context).hasNotFailed());
     }
 }

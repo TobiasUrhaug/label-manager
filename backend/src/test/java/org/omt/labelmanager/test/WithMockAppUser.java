@@ -13,5 +13,4 @@ public @interface WithMockAppUser {
     String email() default "test@example.com";
 
     String displayName() default "Test User";
-
 }

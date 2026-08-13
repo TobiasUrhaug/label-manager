@@ -28,8 +28,7 @@ public class DistributorEntity {
     @Column(name = "channel_type", nullable = false)
     private ChannelType channelType;
 
-    protected DistributorEntity() {
-    }
+    protected DistributorEntity() {}
 
     public DistributorEntity(Long labelId, String name, ChannelType channelType) {
         this.labelId = labelId;

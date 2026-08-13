@@ -14,30 +14,33 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http
-                .csrf(csrf -> csrf
-                        .spa()
-                        .ignoringRequestMatchers("/api/auth/register", "/swagger-ui/**", "/v3/api-docs/**")
-                )
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/login", "/api/auth/register", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
-                        .anyRequest().authenticated()
-                )
-                .formLogin(form -> form
-                        .successHandler(spaAuthSuccessHandler())
-                        .failureHandler(spaAuthFailureHandler())
-                        .permitAll()
-                )
-                .logout(logout -> logout
-                        .logoutSuccessHandler(spaLogoutSuccessHandler())
-                        .permitAll()
-                )
-                .httpBasic(basic -> basic
-                        .authenticationEntryPoint(authenticationEntryPoint())
-                )
-                .exceptionHandling(ex -> ex
-                        .authenticationEntryPoint(authenticationEntryPoint())
-                );
+        http.csrf(
+                        csrf ->
+                                csrf.spa()
+                                        .ignoringRequestMatchers(
+                                                "/api/auth/register",
+                                                "/swagger-ui/**",
+                                                "/v3/api-docs/**"))
+                .authorizeHttpRequests(
+                        auth ->
+                                auth.requestMatchers(
+                                                "/login",
+                                                "/api/auth/register",
+                                                "/swagger-ui/**",
+                                                "/v3/api-docs/**")
+                                        .permitAll()
+                                        .anyRequest()
+                                        .authenticated())
+                .formLogin(
+                        form ->
+                                form.successHandler(spaAuthSuccessHandler())
+                                        .failureHandler(spaAuthFailureHandler())
+                                        .permitAll())
+                .logout(
+                        logout ->
+                                logout.logoutSuccessHandler(spaLogoutSuccessHandler()).permitAll())
+                .httpBasic(basic -> basic.authenticationEntryPoint(authenticationEntryPoint()))
+                .exceptionHandling(ex -> ex.authenticationEntryPoint(authenticationEntryPoint()));
 
         return http.build();
     }

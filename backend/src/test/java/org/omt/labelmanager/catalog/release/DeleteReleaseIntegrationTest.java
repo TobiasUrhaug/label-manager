@@ -5,7 +5,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Set;
-
 import org.junit.jupiter.api.Test;
 import org.omt.labelmanager.AbstractIntegrationTest;
 import org.omt.labelmanager.catalog.artist.infrastructure.ArtistEntity;
@@ -20,36 +19,28 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 public class DeleteReleaseIntegrationTest extends AbstractIntegrationTest {
 
-    @Autowired
-    LabelTestHelper labelTestHelper;
+    @Autowired LabelTestHelper labelTestHelper;
 
-    @Autowired
-    ReleaseRepository releaseRepository;
+    @Autowired ReleaseRepository releaseRepository;
 
-    @Autowired
-    ArtistRepository artistRepository;
+    @Autowired ArtistRepository artistRepository;
 
-    @Autowired
-    ReleaseCommandApi releaseCommandApi;
+    @Autowired ReleaseCommandApi releaseCommandApi;
 
     @Test
     void deleteRelease_removesReleaseFromDatabase() {
-        var label = labelTestHelper.createLabel(
-                "Label For Release Deletion"
-        );
+        var label = labelTestHelper.createLabel("Label For Release Deletion");
 
-        var savedArtist = artistRepository.save(
-                new ArtistEntity("Artist For Release")
-        );
+        var savedArtist = artistRepository.save(new ArtistEntity("Artist For Release"));
         var artistId = savedArtist.getId();
 
-        var trackInput = new TrackInput(
-                List.of(artistId),
-                "Track To Delete",
-                TrackDuration.parse("2:00"),
-                1,
-                List.of()
-        );
+        var trackInput =
+                new TrackInput(
+                        List.of(artistId),
+                        "Track To Delete",
+                        TrackDuration.parse("2:00"),
+                        1,
+                        List.of());
 
         releaseCommandApi.createRelease(
                 "Release To Delete",
@@ -57,16 +48,13 @@ public class DeleteReleaseIntegrationTest extends AbstractIntegrationTest {
                 label.id(),
                 List.of(artistId),
                 List.of(trackInput),
-                Set.of(ReleaseFormat.DIGITAL)
-        );
+                Set.of(ReleaseFormat.DIGITAL));
 
-        var release = releaseRepository
-                .findByName("Release To Delete");
+        var release = releaseRepository.findByName("Release To Delete");
         assertThat(release).isPresent();
 
         releaseCommandApi.delete(release.get().getId());
 
-        assertThat(releaseRepository
-                .findByName("Release To Delete")).isEmpty();
+        assertThat(releaseRepository.findByName("Release To Delete")).isEmpty();
     }
 }

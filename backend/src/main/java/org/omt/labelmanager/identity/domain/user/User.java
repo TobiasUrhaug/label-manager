@@ -11,7 +11,6 @@ public record User(Long id, String email, String password, String displayName, I
                 entity.getEmail(),
                 entity.getPassword(),
                 entity.getDisplayName(),
-                entity.getCreatedAt()
-        );
+                entity.getCreatedAt());
     }
 }

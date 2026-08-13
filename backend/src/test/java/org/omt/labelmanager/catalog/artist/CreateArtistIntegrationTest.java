@@ -14,14 +14,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 public class CreateArtistIntegrationTest extends AbstractIntegrationTest {
 
-    @Autowired
-    ArtistCommandApi artistCommandApi;
+    @Autowired ArtistCommandApi artistCommandApi;
 
-    @Autowired
-    ArtistRepository artistRepository;
+    @Autowired ArtistRepository artistRepository;
 
-    @Autowired
-    UserRepository userRepository;
+    @Autowired UserRepository userRepository;
 
     @Test
     void createArtist_persistsAllFields() {

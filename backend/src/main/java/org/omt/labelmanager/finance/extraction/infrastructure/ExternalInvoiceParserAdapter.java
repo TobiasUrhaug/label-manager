@@ -1,5 +1,8 @@
 package org.omt.labelmanager.finance.extraction.infrastructure;
 
+import java.io.InputStream;
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import org.omt.labelmanager.finance.extraction.domain.ExtractedInvoiceData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,10 +16,6 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestClient;
-
-import java.io.InputStream;
-import java.math.BigDecimal;
-import java.time.LocalDate;
 
 @Component
 public class ExternalInvoiceParserAdapter {
@@ -54,7 +53,8 @@ public class ExternalInvoiceParserAdapter {
         MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
         body.add("file", filePart);
 
-        return restClient.post()
+        return restClient
+                .post()
                 .uri("/api/v1/extract")
                 .contentType(MediaType.MULTIPART_FORM_DATA)
                 .body(body)
@@ -63,11 +63,15 @@ public class ExternalInvoiceParserAdapter {
     }
 
     private void logHttpError(HttpStatusCodeException e) {
-        var requestId = e.getResponseHeaders() != null
-                ? e.getResponseHeaders().getFirst("X-Request-Id")
-                : null;
+        var requestId =
+                e.getResponseHeaders() != null
+                        ? e.getResponseHeaders().getFirst("X-Request-Id")
+                        : null;
         if (requestId != null) {
-            log.warn("External invoice parser failed with status {}, X-Request-Id: {}", e.getStatusCode(), requestId);
+            log.warn(
+                    "External invoice parser failed with status {}, X-Request-Id: {}",
+                    e.getStatusCode(),
+                    requestId);
         } else {
             log.warn("External invoice parser failed with status {}", e.getStatusCode());
         }
@@ -81,8 +85,7 @@ public class ExternalInvoiceParserAdapter {
                 parseAmount(response.totalAmount()),
                 parseDate(response.invoiceDate()),
                 response.invoiceReference(),
-                parseCurrency(response.netAmount())
-        );
+                parseCurrency(response.netAmount()));
     }
 
     private BigDecimal parseAmount(ExternalInvoiceResponse.MoneyAmount moneyAmount) {

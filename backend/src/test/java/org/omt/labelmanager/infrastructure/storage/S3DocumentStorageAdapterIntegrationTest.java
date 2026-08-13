@@ -32,23 +32,25 @@ class S3DocumentStorageAdapterIntegrationTest {
     private static final String SECRET_KEY = "minioadmin";
 
     @Container
-    static MinIOContainer minIO = new MinIOContainer("minio/minio:latest")
-            .withUserName(ACCESS_KEY)
-            .withPassword(SECRET_KEY);
+    static MinIOContainer minIO =
+            new MinIOContainer("minio/minio:latest")
+                    .withUserName(ACCESS_KEY)
+                    .withPassword(SECRET_KEY);
 
     private static S3Client s3Client;
     private S3DocumentStorageAdapter adapter;
 
     @BeforeAll
     static void setUpBucket() {
-        s3Client = S3Client.builder()
-                .endpointOverride(java.net.URI.create(minIO.getS3URL()))
-                .region(Region.US_EAST_1)
-                .credentialsProvider(StaticCredentialsProvider.create(
-                        AwsBasicCredentials.create(ACCESS_KEY, SECRET_KEY)
-                ))
-                .forcePathStyle(true)
-                .build();
+        s3Client =
+                S3Client.builder()
+                        .endpointOverride(java.net.URI.create(minIO.getS3URL()))
+                        .region(Region.US_EAST_1)
+                        .credentialsProvider(
+                                StaticCredentialsProvider.create(
+                                        AwsBasicCredentials.create(ACCESS_KEY, SECRET_KEY)))
+                        .forcePathStyle(true)
+                        .build();
 
         if (!bucketExists()) {
             s3Client.createBucket(CreateBucketRequest.builder().bucket(BUCKET).build());
@@ -66,13 +68,8 @@ class S3DocumentStorageAdapterIntegrationTest {
 
     @BeforeEach
     void setUp() {
-        var properties = new S3Properties(
-                minIO.getS3URL(),
-                BUCKET,
-                "us-east-1",
-                ACCESS_KEY,
-                SECRET_KEY
-        );
+        var properties =
+                new S3Properties(minIO.getS3URL(), BUCKET, "us-east-1", ACCESS_KEY, SECRET_KEY);
         adapter = new S3DocumentStorageAdapter(s3Client, properties);
     }
 
@@ -93,9 +90,8 @@ class S3DocumentStorageAdapterIntegrationTest {
 
         String key = adapter.store("invoice.pdf", "application/pdf", inputStream);
 
-        ResponseInputStream<GetObjectResponse> response = s3Client.getObject(
-                GetObjectRequest.builder().bucket(BUCKET).key(key).build()
-        );
+        ResponseInputStream<GetObjectResponse> response =
+                s3Client.getObject(GetObjectRequest.builder().bucket(BUCKET).key(key).build());
         String retrievedContent = new String(response.readAllBytes(), StandardCharsets.UTF_8);
 
         assertThat(retrievedContent).isEqualTo(content);
@@ -108,9 +104,9 @@ class S3DocumentStorageAdapterIntegrationTest {
 
         String key = adapter.store("photo.png", "image/png", inputStream);
 
-        GetObjectResponse response = s3Client.getObject(
-                GetObjectRequest.builder().bucket(BUCKET).key(key).build()
-        ).response();
+        GetObjectResponse response =
+                s3Client.getObject(GetObjectRequest.builder().bucket(BUCKET).key(key).build())
+                        .response();
 
         assertThat(response.contentType()).isEqualTo("image/png");
     }
@@ -119,16 +115,16 @@ class S3DocumentStorageAdapterIntegrationTest {
     void generatesUniqueKeysForSameFilename() {
         String content = "invoice content";
 
-        String key1 = adapter.store(
-                "invoice.pdf",
-                "application/pdf",
-                new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8))
-        );
-        String key2 = adapter.store(
-                "invoice.pdf",
-                "application/pdf",
-                new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8))
-        );
+        String key1 =
+                adapter.store(
+                        "invoice.pdf",
+                        "application/pdf",
+                        new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8)));
+        String key2 =
+                adapter.store(
+                        "invoice.pdf",
+                        "application/pdf",
+                        new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8)));
 
         assertThat(key1).isNotEqualTo(key2);
     }
@@ -136,42 +132,44 @@ class S3DocumentStorageAdapterIntegrationTest {
     @Test
     void retrieveReturnsDocumentWithCorrectContent() throws Exception {
         String content = "invoice content";
-        String key = adapter.store(
-                "invoice.pdf",
-                "application/pdf",
-                new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8))
-        );
+        String key =
+                adapter.store(
+                        "invoice.pdf",
+                        "application/pdf",
+                        new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8)));
 
         RetrievedDocument document = adapter.retrieve(key);
 
-        String retrievedContent = new String(document.content().readAllBytes(), StandardCharsets.UTF_8);
+        String retrievedContent =
+                new String(document.content().readAllBytes(), StandardCharsets.UTF_8);
         assertThat(retrievedContent).isEqualTo(content);
     }
 
     @Test
     void retrieveReturnsCorrectMetadata() throws Exception {
         String content = "invoice content";
-        String key = adapter.store(
-                "invoice.pdf",
-                "application/pdf",
-                new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8))
-        );
+        String key =
+                adapter.store(
+                        "invoice.pdf",
+                        "application/pdf",
+                        new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8)));
 
         RetrievedDocument document = adapter.retrieve(key);
 
         assertThat(document.filename()).isEqualTo("invoice.pdf");
         assertThat(document.contentType()).isEqualTo("application/pdf");
-        assertThat(document.contentLength()).isEqualTo(content.getBytes(StandardCharsets.UTF_8).length);
+        assertThat(document.contentLength())
+                .isEqualTo(content.getBytes(StandardCharsets.UTF_8).length);
     }
 
     @Test
     void deleteRemovesDocumentFromStorage() {
         String content = "invoice content";
-        String key = adapter.store(
-                "invoice.pdf",
-                "application/pdf",
-                new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8))
-        );
+        String key =
+                adapter.store(
+                        "invoice.pdf",
+                        "application/pdf",
+                        new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8)));
 
         adapter.delete(key);
 

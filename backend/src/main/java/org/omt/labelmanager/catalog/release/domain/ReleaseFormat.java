@@ -1,7 +1,6 @@
 package org.omt.labelmanager.catalog.release.domain;
 
 public enum ReleaseFormat {
-
     DIGITAL(false),
     VINYL(true),
     CASSETTE(true),

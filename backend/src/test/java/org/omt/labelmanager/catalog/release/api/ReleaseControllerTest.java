@@ -1,5 +1,7 @@
 package org.omt.labelmanager.catalog.release.api;
 
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
@@ -9,8 +11,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -47,32 +47,23 @@ import org.springframework.test.web.servlet.MockMvc;
 @Import(TestSecurityConfig.class)
 class ReleaseControllerTest {
 
-    @Autowired
-    private MockMvc mockMvc;
+    @Autowired private MockMvc mockMvc;
 
-    @MockitoBean
-    private ReleaseCommandApi releaseCommandFacade;
+    @MockitoBean private ReleaseCommandApi releaseCommandFacade;
 
-    @MockitoBean
-    private ReleaseQueryApi releaseQueryFacade;
+    @MockitoBean private ReleaseQueryApi releaseQueryFacade;
 
-    @MockitoBean
-    private ArtistQueryApi artistQueryApi;
+    @MockitoBean private ArtistQueryApi artistQueryApi;
 
-    @MockitoBean
-    private CostQueryApi costQueryFacade;
+    @MockitoBean private CostQueryApi costQueryFacade;
 
-    @MockitoBean
-    private ProductionRunQueryApi productionRunQueryService;
+    @MockitoBean private ProductionRunQueryApi productionRunQueryService;
 
-    @MockitoBean
-    private DistributorQueryApi distributorQueryService;
+    @MockitoBean private DistributorQueryApi distributorQueryService;
 
-    @MockitoBean
-    private InventoryMovementQueryApi inventoryMovementQueryApi;
+    @MockitoBean private InventoryMovementQueryApi inventoryMovementQueryApi;
 
-    @MockitoBean
-    private SaleQueryApi saleQueryApi;
+    @MockitoBean private SaleQueryApi saleQueryApi;
 
     private final AppUserDetails testUser =
             new AppUserDetails(1L, "test@example.com", "password", "Test User");
@@ -81,22 +72,24 @@ class ReleaseControllerTest {
     void release_returnsReleaseJson() throws Exception {
         var releaseDate = LocalDate.of(2026, 3, 15);
         var artist = ArtistFactory.anArtist().id(1L).artistName("Test Artist").build();
-        var track = TrackFactory.aTrack()
-                .artistId(1L)
-                .name("Test Track")
-                .durationSeconds(210)
-                .position(1)
-                .build();
+        var track =
+                TrackFactory.aTrack()
+                        .artistId(1L)
+                        .name("Test Track")
+                        .durationSeconds(210)
+                        .position(1)
+                        .build();
         var formats = Set.of(ReleaseFormat.DIGITAL, ReleaseFormat.VINYL);
-        var release = ReleaseFactory.aRelease()
-                .id(4L)
-                .name("First Release")
-                .releaseDate(releaseDate)
-                .labelId(1L)
-                .artistId(1L)
-                .tracks(List.of(track))
-                .formats(formats)
-                .build();
+        var release =
+                ReleaseFactory.aRelease()
+                        .id(4L)
+                        .name("First Release")
+                        .releaseDate(releaseDate)
+                        .labelId(1L)
+                        .artistId(1L)
+                        .tracks(List.of(track))
+                        .formats(formats)
+                        .build();
 
         when(releaseQueryFacade.findById(4L)).thenReturn(Optional.of(release));
         when(artistQueryApi.getArtistsForUser(1L)).thenReturn(List.of(artist));
@@ -112,8 +105,8 @@ class ReleaseControllerTest {
     @Test
     void release_populatesInventoryDataInProductionRuns() throws Exception {
         var release = ReleaseFactory.aRelease().id(4L).labelId(1L).build();
-        var productionRun = ProductionRunFactory.aProductionRun()
-                .id(10L).releaseId(4L).quantity(500).build();
+        var productionRun =
+                ProductionRunFactory.aProductionRun().id(10L).releaseId(4L).quantity(500).build();
 
         when(releaseQueryFacade.findById(4L)).thenReturn(Optional.of(release));
         when(productionRunQueryService.findByReleaseId(4L)).thenReturn(List.of(productionRun));
@@ -133,24 +126,35 @@ class ReleaseControllerTest {
     @Test
     void release_populatesNonEmptyDistributorInventories() throws Exception {
         var release = ReleaseFactory.aRelease().id(4L).labelId(1L).build();
-        var productionRun = ProductionRunFactory.aProductionRun()
-                .id(10L).releaseId(4L).quantity(500).build();
-        var alphaDistributor = DistributorFactory.aDistributor().id(1L).name("Alpha Records").build();
-        var betaDistributor = DistributorFactory.aDistributor().id(2L).name("Beta Distribution").build();
+        var productionRun =
+                ProductionRunFactory.aProductionRun().id(10L).releaseId(4L).quantity(500).build();
+        var alphaDistributor =
+                DistributorFactory.aDistributor().id(1L).name("Alpha Records").build();
+        var betaDistributor =
+                DistributorFactory.aDistributor().id(2L).name("Beta Distribution").build();
 
         when(releaseQueryFacade.findById(4L)).thenReturn(Optional.of(release));
         when(productionRunQueryService.findByReleaseId(4L)).thenReturn(List.of(productionRun));
-        when(distributorQueryService.findByLabelId(1L)).thenReturn(List.of(alphaDistributor, betaDistributor));
+        when(distributorQueryService.findByLabelId(1L))
+                .thenReturn(List.of(alphaDistributor, betaDistributor));
         when(inventoryMovementQueryApi.getWarehouseInventory(10L)).thenReturn(350);
-        when(inventoryMovementQueryApi.getCurrentInventoryByDistributor(10L)).thenReturn(Map.of(1L, 80, 2L, 30));
+        when(inventoryMovementQueryApi.getCurrentInventoryByDistributor(10L))
+                .thenReturn(Map.of(1L, 80, 2L, 30));
         when(inventoryMovementQueryApi.getMovementsForProductionRun(10L)).thenReturn(List.of());
 
         mockMvc.perform(get("/api/labels/1/releases/4").with(user(testUser)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.productionRuns[0].distributorInventories[0].name").value("Alpha Records"))
-                .andExpect(jsonPath("$.productionRuns[0].distributorInventories[0].current").value(80))
-                .andExpect(jsonPath("$.productionRuns[0].distributorInventories[1].name").value("Beta Distribution"))
-                .andExpect(jsonPath("$.productionRuns[0].distributorInventories[1].current").value(30));
+                .andExpect(
+                        jsonPath("$.productionRuns[0].distributorInventories[0].name")
+                                .value("Alpha Records"))
+                .andExpect(
+                        jsonPath("$.productionRuns[0].distributorInventories[0].current").value(80))
+                .andExpect(
+                        jsonPath("$.productionRuns[0].distributorInventories[1].name")
+                                .value("Beta Distribution"))
+                .andExpect(
+                        jsonPath("$.productionRuns[0].distributorInventories[1].current")
+                                .value(30));
     }
 
     @Test
@@ -163,11 +167,13 @@ class ReleaseControllerTest {
 
     @Test
     void createRelease_returnsCreated() throws Exception {
-        mockMvc.perform(post("/api/labels/1/releases")
-                        .with(user(testUser))
-                        .with(csrf())
-                        .contentType(APPLICATION_JSON)
-                        .content("""
+        mockMvc.perform(
+                        post("/api/labels/1/releases")
+                                .with(user(testUser))
+                                .with(csrf())
+                                .contentType(APPLICATION_JSON)
+                                .content(
+                                        """
                                 {
                                   "releaseName": "New Release",
                                   "releaseDate": "2026-06-15",
@@ -178,23 +184,25 @@ class ReleaseControllerTest {
                                 """))
                 .andExpect(status().isCreated());
 
-        verify(releaseCommandFacade).createRelease(
-                org.mockito.ArgumentMatchers.eq("New Release"),
-                org.mockito.ArgumentMatchers.eq(LocalDate.of(2026, 6, 15)),
-                org.mockito.ArgumentMatchers.eq(1L),
-                org.mockito.ArgumentMatchers.anyList(),
-                org.mockito.ArgumentMatchers.anyList(),
-                org.mockito.ArgumentMatchers.anySet()
-        );
+        verify(releaseCommandFacade)
+                .createRelease(
+                        org.mockito.ArgumentMatchers.eq("New Release"),
+                        org.mockito.ArgumentMatchers.eq(LocalDate.of(2026, 6, 15)),
+                        org.mockito.ArgumentMatchers.eq(1L),
+                        org.mockito.ArgumentMatchers.anyList(),
+                        org.mockito.ArgumentMatchers.anyList(),
+                        org.mockito.ArgumentMatchers.anySet());
     }
 
     @Test
     void updateRelease_returnsNoContent() throws Exception {
-        mockMvc.perform(put("/api/labels/1/releases/5")
-                        .with(user(testUser))
-                        .with(csrf())
-                        .contentType(APPLICATION_JSON)
-                        .content("""
+        mockMvc.perform(
+                        put("/api/labels/1/releases/5")
+                                .with(user(testUser))
+                                .with(csrf())
+                                .contentType(APPLICATION_JSON)
+                                .content(
+                                        """
                                 {
                                   "releaseName": "Updated Release",
                                   "releaseDate": "2026-06-15",
@@ -205,21 +213,19 @@ class ReleaseControllerTest {
                                 """))
                 .andExpect(status().isNoContent());
 
-        verify(releaseCommandFacade).updateRelease(
-                org.mockito.ArgumentMatchers.eq(5L),
-                org.mockito.ArgumentMatchers.eq("Updated Release"),
-                org.mockito.ArgumentMatchers.eq(LocalDate.of(2026, 6, 15)),
-                org.mockito.ArgumentMatchers.anyList(),
-                org.mockito.ArgumentMatchers.anyList(),
-                org.mockito.ArgumentMatchers.anySet()
-        );
+        verify(releaseCommandFacade)
+                .updateRelease(
+                        org.mockito.ArgumentMatchers.eq(5L),
+                        org.mockito.ArgumentMatchers.eq("Updated Release"),
+                        org.mockito.ArgumentMatchers.eq(LocalDate.of(2026, 6, 15)),
+                        org.mockito.ArgumentMatchers.anyList(),
+                        org.mockito.ArgumentMatchers.anyList(),
+                        org.mockito.ArgumentMatchers.anySet());
     }
 
     @Test
     void deleteRelease_returnsNoContent() throws Exception {
-        mockMvc.perform(delete("/api/labels/1/releases/5")
-                        .with(user(testUser))
-                        .with(csrf()))
+        mockMvc.perform(delete("/api/labels/1/releases/5").with(user(testUser)).with(csrf()))
                 .andExpect(status().isNoContent());
 
         verify(releaseCommandFacade).delete(5L);
@@ -228,16 +234,32 @@ class ReleaseControllerTest {
     @Test
     void release_populatesReleaseSalesAcrossProductionRuns() throws Exception {
         var release = ReleaseFactory.aRelease().id(4L).labelId(1L).build();
-        var productionRun = ProductionRunFactory.aProductionRun()
-                .id(10L).releaseId(4L).quantity(500).build();
-        var distributor = DistributorFactory.aDistributor()
-                .id(1L).name("Cargo Records").channelType(ChannelType.DISTRIBUTOR).build();
-        var lineItem = new SaleLineItem(1L, 4L,
-                ReleaseFormat.VINYL,
-                30, Money.of(BigDecimal.valueOf(15)), Money.of(BigDecimal.valueOf(450)));
-        var sale = new Sale(10L, 1L, 1L, LocalDate.of(2026, 1, 10),
-                ChannelType.DISTRIBUTOR, null, List.of(lineItem),
-                Money.of(BigDecimal.valueOf(450)));
+        var productionRun =
+                ProductionRunFactory.aProductionRun().id(10L).releaseId(4L).quantity(500).build();
+        var distributor =
+                DistributorFactory.aDistributor()
+                        .id(1L)
+                        .name("Cargo Records")
+                        .channelType(ChannelType.DISTRIBUTOR)
+                        .build();
+        var lineItem =
+                new SaleLineItem(
+                        1L,
+                        4L,
+                        ReleaseFormat.VINYL,
+                        30,
+                        Money.of(BigDecimal.valueOf(15)),
+                        Money.of(BigDecimal.valueOf(450)));
+        var sale =
+                new Sale(
+                        10L,
+                        1L,
+                        1L,
+                        LocalDate.of(2026, 1, 10),
+                        ChannelType.DISTRIBUTOR,
+                        null,
+                        List.of(lineItem),
+                        Money.of(BigDecimal.valueOf(450)));
 
         when(releaseQueryFacade.findById(4L)).thenReturn(Optional.of(release));
         when(productionRunQueryService.findByReleaseId(4L)).thenReturn(List.of(productionRun));
