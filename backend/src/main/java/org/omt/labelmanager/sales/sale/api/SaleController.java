@@ -38,15 +38,15 @@ public class SaleController {
             SaleCommandApi saleCommandApi,
             SaleQueryApi saleQueryApi,
             LabelQueryApi labelQueryApi,
-            ReleaseQueryApi releaseQueryApi
-    ) {
+            ReleaseQueryApi releaseQueryApi) {
         this.saleCommandApi = saleCommandApi;
         this.saleQueryApi = saleQueryApi;
         this.labelQueryApi = labelQueryApi;
         this.releaseQueryApi = releaseQueryApi;
     }
 
-    record LineItemRequest(Long releaseId, ReleaseFormat format, int quantity, BigDecimal unitPrice) {
+    record LineItemRequest(
+            Long releaseId, ReleaseFormat format, int quantity, BigDecimal unitPrice) {
         SaleLineItemInput toInput() {
             return new SaleLineItemInput(releaseId, format, quantity, Money.of(unitPrice));
         }
@@ -57,8 +57,7 @@ public class SaleController {
             ChannelType channel,
             Long distributorId,
             String notes,
-            List<LineItemRequest> lineItems
-    ) {
+            List<LineItemRequest> lineItems) {
         List<SaleLineItemInput> toLineItemInputs() {
             return lineItems.stream().map(LineItemRequest::toInput).toList();
         }
@@ -79,8 +78,7 @@ public class SaleController {
             ReleaseFormat format,
             int quantity,
             Money unitPrice,
-            Money lineTotal
-    ) {}
+            Money lineTotal) {}
 
     record SaleDetailResponse(
             Long id,
@@ -90,12 +88,12 @@ public class SaleController {
             ChannelType channel,
             String notes,
             Money totalAmount,
-            List<EnrichedLineItem> lineItems
-    ) {}
+            List<EnrichedLineItem> lineItems) {}
 
     @GetMapping
     public SaleListResponse listSales(@PathVariable Long labelId) {
-        labelQueryApi.findById(labelId)
+        labelQueryApi
+                .findById(labelId)
                 .orElseThrow(() -> new EntityNotFoundException("Label not found"));
         var sales = saleQueryApi.getSalesForLabel(labelId);
         var totalRevenue = saleQueryApi.getTotalRevenueForLabel(labelId);
@@ -104,29 +102,26 @@ public class SaleController {
 
     @PostMapping
     public ResponseEntity<Void> registerSale(
-            @PathVariable Long labelId,
-            @RequestBody RegisterSaleRequest request
-    ) {
+            @PathVariable Long labelId, @RequestBody RegisterSaleRequest request) {
         saleCommandApi.registerSale(
                 labelId,
                 request.saleDate(),
                 request.channel(),
                 request.notes(),
                 request.distributorId(),
-                request.toLineItemInputs()
-        );
+                request.toLineItemInputs());
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
     @GetMapping("/{saleId}")
-    public SaleDetailResponse viewSale(
-            @PathVariable Long labelId,
-            @PathVariable Long saleId
-    ) {
-        labelQueryApi.findById(labelId)
+    public SaleDetailResponse viewSale(@PathVariable Long labelId, @PathVariable Long saleId) {
+        labelQueryApi
+                .findById(labelId)
                 .orElseThrow(() -> new EntityNotFoundException("Label not found"));
-        var sale = saleQueryApi.findById(saleId)
-                .orElseThrow(() -> new EntityNotFoundException("Sale not found"));
+        var sale =
+                saleQueryApi
+                        .findById(saleId)
+                        .orElseThrow(() -> new EntityNotFoundException("Sale not found"));
         return toDetailResponse(sale);
     }
 
@@ -134,48 +129,49 @@ public class SaleController {
     public Sale updateSale(
             @PathVariable Long labelId,
             @PathVariable Long saleId,
-            @RequestBody UpdateSaleRequest request
-    ) {
+            @RequestBody UpdateSaleRequest request) {
         return saleCommandApi.updateSale(
-                saleId,
-                request.saleDate(),
-                request.notes(),
-                request.toLineItemInputs()
-        );
+                saleId, request.saleDate(), request.notes(), request.toLineItemInputs());
     }
 
     @DeleteMapping("/{saleId}")
-    public ResponseEntity<Void> deleteSale(
-            @PathVariable Long labelId,
-            @PathVariable Long saleId
-    ) {
+    public ResponseEntity<Void> deleteSale(@PathVariable Long labelId, @PathVariable Long saleId) {
         saleCommandApi.deleteSale(saleId);
         return ResponseEntity.noContent().build();
     }
 
-    @ExceptionHandler({IllegalStateException.class, IllegalArgumentException.class,
-            InsufficientInventoryException.class})
+    @ExceptionHandler({
+        IllegalStateException.class,
+        IllegalArgumentException.class,
+        InsufficientInventoryException.class
+    })
     public ResponseEntity<Void> handleBadRequest() {
         return ResponseEntity.badRequest().build();
     }
 
     private SaleDetailResponse toDetailResponse(Sale sale) {
-        var lineItems = sale.lineItems().stream()
-                .map(this::enrichLineItem)
-                .toList();
+        var lineItems = sale.lineItems().stream().map(this::enrichLineItem).toList();
         return new SaleDetailResponse(
-                sale.id(), sale.labelId(), sale.distributorId(), sale.saleDate(),
-                sale.channel(), sale.notes(), sale.totalAmount(), lineItems
-        );
+                sale.id(),
+                sale.labelId(),
+                sale.distributorId(),
+                sale.saleDate(),
+                sale.channel(),
+                sale.notes(),
+                sale.totalAmount(),
+                lineItems);
     }
 
     private EnrichedLineItem enrichLineItem(SaleLineItem item) {
-        var releaseName = releaseQueryApi.findById(item.releaseId())
-                .map(r -> r.name())
-                .orElse("Unknown");
+        var releaseName =
+                releaseQueryApi.findById(item.releaseId()).map(r -> r.name()).orElse("Unknown");
         return new EnrichedLineItem(
-                item.id(), item.releaseId(), releaseName,
-                item.format(), item.quantity(), item.unitPrice(), item.lineTotal()
-        );
+                item.id(),
+                item.releaseId(),
+                releaseName,
+                item.format(),
+                item.quantity(),
+                item.unitPrice(),
+                item.lineTotal());
     }
 }

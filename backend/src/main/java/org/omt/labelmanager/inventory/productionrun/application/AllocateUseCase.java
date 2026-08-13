@@ -24,8 +24,7 @@ class AllocateUseCase {
     AllocateUseCase(
             ProductionRunRepository repository,
             InventoryMovementQueryApi inventoryMovementQueryApi,
-            InventoryMovementCommandApi inventoryMovementCommandApi
-    ) {
+            InventoryMovementCommandApi inventoryMovementCommandApi) {
         this.repository = repository;
         this.inventoryMovementQueryApi = inventoryMovementQueryApi;
         this.inventoryMovementCommandApi = inventoryMovementCommandApi;
@@ -33,18 +32,24 @@ class AllocateUseCase {
 
     @Transactional
     public void execute(Long productionRunId, InventoryLocation toLocation, int quantity) {
-        ProductionRun run = repository.findById(productionRunId)
-                .map(ProductionRun::fromEntity)
-                .orElseThrow(() -> new IllegalArgumentException(
-                        "Production run not found: " + productionRunId
-                ));
+        ProductionRun run =
+                repository
+                        .findById(productionRunId)
+                        .map(ProductionRun::fromEntity)
+                        .orElseThrow(
+                                () ->
+                                        new IllegalArgumentException(
+                                                "Production run not found: " + productionRunId));
 
         int warehouseDelta = inventoryMovementQueryApi.getWarehouseInventory(productionRunId);
         int available = run.quantity() + warehouseDelta;
 
         if (quantity > available) {
-            log.warn("Allocation rejected: requested {} but only {} available for run {}",
-                    quantity, available, productionRunId);
+            log.warn(
+                    "Allocation rejected: requested {} but only {} available for run {}",
+                    quantity,
+                    available,
+                    productionRunId);
             throw new InsufficientInventoryException(quantity, available);
         }
 
@@ -54,7 +59,6 @@ class AllocateUseCase {
                 toLocation,
                 quantity,
                 MovementType.ALLOCATION,
-                null
-        );
+                null);
     }
 }

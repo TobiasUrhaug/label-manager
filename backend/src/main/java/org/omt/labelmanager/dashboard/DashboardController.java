@@ -1,5 +1,6 @@
 package org.omt.labelmanager.dashboard;
 
+import java.util.List;
 import org.omt.labelmanager.catalog.artist.api.ArtistQueryApi;
 import org.omt.labelmanager.catalog.artist.domain.Artist;
 import org.omt.labelmanager.catalog.label.api.LabelQueryApi;
@@ -12,8 +13,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
-
 @RestController
 @RequestMapping("/api/dashboard")
 public class DashboardController {
@@ -23,10 +22,7 @@ public class DashboardController {
     private final LabelQueryApi labelQueryFacade;
     private final ArtistQueryApi artistQueryApi;
 
-    public DashboardController(
-            LabelQueryApi labelQueryFacade,
-            ArtistQueryApi artistQueryApi
-    ) {
+    public DashboardController(LabelQueryApi labelQueryFacade, ArtistQueryApi artistQueryApi) {
         this.labelQueryFacade = labelQueryFacade;
         this.artistQueryApi = artistQueryApi;
     }
@@ -40,5 +36,4 @@ public class DashboardController {
         var artists = artistQueryApi.getArtistsForUser(user.getId());
         return new DashboardResponse(labels, artists);
     }
-
 }

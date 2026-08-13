@@ -1,8 +1,7 @@
 package org.omt.labelmanager.finance.cost.domain;
 
-import org.omt.labelmanager.finance.domain.shared.Money;
-
 import java.time.LocalDate;
+import org.omt.labelmanager.finance.domain.shared.Money;
 
 public record Cost(
         Long id,
@@ -14,6 +13,4 @@ public record Cost(
         String description,
         CostOwner owner,
         String documentReference,
-        String documentStorageKey
-) {
-}
+        String documentStorageKey) {}

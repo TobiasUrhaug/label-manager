@@ -1,10 +1,9 @@
 package org.omt.labelmanager.catalog.label;
 
+import java.util.concurrent.atomic.AtomicLong;
 import org.omt.labelmanager.catalog.domain.shared.Address;
 import org.omt.labelmanager.catalog.domain.shared.Person;
 import org.omt.labelmanager.catalog.label.domain.Label;
-
-import java.util.concurrent.atomic.AtomicLong;
 
 public final class LabelFactory {
 
@@ -34,8 +33,7 @@ public final class LabelFactory {
         private Person owner = null;
         private Long userId = 1L;
 
-        private Builder() {
-        }
+        private Builder() {}
 
         public Builder id(Long id) {
             this.id = id;

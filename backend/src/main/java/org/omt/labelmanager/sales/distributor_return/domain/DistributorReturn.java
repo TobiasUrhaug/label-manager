@@ -5,8 +5,8 @@ import java.time.LocalDate;
 import java.util.List;
 
 /**
- * Represents a return of physical inventory from a distributor back to the label's warehouse.
- * Each return belongs to a label and is attributed to a specific distributor.
+ * Represents a return of physical inventory from a distributor back to the label's warehouse. Each
+ * return belongs to a label and is attributed to a specific distributor.
  */
 public record DistributorReturn(
         Long id,
@@ -15,6 +15,4 @@ public record DistributorReturn(
         LocalDate returnDate,
         String notes,
         List<ReturnLineItem> lineItems,
-        Instant createdAt
-) {
-}
+        Instant createdAt) {}

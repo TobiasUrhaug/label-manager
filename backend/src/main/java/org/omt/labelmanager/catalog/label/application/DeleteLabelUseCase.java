@@ -9,8 +9,7 @@ import org.springframework.stereotype.Service;
 @Service
 class DeleteLabelUseCase {
 
-    private static final Logger log =
-            LoggerFactory.getLogger(DeleteLabelUseCase.class);
+    private static final Logger log = LoggerFactory.getLogger(DeleteLabelUseCase.class);
 
     private final LabelRepository repository;
 

@@ -12,17 +12,13 @@ public class CostMapper {
         return new Cost(
                 entity.getId(),
                 new Money(entity.getNetAmount(), currency),
-                new VatAmount(
-                        new Money(entity.getVatAmount(), currency),
-                        entity.getVatRate()
-                ),
+                new VatAmount(new Money(entity.getVatAmount(), currency), entity.getVatRate()),
                 new Money(entity.getGrossAmount(), currency),
                 entity.getCostType(),
                 entity.getIncurredOn(),
                 entity.getDescription(),
                 entity.getOwner().toCostOwner(),
                 entity.getDocumentReference(),
-                entity.getDocumentStorageKey()
-        );
+                entity.getDocumentStorageKey());
     }
 }

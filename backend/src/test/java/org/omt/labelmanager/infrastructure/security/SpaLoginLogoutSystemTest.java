@@ -8,8 +8,8 @@ import org.omt.labelmanager.AbstractIntegrationTest;
 import org.omt.labelmanager.identity.application.UserCRUDHandler;
 import org.omt.labelmanager.identity.domain.user.EmailAlreadyExistsException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureTestRestTemplate;
 import org.springframework.boot.resttestclient.TestRestTemplate;
+import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureTestRestTemplate;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -24,11 +24,9 @@ import org.springframework.util.MultiValueMap;
 @AutoConfigureTestRestTemplate
 class SpaLoginLogoutSystemTest extends AbstractIntegrationTest {
 
-    @Autowired
-    private TestRestTemplate restTemplate;
+    @Autowired private TestRestTemplate restTemplate;
 
-    @Autowired
-    private UserCRUDHandler userCRUDHandler;
+    @Autowired private UserCRUDHandler userCRUDHandler;
 
     @BeforeEach
     void createTestUser() {
@@ -52,8 +50,8 @@ class SpaLoginLogoutSystemTest extends AbstractIntegrationTest {
         body.add("username", "login@example.com");
         body.add("password", "password123");
 
-        ResponseEntity<Void> response = restTemplate.postForEntity(
-                "/login", new HttpEntity<>(body, headers), Void.class);
+        ResponseEntity<Void> response =
+                restTemplate.postForEntity("/login", new HttpEntity<>(body, headers), Void.class);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getHeaders().get(HttpHeaders.SET_COOKIE))
@@ -73,12 +71,16 @@ class SpaLoginLogoutSystemTest extends AbstractIntegrationTest {
         body.add("username", "login@example.com");
         body.add("password", "wrongpassword");
 
-        ResponseEntity<String> response = restTemplate.postForEntity(
-                "/login", new HttpEntity<>(body, headers), String.class);
+        ResponseEntity<String> response =
+                restTemplate.postForEntity("/login", new HttpEntity<>(body, headers), String.class);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
         assertThat(response.getHeaders().getContentType()).isNotNull();
-        assertThat(response.getHeaders().getContentType().isCompatibleWith(MediaType.APPLICATION_JSON)).isTrue();
+        assertThat(
+                        response.getHeaders()
+                                .getContentType()
+                                .isCompatibleWith(MediaType.APPLICATION_JSON))
+                .isTrue();
         assertThat(response.getBody()).contains("Invalid credentials.");
     }
 
@@ -88,7 +90,11 @@ class SpaLoginLogoutSystemTest extends AbstractIntegrationTest {
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
         assertThat(response.getHeaders().getContentType()).isNotNull();
-        assertThat(response.getHeaders().getContentType().isCompatibleWith(MediaType.APPLICATION_JSON)).isTrue();
+        assertThat(
+                        response.getHeaders()
+                                .getContentType()
+                                .isCompatibleWith(MediaType.APPLICATION_JSON))
+                .isTrue();
         assertThat(response.getBody()).contains("message");
     }
 
@@ -98,19 +104,24 @@ class SpaLoginLogoutSystemTest extends AbstractIntegrationTest {
         String xsrfToken = fetchXsrfTokenForSession(jsessionId);
 
         HttpHeaders logoutHeaders = new HttpHeaders();
-        logoutHeaders.add(HttpHeaders.COOKIE,
-                "XSRF-TOKEN=" + xsrfToken + "; JSESSIONID=" + jsessionId);
+        logoutHeaders.add(
+                HttpHeaders.COOKIE, "XSRF-TOKEN=" + xsrfToken + "; JSESSIONID=" + jsessionId);
         logoutHeaders.add("X-XSRF-TOKEN", xsrfToken);
 
-        ResponseEntity<Void> response = restTemplate.exchange(
-                "/logout", HttpMethod.POST, new HttpEntity<>(logoutHeaders), Void.class);
+        ResponseEntity<Void> response =
+                restTemplate.exchange(
+                        "/logout", HttpMethod.POST, new HttpEntity<>(logoutHeaders), Void.class);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
 
         HttpHeaders staleHeaders = new HttpHeaders();
         staleHeaders.add(HttpHeaders.COOKIE, "JSESSIONID=" + jsessionId);
-        ResponseEntity<String> staleResponse = restTemplate.exchange(
-                "/api/session", HttpMethod.GET, new HttpEntity<>(staleHeaders), String.class);
+        ResponseEntity<String> staleResponse =
+                restTemplate.exchange(
+                        "/api/session",
+                        HttpMethod.GET,
+                        new HttpEntity<>(staleHeaders),
+                        String.class);
         assertThat(staleResponse.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
     }
 
@@ -126,8 +137,8 @@ class SpaLoginLogoutSystemTest extends AbstractIntegrationTest {
         body.add("username", username);
         body.add("password", password);
 
-        ResponseEntity<Void> loginResponse = restTemplate.postForEntity(
-                "/login", new HttpEntity<>(body, headers), Void.class);
+        ResponseEntity<Void> loginResponse =
+                restTemplate.postForEntity("/login", new HttpEntity<>(body, headers), Void.class);
 
         return extractCookieValue(loginResponse.getHeaders(), "JSESSIONID");
     }
@@ -135,13 +146,15 @@ class SpaLoginLogoutSystemTest extends AbstractIntegrationTest {
     private String fetchXsrfTokenForSession(String jsessionId) {
         HttpHeaders headers = new HttpHeaders();
         headers.add(HttpHeaders.COOKIE, "JSESSIONID=" + jsessionId);
-        ResponseEntity<String> response = restTemplate.exchange(
-                "/api/session", HttpMethod.GET, new HttpEntity<>(headers), String.class);
+        ResponseEntity<String> response =
+                restTemplate.exchange(
+                        "/api/session", HttpMethod.GET, new HttpEntity<>(headers), String.class);
         return extractCookieValue(response.getHeaders(), "XSRF-TOKEN");
     }
 
     private String fetchXsrfToken() {
-        ResponseEntity<String> getResponse = restTemplate.getForEntity("/api/session", String.class);
+        ResponseEntity<String> getResponse =
+                restTemplate.getForEntity("/api/session", String.class);
         return extractCookieValue(getResponse.getHeaders(), "XSRF-TOKEN");
     }
 

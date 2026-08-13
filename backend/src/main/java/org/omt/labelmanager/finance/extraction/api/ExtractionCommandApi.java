@@ -3,9 +3,7 @@ package org.omt.labelmanager.finance.extraction.api;
 import java.io.InputStream;
 import org.omt.labelmanager.finance.extraction.domain.ExtractedInvoiceData;
 
-/**
- * Command API for invoice data extraction operations.
- */
+/** Command API for invoice data extraction operations. */
 public interface ExtractionCommandApi {
 
     /**

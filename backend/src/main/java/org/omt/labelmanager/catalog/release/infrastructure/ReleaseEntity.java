@@ -13,9 +13,9 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.Table;
 import java.time.LocalDate;
-import org.omt.labelmanager.catalog.release.domain.ReleaseFormat;
 import java.util.HashSet;
 import java.util.Set;
+import org.omt.labelmanager.catalog.release.domain.ReleaseFormat;
 
 @Entity
 @Table(name = "release")
@@ -33,22 +33,14 @@ public class ReleaseEntity {
     private Long labelId;
 
     @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(
-            name = "release_format",
-            joinColumns = @JoinColumn(name = "release_id")
-    )
+    @CollectionTable(name = "release_format", joinColumns = @JoinColumn(name = "release_id"))
     @Column(name = "format")
     @Enumerated(EnumType.STRING)
     private Set<ReleaseFormat> formats = new HashSet<>();
 
     public ReleaseEntity() {}
 
-    public ReleaseEntity(
-            Long id,
-            String name,
-            LocalDate releaseDate,
-            Long labelId
-    ) {
+    public ReleaseEntity(Long id, String name, LocalDate releaseDate, Long labelId) {
         this.id = id;
         this.name = name;
         this.releaseDate = releaseDate;

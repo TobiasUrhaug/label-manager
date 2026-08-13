@@ -18,8 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 class CreateReleaseUseCase {
 
-    private static final Logger log =
-            LoggerFactory.getLogger(CreateReleaseUseCase.class);
+    private static final Logger log = LoggerFactory.getLogger(CreateReleaseUseCase.class);
 
     private final ReleaseRepository releaseRepository;
     private final LabelQueryApi labelQueryFacade;
@@ -30,8 +29,7 @@ class CreateReleaseUseCase {
             ReleaseRepository releaseRepository,
             LabelQueryApi labelQueryFacade,
             ReleaseArtistRepository releaseArtistRepository,
-            CreateTracksUseCase createTracks
-    ) {
+            CreateTracksUseCase createTracks) {
         this.releaseRepository = releaseRepository;
         this.labelQueryFacade = labelQueryFacade;
         this.releaseArtistRepository = releaseArtistRepository;
@@ -45,62 +43,35 @@ class CreateReleaseUseCase {
             Long labelId,
             List<Long> artistIds,
             List<TrackInput> tracks,
-            Set<ReleaseFormat> formats
-    ) {
-        log.info(
-                "Creating release '{}' for label {} with {} tracks",
-                name,
-                labelId,
-                tracks.size()
-        );
+            Set<ReleaseFormat> formats) {
+        log.info("Creating release '{}' for label {} with {} tracks", name, labelId, tracks.size());
         requireAtLeastOneTrack(tracks, name);
 
         if (!labelQueryFacade.exists(labelId)) {
-            log.warn(
-                    "Cannot create release: label {} not found",
-                    labelId
-            );
+            log.warn("Cannot create release: label {} not found", labelId);
             throw new IllegalArgumentException("Label not found");
         }
 
-        ReleaseEntity release = createReleaseEntity(
-                name, releaseDate, formats, labelId
-        );
+        ReleaseEntity release = createReleaseEntity(name, releaseDate, formats, labelId);
         releaseRepository.save(release);
 
-        log.debug(
-                "Found {} artists for release", artistIds.size()
-        );
+        log.debug("Found {} artists for release", artistIds.size());
         for (Long artistId : artistIds) {
-            releaseArtistRepository.addArtistToRelease(
-                    release.getId(), artistId
-            );
+            releaseArtistRepository.addArtistToRelease(release.getId(), artistId);
         }
 
         createTracks.createTracksForRelease(tracks, release.getId());
     }
 
-    private void requireAtLeastOneTrack(
-            List<TrackInput> tracks,
-            String releaseIdentifier
-    ) {
+    private void requireAtLeastOneTrack(List<TrackInput> tracks, String releaseIdentifier) {
         if (tracks.isEmpty()) {
-            log.warn(
-                    "Release '{}' requires at least one track",
-                    releaseIdentifier
-            );
-            throw new IllegalArgumentException(
-                    "At least one track is required"
-            );
+            log.warn("Release '{}' requires at least one track", releaseIdentifier);
+            throw new IllegalArgumentException("At least one track is required");
         }
     }
 
     private static ReleaseEntity createReleaseEntity(
-            String name,
-            LocalDate releaseDate,
-            Set<ReleaseFormat> formats,
-            Long labelId
-    ) {
+            String name, LocalDate releaseDate, Set<ReleaseFormat> formats, Long labelId) {
         ReleaseEntity release = new ReleaseEntity();
         release.setName(name);
         release.setReleaseDate(releaseDate);

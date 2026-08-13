@@ -1,18 +1,5 @@
 package org.omt.labelmanager.finance.extraction.infrastructure;
 
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.MediaType;
-import org.springframework.test.web.client.MockRestServiceServer;
-import org.springframework.web.client.RestClient;
-import org.springframework.web.client.RestTemplate;
-
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.math.BigDecimal;
-import java.time.LocalDate;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
@@ -20,7 +7,18 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withServiceUnavailable;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.omt.labelmanager.finance.extraction.domain.ExtractedInvoiceData;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
+import org.springframework.test.web.client.MockRestServiceServer;
+import org.springframework.web.client.RestClient;
+import org.springframework.web.client.RestTemplate;
 
 class ExternalInvoiceParserAdapterTest {
 
@@ -39,7 +37,9 @@ class ExternalInvoiceParserAdapterTest {
     void mapsFullResponseToExtractedInvoiceData() {
         server.expect(requestTo("http://test/api/v1/extract"))
                 .andExpect(method(HttpMethod.POST))
-                .andRespond(withSuccess("""
+                .andRespond(
+                        withSuccess(
+                                """
                         {
                             "invoiceDate": "2024-03-15",
                             "invoiceReference": "INV-001",
@@ -47,9 +47,11 @@ class ExternalInvoiceParserAdapterTest {
                             "vatAmount": {"amount": "250.00", "currency": "NOK"},
                             "totalAmount": {"amount": "1250.00", "currency": "NOK"}
                         }
-                        """, MediaType.APPLICATION_JSON));
+                        """,
+                                MediaType.APPLICATION_JSON));
 
-        var result = adapter.extract(new ByteArrayInputStream(new byte[]{1, 2, 3}), "application/pdf");
+        var result =
+                adapter.extract(new ByteArrayInputStream(new byte[] {1, 2, 3}), "application/pdf");
 
         assertThat(result.invoiceDate()).isEqualTo(LocalDate.of(2024, 3, 15));
         assertThat(result.invoiceReference()).isEqualTo("INV-001");
@@ -64,7 +66,9 @@ class ExternalInvoiceParserAdapterTest {
     void propagatesNullFields_whenResponseIsPartial() {
         server.expect(requestTo("http://test/api/v1/extract"))
                 .andExpect(method(HttpMethod.POST))
-                .andRespond(withSuccess("""
+                .andRespond(
+                        withSuccess(
+                                """
                         {
                             "invoiceDate": null,
                             "invoiceReference": "INV-002",
@@ -72,9 +76,11 @@ class ExternalInvoiceParserAdapterTest {
                             "vatAmount": null,
                             "totalAmount": null
                         }
-                        """, MediaType.APPLICATION_JSON));
+                        """,
+                                MediaType.APPLICATION_JSON));
 
-        var result = adapter.extract(new ByteArrayInputStream(new byte[]{1, 2, 3}), "application/pdf");
+        var result =
+                adapter.extract(new ByteArrayInputStream(new byte[] {1, 2, 3}), "application/pdf");
 
         assertThat(result.invoiceDate()).isNull();
         assertThat(result.invoiceReference()).isEqualTo("INV-002");
@@ -91,7 +97,8 @@ class ExternalInvoiceParserAdapterTest {
                 .andExpect(method(HttpMethod.POST))
                 .andRespond(withBadRequest());
 
-        var result = adapter.extract(new ByteArrayInputStream(new byte[]{1, 2, 3}), "application/pdf");
+        var result =
+                adapter.extract(new ByteArrayInputStream(new byte[] {1, 2, 3}), "application/pdf");
 
         assertThat(result).isEqualTo(ExtractedInvoiceData.empty());
     }
@@ -102,7 +109,8 @@ class ExternalInvoiceParserAdapterTest {
                 .andExpect(method(HttpMethod.POST))
                 .andRespond(withServiceUnavailable());
 
-        var result = adapter.extract(new ByteArrayInputStream(new byte[]{1, 2, 3}), "application/pdf");
+        var result =
+                adapter.extract(new ByteArrayInputStream(new byte[] {1, 2, 3}), "application/pdf");
 
         assertThat(result).isEqualTo(ExtractedInvoiceData.empty());
     }
@@ -111,9 +119,13 @@ class ExternalInvoiceParserAdapterTest {
     void returnsEmptyData_whenNetworkErrorOccurs() {
         server.expect(requestTo("http://test/api/v1/extract"))
                 .andExpect(method(HttpMethod.POST))
-                .andRespond(request -> { throw new IOException("Connection refused"); });
+                .andRespond(
+                        request -> {
+                            throw new IOException("Connection refused");
+                        });
 
-        var result = adapter.extract(new ByteArrayInputStream(new byte[]{1, 2, 3}), "application/pdf");
+        var result =
+                adapter.extract(new ByteArrayInputStream(new byte[] {1, 2, 3}), "application/pdf");
 
         assertThat(result).isEqualTo(ExtractedInvoiceData.empty());
     }

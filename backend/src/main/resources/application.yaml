@@ -11,9 +11,11 @@ spring:
     password: ${DATABASE_PASSWORD:dev}
     driver-class-name: org.postgresql.Driver
   mvc:
-    hiddenmethod:
-      filter:
-        enabled: true
+    # Render Spring's own exceptions (e.g. ResponseStatusException) as RFC 9457 ProblemDetail,
+    # matching ApiExceptionHandler. The hiddenmethod filter was a Thymeleaf form _method shim
+    # and was removed with the templates.
+    problemdetails:
+      enabled: true
   jpa:
     hibernate:
       ddl-auto: validate  # Flyway owns the schema
@@ -25,7 +27,8 @@ spring:
   flyway:
     enabled: true
     locations: classpath:db/migration
-    baseline-on-migrate: true
+    # No baseline-on-migrate: an unrecognised database should fail to start rather than be
+    # silently baselined at the current version, skipping every migration before it.
 
 server:
   tomcat:

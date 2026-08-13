@@ -1,17 +1,15 @@
 package org.omt.labelmanager.inventory.productionrun;
 
+import java.time.LocalDate;
 import org.omt.labelmanager.catalog.release.domain.ReleaseFormat;
 import org.omt.labelmanager.inventory.productionrun.domain.ProductionRun;
 import org.omt.labelmanager.inventory.productionrun.persistence.ProductionRunEntity;
 import org.omt.labelmanager.inventory.productionrun.persistence.ProductionRunRepository;
 import org.springframework.stereotype.Component;
 
-import java.time.LocalDate;
-
 /**
- * Public helper for creating test production run data.
- * Used by integration tests in other modules that need production run
- * fixtures.
+ * Public helper for creating test production run data. Used by integration tests in other modules
+ * that need production run fixtures.
  */
 @Component
 public class ProductionRunTestHelper {
@@ -22,19 +20,15 @@ public class ProductionRunTestHelper {
         this.repository = repository;
     }
 
-    public ProductionRun createProductionRun(
-            Long releaseId,
-            ReleaseFormat format,
-            int quantity
-    ) {
-        var entity = new ProductionRunEntity(
-                releaseId,
-                format,
-                "Test pressing",
-                "Test Manufacturer",
-                LocalDate.now(),
-                quantity
-        );
+    public ProductionRun createProductionRun(Long releaseId, ReleaseFormat format, int quantity) {
+        var entity =
+                new ProductionRunEntity(
+                        releaseId,
+                        format,
+                        "Test pressing",
+                        "Test Manufacturer",
+                        LocalDate.now(),
+                        quantity);
         entity = repository.save(entity);
         return ProductionRun.fromEntity(entity);
     }
@@ -45,16 +39,10 @@ public class ProductionRunTestHelper {
             String description,
             String manufacturer,
             LocalDate manufacturingDate,
-            int quantity
-    ) {
-        var entity = new ProductionRunEntity(
-                releaseId,
-                format,
-                description,
-                manufacturer,
-                manufacturingDate,
-                quantity
-        );
+            int quantity) {
+        var entity =
+                new ProductionRunEntity(
+                        releaseId, format, description, manufacturer, manufacturingDate, quantity);
         entity = repository.save(entity);
         return ProductionRun.fromEntity(entity);
     }

@@ -4,6 +4,18 @@ plugins {
 	jacoco
 	id("org.springframework.boot") version "4.0.0"
 	id("io.spring.dependency-management") version "1.1.7"
+	id("com.diffplug.spotless") version "7.0.2"
+}
+
+spotless {
+	java {
+		// AOSP variant: 4-space indent and a 100-column limit, matching the Indentation
+		// and LineLength rules in config/checkstyle/checkstyle.xml.
+		googleJavaFormat("1.28.0").aosp()
+		removeUnusedImports()
+		trimTrailingWhitespace()
+		endWithNewline()
+	}
 }
 
 group = "org.omt"
@@ -50,12 +62,15 @@ dependencies {
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.springframework.boot:spring-boot-resttestclient")
     testImplementation("org.springframework.security:spring-security-test")
-    testImplementation("org.testcontainers:testcontainers:1.20.1")
-    testImplementation("org.testcontainers:junit-jupiter:1.20.1")
-    testImplementation("org.testcontainers:postgresql:1.20.1")
+    // Testcontainers versions are managed by the Spring Boot BOM. Do not pin them:
+    // a pinned 1.20.1 negotiated Docker API v1.32, which engines with MinAPIVersion
+    // 1.40+ reject with a 400, making Testcontainers report "no valid Docker environment".
+    // Testcontainers 2.x prefixes its module artifacts: junit-jupiter -> testcontainers-junit-jupiter.
+    testImplementation("org.testcontainers:testcontainers")
+    testImplementation("org.testcontainers:testcontainers-junit-jupiter")
+    testImplementation("org.testcontainers:testcontainers-postgresql")
+    testImplementation("org.testcontainers:testcontainers-minio")
     testImplementation("org.junit.jupiter:junit-jupiter")
-    testImplementation("org.testcontainers:postgresql")
-    testImplementation("org.testcontainers:minio:1.20.1")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     testRuntimeOnly("com.h2database:h2")
 }

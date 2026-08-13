@@ -31,10 +31,8 @@ class UserTest {
 
     @Test
     void userFactory_builderOverridesDefaults() {
-        User user = UserFactory.anUser()
-                .email("custom@example.com")
-                .displayName("Custom User")
-                .build();
+        User user =
+                UserFactory.anUser().email("custom@example.com").displayName("Custom User").build();
 
         assertThat(user.email()).isEqualTo("custom@example.com");
         assertThat(user.displayName()).isEqualTo("Custom User");

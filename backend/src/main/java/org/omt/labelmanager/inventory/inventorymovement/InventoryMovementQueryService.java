@@ -62,28 +62,33 @@ class InventoryMovementQueryService implements InventoryMovementQueryApi {
         var movements = movementsFor(productionRunId);
 
         // Collect all distinct distributor IDs that appear in any movement
-        var distributorIds = movements.stream()
-                .flatMap(m -> {
-                    Stream.Builder<Long> ids = Stream.builder();
-                    if (m.fromLocationType() == LocationType.DISTRIBUTOR
-                            && m.fromLocationId() != null) {
-                        ids.add(m.fromLocationId());
-                    }
-                    if (m.toLocationType() == LocationType.DISTRIBUTOR
-                            && m.toLocationId() != null) {
-                        ids.add(m.toLocationId());
-                    }
-                    return ids.build();
-                })
-                .collect(Collectors.toSet());
+        var distributorIds =
+                movements.stream()
+                        .flatMap(
+                                m -> {
+                                    Stream.Builder<Long> ids = Stream.builder();
+                                    if (m.fromLocationType() == LocationType.DISTRIBUTOR
+                                            && m.fromLocationId() != null) {
+                                        ids.add(m.fromLocationId());
+                                    }
+                                    if (m.toLocationType() == LocationType.DISTRIBUTOR
+                                            && m.toLocationId() != null) {
+                                        ids.add(m.toLocationId());
+                                    }
+                                    return ids.build();
+                                })
+                        .collect(Collectors.toSet());
 
         return distributorIds.stream()
-                .collect(Collectors.toMap(
-                        id -> id,
-                        id -> sumQuantityTo(movements, LocationType.DISTRIBUTOR, id)
-                                - sumQuantityFrom(movements, LocationType.DISTRIBUTOR, id)
-                ))
-                .entrySet().stream()
+                .collect(
+                        Collectors.toMap(
+                                id -> id,
+                                id ->
+                                        sumQuantityTo(movements, LocationType.DISTRIBUTOR, id)
+                                                - sumQuantityFrom(
+                                                        movements, LocationType.DISTRIBUTOR, id)))
+                .entrySet()
+                .stream()
                 .filter(e -> e.getValue() > 0)
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
@@ -95,30 +100,31 @@ class InventoryMovementQueryService implements InventoryMovementQueryApi {
     }
 
     private int sumQuantityTo(
-            List<InventoryMovement> movements,
-            LocationType locationType,
-            Long locationId
-    ) {
+            List<InventoryMovement> movements, LocationType locationType, Long locationId) {
         return movements.stream()
-                .filter(m -> m.toLocationType() == locationType
-                        && locationIdMatches(m.toLocationId(), locationId))
+                .filter(
+                        m ->
+                                m.toLocationType() == locationType
+                                        && locationIdMatches(m.toLocationId(), locationId))
                 .mapToInt(InventoryMovement::quantity)
                 .sum();
     }
 
     private int sumQuantityFrom(
-            List<InventoryMovement> movements,
-            LocationType locationType,
-            Long locationId
-    ) {
+            List<InventoryMovement> movements, LocationType locationType, Long locationId) {
         return movements.stream()
-                .filter(m -> m.fromLocationType() == locationType
-                        && locationIdMatches(m.fromLocationId(), locationId))
+                .filter(
+                        m ->
+                                m.fromLocationType() == locationType
+                                        && locationIdMatches(m.fromLocationId(), locationId))
                 .mapToInt(InventoryMovement::quantity)
                 .sum();
     }
 
-    /** When no specific location ID is expected (WAREHOUSE, BANDCAMP, EXTERNAL), match by type alone. */
+    /**
+     * When no specific location ID is expected (WAREHOUSE, BANDCAMP, EXTERNAL), match by type
+     * alone.
+     */
     private boolean locationIdMatches(Long actual, Long expected) {
         if (expected == null) {
             return true;

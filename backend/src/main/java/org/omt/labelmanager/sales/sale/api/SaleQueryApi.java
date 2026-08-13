@@ -1,14 +1,11 @@
 package org.omt.labelmanager.sales.sale.api;
 
+import java.util.List;
+import java.util.Optional;
 import org.omt.labelmanager.finance.domain.shared.Money;
 import org.omt.labelmanager.sales.sale.domain.Sale;
 
-import java.util.List;
-import java.util.Optional;
-
-/**
- * Public API for sale query operations.
- */
+/** Public API for sale query operations. */
 public interface SaleQueryApi {
 
     /**
@@ -28,8 +25,8 @@ public interface SaleQueryApi {
     List<Sale> getSalesForDistributor(Long distributorId);
 
     /**
-     * Get all sales that contain a line item from the given production run,
-     * ordered by date (newest first).
+     * Get all sales that contain a line item from the given production run, ordered by date (newest
+     * first).
      *
      * @param productionRunId the production run ID
      * @return list of sales

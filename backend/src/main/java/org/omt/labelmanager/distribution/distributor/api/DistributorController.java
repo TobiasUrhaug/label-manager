@@ -1,6 +1,7 @@
 package org.omt.labelmanager.distribution.distributor.api;
 
 import jakarta.persistence.EntityNotFoundException;
+import java.util.List;
 import org.omt.labelmanager.catalog.label.api.LabelQueryApi;
 import org.omt.labelmanager.catalog.release.api.ReleaseQueryApi;
 import org.omt.labelmanager.distribution.agreement.PricingAgreement;
@@ -21,8 +22,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/labels/{labelId}/distributors")
@@ -45,8 +44,7 @@ public class DistributorController {
             DistributorReturnQueryApi returnQueryApi,
             AgreementQueryApi agreementQueryApi,
             ProductionRunQueryApi productionRunQueryApi,
-            ReleaseQueryApi releaseQueryApi
-    ) {
+            ReleaseQueryApi releaseQueryApi) {
         this.commandApi = commandApi;
         this.distributorQueryApi = distributorQueryApi;
         this.labelQueryApi = labelQueryApi;
@@ -63,55 +61,57 @@ public class DistributorController {
             Distributor distributor,
             List<Sale> sales,
             List<DistributorReturn> returns,
-            List<AgreementView> agreements
-    ) {}
+            List<AgreementView> agreements) {}
 
     @GetMapping("/{distributorId}")
     public DistributorDetailResponse showDistributor(
-            @PathVariable Long labelId,
-            @PathVariable Long distributorId
-    ) {
-        labelQueryApi.findById(labelId)
+            @PathVariable Long labelId, @PathVariable Long distributorId) {
+        labelQueryApi
+                .findById(labelId)
                 .orElseThrow(() -> new EntityNotFoundException("Label not found"));
-        var distributor = distributorQueryApi.findById(distributorId)
-                .filter(d -> d.labelId().equals(labelId))
-                .orElseThrow(() -> new EntityNotFoundException("Distributor not found"));
+        var distributor =
+                distributorQueryApi
+                        .findById(distributorId)
+                        .filter(d -> d.labelId().equals(labelId))
+                        .orElseThrow(() -> new EntityNotFoundException("Distributor not found"));
         var sales = saleQueryApi.getSalesForDistributor(distributorId);
         var returns = returnQueryApi.getReturnsForDistributor(distributorId);
-        var agreements = agreementQueryApi.findByDistributorId(distributorId).stream()
-                .map(this::enrichAgreement)
-                .toList();
+        var agreements =
+                agreementQueryApi.findByDistributorId(distributorId).stream()
+                        .map(this::enrichAgreement)
+                        .toList();
 
         return new DistributorDetailResponse(distributor, sales, returns, agreements);
     }
 
     @PostMapping
     public ResponseEntity<Void> addDistributor(
-            @PathVariable Long labelId,
-            @RequestBody AddDistributorRequest request
-    ) {
+            @PathVariable Long labelId, @RequestBody AddDistributorRequest request) {
         commandApi.createDistributor(labelId, request.name(), request.channelType());
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
     @DeleteMapping("/{distributorId}")
     public ResponseEntity<Void> deleteDistributor(
-            @PathVariable Long labelId,
-            @PathVariable Long distributorId
-    ) {
+            @PathVariable Long labelId, @PathVariable Long distributorId) {
         commandApi.delete(distributorId);
         return ResponseEntity.noContent().build();
     }
 
     private AgreementView enrichAgreement(PricingAgreement agreement) {
-        var displayName = productionRunQueryApi.findById(agreement.productionRunId())
-                .map(run -> {
-                    var title = releaseQueryApi.findById(run.releaseId())
-                            .map(r -> r.name())
-                            .orElse("Unknown Release");
-                    return title + " \u2013 " + run.format();
-                })
-                .orElse("Unknown");
+        var displayName =
+                productionRunQueryApi
+                        .findById(agreement.productionRunId())
+                        .map(
+                                run -> {
+                                    var title =
+                                            releaseQueryApi
+                                                    .findById(run.releaseId())
+                                                    .map(r -> r.name())
+                                                    .orElse("Unknown Release");
+                                    return title + " – " + run.format();
+                                })
+                        .orElse("Unknown");
         return new AgreementView(agreement, displayName);
     }
 }

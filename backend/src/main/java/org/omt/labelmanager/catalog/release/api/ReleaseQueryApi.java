@@ -11,5 +11,4 @@ public interface ReleaseQueryApi {
     List<Release> getReleasesForLabel(Long labelId);
 
     boolean exists(Long id);
-
 }

@@ -17,13 +17,11 @@ import org.springframework.test.web.servlet.MockMvc;
 @Import(org.omt.labelmanager.infrastructure.security.SecurityConfig.class)
 class SessionControllerTest {
 
-    @Autowired
-    private MockMvc mockMvc;
+    @Autowired private MockMvc mockMvc;
 
     @Test
     void authenticatedRequest_returnsUsername() throws Exception {
-        mockMvc.perform(get("/api/session")
-                        .with(user("user@example.com")))
+        mockMvc.perform(get("/api/session").with(user("user@example.com")))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.username").value("user@example.com"));
@@ -31,7 +29,6 @@ class SessionControllerTest {
 
     @Test
     void unauthenticatedRequest_returns401() throws Exception {
-        mockMvc.perform(get("/api/session"))
-                .andExpect(status().isUnauthorized());
+        mockMvc.perform(get("/api/session")).andExpect(status().isUnauthorized());
     }
 }

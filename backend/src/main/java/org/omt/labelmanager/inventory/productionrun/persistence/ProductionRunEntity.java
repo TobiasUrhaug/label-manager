@@ -1,9 +1,15 @@
 package org.omt.labelmanager.inventory.productionrun.persistence;
 
-import jakarta.persistence.*;
-import org.omt.labelmanager.catalog.release.domain.ReleaseFormat;
-
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import java.time.LocalDate;
+import org.omt.labelmanager.catalog.release.domain.ReleaseFormat;
 
 @Entity
 @Table(name = "production_run")
@@ -31,8 +37,7 @@ public class ProductionRunEntity {
     @Column(nullable = false)
     private int quantity;
 
-    protected ProductionRunEntity() {
-    }
+    protected ProductionRunEntity() {}
 
     public ProductionRunEntity(
             Long releaseId,
@@ -40,8 +45,7 @@ public class ProductionRunEntity {
             String description,
             String manufacturer,
             LocalDate manufacturingDate,
-            int quantity
-    ) {
+            int quantity) {
         this.releaseId = releaseId;
         this.format = format;
         this.description = description;

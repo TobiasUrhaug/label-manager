@@ -14,18 +14,13 @@ public class WithMockAppUserSecurityContextFactory
     public SecurityContext createSecurityContext(WithMockAppUser annotation) {
         SecurityContext context = SecurityContextHolder.createEmptyContext();
 
-        AppUserDetails principal = new AppUserDetails(
-                annotation.id(),
-                annotation.email(),
-                "password",
-                annotation.displayName()
-        );
+        AppUserDetails principal =
+                new AppUserDetails(
+                        annotation.id(), annotation.email(), "password", annotation.displayName());
 
-        Authentication auth = new UsernamePasswordAuthenticationToken(
-                principal,
-                "password",
-                principal.getAuthorities()
-        );
+        Authentication auth =
+                new UsernamePasswordAuthenticationToken(
+                        principal, "password", principal.getAuthorities());
 
         context.setAuthentication(auth);
         return context;

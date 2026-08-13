@@ -19,31 +19,21 @@ class BuildTracksUseCase {
     BuildTracksUseCase(
             TrackRepository trackRepository,
             TrackArtistRepository trackArtistRepository,
-            TrackRemixerRepository trackRemixerRepository
-    ) {
+            TrackRemixerRepository trackRemixerRepository) {
         this.trackRepository = trackRepository;
         this.trackArtistRepository = trackArtistRepository;
         this.trackRemixerRepository = trackRemixerRepository;
     }
 
     public List<Track> buildTracksForRelease(Long releaseId) {
-        List<TrackEntity> trackEntities =
-                trackRepository.findByReleaseIdOrderByPosition(releaseId);
+        List<TrackEntity> trackEntities = trackRepository.findByReleaseIdOrderByPosition(releaseId);
 
-        return trackEntities.stream()
-                .map(this::buildTrack)
-                .toList();
+        return trackEntities.stream().map(this::buildTrack).toList();
     }
 
     private Track buildTrack(TrackEntity trackEntity) {
-        List<Long> artistIds =
-                trackArtistRepository.findArtistIdsByTrackId(
-                        trackEntity.getId()
-                );
-        List<Long> remixerIds =
-                trackRemixerRepository.findRemixerIdsByTrackId(
-                        trackEntity.getId()
-                );
+        List<Long> artistIds = trackArtistRepository.findArtistIdsByTrackId(trackEntity.getId());
+        List<Long> remixerIds = trackRemixerRepository.findRemixerIdsByTrackId(trackEntity.getId());
 
         return TrackMapper.fromEntity(trackEntity, artistIds, remixerIds);
     }

@@ -37,8 +37,7 @@ class RegisterReturnUseCase {
             DistributorQueryApi distributorQueryApi,
             InventoryMovementCommandApi inventoryMovementCommandApi,
             ReturnLineItemProcessor lineItemProcessor,
-            ReturnConverter returnConverter
-    ) {
+            ReturnConverter returnConverter) {
         this.returnRepository = returnRepository;
         this.labelQueryApi = labelQueryApi;
         this.distributorQueryApi = distributorQueryApi;
@@ -53,14 +52,16 @@ class RegisterReturnUseCase {
             Long distributorId,
             LocalDate returnDate,
             String notes,
-            List<ReturnLineItemInput> lineItems
-    ) {
+            List<ReturnLineItemInput> lineItems) {
         if (lineItems == null || lineItems.isEmpty()) {
             throw new IllegalArgumentException("Return must contain at least one line item");
         }
 
-        log.info("Registering return for label {} from distributor {} with {} line items",
-                labelId, distributorId, lineItems.size());
+        log.info(
+                "Registering return for label {} from distributor {} with {} line items",
+                labelId,
+                distributorId,
+                lineItems.size());
 
         // 1. Validate label exists
         if (!labelQueryApi.exists(labelId)) {
@@ -68,12 +69,16 @@ class RegisterReturnUseCase {
         }
 
         // 2. Validate distributor belongs to this label
-        distributorQueryApi.findById(distributorId)
+        distributorQueryApi
+                .findById(distributorId)
                 .filter(d -> d.labelId().equals(labelId))
-                .orElseThrow(() -> new EntityNotFoundException(
-                        "Distributor " + distributorId
-                                + " not found for label " + labelId
-                ));
+                .orElseThrow(
+                        () ->
+                                new EntityNotFoundException(
+                                        "Distributor "
+                                                + distributorId
+                                                + " not found for label "
+                                                + labelId));
 
         // 3. Create return entity
         var returnEntity = new DistributorReturnEntity(labelId, distributorId, returnDate, notes);
@@ -81,9 +86,9 @@ class RegisterReturnUseCase {
         // 4. Validate each line item and cache production run IDs for step 6
         Map<ReturnLineItemInput, Long> productionRunIds = new LinkedHashMap<>();
         for (var lineItemInput : lineItems) {
-            Long productionRunId = lineItemProcessor.validateAndAdd(
-                    lineItemInput, labelId, distributorId, returnEntity
-            );
+            Long productionRunId =
+                    lineItemProcessor.validateAndAdd(
+                            lineItemInput, labelId, distributorId, returnEntity);
             productionRunIds.put(lineItemInput, productionRunId);
         }
 
@@ -98,8 +103,7 @@ class RegisterReturnUseCase {
                     InventoryLocation.warehouse(),
                     entry.getKey().quantity(),
                     MovementType.RETURN,
-                    savedReturn.getId()
-            );
+                    savedReturn.getId());
         }
 
         log.info("Return registered successfully with ID {}", savedReturn.getId());

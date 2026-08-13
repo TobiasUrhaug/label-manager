@@ -38,9 +38,8 @@ class ArtistQueryApiImpl implements ArtistQueryApi {
 
     @Override
     public List<Artist> getArtistsForUser(Long userId) {
-        List<Artist> artists = repository.findByUserId(userId).stream()
-                .map(Artist::fromEntity)
-                .toList();
+        List<Artist> artists =
+                repository.findByUserId(userId).stream().map(Artist::fromEntity).toList();
         log.debug("Retrieved {} artists for user {}", artists.size(), userId);
         return artists;
     }

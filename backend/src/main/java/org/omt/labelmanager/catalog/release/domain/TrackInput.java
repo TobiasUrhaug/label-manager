@@ -7,6 +7,4 @@ public record TrackInput(
         String name,
         TrackDuration duration,
         Integer position,
-        List<Long> remixerIds
-) {
-}
+        List<Long> remixerIds) {}

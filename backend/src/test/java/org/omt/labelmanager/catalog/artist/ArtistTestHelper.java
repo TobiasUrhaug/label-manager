@@ -32,12 +32,7 @@ public class ArtistTestHelper {
         return Artist.fromEntity(artistRepository.save(entity));
     }
 
-    public Artist createArtist(
-            String artistName,
-            Person realName,
-            String email,
-            Address address
-    ) {
+    public Artist createArtist(String artistName, Person realName, String email, Address address) {
         ArtistEntity entity = new ArtistEntity(artistName);
         if (realName != null) {
             entity.setRealName(PersonEmbeddable.fromPerson(realName));

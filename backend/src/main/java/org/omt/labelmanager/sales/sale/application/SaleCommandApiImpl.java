@@ -18,8 +18,7 @@ class SaleCommandApiImpl implements SaleCommandApi {
     SaleCommandApiImpl(
             RegisterSaleUseCase registerSale,
             UpdateSaleUseCase updateSale,
-            DeleteSaleUseCase deleteSale
-    ) {
+            DeleteSaleUseCase deleteSale) {
         this.registerSale = registerSale;
         this.updateSale = updateSale;
         this.deleteSale = deleteSale;
@@ -32,18 +31,13 @@ class SaleCommandApiImpl implements SaleCommandApi {
             ChannelType channel,
             String notes,
             Long distributorId,
-            List<SaleLineItemInput> lineItems
-    ) {
+            List<SaleLineItemInput> lineItems) {
         return registerSale.execute(labelId, saleDate, channel, notes, distributorId, lineItems);
     }
 
     @Override
     public Sale updateSale(
-            Long saleId,
-            LocalDate saleDate,
-            String notes,
-            List<SaleLineItemInput> lineItems
-    ) {
+            Long saleId, LocalDate saleDate, String notes, List<SaleLineItemInput> lineItems) {
         return updateSale.execute(saleId, saleDate, notes, lineItems);
     }
 

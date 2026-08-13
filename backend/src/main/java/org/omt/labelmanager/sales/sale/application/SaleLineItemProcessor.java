@@ -13,9 +13,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 /**
- * Validates a sale line item against business rules and adds it to the sale entity.
- * Shared by {@link RegisterSaleUseCase} and {@link UpdateSaleUseCase} to avoid
- * duplicating inventory and release validation logic.
+ * Validates a sale line item against business rules and adds it to the sale entity. Shared by
+ * {@link RegisterSaleUseCase} and {@link UpdateSaleUseCase} to avoid duplicating inventory and
+ * release validation logic.
  */
 @Service
 class SaleLineItemProcessor {
@@ -29,16 +29,15 @@ class SaleLineItemProcessor {
     SaleLineItemProcessor(
             ReleaseQueryApi releaseQueryApi,
             ProductionRunQueryApi productionRunQueryApi,
-            InventoryMovementQueryApi inventoryMovementQueryApi
-    ) {
+            InventoryMovementQueryApi inventoryMovementQueryApi) {
         this.releaseQueryApi = releaseQueryApi;
         this.productionRunQueryApi = productionRunQueryApi;
         this.inventoryMovementQueryApi = inventoryMovementQueryApi;
     }
 
     /**
-     * Validates the line item against inventory and allocation rules, then adds it to
-     * the sale entity.
+     * Validates the line item against inventory and allocation rules, then adds it to the sale
+     * entity.
      *
      * @param lineItemInput the line item data from the form
      * @param labelId the label the sale belongs to (for release ownership check)
@@ -50,45 +49,53 @@ class SaleLineItemProcessor {
             SaleLineItemInput lineItemInput,
             Long labelId,
             Long distributorId,
-            SaleEntity saleEntity
-    ) {
-        var release = releaseQueryApi.findById(lineItemInput.releaseId())
-                .orElseThrow(() -> new EntityNotFoundException(
-                        "Release not found: " + lineItemInput.releaseId()
-                ));
+            SaleEntity saleEntity) {
+        var release =
+                releaseQueryApi
+                        .findById(lineItemInput.releaseId())
+                        .orElseThrow(
+                                () ->
+                                        new EntityNotFoundException(
+                                                "Release not found: " + lineItemInput.releaseId()));
 
         if (!release.labelId().equals(labelId)) {
             throw new IllegalArgumentException(
-                    "Release " + lineItemInput.releaseId()
-                            + " does not belong to label " + labelId
-            );
+                    "Release "
+                            + lineItemInput.releaseId()
+                            + " does not belong to label "
+                            + labelId);
         }
 
-        var productionRun = productionRunQueryApi
-                .findMostRecent(lineItemInput.releaseId(), lineItemInput.format())
-                .orElseThrow(() -> new IllegalStateException(
-                        "No production run found for release '" + release.name()
-                                + "' (" + lineItemInput.format() + "). "
-                                + "Please create a production run for this release and format "
-                                + "before registering sales."
-                ));
+        var productionRun =
+                productionRunQueryApi
+                        .findMostRecent(lineItemInput.releaseId(), lineItemInput.format())
+                        .orElseThrow(
+                                () ->
+                                        new IllegalStateException(
+                                                "No production run found for release '"
+                                                        + release.name()
+                                                        + "' ("
+                                                        + lineItemInput.format()
+                                                        + "). "
+                                                        + "Please create a production run for this release and format "
+                                                        + "before registering sales."));
 
-        int available = inventoryMovementQueryApi.getCurrentInventory(
-                productionRun.id(), distributorId
-        );
+        int available =
+                inventoryMovementQueryApi.getCurrentInventory(productionRun.id(), distributorId);
         if (available < lineItemInput.quantity()) {
             throw new InsufficientInventoryException(lineItemInput.quantity(), available);
         }
 
-        saleEntity.addLineItem(new SaleLineItemEntity(
-                lineItemInput.releaseId(),
-                lineItemInput.format(),
-                lineItemInput.quantity(),
-                lineItemInput.unitPrice().amount(),
-                lineItemInput.unitPrice().currency()
-        ));
+        saleEntity.addLineItem(
+                new SaleLineItemEntity(
+                        lineItemInput.releaseId(),
+                        lineItemInput.format(),
+                        lineItemInput.quantity(),
+                        lineItemInput.unitPrice().amount(),
+                        lineItemInput.unitPrice().currency()));
 
-        log.debug("Processed line item: release={}, format={}, quantity={}",
+        log.debug(
+                "Processed line item: release={}, format={}, quantity={}",
                 lineItemInput.releaseId(),
                 lineItemInput.format(),
                 lineItemInput.quantity());

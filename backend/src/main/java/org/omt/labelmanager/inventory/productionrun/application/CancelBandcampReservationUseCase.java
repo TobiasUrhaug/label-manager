@@ -16,8 +16,7 @@ class CancelBandcampReservationUseCase {
 
     CancelBandcampReservationUseCase(
             InventoryMovementQueryApi inventoryMovementQueryApi,
-            InventoryMovementCommandApi inventoryMovementCommandApi
-    ) {
+            InventoryMovementCommandApi inventoryMovementCommandApi) {
         this.inventoryMovementQueryApi = inventoryMovementQueryApi;
         this.inventoryMovementCommandApi = inventoryMovementCommandApi;
     }
@@ -36,7 +35,6 @@ class CancelBandcampReservationUseCase {
                 InventoryLocation.warehouse(),
                 quantity,
                 MovementType.RETURN,
-                null
-        );
+                null);
     }
 }

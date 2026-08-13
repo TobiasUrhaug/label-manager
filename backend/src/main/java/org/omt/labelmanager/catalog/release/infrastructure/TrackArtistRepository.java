@@ -7,34 +7,35 @@ import org.springframework.data.repository.Repository;
 import org.springframework.data.repository.query.Param;
 
 @org.springframework.stereotype.Repository
-public interface TrackArtistRepository
-        extends Repository<TrackEntity, Long> {
+public interface TrackArtistRepository extends Repository<TrackEntity, Long> {
 
-    @Query(value = """
+    @Query(
+            value =
+                    """
             SELECT a.id FROM artist a
             INNER JOIN track_artist ta ON ta.artist_id = a.id
             WHERE ta.track_id = :trackId
-            """, nativeQuery = true)
-    List<Long> findArtistIdsByTrackId(
-            @Param("trackId") Long trackId
-    );
+            """,
+            nativeQuery = true)
+    List<Long> findArtistIdsByTrackId(@Param("trackId") Long trackId);
 
     @Modifying
-    @Query(value = """
+    @Query(
+            value =
+                    """
             INSERT INTO track_artist (track_id, artist_id)
             VALUES (:trackId, :artistId)
-            """, nativeQuery = true)
-    void addArtistToTrack(
-            @Param("trackId") Long trackId,
-            @Param("artistId") Long artistId
-    );
+            """,
+            nativeQuery = true)
+    void addArtistToTrack(@Param("trackId") Long trackId, @Param("artistId") Long artistId);
 
     @Modifying
-    @Query(value = """
+    @Query(
+            value =
+                    """
             DELETE FROM track_artist
             WHERE track_id = :trackId
-            """, nativeQuery = true)
-    void deleteAllByTrackId(
-            @Param("trackId") Long trackId
-    );
+            """,
+            nativeQuery = true)
+    void deleteAllByTrackId(@Param("trackId") Long trackId);
 }

@@ -1,5 +1,7 @@
 package org.omt.labelmanager.sales.sale;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
@@ -9,9 +11,9 @@ import org.omt.labelmanager.AbstractIntegrationTest;
 import org.omt.labelmanager.catalog.label.LabelTestHelper;
 import org.omt.labelmanager.catalog.release.ReleaseTestHelper;
 import org.omt.labelmanager.catalog.release.domain.ReleaseFormat;
+import org.omt.labelmanager.distribution.distributor.ChannelType;
 import org.omt.labelmanager.distribution.distributor.DistributorTestHelper;
 import org.omt.labelmanager.distribution.distributor.api.DistributorQueryApi;
-import org.omt.labelmanager.distribution.distributor.ChannelType;
 import org.omt.labelmanager.finance.domain.shared.Money;
 import org.omt.labelmanager.inventory.InventoryLocation;
 import org.omt.labelmanager.inventory.MovementType;
@@ -24,34 +26,24 @@ import org.omt.labelmanager.sales.sale.domain.SaleLineItemInput;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 @Transactional
 class SaleQueryIntegrationTest extends AbstractIntegrationTest {
 
-    @Autowired
-    private SaleCommandApi saleCommandApi;
+    @Autowired private SaleCommandApi saleCommandApi;
 
-    @Autowired
-    private SaleQueryApi saleQueryApi;
+    @Autowired private SaleQueryApi saleQueryApi;
 
-    @Autowired
-    private LabelTestHelper labelTestHelper;
+    @Autowired private LabelTestHelper labelTestHelper;
 
-    @Autowired
-    private ReleaseTestHelper releaseTestHelper;
+    @Autowired private ReleaseTestHelper releaseTestHelper;
 
-    @Autowired
-    private ProductionRunTestHelper productionRunTestHelper;
+    @Autowired private ProductionRunTestHelper productionRunTestHelper;
 
-    @Autowired
-    private DistributorTestHelper distributorTestHelper;
+    @Autowired private DistributorTestHelper distributorTestHelper;
 
-    @Autowired
-    private DistributorQueryApi distributorQueryApi;
+    @Autowired private DistributorQueryApi distributorQueryApi;
 
-    @Autowired
-    private InventoryMovementCommandApi inventoryMovementCommandApi;
+    @Autowired private InventoryMovementCommandApi inventoryMovementCommandApi;
 
     private Long labelId;
     private Long releaseId;
@@ -64,30 +56,43 @@ class SaleQueryIntegrationTest extends AbstractIntegrationTest {
         var label = labelTestHelper.createLabelWithDirectDistributor("Query Test Label");
         labelId = label.id();
 
-        directDistributorId = distributorQueryApi
-                .findByLabelIdAndChannelType(labelId, ChannelType.DIRECT)
-                .orElseThrow()
-                .id();
+        directDistributorId =
+                distributorQueryApi
+                        .findByLabelIdAndChannelType(labelId, ChannelType.DIRECT)
+                        .orElseThrow()
+                        .id();
 
-        var externalDistributor = distributorTestHelper.createDistributor(
-                labelId, "External Distributor", ChannelType.DISTRIBUTOR
-        );
+        var externalDistributor =
+                distributorTestHelper.createDistributor(
+                        labelId, "External Distributor", ChannelType.DISTRIBUTOR);
         externalDistributorId = externalDistributor.id();
 
         releaseId = releaseTestHelper.createReleaseEntity("Query Test Release", labelId);
 
-        var productionRun = productionRunTestHelper.createProductionRun(
-                releaseId, ReleaseFormat.VINYL, "First pressing", "Plant A",
-                LocalDate.of(2025, 1, 1), 200
-        );
+        var productionRun =
+                productionRunTestHelper.createProductionRun(
+                        releaseId,
+                        ReleaseFormat.VINYL,
+                        "First pressing",
+                        "Plant A",
+                        LocalDate.of(2025, 1, 1),
+                        200);
         productionRunId = productionRun.id();
 
         inventoryMovementCommandApi.recordMovement(
-                productionRunId, InventoryLocation.warehouse(),
-                InventoryLocation.distributor(directDistributorId), 80, MovementType.ALLOCATION, null);
+                productionRunId,
+                InventoryLocation.warehouse(),
+                InventoryLocation.distributor(directDistributorId),
+                80,
+                MovementType.ALLOCATION,
+                null);
         inventoryMovementCommandApi.recordMovement(
-                productionRunId, InventoryLocation.warehouse(),
-                InventoryLocation.distributor(externalDistributorId), 80, MovementType.ALLOCATION, null);
+                productionRunId,
+                InventoryLocation.warehouse(),
+                InventoryLocation.distributor(externalDistributorId),
+                80,
+                MovementType.ALLOCATION,
+                null);
     }
 
     // ── distributorId is persisted on registration ──────────────────────────
@@ -182,28 +187,40 @@ class SaleQueryIntegrationTest extends AbstractIntegrationTest {
     void getSalesForProductionRun_excludesSalesForOtherProductionRuns() {
         // Create a second release + production run on a different label
         var otherLabel = labelTestHelper.createLabelWithDirectDistributor("Other Label");
-        var otherReleaseId = releaseTestHelper.createReleaseEntity("Other Release", otherLabel.id());
-        var otherDirectDistributorId = distributorQueryApi
-                .findByLabelIdAndChannelType(otherLabel.id(), ChannelType.DIRECT)
-                .orElseThrow()
-                .id();
-        var otherProductionRun = productionRunTestHelper.createProductionRun(
-                otherReleaseId, ReleaseFormat.VINYL, 50
-        );
+        var otherReleaseId =
+                releaseTestHelper.createReleaseEntity("Other Release", otherLabel.id());
+        var otherDirectDistributorId =
+                distributorQueryApi
+                        .findByLabelIdAndChannelType(otherLabel.id(), ChannelType.DIRECT)
+                        .orElseThrow()
+                        .id();
+        var otherProductionRun =
+                productionRunTestHelper.createProductionRun(
+                        otherReleaseId, ReleaseFormat.VINYL, 50);
         inventoryMovementCommandApi.recordMovement(
-                otherProductionRun.id(), InventoryLocation.warehouse(),
-                InventoryLocation.distributor(otherDirectDistributorId), 50, MovementType.ALLOCATION, null);
+                otherProductionRun.id(),
+                InventoryLocation.warehouse(),
+                InventoryLocation.distributor(otherDirectDistributorId),
+                50,
+                MovementType.ALLOCATION,
+                null);
 
         // Sale for our production run
         registerDirectSale(5);
 
         // Sale for the OTHER production run
         saleCommandApi.registerSale(
-                otherLabel.id(), LocalDate.of(2026, 2, 1), ChannelType.DIRECT,
-                null, null,
-                List.of(new SaleLineItemInput(otherReleaseId, ReleaseFormat.VINYL, 3,
-                        Money.of(new BigDecimal("10.00"))))
-        );
+                otherLabel.id(),
+                LocalDate.of(2026, 2, 1),
+                ChannelType.DIRECT,
+                null,
+                null,
+                List.of(
+                        new SaleLineItemInput(
+                                otherReleaseId,
+                                ReleaseFormat.VINYL,
+                                3,
+                                Money.of(new BigDecimal("10.00")))));
 
         List<Sale> sales = saleQueryApi.getSalesForProductionRun(productionRunId);
 
@@ -217,13 +234,21 @@ class SaleQueryIntegrationTest extends AbstractIntegrationTest {
         registerDirectSale(5);
 
         // Create a repress of the same release+format with a later manufacturing date
-        var repress = productionRunTestHelper.createProductionRun(
-                releaseId, ReleaseFormat.VINYL, "Second pressing", "Plant A",
-                LocalDate.of(2026, 6, 1), 100
-        );
+        var repress =
+                productionRunTestHelper.createProductionRun(
+                        releaseId,
+                        ReleaseFormat.VINYL,
+                        "Second pressing",
+                        "Plant A",
+                        LocalDate.of(2026, 6, 1),
+                        100);
         inventoryMovementCommandApi.recordMovement(
-                repress.id(), InventoryLocation.warehouse(),
-                InventoryLocation.distributor(directDistributorId), 100, MovementType.ALLOCATION, null);
+                repress.id(),
+                InventoryLocation.warehouse(),
+                InventoryLocation.distributor(directDistributorId),
+                100,
+                MovementType.ALLOCATION,
+                null);
 
         // Sale against the repress (findMostRecent now returns the repress)
         registerDirectSale(3);
@@ -243,19 +268,31 @@ class SaleQueryIntegrationTest extends AbstractIntegrationTest {
 
     private Sale registerDirectSaleOnDate(int quantity, LocalDate date) {
         return saleCommandApi.registerSale(
-                labelId, date, ChannelType.DIRECT, null, null,
-                List.of(new SaleLineItemInput(
-                        releaseId, ReleaseFormat.VINYL, quantity,
-                        Money.of(new BigDecimal("15.00"))))
-        );
+                labelId,
+                date,
+                ChannelType.DIRECT,
+                null,
+                null,
+                List.of(
+                        new SaleLineItemInput(
+                                releaseId,
+                                ReleaseFormat.VINYL,
+                                quantity,
+                                Money.of(new BigDecimal("15.00")))));
     }
 
     private Sale registerDistributorSale(Long distributorId, int quantity) {
         return saleCommandApi.registerSale(
-                labelId, LocalDate.of(2026, 2, 12), ChannelType.DISTRIBUTOR, null, distributorId,
-                List.of(new SaleLineItemInput(
-                        releaseId, ReleaseFormat.VINYL, quantity,
-                        Money.of(new BigDecimal("12.00"))))
-        );
+                labelId,
+                LocalDate.of(2026, 2, 12),
+                ChannelType.DISTRIBUTOR,
+                null,
+                distributorId,
+                List.of(
+                        new SaleLineItemInput(
+                                releaseId,
+                                ReleaseFormat.VINYL,
+                                quantity,
+                                Money.of(new BigDecimal("12.00")))));
     }
 }

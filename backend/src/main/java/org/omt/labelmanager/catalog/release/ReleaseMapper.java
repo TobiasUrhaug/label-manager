@@ -8,10 +8,7 @@ import org.omt.labelmanager.catalog.release.infrastructure.ReleaseEntity;
 public class ReleaseMapper {
 
     public static Release fromEntity(
-            ReleaseEntity entity,
-            List<Long> artistIds,
-            List<Track> tracks
-    ) {
+            ReleaseEntity entity, List<Long> artistIds, List<Track> tracks) {
         return new Release(
                 entity.getId(),
                 entity.getName(),
@@ -19,7 +16,6 @@ public class ReleaseMapper {
                 entity.getLabelId(),
                 artistIds,
                 tracks,
-                entity.getFormats()
-        );
+                entity.getFormats());
     }
 }

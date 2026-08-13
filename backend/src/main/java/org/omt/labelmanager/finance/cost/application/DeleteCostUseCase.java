@@ -23,9 +23,7 @@ class DeleteCostUseCase {
 
     @Transactional
     public boolean deleteCost(Long costId) {
-        return costRepository.findById(costId)
-                .map(this::deleteWithDocument)
-                .orElse(false);
+        return costRepository.findById(costId).map(this::deleteWithDocument).orElse(false);
     }
 
     private boolean deleteWithDocument(CostEntity cost) {

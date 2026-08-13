@@ -10,6 +10,4 @@ public record TrackView(
         String name,
         TrackDuration duration,
         Integer position,
-        List<Artist> remixers
-) {
-}
+        List<Artist> remixers) {}

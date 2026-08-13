@@ -11,7 +11,6 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -42,183 +41,189 @@ import org.springframework.test.web.servlet.MockMvc;
 @Import(TestSecurityConfig.class)
 class CostControllerTest {
 
-    @Autowired
-    private MockMvc mockMvc;
+    @Autowired private MockMvc mockMvc;
 
-    @MockitoBean
-    private CostCommandApi costCommandFacade;
+    @MockitoBean private CostCommandApi costCommandFacade;
 
     private final AppUserDetails testUser =
             new AppUserDetails(1L, "test@example.com", "password", "Test User");
 
     @Test
     void registerCostForRelease_callsUseCaseAndReturnsCreated() throws Exception {
-        mockMvc
-                .perform(multipart("/api/labels/1/releases/42/costs")
-                        .with(user(testUser))
-                        .with(csrf())
-                        .param("netAmount", "100.00")
-                        .param("vatAmount", "25.00")
-                        .param("vatRate", "0.25")
-                        .param("grossAmount", "125.00")
-                        .param("costType", "MASTERING")
-                        .param("incurredOn", "2024-06-15")
-                        .param("description", "Mastering for album")
-                        .param("documentReference", "INV-2024-001"))
+        mockMvc.perform(
+                        multipart("/api/labels/1/releases/42/costs")
+                                .with(user(testUser))
+                                .with(csrf())
+                                .param("netAmount", "100.00")
+                                .param("vatAmount", "25.00")
+                                .param("vatRate", "0.25")
+                                .param("grossAmount", "125.00")
+                                .param("costType", "MASTERING")
+                                .param("incurredOn", "2024-06-15")
+                                .param("description", "Mastering for album")
+                                .param("documentReference", "INV-2024-001"))
                 .andExpect(status().isCreated());
 
-        verify(costCommandFacade).registerCost(
-                eq(Money.of(new BigDecimal("100.00"))),
-                eq(new VatAmount(Money.of(new BigDecimal("25.00")), new BigDecimal("0.25"))),
-                eq(Money.of(new BigDecimal("125.00"))),
-                eq(CostType.MASTERING),
-                eq(LocalDate.of(2024, 6, 15)),
-                eq("Mastering for album"),
-                eq(CostOwner.release(42L)),
-                eq("INV-2024-001"),
-                isNull()
-        );
+        verify(costCommandFacade)
+                .registerCost(
+                        eq(Money.of(new BigDecimal("100.00"))),
+                        eq(
+                                new VatAmount(
+                                        Money.of(new BigDecimal("25.00")), new BigDecimal("0.25"))),
+                        eq(Money.of(new BigDecimal("125.00"))),
+                        eq(CostType.MASTERING),
+                        eq(LocalDate.of(2024, 6, 15)),
+                        eq("Mastering for album"),
+                        eq(CostOwner.release(42L)),
+                        eq("INV-2024-001"),
+                        isNull());
     }
 
     @Test
     void registerCostForLabel_callsUseCaseAndReturnsCreated() throws Exception {
-        mockMvc
-                .perform(multipart("/api/labels/10/costs")
-                        .with(user(testUser))
-                        .with(csrf())
-                        .param("netAmount", "50.00")
-                        .param("vatAmount", "12.50")
-                        .param("vatRate", "0.25")
-                        .param("grossAmount", "62.50")
-                        .param("costType", "HOSTING")
-                        .param("incurredOn", "2024-07-01")
-                        .param("description", "Website hosting"))
+        mockMvc.perform(
+                        multipart("/api/labels/10/costs")
+                                .with(user(testUser))
+                                .with(csrf())
+                                .param("netAmount", "50.00")
+                                .param("vatAmount", "12.50")
+                                .param("vatRate", "0.25")
+                                .param("grossAmount", "62.50")
+                                .param("costType", "HOSTING")
+                                .param("incurredOn", "2024-07-01")
+                                .param("description", "Website hosting"))
                 .andExpect(status().isCreated());
 
-        verify(costCommandFacade).registerCost(
-                eq(Money.of(new BigDecimal("50.00"))),
-                eq(new VatAmount(Money.of(new BigDecimal("12.50")), new BigDecimal("0.25"))),
-                eq(Money.of(new BigDecimal("62.50"))),
-                eq(CostType.HOSTING),
-                eq(LocalDate.of(2024, 7, 1)),
-                eq("Website hosting"),
-                eq(CostOwner.label(10L)),
-                isNull(),
-                isNull()
-        );
+        verify(costCommandFacade)
+                .registerCost(
+                        eq(Money.of(new BigDecimal("50.00"))),
+                        eq(
+                                new VatAmount(
+                                        Money.of(new BigDecimal("12.50")), new BigDecimal("0.25"))),
+                        eq(Money.of(new BigDecimal("62.50"))),
+                        eq(CostType.HOSTING),
+                        eq(LocalDate.of(2024, 7, 1)),
+                        eq("Website hosting"),
+                        eq(CostOwner.label(10L)),
+                        isNull(),
+                        isNull());
     }
 
     @Test
     void registerCostForRelease_withDocumentUpload() throws Exception {
-        MockMultipartFile document = new MockMultipartFile(
-                "document",
-                "invoice.pdf",
-                "application/pdf",
-                "PDF content".getBytes()
-        );
+        MockMultipartFile document =
+                new MockMultipartFile(
+                        "document", "invoice.pdf", "application/pdf", "PDF content".getBytes());
 
-        mockMvc
-                .perform(multipart("/api/labels/1/releases/42/costs")
-                        .file(document)
-                        .with(user(testUser))
-                        .with(csrf())
-                        .param("netAmount", "100.00")
-                        .param("vatAmount", "25.00")
-                        .param("vatRate", "0.25")
-                        .param("grossAmount", "125.00")
-                        .param("costType", "MASTERING")
-                        .param("incurredOn", "2024-06-15")
-                        .param("description", "Mastering for album"))
+        mockMvc.perform(
+                        multipart("/api/labels/1/releases/42/costs")
+                                .file(document)
+                                .with(user(testUser))
+                                .with(csrf())
+                                .param("netAmount", "100.00")
+                                .param("vatAmount", "25.00")
+                                .param("vatRate", "0.25")
+                                .param("grossAmount", "125.00")
+                                .param("costType", "MASTERING")
+                                .param("incurredOn", "2024-06-15")
+                                .param("description", "Mastering for album"))
                 .andExpect(status().isCreated());
 
-        verify(costCommandFacade).registerCost(
-                eq(Money.of(new BigDecimal("100.00"))),
-                eq(new VatAmount(Money.of(new BigDecimal("25.00")), new BigDecimal("0.25"))),
-                eq(Money.of(new BigDecimal("125.00"))),
-                eq(CostType.MASTERING),
-                eq(LocalDate.of(2024, 6, 15)),
-                eq("Mastering for album"),
-                eq(CostOwner.release(42L)),
-                isNull(),
-                argThat((DocumentUpload doc) ->
-                        doc != null
-                        && "invoice.pdf".equals(doc.filename())
-                        && "application/pdf".equals(doc.contentType()))
-        );
+        verify(costCommandFacade)
+                .registerCost(
+                        eq(Money.of(new BigDecimal("100.00"))),
+                        eq(
+                                new VatAmount(
+                                        Money.of(new BigDecimal("25.00")), new BigDecimal("0.25"))),
+                        eq(Money.of(new BigDecimal("125.00"))),
+                        eq(CostType.MASTERING),
+                        eq(LocalDate.of(2024, 6, 15)),
+                        eq("Mastering for album"),
+                        eq(CostOwner.release(42L)),
+                        isNull(),
+                        argThat(
+                                (DocumentUpload doc) ->
+                                        doc != null
+                                                && "invoice.pdf".equals(doc.filename())
+                                                && "application/pdf".equals(doc.contentType())));
     }
 
     @Test
     void registerCostForRelease_rejectsInvalidDocumentType() throws Exception {
-        MockMultipartFile document = new MockMultipartFile(
-                "document",
-                "script.js",
-                "application/javascript",
-                "alert('bad')".getBytes()
-        );
+        MockMultipartFile document =
+                new MockMultipartFile(
+                        "document",
+                        "script.js",
+                        "application/javascript",
+                        "alert('bad')".getBytes());
 
-        mockMvc
-                .perform(multipart("/api/labels/1/releases/42/costs")
-                        .file(document)
-                        .with(user(testUser))
-                        .with(csrf())
-                        .param("netAmount", "100.00")
-                        .param("vatAmount", "25.00")
-                        .param("vatRate", "0.25")
-                        .param("grossAmount", "125.00")
-                        .param("costType", "MASTERING")
-                        .param("incurredOn", "2024-06-15")
-                        .param("description", "Mastering for album"))
+        mockMvc.perform(
+                        multipart("/api/labels/1/releases/42/costs")
+                                .file(document)
+                                .with(user(testUser))
+                                .with(csrf())
+                                .param("netAmount", "100.00")
+                                .param("vatAmount", "25.00")
+                                .param("vatRate", "0.25")
+                                .param("grossAmount", "125.00")
+                                .param("costType", "MASTERING")
+                                .param("incurredOn", "2024-06-15")
+                                .param("description", "Mastering for album"))
                 .andExpect(status().isBadRequest());
     }
 
     @Test
     void registerCostForLabel_withImageUpload() throws Exception {
-        MockMultipartFile document = new MockMultipartFile(
-                "document",
-                "receipt.png",
-                "image/png",
-                "PNG content".getBytes()
-        );
+        MockMultipartFile document =
+                new MockMultipartFile(
+                        "document", "receipt.png", "image/png", "PNG content".getBytes());
 
-        mockMvc
-                .perform(multipart("/api/labels/10/costs")
-                        .file(document)
-                        .with(user(testUser))
-                        .with(csrf())
-                        .param("netAmount", "50.00")
-                        .param("vatAmount", "12.50")
-                        .param("vatRate", "0.25")
-                        .param("grossAmount", "62.50")
-                        .param("costType", "HOSTING")
-                        .param("incurredOn", "2024-07-01")
-                        .param("description", "Website hosting"))
+        mockMvc.perform(
+                        multipart("/api/labels/10/costs")
+                                .file(document)
+                                .with(user(testUser))
+                                .with(csrf())
+                                .param("netAmount", "50.00")
+                                .param("vatAmount", "12.50")
+                                .param("vatRate", "0.25")
+                                .param("grossAmount", "62.50")
+                                .param("costType", "HOSTING")
+                                .param("incurredOn", "2024-07-01")
+                                .param("description", "Website hosting"))
                 .andExpect(status().isCreated());
 
-        verify(costCommandFacade).registerCost(
-                any(), any(), any(), any(), any(), any(), any(), any(),
-                argThat((DocumentUpload doc) ->
-                        doc != null
-                        && "receipt.png".equals(doc.filename())
-                        && "image/png".equals(doc.contentType()))
-        );
+        verify(costCommandFacade)
+                .registerCost(
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                        argThat(
+                                (DocumentUpload doc) ->
+                                        doc != null
+                                                && "receipt.png".equals(doc.filename())
+                                                && "image/png".equals(doc.contentType())));
     }
 
     @Test
     void getDocument_returnsDocumentInlineByDefault() throws Exception {
         byte[] content = "PDF content".getBytes();
-        RetrievedDocument document = new RetrievedDocument(
-                new ByteArrayInputStream(content),
-                "application/pdf",
-                "invoice.pdf",
-                content.length
-        );
+        RetrievedDocument document =
+                new RetrievedDocument(
+                        new ByteArrayInputStream(content),
+                        "application/pdf",
+                        "invoice.pdf",
+                        content.length);
         when(costCommandFacade.retrieveDocument(1L)).thenReturn(Optional.of(document));
 
-        mockMvc
-                .perform(get("/api/costs/1/document")
-                        .with(user(testUser)))
+        mockMvc.perform(get("/api/costs/1/document").with(user(testUser)))
                 .andExpect(status().isOk())
-                .andExpect(header().string("Content-Disposition", "inline; filename=\"invoice.pdf\""))
+                .andExpect(
+                        header().string("Content-Disposition", "inline; filename=\"invoice.pdf\""))
                 .andExpect(header().string("Content-Type", "application/pdf"))
                 .andExpect(content().bytes(content));
     }
@@ -226,30 +231,30 @@ class CostControllerTest {
     @Test
     void getDocument_returnsDocumentAsAttachmentWhenDownload() throws Exception {
         byte[] content = "PDF content".getBytes();
-        RetrievedDocument document = new RetrievedDocument(
-                new ByteArrayInputStream(content),
-                "application/pdf",
-                "invoice.pdf",
-                content.length
-        );
+        RetrievedDocument document =
+                new RetrievedDocument(
+                        new ByteArrayInputStream(content),
+                        "application/pdf",
+                        "invoice.pdf",
+                        content.length);
         when(costCommandFacade.retrieveDocument(1L)).thenReturn(Optional.of(document));
 
-        mockMvc
-                .perform(get("/api/costs/1/document")
-                        .param("action", "download")
-                        .with(user(testUser)))
+        mockMvc.perform(
+                        get("/api/costs/1/document")
+                                .param("action", "download")
+                                .with(user(testUser)))
                 .andExpect(status().isOk())
-                .andExpect(header().string("Content-Disposition",
-                        "attachment; filename=\"invoice.pdf\""));
+                .andExpect(
+                        header().string(
+                                        "Content-Disposition",
+                                        "attachment; filename=\"invoice.pdf\""));
     }
 
     @Test
     void getDocument_returns404WhenCostNotFound() throws Exception {
         when(costCommandFacade.retrieveDocument(999L)).thenReturn(Optional.empty());
 
-        mockMvc
-                .perform(get("/api/costs/999/document")
-                        .with(user(testUser)))
+        mockMvc.perform(get("/api/costs/999/document").with(user(testUser)))
                 .andExpect(status().isNotFound());
     }
 
@@ -257,9 +262,7 @@ class CostControllerTest {
     void getDocument_returns404WhenNoDocumentAttached() throws Exception {
         when(costCommandFacade.retrieveDocument(1L)).thenReturn(Optional.empty());
 
-        mockMvc
-                .perform(get("/api/costs/1/document")
-                        .with(user(testUser)))
+        mockMvc.perform(get("/api/costs/1/document").with(user(testUser)))
                 .andExpect(status().isNotFound());
     }
 
@@ -267,10 +270,10 @@ class CostControllerTest {
     void deleteCostForRelease_callsUseCaseAndReturnsNoContent() throws Exception {
         when(costCommandFacade.deleteCost(99L)).thenReturn(true);
 
-        mockMvc
-                .perform(delete("/api/labels/1/releases/42/costs/99")
-                        .with(user(testUser))
-                        .with(csrf()))
+        mockMvc.perform(
+                        delete("/api/labels/1/releases/42/costs/99")
+                                .with(user(testUser))
+                                .with(csrf()))
                 .andExpect(status().isNoContent());
 
         verify(costCommandFacade).deleteCost(99L);
@@ -280,10 +283,7 @@ class CostControllerTest {
     void deleteCostForLabel_callsUseCaseAndReturnsNoContent() throws Exception {
         when(costCommandFacade.deleteCost(99L)).thenReturn(true);
 
-        mockMvc
-                .perform(delete("/api/labels/10/costs/99")
-                        .with(user(testUser))
-                        .with(csrf()))
+        mockMvc.perform(delete("/api/labels/10/costs/99").with(user(testUser)).with(csrf()))
                 .andExpect(status().isNoContent());
 
         verify(costCommandFacade).deleteCost(99L);
@@ -292,67 +292,79 @@ class CostControllerTest {
     @Test
     void updateCostForRelease_callsUseCaseAndReturnsNoContent() throws Exception {
         when(costCommandFacade.updateCost(
-                any(), any(), any(), any(), any(), any(), any(), any(), any()))
+                        any(), any(), any(), any(), any(), any(), any(), any(), any()))
                 .thenReturn(true);
 
-        mockMvc
-                .perform(multipart("/api/labels/1/releases/42/costs/99")
-                        .with(req -> { req.setMethod("PUT"); return req; })
-                        .with(user(testUser))
-                        .with(csrf())
-                        .param("netAmount", "200.00")
-                        .param("vatAmount", "50.00")
-                        .param("vatRate", "0.25")
-                        .param("grossAmount", "250.00")
-                        .param("costType", "MIXING")
-                        .param("incurredOn", "2024-07-15")
-                        .param("description", "Mixing updated")
-                        .param("documentReference", "INV-2024-002"))
+        mockMvc.perform(
+                        multipart("/api/labels/1/releases/42/costs/99")
+                                .with(
+                                        req -> {
+                                            req.setMethod("PUT");
+                                            return req;
+                                        })
+                                .with(user(testUser))
+                                .with(csrf())
+                                .param("netAmount", "200.00")
+                                .param("vatAmount", "50.00")
+                                .param("vatRate", "0.25")
+                                .param("grossAmount", "250.00")
+                                .param("costType", "MIXING")
+                                .param("incurredOn", "2024-07-15")
+                                .param("description", "Mixing updated")
+                                .param("documentReference", "INV-2024-002"))
                 .andExpect(status().isNoContent());
 
-        verify(costCommandFacade).updateCost(
-                eq(99L),
-                eq(Money.of(new BigDecimal("200.00"))),
-                eq(new VatAmount(Money.of(new BigDecimal("50.00")), new BigDecimal("0.25"))),
-                eq(Money.of(new BigDecimal("250.00"))),
-                eq(CostType.MIXING),
-                eq(LocalDate.of(2024, 7, 15)),
-                eq("Mixing updated"),
-                eq("INV-2024-002"),
-                isNull()
-        );
+        verify(costCommandFacade)
+                .updateCost(
+                        eq(99L),
+                        eq(Money.of(new BigDecimal("200.00"))),
+                        eq(
+                                new VatAmount(
+                                        Money.of(new BigDecimal("50.00")), new BigDecimal("0.25"))),
+                        eq(Money.of(new BigDecimal("250.00"))),
+                        eq(CostType.MIXING),
+                        eq(LocalDate.of(2024, 7, 15)),
+                        eq("Mixing updated"),
+                        eq("INV-2024-002"),
+                        isNull());
     }
 
     @Test
     void updateCostForLabel_callsUseCaseAndReturnsNoContent() throws Exception {
         when(costCommandFacade.updateCost(
-                any(), any(), any(), any(), any(), any(), any(), any(), any()))
+                        any(), any(), any(), any(), any(), any(), any(), any(), any()))
                 .thenReturn(true);
 
-        mockMvc
-                .perform(multipart("/api/labels/10/costs/99")
-                        .with(req -> { req.setMethod("PUT"); return req; })
-                        .with(user(testUser))
-                        .with(csrf())
-                        .param("netAmount", "75.00")
-                        .param("vatAmount", "18.75")
-                        .param("vatRate", "0.25")
-                        .param("grossAmount", "93.75")
-                        .param("costType", "MARKETING")
-                        .param("incurredOn", "2024-08-01")
-                        .param("description", "Marketing campaign"))
+        mockMvc.perform(
+                        multipart("/api/labels/10/costs/99")
+                                .with(
+                                        req -> {
+                                            req.setMethod("PUT");
+                                            return req;
+                                        })
+                                .with(user(testUser))
+                                .with(csrf())
+                                .param("netAmount", "75.00")
+                                .param("vatAmount", "18.75")
+                                .param("vatRate", "0.25")
+                                .param("grossAmount", "93.75")
+                                .param("costType", "MARKETING")
+                                .param("incurredOn", "2024-08-01")
+                                .param("description", "Marketing campaign"))
                 .andExpect(status().isNoContent());
 
-        verify(costCommandFacade).updateCost(
-                eq(99L),
-                eq(Money.of(new BigDecimal("75.00"))),
-                eq(new VatAmount(Money.of(new BigDecimal("18.75")), new BigDecimal("0.25"))),
-                eq(Money.of(new BigDecimal("93.75"))),
-                eq(CostType.MARKETING),
-                eq(LocalDate.of(2024, 8, 1)),
-                eq("Marketing campaign"),
-                isNull(),
-                isNull()
-        );
+        verify(costCommandFacade)
+                .updateCost(
+                        eq(99L),
+                        eq(Money.of(new BigDecimal("75.00"))),
+                        eq(
+                                new VatAmount(
+                                        Money.of(new BigDecimal("18.75")), new BigDecimal("0.25"))),
+                        eq(Money.of(new BigDecimal("93.75"))),
+                        eq(CostType.MARKETING),
+                        eq(LocalDate.of(2024, 8, 1)),
+                        eq("Marketing campaign"),
+                        isNull(),
+                        isNull());
     }
 }

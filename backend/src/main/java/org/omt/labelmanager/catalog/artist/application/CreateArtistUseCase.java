@@ -22,12 +22,7 @@ class CreateArtistUseCase {
     }
 
     public void execute(
-            String artistName,
-            Person realName,
-            String email,
-            Address address,
-            Long userId
-    ) {
+            String artistName, Person realName, String email, Address address, Long userId) {
         log.info("Creating artist '{}' for user {}", artistName, userId);
         var entity = new ArtistEntity(artistName);
         entity.setUserId(userId);

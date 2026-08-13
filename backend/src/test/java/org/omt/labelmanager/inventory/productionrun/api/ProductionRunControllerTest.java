@@ -26,23 +26,22 @@ import org.springframework.test.web.servlet.MockMvc;
 @Import(TestSecurityConfig.class)
 class ProductionRunControllerTest {
 
-    @Autowired
-    private MockMvc mockMvc;
+    @Autowired private MockMvc mockMvc;
 
-    @MockitoBean
-    private ProductionRunCommandApi commandApi;
+    @MockitoBean private ProductionRunCommandApi commandApi;
 
     private final AppUserDetails testUser =
             new AppUserDetails(1L, "test@example.com", "password", "Test User");
 
     @Test
     void addProductionRun_callsHandlerAndReturnsCreated() throws Exception {
-        mockMvc
-                .perform(post("/api/labels/1/releases/42/production-runs")
-                        .with(user(testUser))
-                        .with(csrf())
-                        .contentType(APPLICATION_JSON)
-                        .content("""
+        mockMvc.perform(
+                        post("/api/labels/1/releases/42/production-runs")
+                                .with(user(testUser))
+                                .with(csrf())
+                                .contentType(APPLICATION_JSON)
+                                .content(
+                                        """
                                 {
                                   "format": "VINYL",
                                   "description": "Original pressing",
@@ -53,24 +52,25 @@ class ProductionRunControllerTest {
                                 """))
                 .andExpect(status().isCreated());
 
-        verify(commandApi).createProductionRun(
-                eq(42L),
-                eq(ReleaseFormat.VINYL),
-                eq("Original pressing"),
-                eq("Record Industry"),
-                eq(LocalDate.of(2025, 1, 1)),
-                eq(500)
-        );
+        verify(commandApi)
+                .createProductionRun(
+                        eq(42L),
+                        eq(ReleaseFormat.VINYL),
+                        eq("Original pressing"),
+                        eq("Record Industry"),
+                        eq(LocalDate.of(2025, 1, 1)),
+                        eq(500));
     }
 
     @Test
     void addProductionRun_worksWithCDFormat() throws Exception {
-        mockMvc
-                .perform(post("/api/labels/1/releases/42/production-runs")
-                        .with(user(testUser))
-                        .with(csrf())
-                        .contentType(APPLICATION_JSON)
-                        .content("""
+        mockMvc.perform(
+                        post("/api/labels/1/releases/42/production-runs")
+                                .with(user(testUser))
+                                .with(csrf())
+                                .contentType(APPLICATION_JSON)
+                                .content(
+                                        """
                                 {
                                   "format": "CD",
                                   "description": "Initial run",
@@ -81,24 +81,25 @@ class ProductionRunControllerTest {
                                 """))
                 .andExpect(status().isCreated());
 
-        verify(commandApi).createProductionRun(
-                eq(42L),
-                eq(ReleaseFormat.CD),
-                eq("Initial run"),
-                eq("CD Plant"),
-                eq(LocalDate.of(2025, 1, 15)),
-                eq(200)
-        );
+        verify(commandApi)
+                .createProductionRun(
+                        eq(42L),
+                        eq(ReleaseFormat.CD),
+                        eq("Initial run"),
+                        eq("CD Plant"),
+                        eq(LocalDate.of(2025, 1, 15)),
+                        eq(200));
     }
 
     @Test
     void addProductionRun_worksWithCassetteFormat() throws Exception {
-        mockMvc
-                .perform(post("/api/labels/1/releases/42/production-runs")
-                        .with(user(testUser))
-                        .with(csrf())
-                        .contentType(APPLICATION_JSON)
-                        .content("""
+        mockMvc.perform(
+                        post("/api/labels/1/releases/42/production-runs")
+                                .with(user(testUser))
+                                .with(csrf())
+                                .contentType(APPLICATION_JSON)
+                                .content(
+                                        """
                                 {
                                   "format": "CASSETTE",
                                   "description": "Limited edition",
@@ -109,24 +110,19 @@ class ProductionRunControllerTest {
                                 """))
                 .andExpect(status().isCreated());
 
-        verify(commandApi).createProductionRun(
-                eq(42L),
-                eq(ReleaseFormat.CASSETTE),
-                any(),
-                any(),
-                any(),
-                eq(100)
-        );
+        verify(commandApi)
+                .createProductionRun(
+                        eq(42L), eq(ReleaseFormat.CASSETTE), any(), any(), any(), eq(100));
     }
 
     @Test
     void deleteProductionRun_callsHandlerAndReturnsNoContent() throws Exception {
         when(commandApi.delete(99L)).thenReturn(true);
 
-        mockMvc
-                .perform(delete("/api/labels/1/releases/42/production-runs/99")
-                        .with(user(testUser))
-                        .with(csrf()))
+        mockMvc.perform(
+                        delete("/api/labels/1/releases/42/production-runs/99")
+                                .with(user(testUser))
+                                .with(csrf()))
                 .andExpect(status().isNoContent());
 
         verify(commandApi).delete(99L);

@@ -11,9 +11,8 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
-import org.omt.labelmanager.catalog.release.domain.ReleaseFormat;
-
 import java.math.BigDecimal;
+import org.omt.labelmanager.catalog.release.domain.ReleaseFormat;
 
 @Entity
 @Table(name = "sale_line_item")
@@ -46,16 +45,14 @@ public class SaleLineItemEntity {
     @Column(name = "currency", nullable = false)
     private String currency = "EUR";
 
-    protected SaleLineItemEntity() {
-    }
+    protected SaleLineItemEntity() {}
 
     public SaleLineItemEntity(
             Long releaseId,
             ReleaseFormat format,
             int quantity,
             BigDecimal unitPrice,
-            String currency
-    ) {
+            String currency) {
         this.releaseId = releaseId;
         this.format = format;
         this.quantity = quantity;

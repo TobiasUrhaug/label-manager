@@ -1,14 +1,13 @@
 package org.omt.labelmanager.finance.cost.api;
 
-import org.omt.labelmanager.finance.shared.DocumentUpload;
-import org.omt.labelmanager.finance.shared.RetrievedDocument;
+import java.time.LocalDate;
+import java.util.Optional;
 import org.omt.labelmanager.finance.cost.domain.CostOwner;
 import org.omt.labelmanager.finance.cost.domain.CostType;
 import org.omt.labelmanager.finance.cost.domain.VatAmount;
 import org.omt.labelmanager.finance.domain.shared.Money;
-
-import java.time.LocalDate;
-import java.util.Optional;
+import org.omt.labelmanager.finance.shared.DocumentUpload;
+import org.omt.labelmanager.finance.shared.RetrievedDocument;
 
 public interface CostCommandApi {
 
@@ -20,8 +19,7 @@ public interface CostCommandApi {
             LocalDate incurredOn,
             String description,
             CostOwner owner,
-            String documentReference
-    );
+            String documentReference);
 
     void registerCost(
             Money netAmount,
@@ -32,8 +30,7 @@ public interface CostCommandApi {
             String description,
             CostOwner owner,
             String documentReference,
-            DocumentUpload document
-    );
+            DocumentUpload document);
 
     boolean updateCost(
             Long costId,
@@ -43,8 +40,7 @@ public interface CostCommandApi {
             CostType type,
             LocalDate incurredOn,
             String description,
-            String documentReference
-    );
+            String documentReference);
 
     boolean updateCost(
             Long costId,
@@ -55,11 +51,9 @@ public interface CostCommandApi {
             LocalDate incurredOn,
             String description,
             String documentReference,
-            DocumentUpload document
-    );
+            DocumentUpload document);
 
     boolean deleteCost(Long costId);
 
     Optional<RetrievedDocument> retrieveDocument(Long costId);
-
 }

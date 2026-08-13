@@ -38,44 +38,36 @@ import org.springframework.test.web.servlet.MockMvc;
 @Import(TestSecurityConfig.class)
 class DistributorControllerTest {
 
-    @Autowired
-    private MockMvc mockMvc;
+    @Autowired private MockMvc mockMvc;
 
-    @MockitoBean
-    private DistributorCommandApi distributorCRUDHandler;
+    @MockitoBean private DistributorCommandApi distributorCRUDHandler;
 
-    @MockitoBean
-    private DistributorQueryApi distributorQueryApi;
+    @MockitoBean private DistributorQueryApi distributorQueryApi;
 
-    @MockitoBean
-    private LabelQueryApi labelQueryApi;
+    @MockitoBean private LabelQueryApi labelQueryApi;
 
-    @MockitoBean
-    private SaleQueryApi saleQueryApi;
+    @MockitoBean private SaleQueryApi saleQueryApi;
 
-    @MockitoBean
-    private DistributorReturnQueryApi returnQueryApi;
+    @MockitoBean private DistributorReturnQueryApi returnQueryApi;
 
-    @MockitoBean
-    private AgreementQueryApi agreementQueryApi;
+    @MockitoBean private AgreementQueryApi agreementQueryApi;
 
-    @MockitoBean
-    private ProductionRunQueryApi productionRunQueryApi;
+    @MockitoBean private ProductionRunQueryApi productionRunQueryApi;
 
-    @MockitoBean
-    private org.omt.labelmanager.catalog.release.api.ReleaseQueryApi releaseQueryApi;
+    @MockitoBean private org.omt.labelmanager.catalog.release.api.ReleaseQueryApi releaseQueryApi;
 
     private final AppUserDetails testUser =
             new AppUserDetails(1L, "test@example.com", "password", "Test User");
 
     @Test
     void addDistributor_callsHandlerAndReturnsCreated() throws Exception {
-        mockMvc
-                .perform(post("/api/labels/1/distributors")
-                        .with(user(testUser))
-                        .with(csrf())
-                        .contentType(APPLICATION_JSON)
-                        .content("""
+        mockMvc.perform(
+                        post("/api/labels/1/distributors")
+                                .with(user(testUser))
+                                .with(csrf())
+                                .contentType(APPLICATION_JSON)
+                                .content(
+                                        """
                                 {"name": "Bandcamp", "channelType": "DIRECT"}
                                 """))
                 .andExpect(status().isCreated());
@@ -86,50 +78,43 @@ class DistributorControllerTest {
 
     @Test
     void addDistributor_worksWithDistributorType() throws Exception {
-        mockMvc
-                .perform(post("/api/labels/1/distributors")
-                        .with(user(testUser))
-                        .with(csrf())
-                        .contentType(APPLICATION_JSON)
-                        .content("""
+        mockMvc.perform(
+                        post("/api/labels/1/distributors")
+                                .with(user(testUser))
+                                .with(csrf())
+                                .contentType(APPLICATION_JSON)
+                                .content(
+                                        """
                                 {"name": "Cargo Records", "channelType": "DISTRIBUTOR"}
                                 """))
                 .andExpect(status().isCreated());
 
-        verify(distributorCRUDHandler).createDistributor(
-                eq(1L),
-                eq("Cargo Records"),
-                eq(ChannelType.DISTRIBUTOR)
-        );
+        verify(distributorCRUDHandler)
+                .createDistributor(eq(1L), eq("Cargo Records"), eq(ChannelType.DISTRIBUTOR));
     }
 
     @Test
     void addDistributor_worksWithRecordStoreType() throws Exception {
-        mockMvc
-                .perform(post("/api/labels/1/distributors")
-                        .with(user(testUser))
-                        .with(csrf())
-                        .contentType(APPLICATION_JSON)
-                        .content("""
+        mockMvc.perform(
+                        post("/api/labels/1/distributors")
+                                .with(user(testUser))
+                                .with(csrf())
+                                .contentType(APPLICATION_JSON)
+                                .content(
+                                        """
                                 {"name": "Local Record Shop", "channelType": "RECORD_STORE"}
                                 """))
                 .andExpect(status().isCreated());
 
-        verify(distributorCRUDHandler).createDistributor(
-                eq(1L),
-                eq("Local Record Shop"),
-                eq(ChannelType.RECORD_STORE)
-        );
+        verify(distributorCRUDHandler)
+                .createDistributor(eq(1L), eq("Local Record Shop"), eq(ChannelType.RECORD_STORE));
     }
 
     @Test
     void deleteDistributor_callsHandlerAndReturnsNoContent() throws Exception {
         when(distributorCRUDHandler.delete(99L)).thenReturn(true);
 
-        mockMvc
-                .perform(delete("/api/labels/1/distributors/99")
-                        .with(user(testUser))
-                        .with(csrf()))
+        mockMvc.perform(delete("/api/labels/1/distributors/99").with(user(testUser)).with(csrf()))
                 .andExpect(status().isNoContent());
 
         verify(distributorCRUDHandler).delete(99L);
@@ -138,13 +123,25 @@ class DistributorControllerTest {
     @Test
     void showDistributor_returnsDetailWithSalesAndReturns() throws Exception {
         var label = LabelFactory.aLabel().id(1L).name("My Label").build();
-        var distributor = DistributorFactory.aDistributor()
-                .id(5L).labelId(1L).name("Cargo Records").channelType(ChannelType.DISTRIBUTOR)
-                .build();
-        var sale = new Sale(10L, 1L, 5L, LocalDate.of(2026, 1, 10),
-                ChannelType.DISTRIBUTOR, null, List.of(), null);
-        var distributorReturn = new DistributorReturn(
-                20L, 1L, 5L, LocalDate.of(2026, 2, 1), null, List.of(), null);
+        var distributor =
+                DistributorFactory.aDistributor()
+                        .id(5L)
+                        .labelId(1L)
+                        .name("Cargo Records")
+                        .channelType(ChannelType.DISTRIBUTOR)
+                        .build();
+        var sale =
+                new Sale(
+                        10L,
+                        1L,
+                        5L,
+                        LocalDate.of(2026, 1, 10),
+                        ChannelType.DISTRIBUTOR,
+                        null,
+                        List.of(),
+                        null);
+        var distributorReturn =
+                new DistributorReturn(20L, 1L, 5L, LocalDate.of(2026, 2, 1), null, List.of(), null);
 
         when(labelQueryApi.findById(1L)).thenReturn(Optional.of(label));
         when(distributorQueryApi.findById(5L)).thenReturn(Optional.of(distributor));
@@ -165,11 +162,12 @@ class DistributorControllerTest {
     @Test
     void showDistributor_returnsNotFoundWhenDistributorBelongsToAnotherLabel() throws Exception {
         var label = LabelFactory.aLabel().id(1L).build();
-        var distributorFromAnotherLabel = DistributorFactory.aDistributor()
-                .id(99L).labelId(2L).build();
+        var distributorFromAnotherLabel =
+                DistributorFactory.aDistributor().id(99L).labelId(2L).build();
 
         when(labelQueryApi.findById(1L)).thenReturn(Optional.of(label));
-        when(distributorQueryApi.findById(99L)).thenReturn(Optional.of(distributorFromAnotherLabel));
+        when(distributorQueryApi.findById(99L))
+                .thenReturn(Optional.of(distributorFromAnotherLabel));
 
         mockMvc.perform(get("/api/labels/1/distributors/99").with(user(testUser)))
                 .andExpect(status().isNotFound());

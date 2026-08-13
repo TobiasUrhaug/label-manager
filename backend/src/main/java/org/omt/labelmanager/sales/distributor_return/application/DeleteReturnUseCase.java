@@ -19,8 +19,7 @@ class DeleteReturnUseCase {
 
     DeleteReturnUseCase(
             DistributorReturnRepository returnRepository,
-            InventoryMovementCommandApi inventoryMovementCommandApi
-    ) {
+            InventoryMovementCommandApi inventoryMovementCommandApi) {
         this.returnRepository = returnRepository;
         this.inventoryMovementCommandApi = inventoryMovementCommandApi;
     }

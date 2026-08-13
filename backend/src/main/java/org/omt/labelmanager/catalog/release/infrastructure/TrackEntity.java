@@ -27,12 +27,7 @@ public class TrackEntity {
     public TrackEntity() {}
 
     public TrackEntity(
-            Long id,
-            String name,
-            Integer durationSeconds,
-            Integer position,
-            Long releaseId
-    ) {
+            Long id, String name, Integer durationSeconds, Integer position, Long releaseId) {
         this.id = id;
         this.name = name;
         this.durationSeconds = durationSeconds;

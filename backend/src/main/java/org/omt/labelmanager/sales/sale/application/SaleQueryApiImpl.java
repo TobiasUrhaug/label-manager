@@ -48,8 +48,7 @@ class SaleQueryApiImpl implements SaleQueryApi {
     @Override
     @Transactional
     public Optional<Sale> findById(Long saleId) {
-        return saleRepository.findById(saleId)
-                .map(saleConverter::toSale);
+        return saleRepository.findById(saleId).map(saleConverter::toSale);
     }
 
     @Override

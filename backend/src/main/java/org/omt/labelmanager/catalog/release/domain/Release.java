@@ -11,6 +11,4 @@ public record Release(
         Long labelId,
         List<Long> artistIds,
         List<Track> tracks,
-        Set<ReleaseFormat> formats
-) {
-}
+        Set<ReleaseFormat> formats) {}

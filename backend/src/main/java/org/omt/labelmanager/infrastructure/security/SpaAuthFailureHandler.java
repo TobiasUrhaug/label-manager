@@ -15,7 +15,8 @@ public class SpaAuthFailureHandler implements AuthenticationFailureHandler {
     public void onAuthenticationFailure(
             HttpServletRequest request,
             HttpServletResponse response,
-            AuthenticationException exception) throws IOException {
+            AuthenticationException exception)
+            throws IOException {
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         response.setContentType("application/json;charset=UTF-8");
         MAPPER.writeValue(response.getWriter(), new ErrorResponse("Invalid credentials."));

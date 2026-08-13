@@ -29,8 +29,7 @@ public final class UserFactory {
         private String displayName = "Default User";
         private Instant createdAt = Instant.now();
 
-        private Builder() {
-        }
+        private Builder() {}
 
         public Builder id(Long id) {
             this.id = id;

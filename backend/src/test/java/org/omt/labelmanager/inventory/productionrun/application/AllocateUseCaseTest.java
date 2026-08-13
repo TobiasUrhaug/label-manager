@@ -24,14 +24,11 @@ import org.omt.labelmanager.inventory.productionrun.persistence.ProductionRunRep
 @ExtendWith(MockitoExtension.class)
 class AllocateUseCaseTest {
 
-    @Mock
-    private ProductionRunRepository repository;
+    @Mock private ProductionRunRepository repository;
 
-    @Mock
-    private InventoryMovementQueryApi inventoryMovementQueryApi;
+    @Mock private InventoryMovementQueryApi inventoryMovementQueryApi;
 
-    @Mock
-    private InventoryMovementCommandApi inventoryMovementCommandApi;
+    @Mock private InventoryMovementCommandApi inventoryMovementCommandApi;
 
     private AllocateUseCase subject;
 
@@ -39,7 +36,9 @@ class AllocateUseCaseTest {
 
     @BeforeEach
     void setUp() {
-        subject = new AllocateUseCase(repository, inventoryMovementQueryApi, inventoryMovementCommandApi);
+        subject =
+                new AllocateUseCase(
+                        repository, inventoryMovementQueryApi, inventoryMovementCommandApi);
     }
 
     @Test
@@ -47,17 +46,17 @@ class AllocateUseCaseTest {
         when(repository.findById(RUN_ID)).thenReturn(Optional.of(runWithQuantity(500)));
         when(inventoryMovementQueryApi.getWarehouseInventory(RUN_ID)).thenReturn(-200);
 
-        assertThatNoException().isThrownBy(() ->
-                subject.execute(RUN_ID, InventoryLocation.distributor(5L), 300));
+        assertThatNoException()
+                .isThrownBy(() -> subject.execute(RUN_ID, InventoryLocation.distributor(5L), 300));
 
-        verify(inventoryMovementCommandApi).recordMovement(
-                RUN_ID,
-                InventoryLocation.warehouse(),
-                InventoryLocation.distributor(5L),
-                300,
-                MovementType.ALLOCATION,
-                null
-        );
+        verify(inventoryMovementCommandApi)
+                .recordMovement(
+                        RUN_ID,
+                        InventoryLocation.warehouse(),
+                        InventoryLocation.distributor(5L),
+                        300,
+                        MovementType.ALLOCATION,
+                        null);
     }
 
     @Test
@@ -76,17 +75,18 @@ class AllocateUseCaseTest {
 
         subject.execute(RUN_ID, InventoryLocation.bandcamp(), 50);
 
-        verify(inventoryMovementCommandApi).recordMovement(
-                RUN_ID,
-                InventoryLocation.warehouse(),
-                InventoryLocation.bandcamp(),
-                50,
-                MovementType.ALLOCATION,
-                null
-        );
+        verify(inventoryMovementCommandApi)
+                .recordMovement(
+                        RUN_ID,
+                        InventoryLocation.warehouse(),
+                        InventoryLocation.bandcamp(),
+                        50,
+                        MovementType.ALLOCATION,
+                        null);
     }
 
     private ProductionRunEntity runWithQuantity(int quantity) {
-        return new ProductionRunEntity(1L, ReleaseFormat.VINYL, null, "Manufacturer", LocalDate.now(), quantity);
+        return new ProductionRunEntity(
+                1L, ReleaseFormat.VINYL, null, "Manufacturer", LocalDate.now(), quantity);
     }
 }

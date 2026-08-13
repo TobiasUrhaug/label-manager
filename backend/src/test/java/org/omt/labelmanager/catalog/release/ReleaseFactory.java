@@ -7,8 +7,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 import org.omt.labelmanager.catalog.release.domain.Release;
-import org.omt.labelmanager.catalog.release.domain.Track;
 import org.omt.labelmanager.catalog.release.domain.ReleaseFormat;
+import org.omt.labelmanager.catalog.release.domain.Track;
 
 public final class ReleaseFactory {
 
@@ -33,14 +33,10 @@ public final class ReleaseFactory {
         private LocalDate releaseDate = LocalDate.now();
         private Long labelId = 1L;
         private List<Long> artistIds = new ArrayList<>();
-        private List<Track> tracks = new ArrayList<>(
-                List.of(TrackFactory.createDefault())
-        );
-        private Set<ReleaseFormat> formats =
-                new HashSet<>(Set.of(ReleaseFormat.DIGITAL));
+        private List<Track> tracks = new ArrayList<>(List.of(TrackFactory.createDefault()));
+        private Set<ReleaseFormat> formats = new HashSet<>(Set.of(ReleaseFormat.DIGITAL));
 
-        private Builder() {
-        }
+        private Builder() {}
 
         public Builder id(Long id) {
             this.id = id;
@@ -93,15 +89,7 @@ public final class ReleaseFactory {
         }
 
         public Release build() {
-            return new Release(
-                    id,
-                    name,
-                    releaseDate,
-                    labelId,
-                    artistIds,
-                    tracks,
-                    formats
-            );
+            return new Release(id, name, releaseDate, labelId, artistIds, tracks, formats);
         }
     }
 }

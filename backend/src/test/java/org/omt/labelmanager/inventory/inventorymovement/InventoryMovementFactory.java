@@ -9,8 +9,7 @@ public final class InventoryMovementFactory {
 
     private static final AtomicLong counter = new AtomicLong(1);
 
-    private InventoryMovementFactory() {
-    }
+    private InventoryMovementFactory() {}
 
     public static Builder anInventoryMovement() {
         return new Builder();
@@ -33,8 +32,7 @@ public final class InventoryMovementFactory {
         private Instant occurredAt = Instant.parse("2025-01-15T10:00:00Z");
         private Long referenceId = null;
 
-        private Builder() {
-        }
+        private Builder() {}
 
         public Builder id(Long id) {
             this.id = id;
@@ -97,8 +95,7 @@ public final class InventoryMovementFactory {
                     quantity,
                     movementType,
                     occurredAt,
-                    referenceId
-            );
+                    referenceId);
         }
     }
 }

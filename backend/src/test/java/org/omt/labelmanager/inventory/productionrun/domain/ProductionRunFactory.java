@@ -1,16 +1,14 @@
 package org.omt.labelmanager.inventory.productionrun.domain;
 
-import org.omt.labelmanager.catalog.release.domain.ReleaseFormat;
-
 import java.time.LocalDate;
 import java.util.concurrent.atomic.AtomicLong;
+import org.omt.labelmanager.catalog.release.domain.ReleaseFormat;
 
 public final class ProductionRunFactory {
 
     private static final AtomicLong counter = new AtomicLong(1);
 
-    private ProductionRunFactory() {
-    }
+    private ProductionRunFactory() {}
 
     public static Builder aProductionRun() {
         return new Builder();
@@ -30,8 +28,7 @@ public final class ProductionRunFactory {
         private LocalDate manufacturingDate = LocalDate.of(2025, 1, 1);
         private int quantity = 500;
 
-        private Builder() {
-        }
+        private Builder() {}
 
         public Builder id(Long id) {
             this.id = id;
@@ -70,14 +67,7 @@ public final class ProductionRunFactory {
 
         public ProductionRun build() {
             return new ProductionRun(
-                    id,
-                    releaseId,
-                    format,
-                    description,
-                    manufacturer,
-                    manufacturingDate,
-                    quantity
-            );
+                    id, releaseId, format, description, manufacturer, manufacturingDate, quantity);
         }
     }
 }

@@ -1,13 +1,12 @@
 package org.omt.labelmanager.finance.cost.application;
 
+import java.util.List;
 import org.omt.labelmanager.finance.cost.CostMapper;
-import org.omt.labelmanager.finance.cost.infrastructure.CostRepository;
 import org.omt.labelmanager.finance.cost.api.CostQueryApi;
 import org.omt.labelmanager.finance.cost.domain.Cost;
 import org.omt.labelmanager.finance.cost.domain.CostOwnerType;
+import org.omt.labelmanager.finance.cost.infrastructure.CostRepository;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 @Service
 class CostQueryApiImpl implements CostQueryApi {

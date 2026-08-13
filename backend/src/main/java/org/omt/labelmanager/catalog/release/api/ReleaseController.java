@@ -68,8 +68,7 @@ public class ReleaseController {
             ProductionRunQueryApi productionRunQueryApi,
             DistributorQueryApi distributorQueryApi,
             InventoryMovementQueryApi inventoryMovementQueryApi,
-            SaleQueryApi saleQueryApi
-    ) {
+            SaleQueryApi saleQueryApi) {
         this.releaseCommandApi = releaseCommandApi;
         this.releaseQueryApi = releaseQueryApi;
         this.artistQueryApi = artistQueryApi;
@@ -80,20 +79,14 @@ public class ReleaseController {
         this.saleQueryApi = saleQueryApi;
     }
 
-    record TrackRequest(
-            List<Long> artistIds,
-            String name,
-            String duration,
-            List<Long> remixerIds
-    ) {
+    record TrackRequest(List<Long> artistIds, String name, String duration, List<Long> remixerIds) {
         TrackInput toTrackInput(int position) {
             return new TrackInput(
                     artistIds != null ? artistIds : List.of(),
                     name,
                     TrackDuration.parse(duration),
                     position,
-                    remixerIds != null ? remixerIds : List.of()
-            );
+                    remixerIds != null ? remixerIds : List.of());
         }
     }
 
@@ -102,17 +95,20 @@ public class ReleaseController {
             String releaseDate,
             List<Long> artistIds,
             List<TrackRequest> tracks,
-            List<String> formats
-    ) {
+            List<String> formats) {
         List<TrackInput> toTrackInputs() {
-            if (tracks == null) return List.of();
+            if (tracks == null) {
+                return List.of();
+            }
             return IntStream.range(0, tracks.size())
                     .mapToObj(i -> tracks.get(i).toTrackInput(i + 1))
                     .toList();
         }
 
         Set<ReleaseFormat> toReleaseFormats() {
-            if (formats == null) return Set.of();
+            if (formats == null) {
+                return Set.of();
+            }
             return formats.stream().map(ReleaseFormat::valueOf).collect(Collectors.toSet());
         }
     }
@@ -122,17 +118,20 @@ public class ReleaseController {
             String releaseDate,
             List<Long> artistIds,
             List<TrackRequest> tracks,
-            List<String> formats
-    ) {
+            List<String> formats) {
         List<TrackInput> toTrackInputs() {
-            if (tracks == null) return List.of();
+            if (tracks == null) {
+                return List.of();
+            }
             return IntStream.range(0, tracks.size())
                     .mapToObj(i -> tracks.get(i).toTrackInput(i + 1))
                     .toList();
         }
 
         Set<ReleaseFormat> toReleaseFormats() {
-            if (formats == null) return Set.of();
+            if (formats == null) {
+                return Set.of();
+            }
             return formats.stream().map(ReleaseFormat::valueOf).collect(Collectors.toSet());
         }
     }
@@ -149,31 +148,32 @@ public class ReleaseController {
             List<ProductionRunWithAllocation> productionRuns,
             List<Distributor> distributors,
             List<ReleaseSaleView> releaseSales,
-            int totalUnitsSold
-    ) {}
+            int totalUnitsSold) {}
 
     @GetMapping("/{releaseId}")
     public ReleaseDetailResponse release(
             @AuthenticationPrincipal AppUserDetails user,
             @PathVariable Long labelId,
-            @PathVariable Long releaseId
-    ) {
-        Release release = releaseQueryApi
-                .findById(releaseId)
-                .orElseThrow(() -> {
-                    log.warn("Release with id {} not found", releaseId);
-                    return new ResponseStatusException(HttpStatus.NOT_FOUND);
-                });
+            @PathVariable Long releaseId) {
+        Release release =
+                releaseQueryApi
+                        .findById(releaseId)
+                        .orElseThrow(
+                                () -> {
+                                    log.warn("Release with id {} not found", releaseId);
+                                    return new ResponseStatusException(HttpStatus.NOT_FOUND);
+                                });
 
         List<Artist> allArtists = artistQueryApi.getArtistsForUser(user.getId());
-        Map<Long, Artist> artistMap = allArtists.stream()
-                .collect(Collectors.toMap(Artist::id, Function.identity()));
+        Map<Long, Artist> artistMap =
+                allArtists.stream().collect(Collectors.toMap(Artist::id, Function.identity()));
         List<Cost> costs = costQueryFacade.getCostsForRelease(releaseId);
         List<ProductionRun> productionRuns = productionRunQueryApi.findByReleaseId(releaseId);
         List<Distributor> distributors = distributorQueryApi.findByLabelId(labelId);
-        List<ProductionRunWithAllocation> productionRunsWithAllocation = productionRuns.stream()
-                .map(run -> buildProductionRunWithAllocation(run, distributors))
-                .toList();
+        List<ProductionRunWithAllocation> productionRunsWithAllocation =
+                productionRuns.stream()
+                        .map(run -> buildProductionRunWithAllocation(run, distributors))
+                        .toList();
         List<ReleaseSaleView> releaseSales = buildReleaseSales(productionRuns, distributors);
         int totalUnitsSold = releaseSales.stream().mapToInt(ReleaseSaleView::totalUnits).sum();
 
@@ -189,39 +189,32 @@ public class ReleaseController {
                 productionRunsWithAllocation,
                 distributors,
                 releaseSales,
-                totalUnitsSold
-        );
+                totalUnitsSold);
     }
 
     @PostMapping
     public ResponseEntity<Void> createRelease(
-            @PathVariable Long labelId,
-            @RequestBody CreateReleaseRequest request
-    ) {
+            @PathVariable Long labelId, @RequestBody CreateReleaseRequest request) {
         releaseCommandApi.createRelease(
                 request.releaseName(),
                 LocalDate.parse(request.releaseDate()),
                 labelId,
                 request.artistIds() != null ? request.artistIds() : List.of(),
                 request.toTrackInputs(),
-                request.toReleaseFormats()
-        );
+                request.toReleaseFormats());
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
     @PutMapping("/{releaseId}")
     public ResponseEntity<Void> updateRelease(
-            @PathVariable Long releaseId,
-            @RequestBody UpdateReleaseRequest request
-    ) {
+            @PathVariable Long releaseId, @RequestBody UpdateReleaseRequest request) {
         releaseCommandApi.updateRelease(
                 releaseId,
                 request.releaseName(),
                 LocalDate.parse(request.releaseDate()),
                 request.artistIds() != null ? request.artistIds() : List.of(),
                 request.toTrackInputs(),
-                request.toReleaseFormats()
-        );
+                request.toReleaseFormats());
         return ResponseEntity.noContent().build();
     }
 
@@ -232,30 +225,27 @@ public class ReleaseController {
     }
 
     private List<Artist> resolveArtists(List<Long> artistIds, Map<Long, Artist> artistMap) {
-        return artistIds.stream()
-                .map(artistMap::get)
-                .filter(a -> a != null)
-                .toList();
+        return artistIds.stream().map(artistMap::get).filter(a -> a != null).toList();
     }
 
     private List<TrackView> resolveTrackArtists(List<Track> tracks, Map<Long, Artist> artistMap) {
         return tracks.stream()
-                .map(track -> new TrackView(
-                        track.id(),
-                        resolveArtists(track.artistIds(), artistMap),
-                        track.name(),
-                        track.duration(),
-                        track.position(),
-                        resolveArtists(track.remixerIds(), artistMap)
-                ))
+                .map(
+                        track ->
+                                new TrackView(
+                                        track.id(),
+                                        resolveArtists(track.artistIds(), artistMap),
+                                        track.name(),
+                                        track.duration(),
+                                        track.position(),
+                                        resolveArtists(track.remixerIds(), artistMap)))
                 .toList();
     }
 
     private ProductionRunWithAllocation buildProductionRunWithAllocation(
-            ProductionRun run,
-            List<Distributor> distributors
-    ) {
-        int warehouseInventory = run.quantity() + inventoryMovementQueryApi.getWarehouseInventory(run.id());
+            ProductionRun run, List<Distributor> distributors) {
+        int warehouseInventory =
+                run.quantity() + inventoryMovementQueryApi.getWarehouseInventory(run.id());
         int bandcampInventory = inventoryMovementQueryApi.getBandcampInventory(run.id());
         Map<Long, Integer> currentByDistributor =
                 inventoryMovementQueryApi.getCurrentInventoryByDistributor(run.id());
@@ -267,43 +257,41 @@ public class ReleaseController {
                 bandcampInventory,
                 warehouseInventory,
                 buildDistributorInventories(currentByDistributor, distributors),
-                buildMovementHistory(movements, distributors)
-        );
+                buildMovementHistory(movements, distributors));
     }
 
     private List<DistributorInventoryView> buildDistributorInventories(
-            Map<Long, Integer> currentByDistributor,
-            List<Distributor> distributors
-    ) {
+            Map<Long, Integer> currentByDistributor, List<Distributor> distributors) {
         return currentByDistributor.entrySet().stream()
-                .map(entry -> new DistributorInventoryView(
-                        findDistributorName(entry.getKey(), distributors),
-                        entry.getValue()
-                ))
+                .map(
+                        entry ->
+                                new DistributorInventoryView(
+                                        findDistributorName(entry.getKey(), distributors),
+                                        entry.getValue()))
                 .sorted(Comparator.comparing(DistributorInventoryView::name))
                 .toList();
     }
 
     private List<MovementHistoryView> buildMovementHistory(
-            List<InventoryMovement> movements,
-            List<Distributor> distributors
-    ) {
+            List<InventoryMovement> movements, List<Distributor> distributors) {
         return movements.stream()
-                .map(m -> new MovementHistoryView(
-                        m.occurredAt(),
-                        m.movementType(),
-                        formatLocation(m.fromLocationType(), m.fromLocationId(), distributors),
-                        formatLocation(m.toLocationType(), m.toLocationId(), distributors),
-                        m.quantity()
-                ))
+                .map(
+                        m ->
+                                new MovementHistoryView(
+                                        m.occurredAt(),
+                                        m.movementType(),
+                                        formatLocation(
+                                                m.fromLocationType(),
+                                                m.fromLocationId(),
+                                                distributors),
+                                        formatLocation(
+                                                m.toLocationType(), m.toLocationId(), distributors),
+                                        m.quantity()))
                 .toList();
     }
 
     private String formatLocation(
-            LocationType locationType,
-            Long locationId,
-            List<Distributor> distributors
-    ) {
+            LocationType locationType, Long locationId, List<Distributor> distributors) {
         return switch (locationType) {
             case WAREHOUSE -> "Warehouse";
             case EXTERNAL -> "External (sold)";
@@ -321,9 +309,7 @@ public class ReleaseController {
     }
 
     private List<ReleaseSaleView> buildReleaseSales(
-            List<ProductionRun> productionRuns,
-            List<Distributor> distributors
-    ) {
+            List<ProductionRun> productionRuns, List<Distributor> distributors) {
         return productionRuns.stream()
                 .flatMap(run -> saleQueryApi.getSalesForProductionRun(run.id()).stream())
                 .map(sale -> toReleaseSaleView(sale, distributors))
@@ -338,7 +324,6 @@ public class ReleaseController {
                 sale.saleDate(),
                 findDistributorName(sale.distributorId(), distributors),
                 totalUnits,
-                sale.totalAmount()
-        );
+                sale.totalAmount());
     }
 }

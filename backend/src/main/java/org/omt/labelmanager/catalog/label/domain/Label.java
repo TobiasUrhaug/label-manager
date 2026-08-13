@@ -11,8 +11,7 @@ public record Label(
         String website,
         Address address,
         Person owner,
-        Long userId
-) {
+        Long userId) {
 
     public static Label fromEntity(LabelEntity entity) {
         return new Label(
@@ -22,7 +21,6 @@ public record Label(
                 entity.getWebsite(),
                 Address.fromEmbeddable(entity.getAddress()),
                 Person.fromEmbeddable(entity.getOwner()),
-                entity.getUserId()
-        );
+                entity.getUserId());
     }
 }

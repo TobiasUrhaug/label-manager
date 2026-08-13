@@ -14,8 +14,7 @@ public interface ReleaseCommandApi {
             Long labelId,
             List<Long> artistIds,
             List<TrackInput> tracks,
-            Set<ReleaseFormat> formats
-    );
+            Set<ReleaseFormat> formats);
 
     void updateRelease(
             Long id,
@@ -23,9 +22,7 @@ public interface ReleaseCommandApi {
             LocalDate releaseDate,
             List<Long> artistIds,
             List<TrackInput> tracks,
-            Set<ReleaseFormat> formats
-    );
+            Set<ReleaseFormat> formats);
 
     void delete(Long id);
-
 }

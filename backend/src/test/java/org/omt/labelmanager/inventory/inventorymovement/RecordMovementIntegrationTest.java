@@ -25,23 +25,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 public class RecordMovementIntegrationTest extends AbstractIntegrationTest {
 
-    @Autowired
-    private InventoryMovementCommandApi inventoryMovementCommandApi;
+    @Autowired private InventoryMovementCommandApi inventoryMovementCommandApi;
 
-    @Autowired
-    private InventoryMovementQueryApi inventoryMovementQueryApi;
+    @Autowired private InventoryMovementQueryApi inventoryMovementQueryApi;
 
-    @Autowired
-    private ProductionRunRepository productionRunRepository;
+    @Autowired private ProductionRunRepository productionRunRepository;
 
-    @Autowired
-    private DistributorRepository distributorRepository;
+    @Autowired private DistributorRepository distributorRepository;
 
-    @Autowired
-    private ReleaseTestHelper releaseTestHelper;
+    @Autowired private ReleaseTestHelper releaseTestHelper;
 
-    @Autowired
-    private LabelTestHelper labelTestHelper;
+    @Autowired private LabelTestHelper labelTestHelper;
 
     private Long productionRunId;
     private Long distributorId;
@@ -52,20 +46,22 @@ public class RecordMovementIntegrationTest extends AbstractIntegrationTest {
         distributorRepository.deleteAll();
 
         var label = labelTestHelper.createLabel("Test Label");
-        Long releaseId = releaseTestHelper
-                .createReleaseEntity("Test Release", label.id());
+        Long releaseId = releaseTestHelper.createReleaseEntity("Test Release", label.id());
 
-        ProductionRunEntity productionRun = productionRunRepository.save(
-                new ProductionRunEntity(
-                        releaseId, ReleaseFormat.VINYL,
-                        "First pressing",
-                        "Plant A", LocalDate.of(2025, 1, 1), 500));
+        ProductionRunEntity productionRun =
+                productionRunRepository.save(
+                        new ProductionRunEntity(
+                                releaseId,
+                                ReleaseFormat.VINYL,
+                                "First pressing",
+                                "Plant A",
+                                LocalDate.of(2025, 1, 1),
+                                500));
         productionRunId = productionRun.getId();
 
-        DistributorEntity distributor = distributorRepository.save(
-                new DistributorEntity(
-                        label.id(), "Direct Sales",
-                        ChannelType.DIRECT));
+        DistributorEntity distributor =
+                distributorRepository.save(
+                        new DistributorEntity(label.id(), "Direct Sales", ChannelType.DIRECT));
         distributorId = distributor.getId();
     }
 
@@ -77,25 +73,19 @@ public class RecordMovementIntegrationTest extends AbstractIntegrationTest {
                 distributor(distributorId),
                 100,
                 MovementType.ALLOCATION,
-                42L
-        );
+                42L);
 
-        var movements = inventoryMovementQueryApi
-                .findByProductionRunId(productionRunId);
+        var movements = inventoryMovementQueryApi.findByProductionRunId(productionRunId);
 
         assertThat(movements).hasSize(1);
         var movement = movements.getFirst();
-        assertThat(movement.productionRunId())
-                .isEqualTo(productionRunId);
-        assertThat(movement.fromLocationType())
-                .isEqualTo(LocationType.WAREHOUSE);
+        assertThat(movement.productionRunId()).isEqualTo(productionRunId);
+        assertThat(movement.fromLocationType()).isEqualTo(LocationType.WAREHOUSE);
         assertThat(movement.fromLocationId()).isNull();
-        assertThat(movement.toLocationType())
-                .isEqualTo(LocationType.DISTRIBUTOR);
+        assertThat(movement.toLocationType()).isEqualTo(LocationType.DISTRIBUTOR);
         assertThat(movement.toLocationId()).isEqualTo(distributorId);
         assertThat(movement.quantity()).isEqualTo(100);
-        assertThat(movement.movementType())
-                .isEqualTo(MovementType.ALLOCATION);
+        assertThat(movement.movementType()).isEqualTo(MovementType.ALLOCATION);
         assertThat(movement.referenceId()).isEqualTo(42L);
         assertThat(movement.occurredAt()).isNotNull();
     }
@@ -108,19 +98,15 @@ public class RecordMovementIntegrationTest extends AbstractIntegrationTest {
                 external(),
                 50,
                 MovementType.SALE,
-                null
-        );
+                null);
 
-        var movements = inventoryMovementQueryApi
-                .findByProductionRunId(productionRunId);
+        var movements = inventoryMovementQueryApi.findByProductionRunId(productionRunId);
 
         assertThat(movements).hasSize(1);
         var movement = movements.getFirst();
-        assertThat(movement.fromLocationType())
-                .isEqualTo(LocationType.DISTRIBUTOR);
+        assertThat(movement.fromLocationType()).isEqualTo(LocationType.DISTRIBUTOR);
         assertThat(movement.fromLocationId()).isEqualTo(distributorId);
-        assertThat(movement.toLocationType())
-                .isEqualTo(LocationType.EXTERNAL);
+        assertThat(movement.toLocationType()).isEqualTo(LocationType.EXTERNAL);
         assertThat(movement.toLocationId()).isNull();
         assertThat(movement.quantity()).isEqualTo(50);
         assertThat(movement.referenceId()).isNull();
@@ -130,15 +116,20 @@ public class RecordMovementIntegrationTest extends AbstractIntegrationTest {
     void recordMovement_persistsMultipleMovements() {
         inventoryMovementCommandApi.recordMovement(
                 productionRunId,
-                warehouse(), distributor(distributorId),
-                100, MovementType.ALLOCATION, null);
+                warehouse(),
+                distributor(distributorId),
+                100,
+                MovementType.ALLOCATION,
+                null);
         inventoryMovementCommandApi.recordMovement(
                 productionRunId,
-                distributor(distributorId), external(),
-                20, MovementType.SALE, null);
+                distributor(distributorId),
+                external(),
+                20,
+                MovementType.SALE,
+                null);
 
-        var movements = inventoryMovementQueryApi
-                .findByProductionRunId(productionRunId);
+        var movements = inventoryMovementQueryApi.findByProductionRunId(productionRunId);
 
         assertThat(movements).hasSize(2);
     }
@@ -147,23 +138,30 @@ public class RecordMovementIntegrationTest extends AbstractIntegrationTest {
     void deleteMovementsByReference_removesMatchingMovements() {
         inventoryMovementCommandApi.recordMovement(
                 productionRunId,
-                distributor(distributorId), external(),
-                30, MovementType.SALE, 99L);
+                distributor(distributorId),
+                external(),
+                30,
+                MovementType.SALE,
+                99L);
         inventoryMovementCommandApi.recordMovement(
                 productionRunId,
-                distributor(distributorId), external(),
-                20, MovementType.SALE, 99L);
+                distributor(distributorId),
+                external(),
+                20,
+                MovementType.SALE,
+                99L);
         // Different referenceId — should NOT be deleted
         inventoryMovementCommandApi.recordMovement(
                 productionRunId,
-                distributor(distributorId), external(),
-                10, MovementType.SALE, 100L);
+                distributor(distributorId),
+                external(),
+                10,
+                MovementType.SALE,
+                100L);
 
-        inventoryMovementCommandApi
-                .deleteMovementsByReference(MovementType.SALE, 99L);
+        inventoryMovementCommandApi.deleteMovementsByReference(MovementType.SALE, 99L);
 
-        var remaining = inventoryMovementQueryApi
-                .findByProductionRunId(productionRunId);
+        var remaining = inventoryMovementQueryApi.findByProductionRunId(productionRunId);
         assertThat(remaining).hasSize(1);
         assertThat(remaining.getFirst().referenceId()).isEqualTo(100L);
     }

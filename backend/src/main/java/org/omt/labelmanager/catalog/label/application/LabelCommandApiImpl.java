@@ -2,8 +2,8 @@ package org.omt.labelmanager.catalog.label.application;
 
 import org.omt.labelmanager.catalog.domain.shared.Address;
 import org.omt.labelmanager.catalog.domain.shared.Person;
-import org.omt.labelmanager.catalog.label.domain.Label;
 import org.omt.labelmanager.catalog.label.api.LabelCommandApi;
+import org.omt.labelmanager.catalog.label.domain.Label;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -16,8 +16,7 @@ class LabelCommandApiImpl implements LabelCommandApi {
     LabelCommandApiImpl(
             CreateLabelUseCase createLabel,
             UpdateLabelUseCase updateLabel,
-            DeleteLabelUseCase deleteLabel
-    ) {
+            DeleteLabelUseCase deleteLabel) {
         this.createLabel = createLabel;
         this.updateLabel = updateLabel;
         this.deleteLabel = deleteLabel;
@@ -30,11 +29,8 @@ class LabelCommandApiImpl implements LabelCommandApi {
             String website,
             Address address,
             Person owner,
-            Long userId
-    ) {
-        return createLabel.execute(
-                labelName, email, website, address, owner, userId
-        );
+            Long userId) {
+        return createLabel.execute(labelName, email, website, address, owner, userId);
     }
 
     @Override
@@ -44,13 +40,7 @@ class LabelCommandApiImpl implements LabelCommandApi {
 
     @Override
     public void updateLabel(
-            Long id,
-            String name,
-            String email,
-            String website,
-            Address address,
-            Person owner
-    ) {
+            Long id, String name, String email, String website, Address address, Person owner) {
         updateLabel.execute(id, name, email, website, address, owner);
     }
 }

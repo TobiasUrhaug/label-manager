@@ -28,10 +28,7 @@ public class ArtistController {
     private final ArtistCommandApi artistCommandApi;
     private final ArtistQueryApi artistQueryApi;
 
-    public ArtistController(
-            ArtistCommandApi artistCommandApi,
-            ArtistQueryApi artistQueryApi
-    ) {
+    public ArtistController(ArtistCommandApi artistCommandApi, ArtistQueryApi artistQueryApi) {
         this.artistCommandApi = artistCommandApi;
         this.artistQueryApi = artistQueryApi;
     }
@@ -44,15 +41,18 @@ public class ArtistController {
             String street2,
             String city,
             String postalCode,
-            String country
-    ) {
+            String country) {
         Person toRealName() {
-            if (realName == null || realName.isBlank()) return null;
+            if (realName == null || realName.isBlank()) {
+                return null;
+            }
             return new Person(realName);
         }
 
         Address toAddress() {
-            if (street == null || street.isBlank()) return null;
+            if (street == null || street.isBlank()) {
+                return null;
+            }
             return new Address(street, street2, city, postalCode, country);
         }
     }
@@ -65,15 +65,18 @@ public class ArtistController {
             String street2,
             String city,
             String postalCode,
-            String country
-    ) {
+            String country) {
         Person toRealName() {
-            if (realName == null || realName.isBlank()) return null;
+            if (realName == null || realName.isBlank()) {
+                return null;
+            }
             return new Person(realName);
         }
 
         Address toAddress() {
-            if (street == null || street.isBlank()) return null;
+            if (street == null || street.isBlank()) {
+                return null;
+            }
             return new Address(street, street2, city, postalCode, country);
         }
     }
@@ -82,39 +85,35 @@ public class ArtistController {
     public Artist artist(@PathVariable Long id) {
         return artistQueryApi
                 .findById(id)
-                .orElseThrow(() -> {
-                    log.warn("Artist with id {} not found", id);
-                    return new ResponseStatusException(HttpStatus.NOT_FOUND);
-                });
+                .orElseThrow(
+                        () -> {
+                            log.warn("Artist with id {} not found", id);
+                            return new ResponseStatusException(HttpStatus.NOT_FOUND);
+                        });
     }
 
     @PostMapping
     public ResponseEntity<Void> createArtist(
             @AuthenticationPrincipal AppUserDetails user,
-            @RequestBody CreateArtistRequest request
-    ) {
+            @RequestBody CreateArtistRequest request) {
         artistCommandApi.createArtist(
                 request.artistName(),
                 request.toRealName(),
                 request.email(),
                 request.toAddress(),
-                user.getId()
-        );
+                user.getId());
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<Void> updateArtist(
-            @PathVariable Long id,
-            @RequestBody UpdateArtistRequest request
-    ) {
+            @PathVariable Long id, @RequestBody UpdateArtistRequest request) {
         artistCommandApi.updateArtist(
                 id,
                 request.artistName(),
                 request.toRealName(),
                 request.email(),
-                request.toAddress()
-        );
+                request.toAddress());
         return ResponseEntity.noContent().build();
     }
 

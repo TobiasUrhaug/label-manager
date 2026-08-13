@@ -12,44 +12,20 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 public class QueryLabelIntegrationTest extends AbstractIntegrationTest {
 
-    @Autowired
-    LabelCommandApi labelCommandApi;
+    @Autowired LabelCommandApi labelCommandApi;
 
-    @Autowired
-    LabelQueryApi labelQueryApi;
+    @Autowired LabelQueryApi labelQueryApi;
 
-    @Autowired
-    UserRepository userRepository;
+    @Autowired UserRepository userRepository;
 
     @Test
     void queryLabelsForUser_returnsOnlyUserLabels() {
         var user1 = createTestUser("user1@example.com");
         var user2 = createTestUser("user2@example.com");
 
-        labelCommandApi.createLabel(
-                "User 1 Label A",
-                null,
-                null,
-                null,
-                null,
-                user1.getId()
-        );
-        labelCommandApi.createLabel(
-                "User 1 Label B",
-                null,
-                null,
-                null,
-                null,
-                user1.getId()
-        );
-        labelCommandApi.createLabel(
-                "User 2 Label",
-                null,
-                null,
-                null,
-                null,
-                user2.getId()
-        );
+        labelCommandApi.createLabel("User 1 Label A", null, null, null, null, user1.getId());
+        labelCommandApi.createLabel("User 1 Label B", null, null, null, null, user1.getId());
+        labelCommandApi.createLabel("User 2 Label", null, null, null, null, user2.getId());
 
         var user1Labels = labelQueryApi.getLabelsForUser(user1.getId());
         assertThat(user1Labels).hasSize(2);
@@ -59,8 +35,6 @@ public class QueryLabelIntegrationTest extends AbstractIntegrationTest {
     }
 
     private UserEntity createTestUser(String email) {
-        return userRepository.save(
-                new UserEntity(email, "password", "Test User")
-        );
+        return userRepository.save(new UserEntity(email, "password", "Test User"));
     }
 }

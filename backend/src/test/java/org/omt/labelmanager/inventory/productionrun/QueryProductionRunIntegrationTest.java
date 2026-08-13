@@ -1,5 +1,8 @@
 package org.omt.labelmanager.inventory.productionrun;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.time.LocalDate;
 import org.junit.jupiter.api.Test;
 import org.omt.labelmanager.AbstractIntegrationTest;
 import org.omt.labelmanager.catalog.label.LabelTestHelper;
@@ -9,29 +12,20 @@ import org.omt.labelmanager.inventory.productionrun.api.ProductionRunCommandApi;
 import org.omt.labelmanager.inventory.productionrun.api.ProductionRunQueryApi;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.time.LocalDate;
-
-import static org.assertj.core.api.Assertions.assertThat;
-
 class QueryProductionRunIntegrationTest extends AbstractIntegrationTest {
 
-    @Autowired
-    private ProductionRunQueryApi queryApi;
+    @Autowired private ProductionRunQueryApi queryApi;
 
-    @Autowired
-    private ProductionRunCommandApi commandApi;
+    @Autowired private ProductionRunCommandApi commandApi;
 
-    @Autowired
-    private ReleaseTestHelper releaseTestHelper;
+    @Autowired private ReleaseTestHelper releaseTestHelper;
 
-    @Autowired
-    private LabelTestHelper labelTestHelper;
+    @Autowired private LabelTestHelper labelTestHelper;
 
     @Test
     void findByReleaseId_returnsAllProductionRunsForRelease() {
         var label = labelTestHelper.createLabel("Test Label");
-        Long releaseId = releaseTestHelper.createReleaseEntity(
-                "Test Release", label.id());
+        Long releaseId = releaseTestHelper.createReleaseEntity("Test Release", label.id());
 
         commandApi.createProductionRun(
                 releaseId,
@@ -39,8 +33,7 @@ class QueryProductionRunIntegrationTest extends AbstractIntegrationTest {
                 "First pressing",
                 "Manufacturer A",
                 LocalDate.of(2025, 1, 1),
-                500
-        );
+                500);
 
         commandApi.createProductionRun(
                 releaseId,
@@ -48,8 +41,7 @@ class QueryProductionRunIntegrationTest extends AbstractIntegrationTest {
                 "CD run",
                 "Manufacturer B",
                 LocalDate.of(2025, 2, 1),
-                300
-        );
+                300);
 
         commandApi.createProductionRun(
                 releaseId,
@@ -57,8 +49,7 @@ class QueryProductionRunIntegrationTest extends AbstractIntegrationTest {
                 "Second pressing",
                 "Manufacturer A",
                 LocalDate.of(2025, 3, 1),
-                400
-        );
+                400);
 
         var runs = queryApi.findByReleaseId(releaseId);
 
@@ -66,17 +57,13 @@ class QueryProductionRunIntegrationTest extends AbstractIntegrationTest {
         assertThat(runs)
                 .extracting("format")
                 .containsExactlyInAnyOrder(
-                        ReleaseFormat.VINYL,
-                        ReleaseFormat.CD,
-                        ReleaseFormat.VINYL
-                );
+                        ReleaseFormat.VINYL, ReleaseFormat.CD, ReleaseFormat.VINYL);
     }
 
     @Test
     void findByReleaseId_returnsEmptyListWhenNoProductionRuns() {
         var label = labelTestHelper.createLabel("Test Label");
-        Long releaseId = releaseTestHelper.createReleaseEntity(
-                "Test Release", label.id());
+        Long releaseId = releaseTestHelper.createReleaseEntity("Test Release", label.id());
 
         var runs = queryApi.findByReleaseId(releaseId);
 
@@ -86,8 +73,7 @@ class QueryProductionRunIntegrationTest extends AbstractIntegrationTest {
     @Test
     void findMostRecent_returnsMostRecentProductionRunForFormat() {
         var label = labelTestHelper.createLabel("Test Label");
-        Long releaseId = releaseTestHelper.createReleaseEntity(
-                "Test Release", label.id());
+        Long releaseId = releaseTestHelper.createReleaseEntity("Test Release", label.id());
 
         commandApi.createProductionRun(
                 releaseId,
@@ -95,17 +81,16 @@ class QueryProductionRunIntegrationTest extends AbstractIntegrationTest {
                 "First pressing",
                 "Manufacturer A",
                 LocalDate.of(2025, 1, 1),
-                500
-        );
+                500);
 
-        var secondPressing = commandApi.createProductionRun(
-                releaseId,
-                ReleaseFormat.VINYL,
-                "Second pressing",
-                "Manufacturer A",
-                LocalDate.of(2025, 3, 1),
-                400
-        );
+        var secondPressing =
+                commandApi.createProductionRun(
+                        releaseId,
+                        ReleaseFormat.VINYL,
+                        "Second pressing",
+                        "Manufacturer A",
+                        LocalDate.of(2025, 3, 1),
+                        400);
 
         commandApi.createProductionRun(
                 releaseId,
@@ -113,23 +98,20 @@ class QueryProductionRunIntegrationTest extends AbstractIntegrationTest {
                 "Third pressing",
                 "Manufacturer A",
                 LocalDate.of(2025, 2, 15),
-                300
-        );
+                300);
 
         var mostRecent = queryApi.findMostRecent(releaseId, ReleaseFormat.VINYL);
 
         assertThat(mostRecent).isPresent();
         assertThat(mostRecent.get().id()).isEqualTo(secondPressing.id());
         assertThat(mostRecent.get().description()).isEqualTo("Second pressing");
-        assertThat(mostRecent.get().manufacturingDate())
-                .isEqualTo(LocalDate.of(2025, 3, 1));
+        assertThat(mostRecent.get().manufacturingDate()).isEqualTo(LocalDate.of(2025, 3, 1));
     }
 
     @Test
     void findMostRecent_returnsEmptyWhenNoMatchingFormat() {
         var label = labelTestHelper.createLabel("Test Label");
-        Long releaseId = releaseTestHelper.createReleaseEntity(
-                "Test Release", label.id());
+        Long releaseId = releaseTestHelper.createReleaseEntity("Test Release", label.id());
 
         commandApi.createProductionRun(
                 releaseId,
@@ -137,8 +119,7 @@ class QueryProductionRunIntegrationTest extends AbstractIntegrationTest {
                 "Vinyl pressing",
                 "Manufacturer A",
                 LocalDate.of(2025, 1, 1),
-                500
-        );
+                500);
 
         var mostRecent = queryApi.findMostRecent(releaseId, ReleaseFormat.CD);
 
@@ -148,8 +129,7 @@ class QueryProductionRunIntegrationTest extends AbstractIntegrationTest {
     @Test
     void findMostRecent_returnsEmptyWhenNoProductionRuns() {
         var label = labelTestHelper.createLabel("Test Label");
-        Long releaseId = releaseTestHelper.createReleaseEntity(
-                "Test Release", label.id());
+        Long releaseId = releaseTestHelper.createReleaseEntity("Test Release", label.id());
 
         var mostRecent = queryApi.findMostRecent(releaseId, ReleaseFormat.VINYL);
 
@@ -159,29 +139,27 @@ class QueryProductionRunIntegrationTest extends AbstractIntegrationTest {
     @Test
     void findMostRecent_distinguishesBetweenFormats() {
         var label = labelTestHelper.createLabel("Test Label");
-        Long releaseId = releaseTestHelper.createReleaseEntity(
-                "Test Release", label.id());
+        Long releaseId = releaseTestHelper.createReleaseEntity("Test Release", label.id());
 
-        var vinylRun = commandApi.createProductionRun(
-                releaseId,
-                ReleaseFormat.VINYL,
-                "Vinyl pressing",
-                "Manufacturer A",
-                LocalDate.of(2025, 3, 1),
-                500
-        );
+        var vinylRun =
+                commandApi.createProductionRun(
+                        releaseId,
+                        ReleaseFormat.VINYL,
+                        "Vinyl pressing",
+                        "Manufacturer A",
+                        LocalDate.of(2025, 3, 1),
+                        500);
 
-        var cdRun = commandApi.createProductionRun(
-                releaseId,
-                ReleaseFormat.CD,
-                "CD pressing",
-                "Manufacturer B",
-                LocalDate.of(2025, 2, 1),
-                300
-        );
+        var cdRun =
+                commandApi.createProductionRun(
+                        releaseId,
+                        ReleaseFormat.CD,
+                        "CD pressing",
+                        "Manufacturer B",
+                        LocalDate.of(2025, 2, 1),
+                        300);
 
-        var mostRecentVinyl = queryApi.findMostRecent(
-                releaseId, ReleaseFormat.VINYL);
+        var mostRecentVinyl = queryApi.findMostRecent(releaseId, ReleaseFormat.VINYL);
         var mostRecentCd = queryApi.findMostRecent(releaseId, ReleaseFormat.CD);
 
         assertThat(mostRecentVinyl).isPresent();
@@ -194,17 +172,16 @@ class QueryProductionRunIntegrationTest extends AbstractIntegrationTest {
     @Test
     void getManufacturedQuantity_returnsQuantityForExistingProductionRun() {
         var label = labelTestHelper.createLabel("Test Label");
-        Long releaseId = releaseTestHelper.createReleaseEntity(
-                "Test Release", label.id());
+        Long releaseId = releaseTestHelper.createReleaseEntity("Test Release", label.id());
 
-        var productionRun = commandApi.createProductionRun(
-                releaseId,
-                ReleaseFormat.VINYL,
-                "Pressing",
-                "Manufacturer A",
-                LocalDate.of(2025, 1, 1),
-                500
-        );
+        var productionRun =
+                commandApi.createProductionRun(
+                        releaseId,
+                        ReleaseFormat.VINYL,
+                        "Pressing",
+                        "Manufacturer A",
+                        LocalDate.of(2025, 1, 1),
+                        500);
 
         int quantity = queryApi.getManufacturedQuantity(productionRun.id());
 

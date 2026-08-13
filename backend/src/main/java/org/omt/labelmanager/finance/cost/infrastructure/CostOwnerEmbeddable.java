@@ -17,8 +17,7 @@ public class CostOwnerEmbeddable {
     @Column(name = "owner_id")
     private Long ownerId;
 
-    protected CostOwnerEmbeddable() {
-    }
+    protected CostOwnerEmbeddable() {}
 
     public CostOwnerEmbeddable(CostOwnerType ownerType, Long ownerId) {
         this.ownerType = ownerType;

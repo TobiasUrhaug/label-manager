@@ -12,26 +12,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 public class DeleteLabelIntegrationTest extends AbstractIntegrationTest {
 
-    @Autowired
-    LabelCommandApi labelCommandApi;
+    @Autowired LabelCommandApi labelCommandApi;
 
-    @Autowired
-    LabelQueryApi labelQueryApi;
+    @Autowired LabelQueryApi labelQueryApi;
 
-    @Autowired
-    UserRepository userRepository;
+    @Autowired UserRepository userRepository;
 
     @Test
     void deleteLabel_removesLabelFromDatabase() {
         var user = createTestUser("delete-test@example.com");
-        var label = labelCommandApi.createLabel(
-                "Label To Delete",
-                null,
-                null,
-                null,
-                null,
-                user.getId()
-        );
+        var label =
+                labelCommandApi.createLabel(
+                        "Label To Delete", null, null, null, null, user.getId());
 
         labelCommandApi.delete(label.id());
 
@@ -39,8 +31,6 @@ public class DeleteLabelIntegrationTest extends AbstractIntegrationTest {
     }
 
     private UserEntity createTestUser(String email) {
-        return userRepository.save(
-                new UserEntity(email, "password", "Test User")
-        );
+        return userRepository.save(new UserEntity(email, "password", "Test User"));
     }
 }

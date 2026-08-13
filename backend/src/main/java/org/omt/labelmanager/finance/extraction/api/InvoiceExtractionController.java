@@ -18,9 +18,7 @@ public class InvoiceExtractionController {
 
     private static final Logger log = LoggerFactory.getLogger(InvoiceExtractionController.class);
 
-    private static final Set<String> ALLOWED_CONTENT_TYPES = Set.of(
-            "application/pdf"
-    );
+    private static final Set<String> ALLOWED_CONTENT_TYPES = Set.of("application/pdf");
 
     private final ExtractionCommandApi extractionCommandApi;
 
@@ -30,8 +28,7 @@ public class InvoiceExtractionController {
 
     @PostMapping("/extract")
     public ResponseEntity<ExtractedInvoiceData> extractInvoiceData(
-            @RequestParam("document") MultipartFile document
-    ) throws IOException {
+            @RequestParam("document") MultipartFile document) throws IOException {
         if (document == null || document.isEmpty()) {
             log.warn("No document provided for extraction");
             return ResponseEntity.badRequest().build();
@@ -45,10 +42,8 @@ public class InvoiceExtractionController {
 
         log.info("Extracting invoice data from document: {}", document.getOriginalFilename());
 
-        ExtractedInvoiceData result = extractionCommandApi.extract(
-                document.getInputStream(),
-                contentType
-        );
+        ExtractedInvoiceData result =
+                extractionCommandApi.extract(document.getInputStream(), contentType);
 
         return ResponseEntity.ok(result);
     }

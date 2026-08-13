@@ -29,30 +29,27 @@ import org.springframework.test.web.servlet.MockMvc;
 @Import(TestSecurityConfig.class)
 class ArtistControllerTest {
 
-    @Autowired
-    private MockMvc mockMvc;
+    @Autowired private MockMvc mockMvc;
 
-    @MockitoBean
-    private ArtistCommandApi artistCommandApi;
+    @MockitoBean private ArtistCommandApi artistCommandApi;
 
-    @MockitoBean
-    private ArtistQueryApi artistQueryApi;
+    @MockitoBean private ArtistQueryApi artistQueryApi;
 
     private final AppUserDetails testUser =
             new AppUserDetails(1L, "test@example.com", "password", "Test User");
 
     @Test
     void artist_returnsArtistJson() throws Exception {
-        var artist = ArtistFactory.anArtist()
-                .id(1L)
-                .artistName("DJ Cool")
-                .realName(new Person("John Smith"))
-                .email("dj@cool.com")
-                .build();
+        var artist =
+                ArtistFactory.anArtist()
+                        .id(1L)
+                        .artistName("DJ Cool")
+                        .realName(new Person("John Smith"))
+                        .email("dj@cool.com")
+                        .build();
         when(artistQueryApi.findById(1L)).thenReturn(Optional.of(artist));
 
-        mockMvc
-                .perform(get("/api/artists/1").with(user(testUser)))
+        mockMvc.perform(get("/api/artists/1").with(user(testUser)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.artistName").value("DJ Cool"))
                 .andExpect(jsonPath("$.email").value("dj@cool.com"));
@@ -62,19 +59,19 @@ class ArtistControllerTest {
     void artist_returns404_whenNotFound() throws Exception {
         when(artistQueryApi.findById(999L)).thenReturn(Optional.empty());
 
-        mockMvc
-                .perform(get("/api/artists/999").with(user(testUser)))
+        mockMvc.perform(get("/api/artists/999").with(user(testUser)))
                 .andExpect(status().isNotFound());
     }
 
     @Test
     void createArtist_returnsCreated() throws Exception {
-        mockMvc
-                .perform(post("/api/artists")
-                        .with(user(testUser))
-                        .with(csrf())
-                        .contentType(APPLICATION_JSON)
-                        .content("""
+        mockMvc.perform(
+                        post("/api/artists")
+                                .with(user(testUser))
+                                .with(csrf())
+                                .contentType(APPLICATION_JSON)
+                                .content(
+                                        """
                                 {
                                   "artistName": "New Artist",
                                   "realName": "Real Name",
@@ -83,23 +80,19 @@ class ArtistControllerTest {
                                 """))
                 .andExpect(status().isCreated());
 
-        verify(artistCommandApi).createArtist(
-                "New Artist",
-                new Person("Real Name"),
-                "artist@email.com",
-                null,
-                1L
-        );
+        verify(artistCommandApi)
+                .createArtist("New Artist", new Person("Real Name"), "artist@email.com", null, 1L);
     }
 
     @Test
     void createArtist_withAddress() throws Exception {
-        mockMvc
-                .perform(post("/api/artists")
-                        .with(user(testUser))
-                        .with(csrf())
-                        .contentType(APPLICATION_JSON)
-                        .content("""
+        mockMvc.perform(
+                        post("/api/artists")
+                                .with(user(testUser))
+                                .with(csrf())
+                                .contentType(APPLICATION_JSON)
+                                .content(
+                                        """
                                 {
                                   "artistName": "New Artist",
                                   "street": "123 Music Lane",
@@ -110,23 +103,24 @@ class ArtistControllerTest {
                                 """))
                 .andExpect(status().isCreated());
 
-        verify(artistCommandApi).createArtist(
-                "New Artist",
-                null,
-                null,
-                new Address("123 Music Lane", null, "Oslo", "0123", "Norway"),
-                1L
-        );
+        verify(artistCommandApi)
+                .createArtist(
+                        "New Artist",
+                        null,
+                        null,
+                        new Address("123 Music Lane", null, "Oslo", "0123", "Norway"),
+                        1L);
     }
 
     @Test
     void updateArtist_returnsNoContent() throws Exception {
-        mockMvc
-                .perform(put("/api/artists/1")
-                        .with(user(testUser))
-                        .with(csrf())
-                        .contentType(APPLICATION_JSON)
-                        .content("""
+        mockMvc.perform(
+                        put("/api/artists/1")
+                                .with(user(testUser))
+                                .with(csrf())
+                                .contentType(APPLICATION_JSON)
+                                .content(
+                                        """
                                 {
                                   "artistName": "Updated Artist",
                                   "realName": "New Real Name",
@@ -140,21 +134,18 @@ class ArtistControllerTest {
                                 """))
                 .andExpect(status().isNoContent());
 
-        verify(artistCommandApi).updateArtist(
-                1L,
-                "Updated Artist",
-                new Person("New Real Name"),
-                "updated@email.com",
-                new Address("456 New St", "Apt 2", "Bergen", "5020", "Norway")
-        );
+        verify(artistCommandApi)
+                .updateArtist(
+                        1L,
+                        "Updated Artist",
+                        new Person("New Real Name"),
+                        "updated@email.com",
+                        new Address("456 New St", "Apt 2", "Bergen", "5020", "Norway"));
     }
 
     @Test
     void deleteArtist_returnsNoContent() throws Exception {
-        mockMvc
-                .perform(delete("/api/artists/1")
-                        .with(user(testUser))
-                        .with(csrf()))
+        mockMvc.perform(delete("/api/artists/1").with(user(testUser)).with(csrf()))
                 .andExpect(status().isNoContent());
 
         verify(artistCommandApi).delete(1L);

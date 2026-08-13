@@ -17,8 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 class UpdateReleaseUseCase {
 
-    private static final Logger log =
-            LoggerFactory.getLogger(UpdateReleaseUseCase.class);
+    private static final Logger log = LoggerFactory.getLogger(UpdateReleaseUseCase.class);
 
     private final ReleaseRepository releaseRepository;
     private final ReleaseArtistRepository releaseArtistRepository;
@@ -29,8 +28,7 @@ class UpdateReleaseUseCase {
             ReleaseRepository releaseRepository,
             ReleaseArtistRepository releaseArtistRepository,
             CreateTracksUseCase createTracks,
-            DeleteTracksUseCase deleteTracks
-    ) {
+            DeleteTracksUseCase deleteTracks) {
         this.releaseRepository = releaseRepository;
         this.releaseArtistRepository = releaseArtistRepository;
         this.createTracks = createTracks;
@@ -44,23 +42,18 @@ class UpdateReleaseUseCase {
             LocalDate releaseDate,
             List<Long> artistIds,
             List<TrackInput> tracks,
-            Set<ReleaseFormat> formats
-    ) {
-        log.info(
-                "Updating release {} with {} tracks",
-                id,
-                tracks.size()
-        );
+            Set<ReleaseFormat> formats) {
+        log.info("Updating release {} with {} tracks", id, tracks.size());
         requireAtLeastOneTrack(tracks, id.toString());
 
-        ReleaseEntity release = releaseRepository.findById(id)
-                .orElseThrow(() -> {
-                    log.warn(
-                            "Cannot update release: release {} not found",
-                            id
-                    );
-                    return new IllegalArgumentException();
-                });
+        ReleaseEntity release =
+                releaseRepository
+                        .findById(id)
+                        .orElseThrow(
+                                () -> {
+                                    log.warn("Cannot update release: release {} not found", id);
+                                    return new IllegalArgumentException();
+                                });
 
         release.setName(name);
         release.setReleaseDate(releaseDate);
@@ -69,27 +62,17 @@ class UpdateReleaseUseCase {
 
         releaseArtistRepository.deleteAllByReleaseId(id);
         for (Long artistId : artistIds) {
-            releaseArtistRepository.addArtistToRelease(
-                    id, artistId
-            );
+            releaseArtistRepository.addArtistToRelease(id, artistId);
         }
 
         deleteTracks.deleteTracksForRelease(id);
         createTracks.createTracksForRelease(tracks, id);
     }
 
-    private void requireAtLeastOneTrack(
-            List<TrackInput> tracks,
-            String releaseIdentifier
-    ) {
+    private void requireAtLeastOneTrack(List<TrackInput> tracks, String releaseIdentifier) {
         if (tracks.isEmpty()) {
-            log.warn(
-                    "Release '{}' requires at least one track",
-                    releaseIdentifier
-            );
-            throw new IllegalArgumentException(
-                    "At least one track is required"
-            );
+            log.warn("Release '{}' requires at least one track", releaseIdentifier);
+            throw new IllegalArgumentException("At least one track is required");
         }
     }
 }

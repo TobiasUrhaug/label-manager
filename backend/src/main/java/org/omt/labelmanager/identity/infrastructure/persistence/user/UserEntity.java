@@ -29,8 +29,7 @@ public class UserEntity {
     @Column(name = "created_at")
     private Instant createdAt;
 
-    protected UserEntity() {
-    }
+    protected UserEntity() {}
 
     public UserEntity(String email, String password, String displayName) {
         this.email = email;

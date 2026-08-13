@@ -17,8 +17,7 @@ class DeleteTracksUseCase {
     DeleteTracksUseCase(
             TrackRepository trackRepository,
             TrackArtistRepository trackArtistRepository,
-            TrackRemixerRepository trackRemixerRepository
-    ) {
+            TrackRemixerRepository trackRemixerRepository) {
         this.trackRepository = trackRepository;
         this.trackArtistRepository = trackArtistRepository;
         this.trackRemixerRepository = trackRemixerRepository;
@@ -29,12 +28,8 @@ class DeleteTracksUseCase {
                 trackRepository.findByReleaseIdOrderByPosition(releaseId);
 
         for (TrackEntity trackEntity : existingTracks) {
-            trackArtistRepository.deleteAllByTrackId(
-                    trackEntity.getId()
-            );
-            trackRemixerRepository.deleteAllByTrackId(
-                    trackEntity.getId()
-            );
+            trackArtistRepository.deleteAllByTrackId(trackEntity.getId());
+            trackRemixerRepository.deleteAllByTrackId(trackEntity.getId());
         }
 
         trackRepository.deleteAll(existingTracks);

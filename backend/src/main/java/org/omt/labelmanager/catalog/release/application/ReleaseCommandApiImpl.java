@@ -18,8 +18,7 @@ class ReleaseCommandApiImpl implements ReleaseCommandApi {
     ReleaseCommandApiImpl(
             CreateReleaseUseCase createReleaseUseCase,
             UpdateReleaseUseCase updateReleaseUseCase,
-            DeleteReleaseUseCase deleteReleaseUseCase
-    ) {
+            DeleteReleaseUseCase deleteReleaseUseCase) {
         this.createReleaseUseCase = createReleaseUseCase;
         this.updateReleaseUseCase = updateReleaseUseCase;
         this.deleteReleaseUseCase = deleteReleaseUseCase;
@@ -32,11 +31,8 @@ class ReleaseCommandApiImpl implements ReleaseCommandApi {
             Long labelId,
             List<Long> artistIds,
             List<TrackInput> tracks,
-            Set<ReleaseFormat> formats
-    ) {
-        createReleaseUseCase.execute(
-                name, releaseDate, labelId, artistIds, tracks, formats
-        );
+            Set<ReleaseFormat> formats) {
+        createReleaseUseCase.execute(name, releaseDate, labelId, artistIds, tracks, formats);
     }
 
     @Override
@@ -46,11 +42,8 @@ class ReleaseCommandApiImpl implements ReleaseCommandApi {
             LocalDate releaseDate,
             List<Long> artistIds,
             List<TrackInput> tracks,
-            Set<ReleaseFormat> formats
-    ) {
-        updateReleaseUseCase.execute(
-                id, name, releaseDate, artistIds, tracks, formats
-        );
+            Set<ReleaseFormat> formats) {
+        updateReleaseUseCase.execute(id, name, releaseDate, artistIds, tracks, formats);
     }
 
     @Override

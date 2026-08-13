@@ -15,9 +15,7 @@ class DistributorReturnQueryApiImpl implements DistributorReturnQueryApi {
     private final ReturnConverter returnConverter;
 
     DistributorReturnQueryApiImpl(
-            DistributorReturnRepository returnRepository,
-            ReturnConverter returnConverter
-    ) {
+            DistributorReturnRepository returnRepository, ReturnConverter returnConverter) {
         this.returnRepository = returnRepository;
         this.returnConverter = returnConverter;
     }
@@ -25,8 +23,7 @@ class DistributorReturnQueryApiImpl implements DistributorReturnQueryApi {
     @Override
     @Transactional(readOnly = true)
     public List<DistributorReturn> getReturnsForLabel(Long labelId) {
-        return returnRepository.findByLabelIdOrderByReturnDateDesc(labelId)
-                .stream()
+        return returnRepository.findByLabelIdOrderByReturnDateDesc(labelId).stream()
                 .map(returnConverter::toReturn)
                 .toList();
     }
@@ -34,8 +31,7 @@ class DistributorReturnQueryApiImpl implements DistributorReturnQueryApi {
     @Override
     @Transactional(readOnly = true)
     public List<DistributorReturn> getReturnsForDistributor(Long distributorId) {
-        return returnRepository.findByDistributorIdOrderByReturnDateDesc(distributorId)
-                .stream()
+        return returnRepository.findByDistributorIdOrderByReturnDateDesc(distributorId).stream()
                 .map(returnConverter::toReturn)
                 .toList();
     }
@@ -43,7 +39,6 @@ class DistributorReturnQueryApiImpl implements DistributorReturnQueryApi {
     @Override
     @Transactional(readOnly = true)
     public Optional<DistributorReturn> findById(Long returnId) {
-        return returnRepository.findById(returnId)
-                .map(returnConverter::toReturn);
+        return returnRepository.findById(returnId).map(returnConverter::toReturn);
     }
 }

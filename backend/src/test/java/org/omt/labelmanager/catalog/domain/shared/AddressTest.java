@@ -9,13 +9,7 @@ class AddressTest {
 
     @Test
     void fromEmbeddable_mapsAllFields() {
-        var embeddable = new AddressEmbeddable(
-                "123 Main St",
-                "Apt 4B",
-                "Oslo",
-                "0123",
-                "Norway"
-        );
+        var embeddable = new AddressEmbeddable("123 Main St", "Apt 4B", "Oslo", "0123", "Norway");
 
         var address = Address.fromEmbeddable(embeddable);
 
@@ -33,13 +27,7 @@ class AddressTest {
 
     @Test
     void embeddableFromAddress_mapsAllFields() {
-        var address = new Address(
-                "456 Oak Ave",
-                "Suite 100",
-                "Bergen",
-                "5020",
-                "Norway"
-        );
+        var address = new Address("456 Oak Ave", "Suite 100", "Bergen", "5020", "Norway");
 
         var embeddable = AddressEmbeddable.fromAddress(address);
 

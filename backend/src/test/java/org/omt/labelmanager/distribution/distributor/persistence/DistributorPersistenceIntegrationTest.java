@@ -1,5 +1,7 @@
 package org.omt.labelmanager.distribution.distributor.persistence;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.omt.labelmanager.AbstractIntegrationTest;
@@ -7,15 +9,11 @@ import org.omt.labelmanager.catalog.label.LabelTestHelper;
 import org.omt.labelmanager.distribution.distributor.ChannelType;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 class DistributorPersistenceIntegrationTest extends AbstractIntegrationTest {
 
-    @Autowired
-    private DistributorRepository distributorRepository;
+    @Autowired private DistributorRepository distributorRepository;
 
-    @Autowired
-    private LabelTestHelper labelTestHelper;
+    @Autowired private LabelTestHelper labelTestHelper;
 
     private Long labelId;
 
@@ -54,8 +52,7 @@ class DistributorPersistenceIntegrationTest extends AbstractIntegrationTest {
         var channelsForLabel = distributorRepository.findByLabelId(labelId);
 
         assertThat(channelsForLabel).hasSize(2);
-        assertThat(channelsForLabel)
-                .allMatch(channel -> channel.getLabelId().equals(labelId));
+        assertThat(channelsForLabel).allMatch(channel -> channel.getLabelId().equals(labelId));
     }
 
     // Note: Cascade delete test removed as LabelRepository is package-private.

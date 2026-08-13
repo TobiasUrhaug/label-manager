@@ -1,10 +1,17 @@
 package org.omt.labelmanager.finance.cost.infrastructure;
 
-import jakarta.persistence.*;
-import org.omt.labelmanager.finance.cost.domain.CostType;
-
+import jakarta.persistence.Column;
+import jakarta.persistence.Embedded;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import org.omt.labelmanager.finance.cost.domain.CostType;
 
 @Entity
 @Table(name = "cost")
@@ -38,8 +45,7 @@ public class CostEntity {
 
     private String description;
 
-    @Embedded
-    private CostOwnerEmbeddable owner;
+    @Embedded private CostOwnerEmbeddable owner;
 
     @Column(name = "document_reference")
     private String documentReference;
@@ -47,8 +53,7 @@ public class CostEntity {
     @Column(name = "document_storage_key")
     private String documentStorageKey;
 
-    protected CostEntity() {
-    }
+    protected CostEntity() {}
 
     public CostEntity(
             String currency,
@@ -61,8 +66,7 @@ public class CostEntity {
             String description,
             CostOwnerEmbeddable owner,
             String documentReference,
-            String documentStorageKey
-    ) {
+            String documentStorageKey) {
         this.currency = currency;
         this.netAmount = netAmount;
         this.vatAmount = vatAmount;
@@ -132,8 +136,7 @@ public class CostEntity {
             CostType costType,
             LocalDate incurredOn,
             String description,
-            String documentReference
-    ) {
+            String documentReference) {
         this.netAmount = netAmount;
         this.vatAmount = vatAmount;
         this.vatRate = vatRate;

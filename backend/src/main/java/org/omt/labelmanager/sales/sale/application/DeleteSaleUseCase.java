@@ -19,8 +19,7 @@ class DeleteSaleUseCase {
 
     DeleteSaleUseCase(
             SaleRepository saleRepository,
-            InventoryMovementCommandApi inventoryMovementCommandApi
-    ) {
+            InventoryMovementCommandApi inventoryMovementCommandApi) {
         this.saleRepository = saleRepository;
         this.inventoryMovementCommandApi = inventoryMovementCommandApi;
     }

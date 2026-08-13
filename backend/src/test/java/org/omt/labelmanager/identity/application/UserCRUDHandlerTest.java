@@ -22,11 +22,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 @ExtendWith(MockitoExtension.class)
 class UserCRUDHandlerTest {
 
-    @Mock
-    private UserRepository userRepository;
+    @Mock private UserRepository userRepository;
 
-    @Mock
-    private PasswordEncoder passwordEncoder;
+    @Mock private PasswordEncoder passwordEncoder;
 
     private UserCRUDHandler userCRUDHandler;
 
@@ -39,10 +37,12 @@ class UserCRUDHandlerTest {
     void registerUser_createsUserWithEncodedPassword() {
         when(userRepository.existsByEmail("new@example.com")).thenReturn(false);
         when(passwordEncoder.encode("rawPassword")).thenReturn("encodedPassword");
-        when(userRepository.save(any(UserEntity.class))).thenAnswer(invocation -> {
-            UserEntity entity = invocation.getArgument(0);
-            return entity;
-        });
+        when(userRepository.save(any(UserEntity.class)))
+                .thenAnswer(
+                        invocation -> {
+                            UserEntity entity = invocation.getArgument(0);
+                            return entity;
+                        });
 
         User user = userCRUDHandler.registerUser("new@example.com", "rawPassword", "New User");
 
@@ -59,8 +59,10 @@ class UserCRUDHandlerTest {
     void registerUser_throwsException_whenEmailExists() {
         when(userRepository.existsByEmail("existing@example.com")).thenReturn(true);
 
-        assertThatThrownBy(() ->
-                userCRUDHandler.registerUser("existing@example.com", "password", "Name"))
+        assertThatThrownBy(
+                        () ->
+                                userCRUDHandler.registerUser(
+                                        "existing@example.com", "password", "Name"))
                 .isInstanceOf(EmailAlreadyExistsException.class)
                 .hasMessageContaining("existing@example.com");
     }

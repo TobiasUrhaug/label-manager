@@ -24,11 +24,15 @@ public class CustomUserDetailsService implements UserDetailsService {
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         log.debug("Loading user by email: {}", email);
 
-        UserEntity userEntity = userRepository.findByEmail(email)
-                .orElseThrow(() -> {
-                    log.warn("User not found with email: {}", email);
-                    return new UsernameNotFoundException("User not found: " + email);
-                });
+        UserEntity userEntity =
+                userRepository
+                        .findByEmail(email)
+                        .orElseThrow(
+                                () -> {
+                                    log.warn("User not found with email: {}", email);
+                                    return new UsernameNotFoundException(
+                                            "User not found: " + email);
+                                });
 
         log.debug("User found with id: {}", userEntity.getId());
 
@@ -36,7 +40,6 @@ public class CustomUserDetailsService implements UserDetailsService {
                 userEntity.getId(),
                 userEntity.getEmail(),
                 userEntity.getPassword(),
-                userEntity.getDisplayName()
-        );
+                userEntity.getDisplayName());
     }
 }

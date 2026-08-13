@@ -36,11 +36,9 @@ class InvoiceExtractionSystemTest {
     private static final String MINIO_ACCESS_KEY = "minioadmin";
     private static final String MINIO_SECRET_KEY = "minioadmin";
 
-    @Autowired
-    private MockMvc mockMvc;
+    @Autowired private MockMvc mockMvc;
 
-    @MockitoBean
-    private ExternalInvoiceParserAdapter externalInvoiceParserAdapter;
+    @MockitoBean private ExternalInvoiceParserAdapter externalInvoiceParserAdapter;
 
     private final AppUserDetails testUser =
             new AppUserDetails(1L, "test@example.com", "password", "Test User");
@@ -53,9 +51,10 @@ class InvoiceExtractionSystemTest {
                     .withPassword("test");
 
     @Container
-    static MinIOContainer minIO = new MinIOContainer("minio/minio:latest")
-            .withUserName(MINIO_ACCESS_KEY)
-            .withPassword(MINIO_SECRET_KEY);
+    static MinIOContainer minIO =
+            new MinIOContainer("minio/minio:latest")
+                    .withUserName(MINIO_ACCESS_KEY)
+                    .withPassword(MINIO_SECRET_KEY);
 
     @DynamicPropertySource
     static void containerProperties(DynamicPropertyRegistry registry) {
@@ -73,30 +72,29 @@ class InvoiceExtractionSystemTest {
 
     @BeforeEach
     void setUp() {
-        when(externalInvoiceParserAdapter.extract(any(), any())).thenReturn(new ExtractedInvoiceData(
-                new BigDecimal("100.00"),
-                new BigDecimal("21.00"),
-                null,
-                new BigDecimal("121.00"),
-                LocalDate.of(2024, 1, 15),
-                "INV-2024-001",
-                "EUR"
-        ));
+        when(externalInvoiceParserAdapter.extract(any(), any()))
+                .thenReturn(
+                        new ExtractedInvoiceData(
+                                new BigDecimal("100.00"),
+                                new BigDecimal("21.00"),
+                                null,
+                                new BigDecimal("121.00"),
+                                LocalDate.of(2024, 1, 15),
+                                "INV-2024-001",
+                                "EUR"));
     }
 
     @Test
     void extractsInvoiceDataFromPdfDocument() throws Exception {
-        MockMultipartFile document = new MockMultipartFile(
-                "document",
-                "invoice.pdf",
-                "application/pdf",
-                "pdf content".getBytes()
-        );
+        MockMultipartFile document =
+                new MockMultipartFile(
+                        "document", "invoice.pdf", "application/pdf", "pdf content".getBytes());
 
-        mockMvc.perform(multipart("/api/costs/extract")
-                        .file(document)
-                        .with(user(testUser))
-                        .with(csrf()))
+        mockMvc.perform(
+                        multipart("/api/costs/extract")
+                                .file(document)
+                                .with(user(testUser))
+                                .with(csrf()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.netAmount").value(100.00))
                 .andExpect(jsonPath("$.vatAmount").value(21.00))
@@ -109,33 +107,29 @@ class InvoiceExtractionSystemTest {
 
     @Test
     void returnsBadRequestForPngDocument() throws Exception {
-        MockMultipartFile document = new MockMultipartFile(
-                "document",
-                "invoice.png",
-                "image/png",
-                "image content".getBytes()
-        );
+        MockMultipartFile document =
+                new MockMultipartFile(
+                        "document", "invoice.png", "image/png", "image content".getBytes());
 
-        mockMvc.perform(multipart("/api/costs/extract")
-                        .file(document)
-                        .with(user(testUser))
-                        .with(csrf()))
+        mockMvc.perform(
+                        multipart("/api/costs/extract")
+                                .file(document)
+                                .with(user(testUser))
+                                .with(csrf()))
                 .andExpect(status().isBadRequest());
     }
 
     @Test
     void returnsBadRequestForUnsupportedDocumentType() throws Exception {
-        MockMultipartFile document = new MockMultipartFile(
-                "document",
-                "invoice.doc",
-                "application/msword",
-                "doc content".getBytes()
-        );
+        MockMultipartFile document =
+                new MockMultipartFile(
+                        "document", "invoice.doc", "application/msword", "doc content".getBytes());
 
-        mockMvc.perform(multipart("/api/costs/extract")
-                        .file(document)
-                        .with(user(testUser))
-                        .with(csrf()))
+        mockMvc.perform(
+                        multipart("/api/costs/extract")
+                                .file(document)
+                                .with(user(testUser))
+                                .with(csrf()))
                 .andExpect(status().isBadRequest());
     }
 }
