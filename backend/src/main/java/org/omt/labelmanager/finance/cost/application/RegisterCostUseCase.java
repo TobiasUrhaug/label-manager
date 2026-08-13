@@ -11,7 +11,7 @@ import org.omt.labelmanager.finance.cost.infrastructure.CostOwnerEmbeddable;
 import org.omt.labelmanager.finance.cost.infrastructure.CostRepository;
 import org.omt.labelmanager.finance.shared.DocumentStoragePort;
 import org.omt.labelmanager.finance.shared.DocumentUpload;
-import org.omt.labelmanager.identity.infrastructure.persistence.user.UserRepository;
+import org.omt.labelmanager.identity.api.user.UserQueryApi;
 import org.omt.labelmanager.shared.Money;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,19 +26,19 @@ class RegisterCostUseCase {
     private final CostRepository costRepository;
     private final ReleaseQueryApi releaseQueryApi;
     private final LabelQueryApi labelQueryFacade;
-    private final UserRepository userRepository;
+    private final UserQueryApi userQueryApi;
     private final DocumentStoragePort documentStorage;
 
     public RegisterCostUseCase(
             CostRepository costRepository,
             ReleaseQueryApi releaseQueryApi,
             LabelQueryApi labelQueryFacade,
-            UserRepository userRepository,
+            UserQueryApi userQueryApi,
             DocumentStoragePort documentStorage) {
         this.costRepository = costRepository;
         this.releaseQueryApi = releaseQueryApi;
         this.labelQueryFacade = labelQueryFacade;
-        this.userRepository = userRepository;
+        this.userQueryApi = userQueryApi;
         this.documentStorage = documentStorage;
     }
 
@@ -112,7 +112,7 @@ class RegisterCostUseCase {
                 switch (owner.type()) {
                     case RELEASE -> releaseQueryApi.exists(owner.id());
                     case LABEL -> labelQueryFacade.exists(owner.id());
-                    case USER -> userRepository.existsById(owner.id());
+                    case USER -> userQueryApi.exists(owner.id());
                 };
 
         if (!exists) {
