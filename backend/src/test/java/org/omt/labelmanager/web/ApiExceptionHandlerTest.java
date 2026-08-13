@@ -12,7 +12,7 @@ import org.junit.jupiter.api.Test;
 import org.omt.labelmanager.catalog.label.api.LabelQueryApi;
 import org.omt.labelmanager.catalog.release.api.ReleaseQueryApi;
 import org.omt.labelmanager.distribution.distributor.api.DistributorQueryApi;
-import org.omt.labelmanager.identity.application.AppUserDetails;
+import org.omt.labelmanager.identity.api.user.AppUserDetails;
 import org.omt.labelmanager.sales.sale.api.SaleCommandApi;
 import org.omt.labelmanager.sales.sale.api.SaleController;
 import org.omt.labelmanager.sales.sale.api.SaleQueryApi;

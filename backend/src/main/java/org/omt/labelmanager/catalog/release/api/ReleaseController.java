@@ -18,7 +18,7 @@ import org.omt.labelmanager.distribution.distributor.api.Distributor;
 import org.omt.labelmanager.distribution.distributor.api.DistributorQueryApi;
 import org.omt.labelmanager.finance.cost.api.CostQueryApi;
 import org.omt.labelmanager.finance.cost.domain.Cost;
-import org.omt.labelmanager.identity.application.AppUserDetails;
+import org.omt.labelmanager.identity.api.user.AppUserDetails;
 import org.omt.labelmanager.inventory.LocationType;
 import org.omt.labelmanager.inventory.api.DistributorInventoryView;
 import org.omt.labelmanager.inventory.api.MovementHistoryView;

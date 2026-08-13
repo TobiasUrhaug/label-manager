@@ -14,7 +14,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.omt.labelmanager.finance.extraction.domain.ExtractedInvoiceData;
 import org.omt.labelmanager.finance.extraction.infrastructure.ExternalInvoiceParserAdapter;
-import org.omt.labelmanager.identity.application.AppUserDetails;
+import org.omt.labelmanager.identity.api.user.AppUserDetails;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;

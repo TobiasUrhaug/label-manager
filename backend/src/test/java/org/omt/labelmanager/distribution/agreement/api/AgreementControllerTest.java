@@ -19,7 +19,7 @@ import org.junit.jupiter.api.Test;
 import org.omt.labelmanager.catalog.label.api.LabelQueryApi;
 import org.omt.labelmanager.catalog.release.api.ReleaseQueryApi;
 import org.omt.labelmanager.distribution.distributor.api.DistributorQueryApi;
-import org.omt.labelmanager.identity.application.AppUserDetails;
+import org.omt.labelmanager.identity.api.user.AppUserDetails;
 import org.omt.labelmanager.inventory.inventorymovement.api.InventoryMovementQueryApi;
 import org.omt.labelmanager.inventory.productionrun.api.ProductionRunQueryApi;
 import org.omt.labelmanager.test.TestSecurityConfig;

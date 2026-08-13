@@ -28,7 +28,7 @@ import org.omt.labelmanager.catalog.release.api.ReleaseQueryApi;
 import org.omt.labelmanager.catalog.release.domain.Release;
 import org.omt.labelmanager.distribution.distributor.api.ChannelType;
 import org.omt.labelmanager.distribution.distributor.api.DistributorQueryApi;
-import org.omt.labelmanager.identity.application.AppUserDetails;
+import org.omt.labelmanager.identity.api.user.AppUserDetails;
 import org.omt.labelmanager.inventory.InsufficientInventoryException;
 import org.omt.labelmanager.sales.sale.domain.Sale;
 import org.omt.labelmanager.sales.sale.domain.SaleLineItem;

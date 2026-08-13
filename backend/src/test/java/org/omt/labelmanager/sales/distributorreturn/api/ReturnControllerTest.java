@@ -29,7 +29,7 @@ import org.omt.labelmanager.catalog.release.domain.Release;
 import org.omt.labelmanager.distribution.distributor.api.ChannelType;
 import org.omt.labelmanager.distribution.distributor.api.Distributor;
 import org.omt.labelmanager.distribution.distributor.api.DistributorQueryApi;
-import org.omt.labelmanager.identity.application.AppUserDetails;
+import org.omt.labelmanager.identity.api.user.AppUserDetails;
 import org.omt.labelmanager.inventory.InsufficientInventoryException;
 import org.omt.labelmanager.sales.distributorreturn.domain.DistributorReturn;
 import org.omt.labelmanager.sales.distributorreturn.domain.ReturnLineItem;

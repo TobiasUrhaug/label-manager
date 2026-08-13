@@ -27,7 +27,7 @@ import org.omt.labelmanager.finance.cost.domain.CostType;
 import org.omt.labelmanager.finance.cost.domain.VatAmount;
 import org.omt.labelmanager.finance.shared.DocumentUpload;
 import org.omt.labelmanager.finance.shared.RetrievedDocument;
-import org.omt.labelmanager.identity.application.AppUserDetails;
+import org.omt.labelmanager.identity.api.user.AppUserDetails;
 import org.omt.labelmanager.shared.Money;
 import org.omt.labelmanager.test.TestSecurityConfig;
 import org.springframework.beans.factory.annotation.Autowired;

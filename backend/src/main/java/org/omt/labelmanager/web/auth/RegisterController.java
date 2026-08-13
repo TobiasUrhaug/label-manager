@@ -1,7 +1,7 @@
-package org.omt.labelmanager.identity.api.user;
+package org.omt.labelmanager.web.auth;
 
-import org.omt.labelmanager.identity.application.UserCRUDHandler;
-import org.omt.labelmanager.identity.domain.user.EmailAlreadyExistsException;
+import org.omt.labelmanager.identity.api.user.EmailAlreadyExistsException;
+import org.omt.labelmanager.identity.api.user.UserCommandApi;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -18,18 +18,17 @@ public class RegisterController {
 
     private static final Logger log = LoggerFactory.getLogger(RegisterController.class);
 
-    private final UserCRUDHandler userCRUDHandler;
+    private final UserCommandApi userCommandApi;
 
-    public RegisterController(UserCRUDHandler userCRUDHandler) {
-        this.userCRUDHandler = userCRUDHandler;
+    public RegisterController(UserCommandApi userCommandApi) {
+        this.userCommandApi = userCommandApi;
     }
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody RegisterRequest request) {
         log.info("Registration attempt for email '{}'", request.email());
         try {
-            userCRUDHandler.registerUser(
-                    request.email(), request.password(), request.displayName());
+            userCommandApi.registerUser(request.email(), request.password(), request.displayName());
             log.info("User registered successfully: {}", request.email());
             return ResponseEntity.status(HttpStatus.CREATED).build();
         } catch (EmailAlreadyExistsException e) {

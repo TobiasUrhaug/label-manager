@@ -5,7 +5,7 @@ import org.omt.labelmanager.catalog.artist.api.ArtistQueryApi;
 import org.omt.labelmanager.catalog.artist.domain.Artist;
 import org.omt.labelmanager.catalog.label.api.LabelQueryApi;
 import org.omt.labelmanager.catalog.label.domain.Label;
-import org.omt.labelmanager.identity.application.AppUserDetails;
+import org.omt.labelmanager.identity.api.user.AppUserDetails;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;

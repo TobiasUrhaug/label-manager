@@ -5,8 +5,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.omt.labelmanager.AbstractIntegrationTest;
-import org.omt.labelmanager.identity.application.UserCRUDHandler;
-import org.omt.labelmanager.identity.domain.user.EmailAlreadyExistsException;
+import org.omt.labelmanager.identity.api.user.EmailAlreadyExistsException;
+import org.omt.labelmanager.identity.api.user.UserCommandApi;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.resttestclient.TestRestTemplate;
 import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureTestRestTemplate;
@@ -26,12 +26,12 @@ class SpaLoginLogoutSystemTest extends AbstractIntegrationTest {
 
     @Autowired private TestRestTemplate restTemplate;
 
-    @Autowired private UserCRUDHandler userCRUDHandler;
+    @Autowired private UserCommandApi userCommandApi;
 
     @BeforeEach
     void createTestUser() {
         try {
-            userCRUDHandler.registerUser("login@example.com", "password123", "Login User");
+            userCommandApi.registerUser("login@example.com", "password123", "Login User");
         } catch (EmailAlreadyExistsException ignored) {
             // user already exists from a previous test run
         }

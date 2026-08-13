@@ -1,4 +1,4 @@
-package org.omt.labelmanager.identity.application;
+package org.omt.labelmanager.identity.api.user;
 
 import java.util.Collection;
 import java.util.Collections;
