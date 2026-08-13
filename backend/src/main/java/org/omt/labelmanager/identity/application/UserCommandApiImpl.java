@@ -45,7 +45,10 @@ class UserCommandApiImpl implements UserCommandApi {
             // registration for the same address passes both checks and one of the two loses
             // the unique index on app_user.email. That is the same outcome as the check
             // catching it, so it gets the same 409 rather than a 500.
-            log.warn("Registration failed: email '{}' was taken concurrently", email);
+            //
+            // app_user has no other constraint that can fire here today. If one is added, this
+            // would report it as a duplicate email, so the cause is logged rather than swallowed.
+            log.warn("Registration failed: email '{}' was taken concurrently", email, e);
             throw new EmailAlreadyExistsException(email);
         }
     }

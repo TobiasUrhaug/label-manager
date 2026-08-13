@@ -1,6 +1,8 @@
 package org.omt.labelmanager.web.catalog;
 
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import java.util.List;
 import org.omt.labelmanager.catalog.artist.api.ArtistCommandApi;
 import org.omt.labelmanager.catalog.artist.api.ArtistQueryApi;
@@ -33,7 +35,7 @@ public class ArtistController {
     }
 
     record CreateArtistRequest(
-            String artistName,
+            @NotBlank String artistName,
             String realName,
             String email,
             String street,
@@ -57,7 +59,7 @@ public class ArtistController {
     }
 
     record UpdateArtistRequest(
-            String artistName,
+            @NotBlank String artistName,
             String realName,
             String email,
             String street,
@@ -95,7 +97,7 @@ public class ArtistController {
     @PostMapping
     public ResponseEntity<Void> createArtist(
             @AuthenticationPrincipal AppUserDetails user,
-            @RequestBody CreateArtistRequest request) {
+            @Valid @RequestBody CreateArtistRequest request) {
         artistCommandApi.createArtist(
                 request.artistName(),
                 request.toRealName(),
@@ -107,7 +109,7 @@ public class ArtistController {
 
     @PutMapping("/{id}")
     public ResponseEntity<Void> updateArtist(
-            @PathVariable Long id, @RequestBody UpdateArtistRequest request) {
+            @PathVariable Long id, @Valid @RequestBody UpdateArtistRequest request) {
         artistCommandApi.updateArtist(
                 id,
                 request.artistName(),

@@ -1,6 +1,7 @@
 package org.omt.labelmanager.web.catalog;
 
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
@@ -128,6 +129,34 @@ class ArtistControllerTest {
                         null,
                         new Address("123 Music Lane", null, "Oslo", "0123", "Norway"),
                         1L);
+    }
+
+    @Test
+    void createArtist_returns400ProblemDetail_whenArtistNameMissing() throws Exception {
+        mockMvc.perform(
+                        post("/api/artists")
+                                .with(user(testUser))
+                                .with(csrf())
+                                .contentType(APPLICATION_JSON)
+                                .content("{\"email\": \"nameless@email.com\"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value(400));
+
+        verifyNoInteractions(artistCommandApi);
+    }
+
+    @Test
+    void updateArtist_returns400ProblemDetail_whenArtistNameBlank() throws Exception {
+        mockMvc.perform(
+                        put("/api/artists/1")
+                                .with(user(testUser))
+                                .with(csrf())
+                                .contentType(APPLICATION_JSON)
+                                .content("{\"artistName\": \"   \"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value(400));
+
+        verifyNoInteractions(artistCommandApi);
     }
 
     @Test

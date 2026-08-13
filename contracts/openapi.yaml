@@ -131,6 +131,12 @@ paths:
       responses:
         '201':
           description: Artist created. The response has no body.
+        '400':
+          description: artistName was missing or blank.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
 
   /api/artists/{id}:
     parameters:
@@ -168,12 +174,30 @@ paths:
       responses:
         '204':
           description: Artist updated.
+        '400':
+          description: artistName was missing or blank.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          description: No artist with that id.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
     delete:
       operationId: deleteArtist
       summary: Delete an artist
       responses:
         '204':
           description: Artist deleted.
+        '404':
+          description: No artist with that id.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
 
 components:
   securitySchemes:
