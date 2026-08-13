@@ -9,7 +9,6 @@ import org.junit.jupiter.api.Test;
 import org.omt.labelmanager.AbstractIntegrationTest;
 import org.omt.labelmanager.catalog.label.LabelTestHelper;
 import org.omt.labelmanager.catalog.release.ReleaseTestHelper;
-import org.omt.labelmanager.catalog.release.domain.ReleaseFormat;
 import org.omt.labelmanager.distribution.distributor.ChannelType;
 import org.omt.labelmanager.distribution.distributor.DistributorTestHelper;
 import org.omt.labelmanager.distribution.distributor.api.DistributorQueryApi;
@@ -21,6 +20,7 @@ import org.omt.labelmanager.inventory.productionrun.ProductionRunTestHelper;
 import org.omt.labelmanager.sales.distributor_return.api.DistributorReturnCommandApi;
 import org.omt.labelmanager.sales.distributor_return.api.DistributorReturnQueryApi;
 import org.omt.labelmanager.sales.distributor_return.domain.ReturnLineItemInput;
+import org.omt.labelmanager.shared.Format;
 import org.springframework.beans.factory.annotation.Autowired;
 
 class ReturnQueryIntegrationTest extends AbstractIntegrationTest {
@@ -64,7 +64,7 @@ class ReturnQueryIntegrationTest extends AbstractIntegrationTest {
         releaseId = releaseTestHelper.createReleaseEntity("Test Release", labelId);
 
         var productionRun =
-                productionRunTestHelper.createProductionRun(releaseId, ReleaseFormat.VINYL, 100);
+                productionRunTestHelper.createProductionRun(releaseId, Format.VINYL, 100);
         productionRunId = productionRun.id();
 
         inventoryMovementCommandApi.recordMovement(
@@ -84,7 +84,7 @@ class ReturnQueryIntegrationTest extends AbstractIntegrationTest {
                         distributorId,
                         LocalDate.of(2026, 2, 1),
                         "Test notes",
-                        List.of(new ReturnLineItemInput(releaseId, ReleaseFormat.VINYL, 5)));
+                        List.of(new ReturnLineItemInput(releaseId, Format.VINYL, 5)));
 
         var found = returnQueryApi.findById(distributorReturn.id());
 
@@ -107,13 +107,13 @@ class ReturnQueryIntegrationTest extends AbstractIntegrationTest {
                 distributorId,
                 LocalDate.of(2026, 1, 1), // older
                 null,
-                List.of(new ReturnLineItemInput(releaseId, ReleaseFormat.VINYL, 5)));
+                List.of(new ReturnLineItemInput(releaseId, Format.VINYL, 5)));
         returnCommandApi.registerReturn(
                 labelId,
                 distributorId,
                 LocalDate.of(2026, 2, 1), // newer
                 null,
-                List.of(new ReturnLineItemInput(releaseId, ReleaseFormat.VINYL, 5)));
+                List.of(new ReturnLineItemInput(releaseId, Format.VINYL, 5)));
 
         var returns = returnQueryApi.getReturnsForLabel(labelId);
 
@@ -130,7 +130,7 @@ class ReturnQueryIntegrationTest extends AbstractIntegrationTest {
                 distributorId,
                 LocalDate.of(2026, 2, 1),
                 null,
-                List.of(new ReturnLineItemInput(releaseId, ReleaseFormat.VINYL, 5)));
+                List.of(new ReturnLineItemInput(releaseId, Format.VINYL, 5)));
 
         // Create another label with its own return
         var otherLabel = labelTestHelper.createLabelWithDirectDistributor("Other Label");
@@ -142,8 +142,7 @@ class ReturnQueryIntegrationTest extends AbstractIntegrationTest {
         Long otherReleaseId =
                 releaseTestHelper.createReleaseEntity("Other Release", otherLabel.id());
         var otherProductionRun =
-                productionRunTestHelper.createProductionRun(
-                        otherReleaseId, ReleaseFormat.VINYL, 100);
+                productionRunTestHelper.createProductionRun(otherReleaseId, Format.VINYL, 100);
         inventoryMovementCommandApi.recordMovement(
                 otherProductionRun.id(),
                 InventoryLocation.warehouse(),
@@ -156,7 +155,7 @@ class ReturnQueryIntegrationTest extends AbstractIntegrationTest {
                 otherDistributorId,
                 LocalDate.of(2026, 2, 1),
                 null,
-                List.of(new ReturnLineItemInput(otherReleaseId, ReleaseFormat.VINYL, 5)));
+                List.of(new ReturnLineItemInput(otherReleaseId, Format.VINYL, 5)));
 
         var returns = returnQueryApi.getReturnsForLabel(labelId);
 
@@ -171,7 +170,7 @@ class ReturnQueryIntegrationTest extends AbstractIntegrationTest {
                 distributorId,
                 LocalDate.of(2026, 2, 1),
                 null,
-                List.of(new ReturnLineItemInput(releaseId, ReleaseFormat.VINYL, 5)));
+                List.of(new ReturnLineItemInput(releaseId, Format.VINYL, 5)));
 
         // Create a second distributor with allocation and return
         var otherDistributor =
@@ -189,7 +188,7 @@ class ReturnQueryIntegrationTest extends AbstractIntegrationTest {
                 otherDistributor.id(),
                 LocalDate.of(2026, 2, 1),
                 null,
-                List.of(new ReturnLineItemInput(releaseId, ReleaseFormat.VINYL, 5)));
+                List.of(new ReturnLineItemInput(releaseId, Format.VINYL, 5)));
 
         var returnsForDistributor = returnQueryApi.getReturnsForDistributor(distributorId);
 

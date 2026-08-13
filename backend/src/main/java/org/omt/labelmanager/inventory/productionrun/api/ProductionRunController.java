@@ -1,7 +1,7 @@
 package org.omt.labelmanager.inventory.productionrun.api;
 
 import java.time.LocalDate;
-import org.omt.labelmanager.catalog.release.domain.ReleaseFormat;
+import org.omt.labelmanager.shared.Format;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -22,7 +22,7 @@ public class ProductionRunController {
     }
 
     record AddProductionRunRequest(
-            ReleaseFormat format,
+            Format format,
             String description,
             String manufacturer,
             LocalDate manufacturingDate,

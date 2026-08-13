@@ -5,11 +5,11 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import org.omt.labelmanager.catalog.label.api.LabelQueryApi;
-import org.omt.labelmanager.catalog.release.domain.ReleaseFormat;
 import org.omt.labelmanager.catalog.release.domain.TrackInput;
 import org.omt.labelmanager.catalog.release.infrastructure.ReleaseArtistRepository;
 import org.omt.labelmanager.catalog.release.infrastructure.ReleaseEntity;
 import org.omt.labelmanager.catalog.release.infrastructure.ReleaseRepository;
+import org.omt.labelmanager.shared.Format;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -43,7 +43,7 @@ class CreateReleaseUseCase {
             Long labelId,
             List<Long> artistIds,
             List<TrackInput> tracks,
-            Set<ReleaseFormat> formats) {
+            Set<Format> formats) {
         log.info("Creating release '{}' for label {} with {} tracks", name, labelId, tracks.size());
         requireAtLeastOneTrack(tracks, name);
 
@@ -71,7 +71,7 @@ class CreateReleaseUseCase {
     }
 
     private static ReleaseEntity createReleaseEntity(
-            String name, LocalDate releaseDate, Set<ReleaseFormat> formats, Long labelId) {
+            String name, LocalDate releaseDate, Set<Format> formats, Long labelId) {
         ReleaseEntity release = new ReleaseEntity();
         release.setName(name);
         release.setReleaseDate(releaseDate);

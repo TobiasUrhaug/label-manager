@@ -10,7 +10,6 @@ import org.junit.jupiter.api.Test;
 import org.omt.labelmanager.AbstractIntegrationTest;
 import org.omt.labelmanager.catalog.label.LabelTestHelper;
 import org.omt.labelmanager.catalog.release.ReleaseTestHelper;
-import org.omt.labelmanager.catalog.release.domain.ReleaseFormat;
 import org.omt.labelmanager.distribution.distributor.ChannelType;
 import org.omt.labelmanager.distribution.distributor.api.DistributorQueryApi;
 import org.omt.labelmanager.inventory.InsufficientInventoryException;
@@ -23,6 +22,7 @@ import org.omt.labelmanager.inventory.productionrun.ProductionRunTestHelper;
 import org.omt.labelmanager.sales.distributor_return.api.DistributorReturnCommandApi;
 import org.omt.labelmanager.sales.distributor_return.api.DistributorReturnQueryApi;
 import org.omt.labelmanager.sales.distributor_return.domain.ReturnLineItemInput;
+import org.omt.labelmanager.shared.Format;
 import org.springframework.beans.factory.annotation.Autowired;
 
 class ReturnUpdateIntegrationTest extends AbstractIntegrationTest {
@@ -66,7 +66,7 @@ class ReturnUpdateIntegrationTest extends AbstractIntegrationTest {
         releaseId = releaseTestHelper.createReleaseEntity("Test Release", labelId);
 
         var productionRun =
-                productionRunTestHelper.createProductionRun(releaseId, ReleaseFormat.VINYL, 100);
+                productionRunTestHelper.createProductionRun(releaseId, Format.VINYL, 100);
         productionRunId = productionRun.id();
 
         // Allocate 50 units to the distributor
@@ -87,13 +87,13 @@ class ReturnUpdateIntegrationTest extends AbstractIntegrationTest {
                         distributorId,
                         LocalDate.of(2026, 2, 1),
                         "Original notes",
-                        List.of(new ReturnLineItemInput(releaseId, ReleaseFormat.VINYL, 5)));
+                        List.of(new ReturnLineItemInput(releaseId, Format.VINYL, 5)));
 
         returnCommandApi.updateReturn(
                 distributorReturn.id(),
                 LocalDate.of(2026, 2, 15),
                 "Updated notes",
-                List.of(new ReturnLineItemInput(releaseId, ReleaseFormat.VINYL, 5)));
+                List.of(new ReturnLineItemInput(releaseId, Format.VINYL, 5)));
 
         var updated = returnQueryApi.findById(distributorReturn.id()).orElseThrow();
         assertThat(updated.returnDate()).isEqualTo(LocalDate.of(2026, 2, 15));
@@ -108,13 +108,13 @@ class ReturnUpdateIntegrationTest extends AbstractIntegrationTest {
                         distributorId,
                         LocalDate.of(2026, 2, 1),
                         null,
-                        List.of(new ReturnLineItemInput(releaseId, ReleaseFormat.VINYL, 5)));
+                        List.of(new ReturnLineItemInput(releaseId, Format.VINYL, 5)));
 
         returnCommandApi.updateReturn(
                 distributorReturn.id(),
                 LocalDate.of(2026, 2, 1),
                 null,
-                List.of(new ReturnLineItemInput(releaseId, ReleaseFormat.VINYL, 20)));
+                List.of(new ReturnLineItemInput(releaseId, Format.VINYL, 20)));
 
         var updated = returnQueryApi.findById(distributorReturn.id()).orElseThrow();
         assertThat(updated.lineItems()).hasSize(1);
@@ -129,13 +129,13 @@ class ReturnUpdateIntegrationTest extends AbstractIntegrationTest {
                         distributorId,
                         LocalDate.of(2026, 2, 1),
                         null,
-                        List.of(new ReturnLineItemInput(releaseId, ReleaseFormat.VINYL, 5)));
+                        List.of(new ReturnLineItemInput(releaseId, Format.VINYL, 5)));
 
         returnCommandApi.updateReturn(
                 distributorReturn.id(),
                 LocalDate.of(2026, 2, 1),
                 null,
-                List.of(new ReturnLineItemInput(releaseId, ReleaseFormat.VINYL, 15)));
+                List.of(new ReturnLineItemInput(releaseId, Format.VINYL, 15)));
 
         var returnMovements =
                 inventoryMovementRepository
@@ -159,7 +159,7 @@ class ReturnUpdateIntegrationTest extends AbstractIntegrationTest {
                         distributorId,
                         LocalDate.of(2026, 2, 1),
                         null,
-                        List.of(new ReturnLineItemInput(releaseId, ReleaseFormat.VINYL, 10)));
+                        List.of(new ReturnLineItemInput(releaseId, Format.VINYL, 10)));
 
         // Update to 45 — would exceed distributor's apparent 40, but the original 10-unit
         // RETURN movement is reversed first, restoring 50 units, so 45 is valid
@@ -167,7 +167,7 @@ class ReturnUpdateIntegrationTest extends AbstractIntegrationTest {
                 distributorReturn.id(),
                 LocalDate.of(2026, 2, 1),
                 null,
-                List.of(new ReturnLineItemInput(releaseId, ReleaseFormat.VINYL, 45)));
+                List.of(new ReturnLineItemInput(releaseId, Format.VINYL, 45)));
 
         int distributorInventory =
                 inventoryMovementQueryApi.getCurrentInventory(productionRunId, distributorId);
@@ -182,7 +182,7 @@ class ReturnUpdateIntegrationTest extends AbstractIntegrationTest {
                         distributorId,
                         LocalDate.of(2026, 2, 1),
                         null,
-                        List.of(new ReturnLineItemInput(releaseId, ReleaseFormat.VINYL, 5)));
+                        List.of(new ReturnLineItemInput(releaseId, Format.VINYL, 5)));
 
         assertThatThrownBy(
                         () ->
@@ -192,9 +192,7 @@ class ReturnUpdateIntegrationTest extends AbstractIntegrationTest {
                                         null,
                                         List.of(
                                                 new ReturnLineItemInput(
-                                                        releaseId,
-                                                        ReleaseFormat.VINYL,
-                                                        100)) // exceeds 50
+                                                        releaseId, Format.VINYL, 100)) // exceeds 50
                                         ))
                 .isInstanceOf(InsufficientInventoryException.class);
     }

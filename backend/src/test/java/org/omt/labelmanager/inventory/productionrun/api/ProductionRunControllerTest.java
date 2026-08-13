@@ -13,8 +13,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import java.time.LocalDate;
 import org.junit.jupiter.api.Test;
-import org.omt.labelmanager.catalog.release.domain.ReleaseFormat;
 import org.omt.labelmanager.identity.application.AppUserDetails;
+import org.omt.labelmanager.shared.Format;
 import org.omt.labelmanager.test.TestSecurityConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
@@ -55,7 +55,7 @@ class ProductionRunControllerTest {
         verify(commandApi)
                 .createProductionRun(
                         eq(42L),
-                        eq(ReleaseFormat.VINYL),
+                        eq(Format.VINYL),
                         eq("Original pressing"),
                         eq("Record Industry"),
                         eq(LocalDate.of(2025, 1, 1)),
@@ -84,7 +84,7 @@ class ProductionRunControllerTest {
         verify(commandApi)
                 .createProductionRun(
                         eq(42L),
-                        eq(ReleaseFormat.CD),
+                        eq(Format.CD),
                         eq("Initial run"),
                         eq("CD Plant"),
                         eq(LocalDate.of(2025, 1, 15)),
@@ -111,8 +111,7 @@ class ProductionRunControllerTest {
                 .andExpect(status().isCreated());
 
         verify(commandApi)
-                .createProductionRun(
-                        eq(42L), eq(ReleaseFormat.CASSETTE), any(), any(), any(), eq(100));
+                .createProductionRun(eq(42L), eq(Format.CASSETTE), any(), any(), any(), eq(100));
     }
 
     @Test

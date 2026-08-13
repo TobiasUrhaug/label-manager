@@ -1,10 +1,10 @@
 package org.omt.labelmanager.sales.sale.application;
 
 import java.util.List;
-import org.omt.labelmanager.finance.domain.shared.Money;
 import org.omt.labelmanager.sales.sale.domain.Sale;
 import org.omt.labelmanager.sales.sale.domain.SaleLineItem;
 import org.omt.labelmanager.sales.sale.infrastructure.SaleEntity;
+import org.omt.labelmanager.shared.Money;
 import org.springframework.stereotype.Service;
 
 /**

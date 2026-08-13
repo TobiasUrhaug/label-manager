@@ -23,12 +23,10 @@ import org.omt.labelmanager.catalog.artist.api.ArtistQueryApi;
 import org.omt.labelmanager.catalog.artist.domain.ArtistFactory;
 import org.omt.labelmanager.catalog.release.ReleaseFactory;
 import org.omt.labelmanager.catalog.release.TrackFactory;
-import org.omt.labelmanager.catalog.release.domain.ReleaseFormat;
 import org.omt.labelmanager.distribution.distributor.ChannelType;
 import org.omt.labelmanager.distribution.distributor.DistributorFactory;
 import org.omt.labelmanager.distribution.distributor.api.DistributorQueryApi;
 import org.omt.labelmanager.finance.cost.api.CostQueryApi;
-import org.omt.labelmanager.finance.domain.shared.Money;
 import org.omt.labelmanager.identity.application.AppUserDetails;
 import org.omt.labelmanager.inventory.inventorymovement.api.InventoryMovementQueryApi;
 import org.omt.labelmanager.inventory.productionrun.api.ProductionRunQueryApi;
@@ -36,6 +34,8 @@ import org.omt.labelmanager.inventory.productionrun.domain.ProductionRunFactory;
 import org.omt.labelmanager.sales.sale.api.SaleQueryApi;
 import org.omt.labelmanager.sales.sale.domain.Sale;
 import org.omt.labelmanager.sales.sale.domain.SaleLineItem;
+import org.omt.labelmanager.shared.Format;
+import org.omt.labelmanager.shared.Money;
 import org.omt.labelmanager.test.TestSecurityConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
@@ -79,7 +79,7 @@ class ReleaseControllerTest {
                         .durationSeconds(210)
                         .position(1)
                         .build();
-        var formats = Set.of(ReleaseFormat.DIGITAL, ReleaseFormat.VINYL);
+        var formats = Set.of(Format.DIGITAL, Format.VINYL);
         var release =
                 ReleaseFactory.aRelease()
                         .id(4L)
@@ -246,7 +246,7 @@ class ReleaseControllerTest {
                 new SaleLineItem(
                         1L,
                         4L,
-                        ReleaseFormat.VINYL,
+                        Format.VINYL,
                         30,
                         Money.of(BigDecimal.valueOf(15)),
                         Money.of(BigDecimal.valueOf(450)));

@@ -11,10 +11,8 @@ import org.junit.jupiter.api.Test;
 import org.omt.labelmanager.AbstractIntegrationTest;
 import org.omt.labelmanager.catalog.label.LabelTestHelper;
 import org.omt.labelmanager.catalog.release.ReleaseTestHelper;
-import org.omt.labelmanager.catalog.release.domain.ReleaseFormat;
 import org.omt.labelmanager.distribution.distributor.ChannelType;
 import org.omt.labelmanager.distribution.distributor.api.DistributorQueryApi;
-import org.omt.labelmanager.finance.domain.shared.Money;
 import org.omt.labelmanager.inventory.InsufficientInventoryException;
 import org.omt.labelmanager.inventory.InventoryLocation;
 import org.omt.labelmanager.inventory.MovementType;
@@ -24,6 +22,8 @@ import org.omt.labelmanager.inventory.productionrun.ProductionRunTestHelper;
 import org.omt.labelmanager.sales.sale.api.SaleCommandApi;
 import org.omt.labelmanager.sales.sale.domain.Sale;
 import org.omt.labelmanager.sales.sale.domain.SaleLineItemInput;
+import org.omt.labelmanager.shared.Format;
+import org.omt.labelmanager.shared.Money;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -65,7 +65,7 @@ class SaleEditIntegrationTest extends AbstractIntegrationTest {
         var productionRun =
                 productionRunTestHelper.createProductionRun(
                         releaseId,
-                        ReleaseFormat.VINYL,
+                        Format.VINYL,
                         "First pressing",
                         "Plant A",
                         LocalDate.of(2025, 1, 1),
@@ -93,7 +93,7 @@ class SaleEditIntegrationTest extends AbstractIntegrationTest {
                         List.of(
                                 new SaleLineItemInput(
                                         releaseId,
-                                        ReleaseFormat.VINYL,
+                                        Format.VINYL,
                                         8,
                                         Money.of(new BigDecimal("20.00")))));
 
@@ -116,10 +116,7 @@ class SaleEditIntegrationTest extends AbstractIntegrationTest {
                 null,
                 List.of(
                         new SaleLineItemInput(
-                                releaseId,
-                                ReleaseFormat.VINYL,
-                                20,
-                                Money.of(new BigDecimal("15.00")))));
+                                releaseId, Format.VINYL, 20, Money.of(new BigDecimal("15.00")))));
 
         // Old movements deleted + new ones recorded: 80 - 20 = 60
         int currentInventory =
@@ -141,7 +138,7 @@ class SaleEditIntegrationTest extends AbstractIntegrationTest {
                         List.of(
                                 new SaleLineItemInput(
                                         releaseId,
-                                        ReleaseFormat.VINYL,
+                                        Format.VINYL,
                                         75,
                                         Money.of(new BigDecimal("15.00")))));
 
@@ -165,7 +162,7 @@ class SaleEditIntegrationTest extends AbstractIntegrationTest {
                                         List.of(
                                                 new SaleLineItemInput(
                                                         releaseId,
-                                                        ReleaseFormat.VINYL,
+                                                        Format.VINYL,
                                                         200, // more than the 80 available
                                                         Money.of(new BigDecimal("15.00"))))))
                 .isInstanceOf(InsufficientInventoryException.class);
@@ -183,7 +180,7 @@ class SaleEditIntegrationTest extends AbstractIntegrationTest {
                 List.of(
                         new SaleLineItemInput(
                                 releaseId,
-                                ReleaseFormat.VINYL,
+                                Format.VINYL,
                                 quantity,
                                 Money.of(new BigDecimal("15.00")))));
     }

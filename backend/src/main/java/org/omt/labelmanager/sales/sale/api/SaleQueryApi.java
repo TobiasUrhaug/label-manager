@@ -2,8 +2,8 @@ package org.omt.labelmanager.sales.sale.api;
 
 import java.util.List;
 import java.util.Optional;
-import org.omt.labelmanager.finance.domain.shared.Money;
 import org.omt.labelmanager.sales.sale.domain.Sale;
+import org.omt.labelmanager.shared.Money;
 
 /** Public API for sale query operations. */
 public interface SaleQueryApi {

@@ -11,7 +11,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
-import org.omt.labelmanager.catalog.release.domain.ReleaseFormat;
+import org.omt.labelmanager.shared.Format;
 
 @Entity
 @Table(name = "distributor_return_line_item")
@@ -30,14 +30,14 @@ public class ReturnLineItemEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "format", nullable = false)
-    private ReleaseFormat format;
+    private Format format;
 
     @Column(name = "quantity", nullable = false)
     private int quantity;
 
     protected ReturnLineItemEntity() {}
 
-    public ReturnLineItemEntity(Long releaseId, ReleaseFormat format, int quantity) {
+    public ReturnLineItemEntity(Long releaseId, Format format, int quantity) {
         this.releaseId = releaseId;
         this.format = format;
         this.quantity = quantity;
@@ -59,7 +59,7 @@ public class ReturnLineItemEntity {
         return releaseId;
     }
 
-    public ReleaseFormat getFormat() {
+    public Format getFormat() {
         return format;
     }
 

@@ -11,10 +11,10 @@ import org.omt.labelmanager.catalog.artist.ArtistTestHelper;
 import org.omt.labelmanager.catalog.label.LabelTestHelper;
 import org.omt.labelmanager.catalog.release.api.ReleaseCommandApi;
 import org.omt.labelmanager.catalog.release.api.ReleaseQueryApi;
-import org.omt.labelmanager.catalog.release.domain.ReleaseFormat;
 import org.omt.labelmanager.catalog.release.domain.TrackDuration;
 import org.omt.labelmanager.catalog.release.domain.TrackInput;
 import org.omt.labelmanager.catalog.release.infrastructure.ReleaseRepository;
+import org.omt.labelmanager.shared.Format;
 import org.springframework.beans.factory.annotation.Autowired;
 
 public class UpdateReleaseWithRemixersIntegrationTest extends AbstractIntegrationTest {
@@ -50,7 +50,7 @@ public class UpdateReleaseWithRemixersIntegrationTest extends AbstractIntegratio
                 label.id(),
                 List.of(artist.id()),
                 List.of(originalTrack),
-                Set.of(ReleaseFormat.DIGITAL));
+                Set.of(Format.DIGITAL));
 
         var releaseEntity = releaseRepository.findByName("Test Release").orElseThrow();
 
@@ -68,7 +68,7 @@ public class UpdateReleaseWithRemixersIntegrationTest extends AbstractIntegratio
                 LocalDate.of(2026, 1, 1),
                 List.of(artist.id()),
                 List.of(updatedTrack),
-                Set.of(ReleaseFormat.DIGITAL));
+                Set.of(Format.DIGITAL));
 
         var release = releaseQueryApi.findById(releaseEntity.getId()).orElseThrow();
 
@@ -97,7 +97,7 @@ public class UpdateReleaseWithRemixersIntegrationTest extends AbstractIntegratio
                 label.id(),
                 List.of(artist.id()),
                 List.of(originalTrack),
-                Set.of(ReleaseFormat.DIGITAL));
+                Set.of(Format.DIGITAL));
 
         var releaseEntity = releaseRepository.findByName("Another Release").orElseThrow();
 
@@ -115,7 +115,7 @@ public class UpdateReleaseWithRemixersIntegrationTest extends AbstractIntegratio
                 LocalDate.of(2026, 1, 1),
                 List.of(artist.id()),
                 List.of(updatedTrack),
-                Set.of(ReleaseFormat.DIGITAL));
+                Set.of(Format.DIGITAL));
 
         var release = releaseQueryApi.findById(releaseEntity.getId()).orElseThrow();
 

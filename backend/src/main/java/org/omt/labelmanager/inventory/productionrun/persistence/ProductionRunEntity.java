@@ -9,7 +9,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.time.LocalDate;
-import org.omt.labelmanager.catalog.release.domain.ReleaseFormat;
+import org.omt.labelmanager.shared.Format;
 
 @Entity
 @Table(name = "production_run")
@@ -24,7 +24,7 @@ public class ProductionRunEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private ReleaseFormat format;
+    private Format format;
 
     private String description;
 
@@ -41,7 +41,7 @@ public class ProductionRunEntity {
 
     public ProductionRunEntity(
             Long releaseId,
-            ReleaseFormat format,
+            Format format,
             String description,
             String manufacturer,
             LocalDate manufacturingDate,
@@ -62,7 +62,7 @@ public class ProductionRunEntity {
         return releaseId;
     }
 
-    public ReleaseFormat getFormat() {
+    public Format getFormat() {
         return format;
     }
 

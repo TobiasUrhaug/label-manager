@@ -822,7 +822,29 @@ missing sale.
 
 ---
 
-### Phase 1 — Extract `shared`, put misplaced types and ports where they belong
+### Phase 1 — Extract `shared`, put misplaced types and ports where they belong ✅ *done, branch `feature/backend-phase-1`*
+
+**What actually differed from the plan below**, all verified:
+
+- **The file counts were undercounts.** `Money` touched 30 files, not 7; `ReleaseFormat` touched 64,
+  not 12. Both figures counted the import sites, not the call sites that use the bare type name.
+- **`RetrievedDocument` and `DocumentUpload` were already in `finance.shared`** — only the port
+  needed moving. `DocumentStorageException` moved with it, which the plan did not list: leaving it in
+  `infrastructure` would have recreated the cycle the first time `finance` caught a storage failure
+  by type. It is now declared on the port's methods.
+- **`UserQueryApi` landed in `identity/api/user/`, not `identity/api/`**, matching how `identity`
+  nests every other layer under `user/`.
+- **The `USER` cost-owner branch had no test at all**, so the boundary fix came with three: two for
+  the new query API and one for registering a cost against a user. The last advances the user id
+  sequence past the label and release ids, because otherwise validating against the wrong module's
+  repository still passes by coincidence.
+- **The DIRECT-distributor test the plan asks for already existed** and passes with the listener in
+  either transaction phase, so it does not pin atomicity. A second test does: it fails if the
+  listener moves to `AFTER_COMMIT`.
+- **`UserTestHelper` was added** so `finance`'s tests stop reaching into `identity`'s persistence
+  package, matching the existing label and release helpers.
+
+341 tests pass (336 after Phase 0, plus the 5 above).
 
 **Changes**, each its own commit:
 

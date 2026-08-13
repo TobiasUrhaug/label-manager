@@ -12,10 +12,8 @@ import org.junit.jupiter.api.Test;
 import org.omt.labelmanager.AbstractIntegrationTest;
 import org.omt.labelmanager.catalog.label.LabelTestHelper;
 import org.omt.labelmanager.catalog.release.ReleaseTestHelper;
-import org.omt.labelmanager.catalog.release.domain.ReleaseFormat;
 import org.omt.labelmanager.distribution.distributor.ChannelType;
 import org.omt.labelmanager.distribution.distributor.api.DistributorQueryApi;
-import org.omt.labelmanager.finance.domain.shared.Money;
 import org.omt.labelmanager.inventory.InventoryLocation;
 import org.omt.labelmanager.inventory.MovementType;
 import org.omt.labelmanager.inventory.inventorymovement.InventoryMovement;
@@ -26,6 +24,8 @@ import org.omt.labelmanager.sales.sale.api.SaleCommandApi;
 import org.omt.labelmanager.sales.sale.api.SaleQueryApi;
 import org.omt.labelmanager.sales.sale.domain.Sale;
 import org.omt.labelmanager.sales.sale.domain.SaleLineItemInput;
+import org.omt.labelmanager.shared.Format;
+import org.omt.labelmanager.shared.Money;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -69,7 +69,7 @@ class SaleDeleteIntegrationTest extends AbstractIntegrationTest {
         var productionRun =
                 productionRunTestHelper.createProductionRun(
                         releaseId,
-                        ReleaseFormat.VINYL,
+                        Format.VINYL,
                         "First pressing",
                         "Plant A",
                         LocalDate.of(2025, 1, 1),
@@ -146,7 +146,7 @@ class SaleDeleteIntegrationTest extends AbstractIntegrationTest {
                 List.of(
                         new SaleLineItemInput(
                                 releaseId,
-                                ReleaseFormat.VINYL,
+                                Format.VINYL,
                                 quantity,
                                 Money.of(new BigDecimal("15.00")))));
     }

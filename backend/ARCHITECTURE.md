@@ -13,6 +13,7 @@ org.omt.labelmanager/
 ├── finance/           # Costs
 ├── distribution/      # Distributors, pricing agreements
 ├── inventory/         # Production runs, allocations, inventory movements
+├── shared/            # Domain primitives used by more than one context (Money, Format)
 └── infrastructure/    # Cross-cutting: security, storage, dashboard
 ```
 
@@ -355,6 +356,33 @@ allocation → productionrun (to check manufactured quantity)
 inventory/InventoryAvailabilityService → productionrun + allocation
 ```
 
+**Domain events — the narrow exception to synchronous calls**
+
+Synchronous `api/` calls are the default. Publish a domain event instead only when the publisher does
+not care whether anyone listens; make a direct call when the outcome depends on the answer.
+
+A caller that rejects its own work based on the result — `RegisterSaleUseCase` throwing
+`InsufficientInventoryException` when stock is short — is a synchronous invariant, not a
+notification. Turning that into an event would trade a transactional check for eventual consistency
+and buy nothing in a single-process, single-database application.
+
+The one event today is `LabelCreated`. `catalog` announces that a label exists; `distribution`
+decides on its own that a new label needs a DIRECT distributor. Events live in the publishing
+module's `api/` package and are published through `ApplicationEventPublisher`.
+
+```java
+// catalog/label/application/CreateLabelUseCase.java — publisher
+events.publishEvent(new LabelCreated(entity.getId()));
+
+// distribution/distributor/DirectSalesProvisioner.java — subscriber
+@TransactionalEventListener(phase = TransactionPhase.BEFORE_COMMIT)
+void onLabelCreated(LabelCreated event) { ... }
+```
+
+Use `BEFORE_COMMIT`, so the subscriber's work joins the publisher's transaction and the two commit or
+roll back together. `AFTER_COMMIT` would open a second transaction and allow the publisher's write to
+survive a failed subscriber — no queue and no outbox exist to reconcile that.
+
 **Exception placement**
 
 Exceptions that cross a module boundary belong in the throwing module's `api/` package — they are part of that module's public contract. Callers that catch them depend on the `api/` package they already depend on.
@@ -373,7 +401,7 @@ public class InsufficientInventoryException extends RuntimeException { ... }
 
 | Subdirectory | Contains | Visibility | Example |
 |--------------|----------|------------|---------|
-| `api/` | Module contracts: interfaces, controllers, request/response records, domain exceptions | Public | `LabelCommandApi.java`, `LabelController.java`, `LabelNotFoundException.java` |
+| `api/` | Module contracts: interfaces, controllers, request/response records, domain exceptions, domain events | Public | `LabelCommandApi.java`, `LabelController.java`, `LabelNotFoundException.java`, `LabelCreated.java` |
 | `application/` | Use cases, API implementations | Package-private | `CreateLabelUseCase.java`, `LabelCommandApiImpl.java` |
 | `domain/` | Domain records | Public | `Label.java` |
 | `persistence/` | JPA entities, repositories | Public | `LabelEntity.java`, `LabelRepository.java` |
@@ -382,11 +410,13 @@ public class InsufficientInventoryException extends RuntimeException { ... }
 
 | Location | Contains | Visibility | Example |
 |----------|----------|------------|---------|
-| `api/` | Module contracts: interfaces, controllers, request/response records, domain exceptions | Public | `LabelCommandApi.java`, `LabelController.java` |
+| `api/` | Module contracts: interfaces, controllers, request/response records, domain exceptions, domain events | Public | `LabelCommandApi.java`, `LabelController.java` |
 | `persistence/` | JPA entities, repositories | Public | `LabelEntity.java`, `LabelRepository.java` |
 | module root (flat) | Domain records, command/query services | Domain records public; services package-private | `Label.java`, `LabelCommandService.java` |
 
 Note: Shared infrastructure (cross-cutting concerns like security, storage) lives in the `infrastructure/` **bounded context**, not within individual modules.
+
+Ports are the exception: a port belongs to the bounded context that needs it, and `infrastructure/` holds only the adapter. `DocumentStoragePort` and `DocumentStorageException` live in `finance/shared/`; `S3DocumentStorageAdapter` implements them from `infrastructure/storage/`. The dependency runs `infrastructure → finance`, never the other way.
 
 ## Database
 

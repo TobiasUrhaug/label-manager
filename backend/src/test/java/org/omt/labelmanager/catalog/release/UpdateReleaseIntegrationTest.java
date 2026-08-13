@@ -11,12 +11,12 @@ import org.omt.labelmanager.catalog.artist.infrastructure.ArtistEntity;
 import org.omt.labelmanager.catalog.artist.infrastructure.ArtistRepository;
 import org.omt.labelmanager.catalog.label.LabelTestHelper;
 import org.omt.labelmanager.catalog.release.api.ReleaseCommandApi;
-import org.omt.labelmanager.catalog.release.domain.ReleaseFormat;
 import org.omt.labelmanager.catalog.release.domain.TrackDuration;
 import org.omt.labelmanager.catalog.release.domain.TrackInput;
 import org.omt.labelmanager.catalog.release.infrastructure.ReleaseArtistRepository;
 import org.omt.labelmanager.catalog.release.infrastructure.ReleaseRepository;
 import org.omt.labelmanager.catalog.release.infrastructure.TrackRepository;
+import org.omt.labelmanager.shared.Format;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -56,7 +56,7 @@ public class UpdateReleaseIntegrationTest extends AbstractIntegrationTest {
                 label.id(),
                 List.of(artist1.getId()),
                 List.of(originalTrack),
-                Set.of(ReleaseFormat.DIGITAL));
+                Set.of(Format.DIGITAL));
 
         var release = releaseRepository.findByName("Original Release").orElseThrow();
         var releaseId = release.getId();
@@ -82,7 +82,7 @@ public class UpdateReleaseIntegrationTest extends AbstractIntegrationTest {
                 LocalDate.of(2026, 6, 15),
                 List.of(artist1.getId(), artist2.getId()),
                 List.of(newTrack1, newTrack2),
-                Set.of(ReleaseFormat.VINYL, ReleaseFormat.CD));
+                Set.of(Format.VINYL, Format.CD));
 
         var updatedRelease = releaseRepository.findById(releaseId).orElseThrow();
         assertThat(updatedRelease.getName()).isEqualTo("Updated Release");

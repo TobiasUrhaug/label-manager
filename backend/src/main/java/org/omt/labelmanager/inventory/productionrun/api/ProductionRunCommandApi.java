@@ -1,15 +1,15 @@
 package org.omt.labelmanager.inventory.productionrun.api;
 
 import java.time.LocalDate;
-import org.omt.labelmanager.catalog.release.domain.ReleaseFormat;
 import org.omt.labelmanager.inventory.InventoryLocation;
 import org.omt.labelmanager.inventory.productionrun.domain.ProductionRun;
+import org.omt.labelmanager.shared.Format;
 
 public interface ProductionRunCommandApi {
 
     ProductionRun createProductionRun(
             Long releaseId,
-            ReleaseFormat format,
+            Format format,
             String description,
             String manufacturer,
             LocalDate manufacturingDate,

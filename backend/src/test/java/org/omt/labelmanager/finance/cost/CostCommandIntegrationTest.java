@@ -17,8 +17,9 @@ import org.omt.labelmanager.finance.cost.domain.CostOwnerType;
 import org.omt.labelmanager.finance.cost.domain.CostType;
 import org.omt.labelmanager.finance.cost.domain.VatAmount;
 import org.omt.labelmanager.finance.cost.infrastructure.CostRepository;
-import org.omt.labelmanager.finance.domain.shared.Money;
 import org.omt.labelmanager.finance.shared.DocumentUpload;
+import org.omt.labelmanager.identity.user.UserTestHelper;
+import org.omt.labelmanager.shared.Money;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.DynamicPropertyRegistry;
@@ -50,6 +51,8 @@ public class CostCommandIntegrationTest {
     @Autowired LabelTestHelper labelTestHelper;
 
     @Autowired ReleaseTestHelper releaseTestHelper;
+
+    @Autowired UserTestHelper userTestHelper;
 
     @Container
     static PostgreSQLContainer<?> postgres =
@@ -137,6 +140,50 @@ public class CostCommandIntegrationTest {
                 costRepository.findByOwnerOwnerTypeAndOwnerOwnerId(CostOwnerType.LABEL, label.id());
         assertThat(costs).hasSize(1);
         assertThat(costs.getFirst().getCostType()).isEqualTo(CostType.HOSTING);
+    }
+
+    @Test
+    void registersCostForUser() {
+        // Burn ids so the owner's user id is well clear of the label and release ids this class
+        // creates. Otherwise a USER owner validated against the wrong module's repository would
+        // still find a row and the test would pass on a coincidence.
+        for (int i = 0; i < 20; i++) {
+            userTestHelper.createUser("filler" + i + "@example.com");
+        }
+        var user = userTestHelper.createUser("owner@example.com");
+
+        costCommandFacade.registerCost(
+                Money.of(new BigDecimal("30.00")),
+                new VatAmount(Money.of(new BigDecimal("7.50")), new BigDecimal("0.25")),
+                Money.of(new BigDecimal("37.50")),
+                CostType.OTHER,
+                LocalDate.of(2024, 9, 3),
+                "Accountant fee",
+                CostOwner.user(user.id()),
+                null);
+
+        var costs =
+                costRepository.findByOwnerOwnerTypeAndOwnerOwnerId(CostOwnerType.USER, user.id());
+        assertThat(costs).hasSize(1);
+        assertThat(costs.getFirst().getDescription()).isEqualTo("Accountant fee");
+    }
+
+    @Test
+    void throwsWhenUserNotFound() {
+        assertThatThrownBy(
+                        () ->
+                                costCommandFacade.registerCost(
+                                        Money.of(new BigDecimal("30.00")),
+                                        new VatAmount(
+                                                Money.of(new BigDecimal("7.50")),
+                                                new BigDecimal("0.25")),
+                                        Money.of(new BigDecimal("37.50")),
+                                        CostType.OTHER,
+                                        LocalDate.of(2024, 9, 3),
+                                        "Accountant fee",
+                                        CostOwner.user(99999L),
+                                        null))
+                .isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test

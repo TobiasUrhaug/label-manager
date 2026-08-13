@@ -3,8 +3,8 @@ package org.omt.labelmanager.catalog.release.api;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Set;
-import org.omt.labelmanager.catalog.release.domain.ReleaseFormat;
 import org.omt.labelmanager.catalog.release.domain.TrackInput;
+import org.omt.labelmanager.shared.Format;
 
 public interface ReleaseCommandApi {
 
@@ -14,7 +14,7 @@ public interface ReleaseCommandApi {
             Long labelId,
             List<Long> artistIds,
             List<TrackInput> tracks,
-            Set<ReleaseFormat> formats);
+            Set<Format> formats);
 
     void updateRelease(
             Long id,
@@ -22,7 +22,7 @@ public interface ReleaseCommandApi {
             LocalDate releaseDate,
             List<Long> artistIds,
             List<TrackInput> tracks,
-            Set<ReleaseFormat> formats);
+            Set<Format> formats);
 
     void delete(Long id);
 }

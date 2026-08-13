@@ -5,13 +5,13 @@ import org.omt.labelmanager.catalog.domain.shared.Address;
 import org.omt.labelmanager.catalog.domain.shared.Person;
 import org.omt.labelmanager.catalog.infrastructure.persistence.shared.AddressEmbeddable;
 import org.omt.labelmanager.catalog.infrastructure.persistence.shared.PersonEmbeddable;
+import org.omt.labelmanager.catalog.label.api.LabelCreated;
 import org.omt.labelmanager.catalog.label.domain.Label;
 import org.omt.labelmanager.catalog.label.infrastructure.LabelEntity;
 import org.omt.labelmanager.catalog.label.infrastructure.LabelRepository;
-import org.omt.labelmanager.distribution.distributor.ChannelType;
-import org.omt.labelmanager.distribution.distributor.api.DistributorCommandApi;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -20,11 +20,11 @@ class CreateLabelUseCase {
     private static final Logger log = LoggerFactory.getLogger(CreateLabelUseCase.class);
 
     private final LabelRepository repository;
-    private final DistributorCommandApi distributorCommandApi;
+    private final ApplicationEventPublisher events;
 
-    CreateLabelUseCase(LabelRepository repository, DistributorCommandApi distributorCommandApi) {
+    CreateLabelUseCase(LabelRepository repository, ApplicationEventPublisher events) {
         this.repository = repository;
-        this.distributorCommandApi = distributorCommandApi;
+        this.events = events;
     }
 
     @Transactional
@@ -46,7 +46,7 @@ class CreateLabelUseCase {
         }
         entity = repository.save(entity);
 
-        distributorCommandApi.createDistributor(entity.getId(), "Direct Sales", ChannelType.DIRECT);
+        events.publishEvent(new LabelCreated(entity.getId()));
 
         return Label.fromEntity(entity);
     }

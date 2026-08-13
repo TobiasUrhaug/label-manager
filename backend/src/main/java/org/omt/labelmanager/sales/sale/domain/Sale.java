@@ -3,7 +3,7 @@ package org.omt.labelmanager.sales.sale.domain;
 import java.time.LocalDate;
 import java.util.List;
 import org.omt.labelmanager.distribution.distributor.ChannelType;
-import org.omt.labelmanager.finance.domain.shared.Money;
+import org.omt.labelmanager.shared.Money;
 
 /** Represents a sale transaction attributed to a specific distributor. */
 public record Sale(

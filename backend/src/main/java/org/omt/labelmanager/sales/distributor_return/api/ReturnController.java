@@ -6,13 +6,13 @@ import java.time.LocalDate;
 import java.util.List;
 import org.omt.labelmanager.catalog.label.api.LabelQueryApi;
 import org.omt.labelmanager.catalog.release.api.ReleaseQueryApi;
-import org.omt.labelmanager.catalog.release.domain.ReleaseFormat;
 import org.omt.labelmanager.distribution.distributor.Distributor;
 import org.omt.labelmanager.distribution.distributor.api.DistributorQueryApi;
 import org.omt.labelmanager.inventory.InsufficientInventoryException;
 import org.omt.labelmanager.sales.distributor_return.domain.DistributorReturn;
 import org.omt.labelmanager.sales.distributor_return.domain.ReturnLineItem;
 import org.omt.labelmanager.sales.distributor_return.domain.ReturnLineItemInput;
+import org.omt.labelmanager.shared.Format;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -48,7 +48,7 @@ public class ReturnController {
         this.distributorQueryApi = distributorQueryApi;
     }
 
-    record ReturnLineItemRequest(Long releaseId, ReleaseFormat format, int quantity) {
+    record ReturnLineItemRequest(Long releaseId, Format format, int quantity) {
         ReturnLineItemInput toInput() {
             return new ReturnLineItemInput(releaseId, format, quantity);
         }
@@ -78,7 +78,7 @@ public class ReturnController {
             Long returnId,
             Long releaseId,
             String releaseName,
-            ReleaseFormat format,
+            Format format,
             int quantity) {}
 
     record ReturnDetailResponse(

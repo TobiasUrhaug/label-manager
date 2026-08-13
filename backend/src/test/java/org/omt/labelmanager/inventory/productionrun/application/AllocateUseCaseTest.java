@@ -12,7 +12,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.omt.labelmanager.catalog.release.domain.ReleaseFormat;
 import org.omt.labelmanager.inventory.InsufficientInventoryException;
 import org.omt.labelmanager.inventory.InventoryLocation;
 import org.omt.labelmanager.inventory.MovementType;
@@ -20,6 +19,7 @@ import org.omt.labelmanager.inventory.inventorymovement.api.InventoryMovementCom
 import org.omt.labelmanager.inventory.inventorymovement.api.InventoryMovementQueryApi;
 import org.omt.labelmanager.inventory.productionrun.persistence.ProductionRunEntity;
 import org.omt.labelmanager.inventory.productionrun.persistence.ProductionRunRepository;
+import org.omt.labelmanager.shared.Format;
 
 @ExtendWith(MockitoExtension.class)
 class AllocateUseCaseTest {
@@ -87,6 +87,6 @@ class AllocateUseCaseTest {
 
     private ProductionRunEntity runWithQuantity(int quantity) {
         return new ProductionRunEntity(
-                1L, ReleaseFormat.VINYL, null, "Manufacturer", LocalDate.now(), quantity);
+                1L, Format.VINYL, null, "Manufacturer", LocalDate.now(), quantity);
     }
 }

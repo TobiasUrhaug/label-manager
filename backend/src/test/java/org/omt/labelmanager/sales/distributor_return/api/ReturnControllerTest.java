@@ -26,7 +26,6 @@ import org.omt.labelmanager.catalog.label.api.LabelQueryApi;
 import org.omt.labelmanager.catalog.label.domain.Label;
 import org.omt.labelmanager.catalog.release.api.ReleaseQueryApi;
 import org.omt.labelmanager.catalog.release.domain.Release;
-import org.omt.labelmanager.catalog.release.domain.ReleaseFormat;
 import org.omt.labelmanager.distribution.distributor.ChannelType;
 import org.omt.labelmanager.distribution.distributor.Distributor;
 import org.omt.labelmanager.distribution.distributor.api.DistributorQueryApi;
@@ -34,6 +33,7 @@ import org.omt.labelmanager.identity.application.AppUserDetails;
 import org.omt.labelmanager.inventory.InsufficientInventoryException;
 import org.omt.labelmanager.sales.distributor_return.domain.DistributorReturn;
 import org.omt.labelmanager.sales.distributor_return.domain.ReturnLineItem;
+import org.omt.labelmanager.shared.Format;
 import org.omt.labelmanager.test.TestSecurityConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
@@ -71,7 +71,7 @@ class ReturnControllerTest {
     @BeforeEach
     void setUp() {
         var testLabel = new Label(LABEL_ID, "Test Label", null, null, null, null, 1L);
-        var lineItem = new ReturnLineItem(1L, RETURN_ID, RELEASE_ID, ReleaseFormat.VINYL, 5);
+        var lineItem = new ReturnLineItem(1L, RETURN_ID, RELEASE_ID, Format.VINYL, 5);
         testReturn =
                 new DistributorReturn(
                         RETURN_ID,

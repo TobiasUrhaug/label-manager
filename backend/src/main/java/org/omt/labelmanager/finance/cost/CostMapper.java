@@ -3,7 +3,7 @@ package org.omt.labelmanager.finance.cost;
 import org.omt.labelmanager.finance.cost.domain.Cost;
 import org.omt.labelmanager.finance.cost.domain.VatAmount;
 import org.omt.labelmanager.finance.cost.infrastructure.CostEntity;
-import org.omt.labelmanager.finance.domain.shared.Money;
+import org.omt.labelmanager.shared.Money;
 
 public class CostMapper {
 

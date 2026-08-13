@@ -9,13 +9,13 @@ import org.junit.jupiter.api.Test;
 import org.omt.labelmanager.AbstractIntegrationTest;
 import org.omt.labelmanager.catalog.label.LabelTestHelper;
 import org.omt.labelmanager.catalog.release.ReleaseTestHelper;
-import org.omt.labelmanager.catalog.release.domain.ReleaseFormat;
 import org.omt.labelmanager.distribution.agreement.api.AgreementCommandApi;
 import org.omt.labelmanager.distribution.agreement.api.DuplicateAgreementException;
 import org.omt.labelmanager.distribution.agreement.persistence.PricingAgreementRepository;
 import org.omt.labelmanager.distribution.distributor.ChannelType;
 import org.omt.labelmanager.distribution.distributor.DistributorTestHelper;
 import org.omt.labelmanager.inventory.productionrun.ProductionRunTestHelper;
+import org.omt.labelmanager.shared.Format;
 import org.springframework.beans.factory.annotation.Autowired;
 
 public class CreateAgreementIntegrationTest extends AbstractIntegrationTest {
@@ -46,7 +46,7 @@ public class CreateAgreementIntegrationTest extends AbstractIntegrationTest {
         distributorId = distributor.id();
 
         Long releaseId = releaseTestHelper.createReleaseEntity("Test Album", label.id());
-        var run = productionRunTestHelper.createProductionRun(releaseId, ReleaseFormat.VINYL, 100);
+        var run = productionRunTestHelper.createProductionRun(releaseId, Format.VINYL, 100);
         productionRunId = run.id();
     }
 

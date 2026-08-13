@@ -11,11 +11,9 @@ import org.junit.jupiter.api.Test;
 import org.omt.labelmanager.AbstractIntegrationTest;
 import org.omt.labelmanager.catalog.label.LabelTestHelper;
 import org.omt.labelmanager.catalog.release.ReleaseTestHelper;
-import org.omt.labelmanager.catalog.release.domain.ReleaseFormat;
 import org.omt.labelmanager.distribution.distributor.ChannelType;
 import org.omt.labelmanager.distribution.distributor.persistence.DistributorEntity;
 import org.omt.labelmanager.distribution.distributor.persistence.DistributorRepository;
-import org.omt.labelmanager.finance.domain.shared.Money;
 import org.omt.labelmanager.inventory.InsufficientInventoryException;
 import org.omt.labelmanager.inventory.InventoryLocation;
 import org.omt.labelmanager.inventory.MovementType;
@@ -26,6 +24,8 @@ import org.omt.labelmanager.inventory.productionrun.persistence.ProductionRunEnt
 import org.omt.labelmanager.inventory.productionrun.persistence.ProductionRunRepository;
 import org.omt.labelmanager.sales.sale.api.SaleCommandApi;
 import org.omt.labelmanager.sales.sale.domain.SaleLineItemInput;
+import org.omt.labelmanager.shared.Format;
+import org.omt.labelmanager.shared.Money;
 import org.springframework.beans.factory.annotation.Autowired;
 
 class SaleRegistrationIntegrationTest extends AbstractIntegrationTest {
@@ -76,7 +76,7 @@ class SaleRegistrationIntegrationTest extends AbstractIntegrationTest {
                 productionRunRepository.save(
                         new ProductionRunEntity(
                                 releaseId,
-                                ReleaseFormat.VINYL,
+                                Format.VINYL,
                                 "First pressing",
                                 "Plant A",
                                 LocalDate.of(2025, 1, 1),
@@ -98,10 +98,7 @@ class SaleRegistrationIntegrationTest extends AbstractIntegrationTest {
         var lineItems =
                 List.of(
                         new SaleLineItemInput(
-                                releaseId,
-                                ReleaseFormat.VINYL,
-                                5,
-                                Money.of(new BigDecimal("15.00"))));
+                                releaseId, Format.VINYL, 5, Money.of(new BigDecimal("15.00"))));
 
         var sale =
                 saleCommandApi.registerSale(
@@ -129,10 +126,7 @@ class SaleRegistrationIntegrationTest extends AbstractIntegrationTest {
         var lineItems =
                 List.of(
                         new SaleLineItemInput(
-                                releaseId,
-                                ReleaseFormat.VINYL,
-                                10,
-                                Money.of(new BigDecimal("15.00"))));
+                                releaseId, Format.VINYL, 10, Money.of(new BigDecimal("15.00"))));
 
         saleCommandApi.registerSale(
                 labelId, LocalDate.of(2026, 2, 12), ChannelType.DIRECT, null, null, lineItems);
@@ -148,10 +142,7 @@ class SaleRegistrationIntegrationTest extends AbstractIntegrationTest {
         var lineItems =
                 List.of(
                         new SaleLineItemInput(
-                                releaseId,
-                                ReleaseFormat.VINYL,
-                                5,
-                                Money.of(new BigDecimal("15.00"))));
+                                releaseId, Format.VINYL, 5, Money.of(new BigDecimal("15.00"))));
 
         var sale =
                 saleCommandApi.registerSale(
@@ -186,7 +177,7 @@ class SaleRegistrationIntegrationTest extends AbstractIntegrationTest {
                 List.of(
                         new SaleLineItemInput(
                                 releaseId,
-                                ReleaseFormat.VINYL,
+                                Format.VINYL,
                                 100, // More than available (50)
                                 Money.of(new BigDecimal("15.00"))));
 
@@ -209,7 +200,7 @@ class SaleRegistrationIntegrationTest extends AbstractIntegrationTest {
                 List.of(
                         new SaleLineItemInput(
                                 99999L, // Non-existent release
-                                ReleaseFormat.VINYL,
+                                Format.VINYL,
                                 5,
                                 Money.of(new BigDecimal("15.00"))));
 
@@ -235,7 +226,7 @@ class SaleRegistrationIntegrationTest extends AbstractIntegrationTest {
                 List.of(
                         new SaleLineItemInput(
                                 otherReleaseId,
-                                ReleaseFormat.VINYL,
+                                Format.VINYL,
                                 5,
                                 Money.of(new BigDecimal("15.00"))));
 
@@ -258,7 +249,7 @@ class SaleRegistrationIntegrationTest extends AbstractIntegrationTest {
         productionRunRepository.save(
                 new ProductionRunEntity(
                         releaseId,
-                        ReleaseFormat.CD,
+                        Format.CD,
                         "CD pressing",
                         "Plant B",
                         LocalDate.of(2025, 2, 1),
@@ -267,7 +258,7 @@ class SaleRegistrationIntegrationTest extends AbstractIntegrationTest {
         var lineItems =
                 List.of(
                         new SaleLineItemInput(
-                                releaseId, ReleaseFormat.CD, 5, Money.of(new BigDecimal("12.00"))));
+                                releaseId, Format.CD, 5, Money.of(new BigDecimal("12.00"))));
 
         assertThatThrownBy(
                         () ->
@@ -287,7 +278,7 @@ class SaleRegistrationIntegrationTest extends AbstractIntegrationTest {
                 List.of(
                         new SaleLineItemInput(
                                 releaseId,
-                                ReleaseFormat.CD, // No production run for CD format
+                                Format.CD, // No production run for CD format
                                 5,
                                 Money.of(new BigDecimal("12.00"))));
 
@@ -312,10 +303,7 @@ class SaleRegistrationIntegrationTest extends AbstractIntegrationTest {
         var lineItems =
                 List.of(
                         new SaleLineItemInput(
-                                releaseId,
-                                ReleaseFormat.VINYL,
-                                5,
-                                Money.of(new BigDecimal("15.00"))));
+                                releaseId, Format.VINYL, 5, Money.of(new BigDecimal("15.00"))));
 
         var sale =
                 saleCommandApi.registerSale(
@@ -354,10 +342,7 @@ class SaleRegistrationIntegrationTest extends AbstractIntegrationTest {
         var lineItems =
                 List.of(
                         new SaleLineItemInput(
-                                releaseId,
-                                ReleaseFormat.VINYL,
-                                10,
-                                Money.of(new BigDecimal("12.00"))));
+                                releaseId, Format.VINYL, 10, Money.of(new BigDecimal("12.00"))));
 
         var sale =
                 saleCommandApi.registerSale(
@@ -391,10 +376,7 @@ class SaleRegistrationIntegrationTest extends AbstractIntegrationTest {
         var lineItems =
                 List.of(
                         new SaleLineItemInput(
-                                releaseId,
-                                ReleaseFormat.VINYL,
-                                5,
-                                Money.of(new BigDecimal("15.00"))));
+                                releaseId, Format.VINYL, 5, Money.of(new BigDecimal("15.00"))));
 
         // Try to register DISTRIBUTOR sale but provide RECORD_STORE distributor
         assertThatThrownBy(
@@ -430,10 +412,7 @@ class SaleRegistrationIntegrationTest extends AbstractIntegrationTest {
         var lineItems =
                 List.of(
                         new SaleLineItemInput(
-                                releaseId,
-                                ReleaseFormat.VINYL,
-                                5,
-                                Money.of(new BigDecimal("15.00"))));
+                                releaseId, Format.VINYL, 5, Money.of(new BigDecimal("15.00"))));
 
         assertThatThrownBy(
                         () ->
@@ -459,10 +438,7 @@ class SaleRegistrationIntegrationTest extends AbstractIntegrationTest {
         var lineItems =
                 List.of(
                         new SaleLineItemInput(
-                                releaseId,
-                                ReleaseFormat.VINYL,
-                                5,
-                                Money.of(new BigDecimal("15.00"))));
+                                releaseId, Format.VINYL, 5, Money.of(new BigDecimal("15.00"))));
 
         assertThatThrownBy(
                         () ->

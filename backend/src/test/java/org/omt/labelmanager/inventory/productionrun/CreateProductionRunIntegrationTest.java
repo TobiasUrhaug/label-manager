@@ -7,8 +7,8 @@ import org.junit.jupiter.api.Test;
 import org.omt.labelmanager.AbstractIntegrationTest;
 import org.omt.labelmanager.catalog.label.LabelTestHelper;
 import org.omt.labelmanager.catalog.release.ReleaseTestHelper;
-import org.omt.labelmanager.catalog.release.domain.ReleaseFormat;
 import org.omt.labelmanager.inventory.productionrun.api.ProductionRunCommandApi;
+import org.omt.labelmanager.shared.Format;
 import org.springframework.beans.factory.annotation.Autowired;
 
 class CreateProductionRunIntegrationTest extends AbstractIntegrationTest {
@@ -27,7 +27,7 @@ class CreateProductionRunIntegrationTest extends AbstractIntegrationTest {
         var productionRun =
                 commandApi.createProductionRun(
                         releaseId,
-                        ReleaseFormat.VINYL,
+                        Format.VINYL,
                         "Original pressing",
                         "Record Industry",
                         LocalDate.of(2025, 1, 1),
@@ -35,7 +35,7 @@ class CreateProductionRunIntegrationTest extends AbstractIntegrationTest {
 
         assertThat(productionRun.id()).isNotNull();
         assertThat(productionRun.releaseId()).isEqualTo(releaseId);
-        assertThat(productionRun.format()).isEqualTo(ReleaseFormat.VINYL);
+        assertThat(productionRun.format()).isEqualTo(Format.VINYL);
         assertThat(productionRun.description()).isEqualTo("Original pressing");
         assertThat(productionRun.manufacturer()).isEqualTo("Record Industry");
         assertThat(productionRun.manufacturingDate()).isEqualTo(LocalDate.of(2025, 1, 1));

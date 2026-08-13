@@ -1,7 +1,7 @@
 package org.omt.labelmanager.catalog.release.api;
 
 import java.time.LocalDate;
-import org.omt.labelmanager.finance.domain.shared.Money;
+import org.omt.labelmanager.shared.Money;
 
 /**
  * View model representing a single sale attributed to this release, enriched with the distributor

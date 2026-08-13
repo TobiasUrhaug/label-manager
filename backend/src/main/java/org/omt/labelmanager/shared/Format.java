@@ -1,6 +1,6 @@
-package org.omt.labelmanager.catalog.release.domain;
+package org.omt.labelmanager.shared;
 
-public enum ReleaseFormat {
+public enum Format {
     DIGITAL(false),
     VINYL(true),
     CASSETTE(true),
@@ -8,7 +8,7 @@ public enum ReleaseFormat {
 
     private final boolean physical;
 
-    ReleaseFormat(boolean physical) {
+    Format(boolean physical) {
         this.physical = physical;
     }
 

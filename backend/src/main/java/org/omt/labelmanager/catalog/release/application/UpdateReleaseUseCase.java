@@ -4,11 +4,11 @@ import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import org.omt.labelmanager.catalog.release.domain.ReleaseFormat;
 import org.omt.labelmanager.catalog.release.domain.TrackInput;
 import org.omt.labelmanager.catalog.release.infrastructure.ReleaseArtistRepository;
 import org.omt.labelmanager.catalog.release.infrastructure.ReleaseEntity;
 import org.omt.labelmanager.catalog.release.infrastructure.ReleaseRepository;
+import org.omt.labelmanager.shared.Format;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -42,7 +42,7 @@ class UpdateReleaseUseCase {
             LocalDate releaseDate,
             List<Long> artistIds,
             List<TrackInput> tracks,
-            Set<ReleaseFormat> formats) {
+            Set<Format> formats) {
         log.info("Updating release {} with {} tracks", id, tracks.size());
         requireAtLeastOneTrack(tracks, id.toString());
 

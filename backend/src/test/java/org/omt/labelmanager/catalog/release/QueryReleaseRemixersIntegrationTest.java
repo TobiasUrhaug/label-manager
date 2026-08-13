@@ -12,12 +12,12 @@ import org.omt.labelmanager.catalog.artist.ArtistTestHelper;
 import org.omt.labelmanager.catalog.label.LabelTestHelper;
 import org.omt.labelmanager.catalog.release.api.ReleaseCommandApi;
 import org.omt.labelmanager.catalog.release.api.ReleaseQueryApi;
-import org.omt.labelmanager.catalog.release.domain.ReleaseFormat;
 import org.omt.labelmanager.catalog.release.domain.TrackDuration;
 import org.omt.labelmanager.catalog.release.domain.TrackInput;
 import org.omt.labelmanager.catalog.release.infrastructure.ReleaseRepository;
 import org.omt.labelmanager.catalog.release.infrastructure.TrackRemixerRepository;
 import org.omt.labelmanager.catalog.release.infrastructure.TrackRepository;
+import org.omt.labelmanager.shared.Format;
 import org.springframework.beans.factory.annotation.Autowired;
 
 public class QueryReleaseRemixersIntegrationTest extends AbstractIntegrationTest {
@@ -58,7 +58,7 @@ public class QueryReleaseRemixersIntegrationTest extends AbstractIntegrationTest
                 label.id(),
                 List.of(artist.id()),
                 List.of(trackInput),
-                Set.of(ReleaseFormat.DIGITAL));
+                Set.of(Format.DIGITAL));
 
         var releaseEntity = releaseRepository.findByName("Query Release 1").orElseThrow();
         var trackId =
@@ -97,7 +97,7 @@ public class QueryReleaseRemixersIntegrationTest extends AbstractIntegrationTest
                 label.id(),
                 List.of(artist.id()),
                 List.of(trackInput),
-                Set.of(ReleaseFormat.DIGITAL));
+                Set.of(Format.DIGITAL));
 
         var releaseEntity = releaseRepository.findByName("Query Release 2").orElseThrow();
 

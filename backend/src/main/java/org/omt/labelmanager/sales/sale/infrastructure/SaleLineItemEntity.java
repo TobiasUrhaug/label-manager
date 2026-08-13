@@ -12,7 +12,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import java.math.BigDecimal;
-import org.omt.labelmanager.catalog.release.domain.ReleaseFormat;
+import org.omt.labelmanager.shared.Format;
 
 @Entity
 @Table(name = "sale_line_item")
@@ -31,7 +31,7 @@ public class SaleLineItemEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "format", nullable = false)
-    private ReleaseFormat format;
+    private Format format;
 
     @Column(name = "quantity", nullable = false)
     private int quantity;
@@ -48,11 +48,7 @@ public class SaleLineItemEntity {
     protected SaleLineItemEntity() {}
 
     public SaleLineItemEntity(
-            Long releaseId,
-            ReleaseFormat format,
-            int quantity,
-            BigDecimal unitPrice,
-            String currency) {
+            Long releaseId, Format format, int quantity, BigDecimal unitPrice, String currency) {
         this.releaseId = releaseId;
         this.format = format;
         this.quantity = quantity;
@@ -77,7 +73,7 @@ public class SaleLineItemEntity {
         return releaseId;
     }
 
-    public ReleaseFormat getFormat() {
+    public Format getFormat() {
         return format;
     }
 

@@ -11,10 +11,10 @@ import org.omt.labelmanager.catalog.artist.ArtistTestHelper;
 import org.omt.labelmanager.catalog.label.LabelTestHelper;
 import org.omt.labelmanager.catalog.release.api.ReleaseCommandApi;
 import org.omt.labelmanager.catalog.release.api.ReleaseQueryApi;
-import org.omt.labelmanager.catalog.release.domain.ReleaseFormat;
 import org.omt.labelmanager.catalog.release.domain.TrackDuration;
 import org.omt.labelmanager.catalog.release.domain.TrackInput;
 import org.omt.labelmanager.catalog.release.infrastructure.ReleaseRepository;
+import org.omt.labelmanager.shared.Format;
 import org.springframework.beans.factory.annotation.Autowired;
 
 public class CreateReleaseWithRemixersIntegrationTest extends AbstractIntegrationTest {
@@ -50,7 +50,7 @@ public class CreateReleaseWithRemixersIntegrationTest extends AbstractIntegratio
                 label.id(),
                 List.of(artist.id()),
                 List.of(trackInput),
-                Set.of(ReleaseFormat.DIGITAL));
+                Set.of(Format.DIGITAL));
 
         var releaseEntity = releaseRepository.findByName("Release With Remixers").orElseThrow();
 
@@ -80,7 +80,7 @@ public class CreateReleaseWithRemixersIntegrationTest extends AbstractIntegratio
                 label.id(),
                 List.of(artist.id()),
                 List.of(trackInput),
-                Set.of(ReleaseFormat.DIGITAL));
+                Set.of(Format.DIGITAL));
 
         var releaseEntity = releaseRepository.findByName("Release Without Remixers").orElseThrow();
 

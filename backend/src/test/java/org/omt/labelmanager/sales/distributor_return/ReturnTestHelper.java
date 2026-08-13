@@ -2,10 +2,10 @@ package org.omt.labelmanager.sales.distributor_return;
 
 import java.time.LocalDate;
 import java.util.List;
-import org.omt.labelmanager.catalog.release.domain.ReleaseFormat;
 import org.omt.labelmanager.sales.distributor_return.api.DistributorReturnCommandApi;
 import org.omt.labelmanager.sales.distributor_return.domain.DistributorReturn;
 import org.omt.labelmanager.sales.distributor_return.domain.ReturnLineItemInput;
+import org.omt.labelmanager.shared.Format;
 import org.springframework.stereotype.Component;
 
 /**
@@ -23,7 +23,7 @@ public class ReturnTestHelper {
 
     /** Creates a return with a single line item. */
     public DistributorReturn createReturn(
-            Long labelId, Long distributorId, Long releaseId, ReleaseFormat format, int quantity) {
+            Long labelId, Long distributorId, Long releaseId, Format format, int quantity) {
         return returnCommandApi.registerReturn(
                 labelId,
                 distributorId,
