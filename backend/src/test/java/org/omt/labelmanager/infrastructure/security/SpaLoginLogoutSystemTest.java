@@ -99,6 +99,27 @@ class SpaLoginLogoutSystemTest extends AbstractIntegrationTest {
     }
 
     @Test
+    void authenticatedRequest_withoutCsrfToken_returns403ProblemDetail() {
+        String jsessionId = loginAndGetSessionId("login@example.com", "password123");
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.add(HttpHeaders.COOKIE, "JSESSIONID=" + jsessionId);
+
+        ResponseEntity<String> response =
+                restTemplate.exchange(
+                        "/logout", HttpMethod.POST, new HttpEntity<>(headers), String.class);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+        assertThat(response.getHeaders().getContentType())
+                .isNotNull()
+                .matches(it -> it.isCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON));
+        assertThat(response.getBody())
+                .contains("\"status\":403")
+                .contains("Access denied.")
+                .doesNotContain("\"properties\"");
+    }
+
+    @Test
     void postLogout_whenAuthenticated_returns200AndInvalidatesSession() {
         String jsessionId = loginAndGetSessionId("login@example.com", "password123");
         String xsrfToken = fetchXsrfTokenForSession(jsessionId);

@@ -47,7 +47,10 @@ public class SecurityConfig {
                         logout ->
                                 logout.logoutSuccessHandler(spaLogoutSuccessHandler()).permitAll())
                 .httpBasic(basic -> basic.authenticationEntryPoint(authenticationEntryPoint()))
-                .exceptionHandling(ex -> ex.authenticationEntryPoint(authenticationEntryPoint()));
+                .exceptionHandling(
+                        ex ->
+                                ex.authenticationEntryPoint(authenticationEntryPoint())
+                                        .accessDeniedHandler(accessDeniedHandler()));
 
         return http.build();
     }
@@ -70,6 +73,11 @@ public class SecurityConfig {
     @Bean
     public SpaApiAuthenticationEntryPoint authenticationEntryPoint() {
         return new SpaApiAuthenticationEntryPoint(jsonMapper);
+    }
+
+    @Bean
+    public SpaAccessDeniedHandler accessDeniedHandler() {
+        return new SpaAccessDeniedHandler(jsonMapper);
     }
 
     @Bean

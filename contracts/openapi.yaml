@@ -42,9 +42,11 @@ paths:
         Ends the authenticated session. Requires an active session cookie.
       responses:
         '200':
-          description: Logout successful. Session has been invalidated.
-        '401':
-          description: No active session.
+          description: |
+            Logout successful. Session has been invalidated. Also returned when there was
+            no session to begin with — logout is permitted to anyone and is idempotent.
+        '403':
+          description: The CSRF token was missing or stale.
           content:
             application/problem+json:
               schema:
@@ -142,8 +144,13 @@ components:
 
     ProblemDetail:
       description: |
-        RFC 9457 problem details. Every error response in this API uses this shape,
-        served as `application/problem+json`.
+        RFC 9457 problem details, served as `application/problem+json`.
+
+        Used by every error this application raises deliberately: the security filter
+        chain's 401 and 403, and anything `ApiExceptionHandler` maps. An unmapped
+        exception still falls through to Spring Boot's `/error` controller, which emits
+        `{timestamp, status, error, path}` as `application/json` — that is a bug to be
+        closed, not a second documented shape.
       type: object
       required:
         - status
