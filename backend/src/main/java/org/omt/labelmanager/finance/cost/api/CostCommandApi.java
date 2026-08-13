@@ -5,9 +5,9 @@ import java.util.Optional;
 import org.omt.labelmanager.finance.cost.domain.CostOwner;
 import org.omt.labelmanager.finance.cost.domain.CostType;
 import org.omt.labelmanager.finance.cost.domain.VatAmount;
-import org.omt.labelmanager.finance.domain.shared.Money;
 import org.omt.labelmanager.finance.shared.DocumentUpload;
 import org.omt.labelmanager.finance.shared.RetrievedDocument;
+import org.omt.labelmanager.shared.Money;
 
 public interface CostCommandApi {
 

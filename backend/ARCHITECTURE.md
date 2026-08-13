@@ -13,6 +13,7 @@ org.omt.labelmanager/
 ├── finance/           # Costs
 ├── distribution/      # Distributors, pricing agreements
 ├── inventory/         # Production runs, allocations, inventory movements
+├── shared/            # Domain primitives used by more than one context (Money)
 └── infrastructure/    # Cross-cutting: security, storage, dashboard
 ```
 

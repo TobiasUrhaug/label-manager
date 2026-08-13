@@ -14,7 +14,6 @@ import org.omt.labelmanager.catalog.release.domain.ReleaseFormat;
 import org.omt.labelmanager.distribution.distributor.ChannelType;
 import org.omt.labelmanager.distribution.distributor.DistributorTestHelper;
 import org.omt.labelmanager.distribution.distributor.api.DistributorQueryApi;
-import org.omt.labelmanager.finance.domain.shared.Money;
 import org.omt.labelmanager.inventory.InventoryLocation;
 import org.omt.labelmanager.inventory.MovementType;
 import org.omt.labelmanager.inventory.inventorymovement.api.InventoryMovementCommandApi;
@@ -23,6 +22,7 @@ import org.omt.labelmanager.sales.sale.api.SaleCommandApi;
 import org.omt.labelmanager.sales.sale.api.SaleQueryApi;
 import org.omt.labelmanager.sales.sale.domain.Sale;
 import org.omt.labelmanager.sales.sale.domain.SaleLineItemInput;
+import org.omt.labelmanager.shared.Money;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 

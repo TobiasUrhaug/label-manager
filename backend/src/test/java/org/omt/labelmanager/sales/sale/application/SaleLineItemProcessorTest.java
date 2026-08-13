@@ -18,13 +18,13 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.omt.labelmanager.catalog.release.api.ReleaseQueryApi;
 import org.omt.labelmanager.catalog.release.domain.Release;
 import org.omt.labelmanager.catalog.release.domain.ReleaseFormat;
-import org.omt.labelmanager.finance.domain.shared.Money;
 import org.omt.labelmanager.inventory.InsufficientInventoryException;
 import org.omt.labelmanager.inventory.inventorymovement.api.InventoryMovementQueryApi;
 import org.omt.labelmanager.inventory.productionrun.api.ProductionRunQueryApi;
 import org.omt.labelmanager.inventory.productionrun.domain.ProductionRun;
 import org.omt.labelmanager.sales.sale.domain.SaleLineItemInput;
 import org.omt.labelmanager.sales.sale.infrastructure.SaleEntity;
+import org.omt.labelmanager.shared.Money;
 
 @ExtendWith(MockitoExtension.class)
 class SaleLineItemProcessorTest {

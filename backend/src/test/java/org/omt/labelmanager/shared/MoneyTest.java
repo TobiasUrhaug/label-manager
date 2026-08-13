@@ -1,4 +1,4 @@
-package org.omt.labelmanager.finance.domain.shared;
+package org.omt.labelmanager.shared;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

@@ -15,7 +15,6 @@ import org.omt.labelmanager.catalog.release.domain.ReleaseFormat;
 import org.omt.labelmanager.distribution.distributor.ChannelType;
 import org.omt.labelmanager.distribution.distributor.persistence.DistributorEntity;
 import org.omt.labelmanager.distribution.distributor.persistence.DistributorRepository;
-import org.omt.labelmanager.finance.domain.shared.Money;
 import org.omt.labelmanager.inventory.InsufficientInventoryException;
 import org.omt.labelmanager.inventory.InventoryLocation;
 import org.omt.labelmanager.inventory.MovementType;
@@ -26,6 +25,7 @@ import org.omt.labelmanager.inventory.productionrun.persistence.ProductionRunEnt
 import org.omt.labelmanager.inventory.productionrun.persistence.ProductionRunRepository;
 import org.omt.labelmanager.sales.sale.api.SaleCommandApi;
 import org.omt.labelmanager.sales.sale.domain.SaleLineItemInput;
+import org.omt.labelmanager.shared.Money;
 import org.springframework.beans.factory.annotation.Autowired;
 
 class SaleRegistrationIntegrationTest extends AbstractIntegrationTest {

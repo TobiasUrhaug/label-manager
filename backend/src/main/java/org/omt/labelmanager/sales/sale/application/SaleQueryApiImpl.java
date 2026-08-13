@@ -3,10 +3,10 @@ package org.omt.labelmanager.sales.sale.application;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
-import org.omt.labelmanager.finance.domain.shared.Money;
 import org.omt.labelmanager.sales.sale.api.SaleQueryApi;
 import org.omt.labelmanager.sales.sale.domain.Sale;
 import org.omt.labelmanager.sales.sale.infrastructure.SaleRepository;
+import org.omt.labelmanager.shared.Money;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
