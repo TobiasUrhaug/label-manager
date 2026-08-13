@@ -389,6 +389,8 @@ public class InsufficientInventoryException extends RuntimeException { ... }
 
 Note: Shared infrastructure (cross-cutting concerns like security, storage) lives in the `infrastructure/` **bounded context**, not within individual modules.
 
+Ports are the exception: a port belongs to the bounded context that needs it, and `infrastructure/` holds only the adapter. `DocumentStoragePort` and `DocumentStorageException` live in `finance/shared/`; `S3DocumentStorageAdapter` implements them from `infrastructure/storage/`. The dependency runs `infrastructure → finance`, never the other way.
+
 ## Database
 
 - PostgreSQL (production and tests via TestContainers)

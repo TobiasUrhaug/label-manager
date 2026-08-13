@@ -1,4 +1,4 @@
-package org.omt.labelmanager.infrastructure.storage;
+package org.omt.labelmanager.finance.shared;
 
 public class DocumentStorageException extends RuntimeException {
 

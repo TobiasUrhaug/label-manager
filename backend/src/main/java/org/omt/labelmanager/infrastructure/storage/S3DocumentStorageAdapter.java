@@ -2,6 +2,8 @@ package org.omt.labelmanager.infrastructure.storage;
 
 import java.io.InputStream;
 import java.util.UUID;
+import org.omt.labelmanager.finance.shared.DocumentStorageException;
+import org.omt.labelmanager.finance.shared.DocumentStoragePort;
 import org.omt.labelmanager.finance.shared.RetrievedDocument;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
