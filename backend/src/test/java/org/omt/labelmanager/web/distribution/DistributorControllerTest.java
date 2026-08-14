@@ -1,8 +1,8 @@
 package org.omt.labelmanager.web.distribution;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
@@ -14,9 +14,9 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import jakarta.persistence.EntityNotFoundException;
 import java.util.List;
 import java.util.Optional;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.omt.labelmanager.catalog.label.LabelFactory;
 import org.omt.labelmanager.catalog.label.api.LabelQueryApi;
@@ -30,7 +30,6 @@ import org.omt.labelmanager.inventory.productionrun.api.ProductionRunQueryApi;
 import org.omt.labelmanager.sales.distributorreturn.api.DistributorReturnQueryApi;
 import org.omt.labelmanager.sales.sale.api.SaleQueryApi;
 import org.omt.labelmanager.test.TestSecurityConfig;
-import org.omt.labelmanager.web.LabelScope;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
@@ -49,8 +48,6 @@ class DistributorControllerTest {
 
     @MockitoBean private LabelQueryApi labelQueryApi;
 
-    @MockitoBean private LabelScope labelScope;
-
     @MockitoBean private SaleQueryApi saleQueryApi;
 
     @MockitoBean private DistributorReturnQueryApi returnQueryApi;
@@ -63,6 +60,11 @@ class DistributorControllerTest {
 
     private final AppUserDetails testUser =
             new AppUserDetails(1L, "test@example.com", "password", "Test User");
+
+    @BeforeEach
+    void scopeChecksPass() {
+        when(labelQueryApi.exists(anyLong())).thenReturn(true);
+    }
 
     @Test
     void addDistributor_callsHandlerAndReturnsCreated() throws Exception {
@@ -222,9 +224,7 @@ class DistributorControllerTest {
 
     @Test
     void addDistributor_returns404WhenTheLabelDoesNotExist() throws Exception {
-        doThrow(new EntityNotFoundException("Label not found: 999"))
-                .when(labelScope)
-                .requireLabel(999L);
+        when(labelQueryApi.exists(999L)).thenReturn(false);
 
         mockMvc.perform(
                         post("/api/labels/999/distributors")

@@ -20,7 +20,6 @@ import org.omt.labelmanager.catalog.release.domain.TrackDuration;
 import org.omt.labelmanager.catalog.release.domain.TrackInput;
 import org.omt.labelmanager.identity.api.user.AppUserDetails;
 import org.omt.labelmanager.shared.Format;
-import org.omt.labelmanager.web.LabelScope;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -40,17 +39,22 @@ public class ReleaseController {
     private final ReleaseCommandApi releaseCommandApi;
     private final ReleaseQueryApi releaseQueryApi;
     private final ArtistQueryApi artistQueryApi;
-    private final LabelScope labelScope;
 
     public ReleaseController(
             ReleaseCommandApi releaseCommandApi,
             ReleaseQueryApi releaseQueryApi,
-            ArtistQueryApi artistQueryApi,
-            LabelScope labelScope) {
+            ArtistQueryApi artistQueryApi) {
         this.releaseCommandApi = releaseCommandApi;
         this.releaseQueryApi = releaseQueryApi;
         this.artistQueryApi = artistQueryApi;
-        this.labelScope = labelScope;
+    }
+
+    /** Catalog owns the answer; this only turns "no" into a 404. */
+    private void requireRelease(Long labelId, Long releaseId) {
+        if (!releaseQueryApi.belongsToLabel(releaseId, labelId)) {
+            throw new EntityNotFoundException(
+                    "Release " + releaseId + " does not belong to label " + labelId);
+        }
     }
 
     record TrackRequest(List<Long> artistIds, String name, String duration, List<Long> remixerIds) {
@@ -140,7 +144,7 @@ public class ReleaseController {
             @AuthenticationPrincipal AppUserDetails user,
             @PathVariable Long labelId,
             @PathVariable Long releaseId) {
-        labelScope.requireRelease(labelId, releaseId);
+        requireRelease(labelId, releaseId);
         Release release =
                 releaseQueryApi
                         .findById(releaseId)
@@ -181,7 +185,7 @@ public class ReleaseController {
             @PathVariable Long labelId,
             @PathVariable Long releaseId,
             @Valid @RequestBody UpdateReleaseRequest request) {
-        labelScope.requireRelease(labelId, releaseId);
+        requireRelease(labelId, releaseId);
         releaseCommandApi.updateRelease(
                 releaseId,
                 request.releaseName(),
@@ -195,7 +199,7 @@ public class ReleaseController {
     @DeleteMapping("/{releaseId}")
     public ResponseEntity<Void> deleteRelease(
             @PathVariable Long labelId, @PathVariable Long releaseId) {
-        labelScope.requireRelease(labelId, releaseId);
+        requireRelease(labelId, releaseId);
         releaseCommandApi.delete(releaseId);
         return ResponseEntity.noContent().build();
     }

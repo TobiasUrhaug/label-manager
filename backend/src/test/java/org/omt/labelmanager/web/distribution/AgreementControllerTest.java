@@ -1,6 +1,7 @@
 package org.omt.labelmanager.web.distribution;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -15,6 +16,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.Optional;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.omt.labelmanager.catalog.label.api.LabelQueryApi;
 import org.omt.labelmanager.catalog.release.api.ReleaseQueryApi;
@@ -28,7 +30,6 @@ import org.omt.labelmanager.identity.api.user.AppUserDetails;
 import org.omt.labelmanager.inventory.inventorymovement.api.InventoryMovementQueryApi;
 import org.omt.labelmanager.inventory.productionrun.api.ProductionRunQueryApi;
 import org.omt.labelmanager.test.TestSecurityConfig;
-import org.omt.labelmanager.web.LabelScope;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
@@ -44,8 +45,6 @@ class AgreementControllerTest {
     @MockitoBean private AgreementCommandApi commandApi;
 
     @MockitoBean private AgreementQueryApi queryApi;
-
-    @MockitoBean private LabelScope labelScope;
 
     @MockitoBean private DistributorQueryApi distributorQueryApi;
 
@@ -64,6 +63,11 @@ class AgreementControllerTest {
     private static final Long DISTRIBUTOR_ID = 5L;
     private static final Long AGREEMENT_ID = 10L;
     private static final Long RUN_ID = 20L;
+
+    @BeforeEach
+    void scopeChecksPass() {
+        when(distributorQueryApi.belongsToLabel(anyLong(), anyLong())).thenReturn(true);
+    }
 
     @Test
     void createAgreement_withValidData_returnsCreated() throws Exception {

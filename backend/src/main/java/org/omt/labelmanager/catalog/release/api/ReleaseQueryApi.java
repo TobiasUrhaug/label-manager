@@ -11,4 +11,16 @@ public interface ReleaseQueryApi {
     List<Release> getReleasesForLabel(Long labelId);
 
     boolean exists(Long id);
+
+    /**
+     * Reports whether the release exists and belongs to this label.
+     *
+     * <p>Lives here because catalog owns the answer. Callers used to fetch the release and compare
+     * labelIds themselves, which meant every caller had to remember to.
+     *
+     * @param releaseId the release id
+     * @param labelId the label the caller believes owns it
+     * @return true only if the release exists and its labelId matches
+     */
+    boolean belongsToLabel(Long releaseId, Long labelId);
 }

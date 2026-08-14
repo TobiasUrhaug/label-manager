@@ -15,4 +15,13 @@ public interface DistributorQueryApi {
      * distributor.
      */
     Optional<Distributor> findByLabelIdAndChannelType(Long labelId, ChannelType channelType);
+
+    /**
+     * Reports whether the distributor exists and belongs to this label.
+     *
+     * @param distributorId the distributor id
+     * @param labelId the label the caller believes owns it
+     * @return true only if the distributor exists and its labelId matches
+     */
+    boolean belongsToLabel(Long distributorId, Long labelId);
 }

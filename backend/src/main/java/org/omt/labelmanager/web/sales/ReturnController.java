@@ -7,6 +7,7 @@ import jakarta.validation.constraints.NotNull;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
+import org.omt.labelmanager.catalog.label.api.LabelQueryApi;
 import org.omt.labelmanager.catalog.release.api.ReleaseQueryApi;
 import org.omt.labelmanager.distribution.distributor.api.Distributor;
 import org.omt.labelmanager.distribution.distributor.api.DistributorQueryApi;
@@ -16,7 +17,6 @@ import org.omt.labelmanager.sales.distributorreturn.domain.DistributorReturn;
 import org.omt.labelmanager.sales.distributorreturn.domain.ReturnLineItem;
 import org.omt.labelmanager.sales.distributorreturn.domain.ReturnLineItemInput;
 import org.omt.labelmanager.shared.Format;
-import org.omt.labelmanager.web.LabelScope;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -32,21 +32,34 @@ public class ReturnController {
 
     private final DistributorReturnCommandApi returnCommandApi;
     private final DistributorReturnQueryApi returnQueryApi;
-    private final LabelScope labelScope;
+    private final LabelQueryApi labelQueryApi;
     private final ReleaseQueryApi releaseQueryApi;
     private final DistributorQueryApi distributorQueryApi;
 
     public ReturnController(
             DistributorReturnCommandApi returnCommandApi,
             DistributorReturnQueryApi returnQueryApi,
-            LabelScope labelScope,
+            LabelQueryApi labelQueryApi,
             ReleaseQueryApi releaseQueryApi,
             DistributorQueryApi distributorQueryApi) {
         this.returnCommandApi = returnCommandApi;
         this.returnQueryApi = returnQueryApi;
-        this.labelScope = labelScope;
+        this.labelQueryApi = labelQueryApi;
         this.releaseQueryApi = releaseQueryApi;
         this.distributorQueryApi = distributorQueryApi;
+    }
+
+    private void requireLabel(Long labelId) {
+        if (!labelQueryApi.exists(labelId)) {
+            throw new EntityNotFoundException("Label not found: " + labelId);
+        }
+    }
+
+    private void requireDistributor(Long labelId, Long distributorId) {
+        if (!distributorQueryApi.belongsToLabel(distributorId, labelId)) {
+            throw new EntityNotFoundException(
+                    "Distributor " + distributorId + " does not belong to label " + labelId);
+        }
     }
 
     record ReturnLineItemRequest(Long releaseId, Format format, int quantity) {
@@ -101,13 +114,13 @@ public class ReturnController {
     @GetMapping("/api/labels/{labelId}/distributors/{distributorId}/returns")
     public List<DistributorReturn> returnsForDistributor(
             @PathVariable Long labelId, @PathVariable Long distributorId) {
-        labelScope.requireDistributor(labelId, distributorId);
+        requireDistributor(labelId, distributorId);
         return returnQueryApi.getReturnsForDistributor(distributorId);
     }
 
     @GetMapping("/api/labels/{labelId}/returns")
     public ReturnListResponse listReturns(@PathVariable Long labelId) {
-        labelScope.requireLabel(labelId);
+        requireLabel(labelId);
         var returns = returnQueryApi.getReturnsForLabel(labelId);
         var distributors = distributorQueryApi.findByLabelId(labelId);
         return new ReturnListResponse(returns, distributors);
@@ -116,7 +129,7 @@ public class ReturnController {
     @PostMapping("/api/labels/{labelId}/returns")
     public ResponseEntity<Void> registerReturn(
             @PathVariable Long labelId, @Valid @RequestBody RegisterReturnRequest request) {
-        labelScope.requireDistributor(labelId, request.distributorId());
+        requireDistributor(labelId, request.distributorId());
         returnCommandApi.registerReturn(
                 labelId,
                 request.distributorId(),

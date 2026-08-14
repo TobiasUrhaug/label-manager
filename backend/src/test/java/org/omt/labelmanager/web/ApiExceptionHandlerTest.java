@@ -1,5 +1,6 @@
 package org.omt.labelmanager.web;
 
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -8,7 +9,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.util.Optional;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.omt.labelmanager.catalog.label.api.LabelQueryApi;
 import org.omt.labelmanager.catalog.release.api.ReleaseQueryApi;
 import org.omt.labelmanager.distribution.distributor.api.DistributorQueryApi;
 import org.omt.labelmanager.identity.api.user.AppUserDetails;
@@ -42,7 +45,7 @@ class ApiExceptionHandlerTest {
 
     @MockitoBean private SaleQueryApi saleQueryApi;
 
-    @MockitoBean private LabelScope labelScope;
+    @MockitoBean private LabelQueryApi labelQueryApi;
 
     @MockitoBean private ReleaseQueryApi releaseQueryApi;
 
@@ -52,6 +55,11 @@ class ApiExceptionHandlerTest {
 
     private final AppUserDetails testUser =
             new AppUserDetails(1L, "test@example.com", "password", "Test User");
+
+    @BeforeEach
+    void scopeChecksPass() {
+        when(labelQueryApi.exists(anyLong())).thenReturn(true);
+    }
 
     @Test
     void entityNotFound_rendersProblemDetailWith404() throws Exception {

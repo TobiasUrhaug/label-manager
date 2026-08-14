@@ -4,7 +4,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
-import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -18,13 +17,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import jakarta.persistence.EntityNotFoundException;
 import java.io.ByteArrayInputStream;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
+import org.omt.labelmanager.catalog.release.api.ReleaseQueryApi;
 import org.omt.labelmanager.finance.cost.api.CostCommandApi;
 import org.omt.labelmanager.finance.cost.api.CostQueryApi;
 import org.omt.labelmanager.finance.cost.domain.Cost;
@@ -36,7 +35,6 @@ import org.omt.labelmanager.finance.shared.RetrievedDocument;
 import org.omt.labelmanager.identity.api.user.AppUserDetails;
 import org.omt.labelmanager.shared.Money;
 import org.omt.labelmanager.test.TestSecurityConfig;
-import org.omt.labelmanager.web.LabelScope;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
@@ -58,13 +56,13 @@ class CostControllerTest {
 
     @MockitoBean private CostQueryApi costQueryApi;
 
-    @MockitoBean private LabelScope labelScope;
+    @MockitoBean private ReleaseQueryApi releaseQueryApi;
 
     private final AppUserDetails testUser =
             new AppUserDetails(1L, "test@example.com", "password", "Test User");
 
     private void releaseBelongsToLabel() {
-        when(labelScope.isReleaseOfLabel(LABEL_ID, RELEASE_ID)).thenReturn(true);
+        when(releaseQueryApi.belongsToLabel(RELEASE_ID, LABEL_ID)).thenReturn(true);
     }
 
     private void costOwnedBy(CostOwner owner) {
@@ -152,9 +150,7 @@ class CostControllerTest {
 
     @Test
     void registerCost_rejectsAReleaseBelongingToAnotherLabel() throws Exception {
-        doThrow(new EntityNotFoundException("Release 42 does not belong to label 1"))
-                .when(labelScope)
-                .requireRelease(LABEL_ID, RELEASE_ID);
+        when(releaseQueryApi.belongsToLabel(RELEASE_ID, LABEL_ID)).thenReturn(false);
 
         mockMvc.perform(
                         multipart("/api/labels/1/costs")
@@ -435,9 +431,7 @@ class CostControllerTest {
 
     @Test
     void costs_returns404WhenReleaseBelongsToAnotherLabel() throws Exception {
-        doThrow(new EntityNotFoundException("Release 42 does not belong to label 1"))
-                .when(labelScope)
-                .requireRelease(LABEL_ID, RELEASE_ID);
+        when(releaseQueryApi.belongsToLabel(RELEASE_ID, LABEL_ID)).thenReturn(false);
 
         mockMvc.perform(get("/api/labels/1/costs?releaseId=42").with(user(testUser)))
                 .andExpect(status().isNotFound());

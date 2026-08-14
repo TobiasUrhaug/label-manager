@@ -64,4 +64,20 @@ public class QueryDistributorIntegrationTest extends AbstractIntegrationTest {
         assertThat(distributors).hasSize(1);
         assertThat(distributors.get(0).name()).isEqualTo("My Distributor");
     }
+
+    @Test
+    void belongsToLabel_isTrueOnlyForTheOwningLabel() {
+        var distributor =
+                distributorCommandApi.createDistributor(
+                        labelId, "Cargo Records", ChannelType.DISTRIBUTOR);
+        var otherLabel = labelTestHelper.createLabel("Other Label");
+
+        assertThat(distributorQueryApi.belongsToLabel(distributor.id(), labelId)).isTrue();
+        assertThat(distributorQueryApi.belongsToLabel(distributor.id(), otherLabel.id())).isFalse();
+    }
+
+    @Test
+    void belongsToLabel_isFalseWhenTheDistributorDoesNotExist() {
+        assertThat(distributorQueryApi.belongsToLabel(999_999L, labelId)).isFalse();
+    }
 }

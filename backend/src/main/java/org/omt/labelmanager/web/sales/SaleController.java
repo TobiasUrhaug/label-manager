@@ -8,6 +8,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Comparator;
 import java.util.List;
+import org.omt.labelmanager.catalog.label.api.LabelQueryApi;
 import org.omt.labelmanager.catalog.release.api.ReleaseQueryApi;
 import org.omt.labelmanager.distribution.distributor.api.ChannelType;
 import org.omt.labelmanager.distribution.distributor.api.Distributor;
@@ -20,7 +21,6 @@ import org.omt.labelmanager.sales.sale.domain.SaleLineItem;
 import org.omt.labelmanager.sales.sale.domain.SaleLineItemInput;
 import org.omt.labelmanager.shared.Format;
 import org.omt.labelmanager.shared.Money;
-import org.omt.labelmanager.web.LabelScope;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -36,7 +36,7 @@ public class SaleController {
 
     private final SaleCommandApi saleCommandApi;
     private final SaleQueryApi saleQueryApi;
-    private final LabelScope labelScope;
+    private final LabelQueryApi labelQueryApi;
     private final ReleaseQueryApi releaseQueryApi;
     private final ProductionRunQueryApi productionRunQueryApi;
     private final DistributorQueryApi distributorQueryApi;
@@ -44,16 +44,36 @@ public class SaleController {
     public SaleController(
             SaleCommandApi saleCommandApi,
             SaleQueryApi saleQueryApi,
-            LabelScope labelScope,
+            LabelQueryApi labelQueryApi,
             ReleaseQueryApi releaseQueryApi,
             ProductionRunQueryApi productionRunQueryApi,
             DistributorQueryApi distributorQueryApi) {
         this.saleCommandApi = saleCommandApi;
         this.saleQueryApi = saleQueryApi;
-        this.labelScope = labelScope;
+        this.labelQueryApi = labelQueryApi;
         this.releaseQueryApi = releaseQueryApi;
         this.productionRunQueryApi = productionRunQueryApi;
         this.distributorQueryApi = distributorQueryApi;
+    }
+
+    private void requireLabel(Long labelId) {
+        if (!labelQueryApi.exists(labelId)) {
+            throw new EntityNotFoundException("Label not found: " + labelId);
+        }
+    }
+
+    private void requireRelease(Long labelId, Long releaseId) {
+        if (!releaseQueryApi.belongsToLabel(releaseId, labelId)) {
+            throw new EntityNotFoundException(
+                    "Release " + releaseId + " does not belong to label " + labelId);
+        }
+    }
+
+    private void requireDistributor(Long labelId, Long distributorId) {
+        if (!distributorQueryApi.belongsToLabel(distributorId, labelId)) {
+            throw new EntityNotFoundException(
+                    "Distributor " + distributorId + " does not belong to label " + labelId);
+        }
     }
 
     record LineItemRequest(Long releaseId, Format format, int quantity, BigDecimal unitPrice) {
@@ -119,7 +139,7 @@ public class SaleController {
     @GetMapping("/api/labels/{labelId}/releases/{releaseId}/sales")
     public ReleaseSalesResponse salesForRelease(
             @PathVariable Long labelId, @PathVariable Long releaseId) {
-        labelScope.requireRelease(labelId, releaseId);
+        requireRelease(labelId, releaseId);
 
         List<Distributor> distributors = distributorQueryApi.findByLabelId(labelId);
         List<ReleaseSaleView> sales =
@@ -152,13 +172,13 @@ public class SaleController {
     @GetMapping("/api/labels/{labelId}/distributors/{distributorId}/sales")
     public List<Sale> salesForDistributor(
             @PathVariable Long labelId, @PathVariable Long distributorId) {
-        labelScope.requireDistributor(labelId, distributorId);
+        requireDistributor(labelId, distributorId);
         return saleQueryApi.getSalesForDistributor(distributorId);
     }
 
     @GetMapping("/api/labels/{labelId}/sales")
     public SaleListResponse listSales(@PathVariable Long labelId) {
-        labelScope.requireLabel(labelId);
+        requireLabel(labelId);
         var sales = saleQueryApi.getSalesForLabel(labelId);
         var totalRevenue = saleQueryApi.getTotalRevenueForLabel(labelId);
         return new SaleListResponse(sales, totalRevenue);
@@ -168,9 +188,9 @@ public class SaleController {
     public ResponseEntity<Void> registerSale(
             @PathVariable Long labelId, @Valid @RequestBody RegisterSaleRequest request) {
         if (request.distributorId() == null) {
-            labelScope.requireLabel(labelId);
+            requireLabel(labelId);
         } else {
-            labelScope.requireDistributor(labelId, request.distributorId());
+            requireDistributor(labelId, request.distributorId());
         }
         saleCommandApi.registerSale(
                 labelId,

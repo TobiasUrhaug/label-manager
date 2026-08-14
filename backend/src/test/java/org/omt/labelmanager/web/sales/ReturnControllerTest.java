@@ -16,13 +16,13 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import jakarta.persistence.EntityNotFoundException;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.omt.labelmanager.catalog.label.api.LabelQueryApi;
 import org.omt.labelmanager.catalog.release.api.ReleaseQueryApi;
 import org.omt.labelmanager.catalog.release.domain.Release;
 import org.omt.labelmanager.distribution.distributor.api.ChannelType;
@@ -36,7 +36,6 @@ import org.omt.labelmanager.sales.distributorreturn.domain.DistributorReturn;
 import org.omt.labelmanager.sales.distributorreturn.domain.ReturnLineItem;
 import org.omt.labelmanager.shared.Format;
 import org.omt.labelmanager.test.TestSecurityConfig;
-import org.omt.labelmanager.web.LabelScope;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
@@ -53,7 +52,7 @@ class ReturnControllerTest {
 
     @MockitoBean private DistributorReturnQueryApi returnQueryApi;
 
-    @MockitoBean private LabelScope labelScope;
+    @MockitoBean private LabelQueryApi labelQueryApi;
 
     @MockitoBean private ReleaseQueryApi releaseQueryApi;
 
@@ -72,6 +71,8 @@ class ReturnControllerTest {
 
     @BeforeEach
     void setUp() {
+        when(labelQueryApi.exists(anyLong())).thenReturn(true);
+        when(distributorQueryApi.belongsToLabel(anyLong(), anyLong())).thenReturn(true);
         var lineItem = new ReturnLineItem(1L, RETURN_ID, RELEASE_ID, Format.VINYL, 5);
         testReturn =
                 new DistributorReturn(
@@ -320,9 +321,7 @@ class ReturnControllerTest {
 
     @Test
     void returnsForDistributor_returns404WhenDistributorBelongsToAnotherLabel() throws Exception {
-        doThrow(new EntityNotFoundException("Distributor 99 does not belong to label 1"))
-                .when(labelScope)
-                .requireDistributor(1L, 99L);
+        when(distributorQueryApi.belongsToLabel(99L, 1L)).thenReturn(false);
 
         mockMvc.perform(
                         get("/api/labels/{labelId}/distributors/{distributorId}/returns", 1L, 99L)

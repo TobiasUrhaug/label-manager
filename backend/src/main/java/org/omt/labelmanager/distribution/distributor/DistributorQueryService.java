@@ -34,4 +34,12 @@ class DistributorQueryService implements DistributorQueryApi {
                 .findByLabelIdAndChannelType(labelId, channelType)
                 .map(Distributor::fromEntity);
     }
+
+    @Override
+    public boolean belongsToLabel(Long distributorId, Long labelId) {
+        return repository
+                .findById(distributorId)
+                .map(distributor -> distributor.getLabelId().equals(labelId))
+                .orElse(false);
+    }
 }

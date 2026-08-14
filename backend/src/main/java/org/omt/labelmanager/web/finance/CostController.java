@@ -4,6 +4,7 @@ import jakarta.persistence.EntityNotFoundException;
 import java.io.IOException;
 import java.util.List;
 import java.util.Set;
+import org.omt.labelmanager.catalog.release.api.ReleaseQueryApi;
 import org.omt.labelmanager.finance.cost.api.CostCommandApi;
 import org.omt.labelmanager.finance.cost.api.CostQueryApi;
 import org.omt.labelmanager.finance.cost.api.DocumentNotFoundException;
@@ -12,7 +13,6 @@ import org.omt.labelmanager.finance.cost.domain.Cost;
 import org.omt.labelmanager.finance.cost.domain.CostOwner;
 import org.omt.labelmanager.finance.shared.DocumentUpload;
 import org.omt.labelmanager.finance.shared.RetrievedDocument;
-import org.omt.labelmanager.web.LabelScope;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -51,13 +51,22 @@ public class CostController {
 
     private final CostCommandApi costCommandApi;
     private final CostQueryApi costQueryApi;
-    private final LabelScope labelScope;
+    private final ReleaseQueryApi releaseQueryApi;
 
     public CostController(
-            CostCommandApi costCommandApi, CostQueryApi costQueryApi, LabelScope labelScope) {
+            CostCommandApi costCommandApi,
+            CostQueryApi costQueryApi,
+            ReleaseQueryApi releaseQueryApi) {
         this.costCommandApi = costCommandApi;
         this.costQueryApi = costQueryApi;
-        this.labelScope = labelScope;
+        this.releaseQueryApi = releaseQueryApi;
+    }
+
+    private void requireRelease(Long labelId, Long releaseId) {
+        if (!releaseQueryApi.belongsToLabel(releaseId, labelId)) {
+            throw new EntityNotFoundException(
+                    "Release " + releaseId + " does not belong to label " + labelId);
+        }
     }
 
     /**
@@ -73,7 +82,7 @@ public class CostController {
         if (releaseId == null) {
             return costQueryApi.getCostsForLabel(labelId);
         }
-        labelScope.requireRelease(labelId, releaseId);
+        requireRelease(labelId, releaseId);
         return costQueryApi.getCostsForRelease(releaseId);
     }
 
@@ -153,7 +162,7 @@ public class CostController {
         if (releaseId == null) {
             return CostOwner.label(labelId);
         }
-        labelScope.requireRelease(labelId, releaseId);
+        requireRelease(labelId, releaseId);
         return CostOwner.release(releaseId);
     }
 
@@ -172,7 +181,7 @@ public class CostController {
         boolean reachable =
                 switch (cost.owner().type()) {
                     case LABEL -> labelId.equals(cost.owner().id());
-                    case RELEASE -> labelScope.isReleaseOfLabel(labelId, cost.owner().id());
+                    case RELEASE -> releaseQueryApi.belongsToLabel(cost.owner().id(), labelId);
                     case USER -> false;
                 };
 

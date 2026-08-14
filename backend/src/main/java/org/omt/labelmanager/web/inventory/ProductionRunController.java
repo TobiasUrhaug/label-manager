@@ -5,6 +5,7 @@ import java.time.LocalDate;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import org.omt.labelmanager.catalog.release.api.ReleaseQueryApi;
 import org.omt.labelmanager.inventory.LocationType;
 import org.omt.labelmanager.inventory.inventorymovement.InventoryMovement;
 import org.omt.labelmanager.inventory.inventorymovement.api.InventoryMovementQueryApi;
@@ -12,7 +13,6 @@ import org.omt.labelmanager.inventory.productionrun.api.ProductionRunCommandApi;
 import org.omt.labelmanager.inventory.productionrun.api.ProductionRunQueryApi;
 import org.omt.labelmanager.inventory.productionrun.domain.ProductionRun;
 import org.omt.labelmanager.shared.Format;
-import org.omt.labelmanager.web.LabelScope;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -30,17 +30,24 @@ public class ProductionRunController {
     private final ProductionRunCommandApi commandApi;
     private final ProductionRunQueryApi queryApi;
     private final InventoryMovementQueryApi inventoryMovementQueryApi;
-    private final LabelScope labelScope;
+    private final ReleaseQueryApi releaseQueryApi;
 
     public ProductionRunController(
             ProductionRunCommandApi commandApi,
             ProductionRunQueryApi queryApi,
             InventoryMovementQueryApi inventoryMovementQueryApi,
-            LabelScope labelScope) {
+            ReleaseQueryApi releaseQueryApi) {
         this.commandApi = commandApi;
         this.queryApi = queryApi;
         this.inventoryMovementQueryApi = inventoryMovementQueryApi;
-        this.labelScope = labelScope;
+        this.releaseQueryApi = releaseQueryApi;
+    }
+
+    private void requireRelease(Long labelId, Long releaseId) {
+        if (!releaseQueryApi.belongsToLabel(releaseId, labelId)) {
+            throw new EntityNotFoundException(
+                    "Release " + releaseId + " does not belong to label " + labelId);
+        }
     }
 
     record AddProductionRunRequest(
@@ -60,7 +67,7 @@ public class ProductionRunController {
     @GetMapping
     public List<ProductionRunWithAllocation> productionRuns(
             @PathVariable Long labelId, @PathVariable Long releaseId) {
-        labelScope.requireRelease(labelId, releaseId);
+        requireRelease(labelId, releaseId);
         return queryApi.findByReleaseId(releaseId).stream().map(this::withAllocation).toList();
     }
 
@@ -69,7 +76,7 @@ public class ProductionRunController {
             @PathVariable Long labelId,
             @PathVariable Long releaseId,
             @RequestBody AddProductionRunRequest request) {
-        labelScope.requireRelease(labelId, releaseId);
+        requireRelease(labelId, releaseId);
         commandApi.createProductionRun(
                 releaseId,
                 request.format(),
@@ -85,7 +92,7 @@ public class ProductionRunController {
             @PathVariable Long labelId,
             @PathVariable Long releaseId,
             @PathVariable Long productionRunId) {
-        labelScope.requireRelease(labelId, releaseId);
+        requireRelease(labelId, releaseId);
         boolean underThisRelease =
                 queryApi.findById(productionRunId)
                         .map(run -> releaseId.equals(run.releaseId()))

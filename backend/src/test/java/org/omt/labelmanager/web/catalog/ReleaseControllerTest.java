@@ -1,5 +1,6 @@
 package org.omt.labelmanager.web.catalog;
 
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
@@ -16,6 +17,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.omt.labelmanager.catalog.artist.api.ArtistQueryApi;
 import org.omt.labelmanager.catalog.artist.domain.ArtistFactory;
@@ -31,7 +33,6 @@ import org.omt.labelmanager.inventory.productionrun.api.ProductionRunQueryApi;
 import org.omt.labelmanager.sales.sale.api.SaleQueryApi;
 import org.omt.labelmanager.shared.Format;
 import org.omt.labelmanager.test.TestSecurityConfig;
-import org.omt.labelmanager.web.LabelScope;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
@@ -60,10 +61,13 @@ class ReleaseControllerTest {
 
     @MockitoBean private SaleQueryApi saleQueryApi;
 
-    @MockitoBean private LabelScope labelScope;
-
     private final AppUserDetails testUser =
             new AppUserDetails(1L, "test@example.com", "password", "Test User");
+
+    @BeforeEach
+    void scopeChecksPass() {
+        when(releaseQueryFacade.belongsToLabel(anyLong(), anyLong())).thenReturn(true);
+    }
 
     @Test
     void releases_returnsTheLabelsReleases() throws Exception {
