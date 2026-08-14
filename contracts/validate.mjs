@@ -54,6 +54,9 @@ for (const [path, item] of Object.entries(doc.paths ?? {})) {
           `${where}: operationId is ${typeof operation.operationId}, not a string — something is indented under it`,
         );
       }
+    } else if (operation.operationId.trim() === '') {
+      // A quoted "" is a string, so it slips past the null check above.
+      problems.push(`${where}: operationId is empty`);
     } else if (operationIds.has(operation.operationId)) {
       problems.push(
         `${where}: operationId "${operation.operationId}" also used by ${operationIds.get(operation.operationId)}`,
@@ -79,14 +82,14 @@ for (const [path, item] of Object.entries(doc.paths ?? {})) {
       for (const segment of value.slice(2).split('/')) {
         // RFC 6901: ~1 is an escaped "/", ~0 an escaped "~". Path keys contain slashes, so a
         // ref to a path item is all escapes; resolving without decoding fails on a valid spec.
-        const key = segment.replace(/~1/g, '/').replace(/~0/g, '~');
+        const segmentKey = segment.replace(/~1/g, '/').replace(/~0/g, '~');
         // Own properties only. Plain member access walks the prototype chain, so a typo'd
         // ref to "constructor" or "toString" resolves to a Function and passes.
-        if (target === null || typeof target !== 'object' || !Object.hasOwn(target, key)) {
+        if (target === null || typeof target !== 'object' || !Object.hasOwn(target, segmentKey)) {
           target = undefined;
           break;
         }
-        target = target[key];
+        target = target[segmentKey];
       }
       if (target === undefined) problems.push(`${trail}: unresolved $ref "${value}"`);
     } else walk(value, `${trail}/${key}`);
