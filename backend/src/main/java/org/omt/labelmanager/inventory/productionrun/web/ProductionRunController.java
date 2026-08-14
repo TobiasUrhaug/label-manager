@@ -5,10 +5,13 @@ import java.time.LocalDate;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import org.omt.labelmanager.catalog.release.api.ReleaseQueryApi;
+import org.omt.labelmanager.inventory.InventoryLocation;
 import org.omt.labelmanager.inventory.LocationType;
 import org.omt.labelmanager.inventory.inventorymovement.InventoryMovement;
 import org.omt.labelmanager.inventory.inventorymovement.api.InventoryMovementQueryApi;
+import org.omt.labelmanager.inventory.inventorymovement.api.LocationBalance;
 import org.omt.labelmanager.inventory.productionrun.api.ProductionRunCommandApi;
 import org.omt.labelmanager.inventory.productionrun.api.ProductionRunQueryApi;
 import org.omt.labelmanager.inventory.productionrun.domain.ProductionRun;
@@ -63,12 +66,32 @@ public class ProductionRunController {
      * <p>Locations are reported as a type and an id, not as a resolved name. Naming a distributor
      * here would mean inventory reading from distribution — sideways, and only ever for display.
      * The caller already has {@code /api/labels/{labelId}/distributors} and can join once.
+     *
+     * <p>Two queries regardless of how many pressings the release has: one for every balance, one
+     * for every movement. It used to be four per pressing.
      */
     @GetMapping
     public List<ProductionRunWithAllocation> productionRuns(
             @PathVariable Long labelId, @PathVariable Long releaseId) {
         requireReleaseOfLabel(releaseId, labelId);
-        return queryApi.findByReleaseId(releaseId).stream().map(this::withAllocation).toList();
+
+        List<ProductionRun> runs = queryApi.findByReleaseId(releaseId);
+        List<Long> runIds = runs.stream().map(ProductionRun::id).toList();
+
+        Map<Long, List<LocationBalance>> balances =
+                inventoryMovementQueryApi.balancesFor(runIds).stream()
+                        .collect(Collectors.groupingBy(LocationBalance::productionRunId));
+        Map<Long, List<InventoryMovement>> movements =
+                inventoryMovementQueryApi.findByProductionRunIds(runIds);
+
+        return runs.stream()
+                .map(
+                        run ->
+                                withAllocation(
+                                        run,
+                                        balances.getOrDefault(run.id(), List.of()),
+                                        movements.getOrDefault(run.id(), List.of())))
+                .toList();
     }
 
     @PostMapping
@@ -108,26 +131,37 @@ public class ProductionRunController {
         return ResponseEntity.noContent().build();
     }
 
-    private ProductionRunWithAllocation withAllocation(ProductionRun run) {
-        int warehouseInventory = inventoryMovementQueryApi.getWarehouseInventory(run.id());
-        int bandcampInventory = inventoryMovementQueryApi.getBandcampInventory(run.id());
-        Map<Long, Integer> currentByDistributor =
-                inventoryMovementQueryApi.getCurrentInventoryByDistributor(run.id());
-        List<InventoryMovement> movements =
-                inventoryMovementQueryApi.getMovementsForProductionRun(run.id());
-
+    private ProductionRunWithAllocation withAllocation(
+            ProductionRun run, List<LocationBalance> balances, List<InventoryMovement> movements) {
         return new ProductionRunWithAllocation(
                 run,
-                bandcampInventory,
-                warehouseInventory,
-                distributorInventories(currentByDistributor),
+                onHandAt(balances, InventoryLocation.bandcamp()),
+                onHandAt(balances, InventoryLocation.warehouse()),
+                distributorInventories(balances),
                 movementHistory(movements));
     }
 
-    private List<DistributorInventoryView> distributorInventories(
-            Map<Long, Integer> currentByDistributor) {
-        return currentByDistributor.entrySet().stream()
-                .map(entry -> new DistributorInventoryView(entry.getKey(), entry.getValue()))
+    private int onHandAt(List<LocationBalance> balances, InventoryLocation location) {
+        return balances.stream()
+                .filter(balance -> balance.isAt(location))
+                .mapToInt(LocationBalance::onHand)
+                .sum();
+    }
+
+    /**
+     * Only distributors actually holding stock. A negative balance means a sale or return was
+     * recorded against stock the distributor never had — a data error, not something to render as
+     * inventory.
+     */
+    private List<DistributorInventoryView> distributorInventories(List<LocationBalance> balances) {
+        return balances.stream()
+                .filter(balance -> balance.location().type() == LocationType.DISTRIBUTOR)
+                .filter(balance -> balance.location().id() != null)
+                .filter(balance -> balance.onHand() > 0)
+                .map(
+                        balance ->
+                                new DistributorInventoryView(
+                                        balance.location().id(), balance.onHand()))
                 .sorted(Comparator.comparing(DistributorInventoryView::distributorId))
                 .toList();
     }

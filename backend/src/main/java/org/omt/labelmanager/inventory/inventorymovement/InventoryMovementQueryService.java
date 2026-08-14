@@ -1,11 +1,13 @@
 package org.omt.labelmanager.inventory.inventorymovement;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import org.omt.labelmanager.inventory.InventoryLocation;
 import org.omt.labelmanager.inventory.LocationType;
 import org.omt.labelmanager.inventory.inventorymovement.api.InventoryMovementQueryApi;
+import org.omt.labelmanager.inventory.inventorymovement.api.LocationBalance;
 import org.omt.labelmanager.inventory.inventorymovement.persistence.InventoryMovementRepository;
 import org.springframework.stereotype.Service;
 
@@ -20,28 +22,45 @@ class InventoryMovementQueryService implements InventoryMovementQueryApi {
 
     @Override
     public List<InventoryMovement> findByProductionRunId(Long productionRunId) {
-        return movementsFor(productionRunId);
+        return repository.findByProductionRunIdOrderByOccurredAtDesc(productionRunId).stream()
+                .map(InventoryMovement::fromEntity)
+                .toList();
     }
 
     @Override
-    public List<InventoryMovement> getMovementsForProductionRun(Long productionRunId) {
-        return movementsFor(productionRunId);
+    public Map<Long, List<InventoryMovement>> findByProductionRunIds(
+            Collection<Long> productionRunIds) {
+        if (productionRunIds.isEmpty()) {
+            return Map.of();
+        }
+        return repository.findByProductionRunIdInOrderByOccurredAtDesc(productionRunIds).stream()
+                .map(InventoryMovement::fromEntity)
+                .collect(Collectors.groupingBy(InventoryMovement::productionRunId));
+    }
+
+    @Override
+    public List<LocationBalance> balancesFor(Collection<Long> productionRunIds) {
+        if (productionRunIds.isEmpty()) {
+            return List.of();
+        }
+        return repository.findLocationBalances(productionRunIds).stream()
+                .map(InventoryMovementQueryService::toLocationBalance)
+                .toList();
     }
 
     @Override
     public int getCurrentInventory(Long productionRunId, Long distributorId) {
-        var movements = movementsFor(productionRunId);
-        int inbound = sumQuantityTo(movements, LocationType.DISTRIBUTOR, distributorId);
-        int outbound = sumQuantityFrom(movements, LocationType.DISTRIBUTOR, distributorId);
-        return inbound - outbound;
+        return onHandAt(productionRunId, InventoryLocation.distributor(distributorId));
     }
 
     @Override
     public int getWarehouseInventory(Long productionRunId) {
-        var movements = movementsFor(productionRunId);
-        int inbound = sumQuantityTo(movements, LocationType.WAREHOUSE, null);
-        int outbound = sumQuantityFrom(movements, LocationType.WAREHOUSE, null);
-        return inbound - outbound;
+        return onHandAt(productionRunId, InventoryLocation.warehouse());
+    }
+
+    @Override
+    public int getBandcampInventory(Long productionRunId) {
+        return onHandAt(productionRunId, InventoryLocation.bandcamp());
     }
 
     @Override
@@ -49,86 +68,20 @@ class InventoryMovementQueryService implements InventoryMovementQueryApi {
         return repository.findDistinctProductionRunIdsAllocatedToDistributor(distributorId);
     }
 
-    @Override
-    public int getBandcampInventory(Long productionRunId) {
-        var movements = movementsFor(productionRunId);
-        int inbound = sumQuantityTo(movements, LocationType.BANDCAMP, null);
-        int outbound = sumQuantityFrom(movements, LocationType.BANDCAMP, null);
-        return inbound - outbound;
-    }
-
-    @Override
-    public Map<Long, Integer> getCurrentInventoryByDistributor(Long productionRunId) {
-        var movements = movementsFor(productionRunId);
-
-        // Collect all distinct distributor IDs that appear in any movement
-        var distributorIds =
-                movements.stream()
-                        .flatMap(
-                                m -> {
-                                    Stream.Builder<Long> ids = Stream.builder();
-                                    if (m.fromLocationType() == LocationType.DISTRIBUTOR
-                                            && m.fromLocationId() != null) {
-                                        ids.add(m.fromLocationId());
-                                    }
-                                    if (m.toLocationType() == LocationType.DISTRIBUTOR
-                                            && m.toLocationId() != null) {
-                                        ids.add(m.toLocationId());
-                                    }
-                                    return ids.build();
-                                })
-                        .collect(Collectors.toSet());
-
-        return distributorIds.stream()
-                .collect(
-                        Collectors.toMap(
-                                id -> id,
-                                id ->
-                                        sumQuantityTo(movements, LocationType.DISTRIBUTOR, id)
-                                                - sumQuantityFrom(
-                                                        movements, LocationType.DISTRIBUTOR, id)))
-                .entrySet()
-                .stream()
-                .filter(e -> e.getValue() > 0)
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-    }
-
-    private List<InventoryMovement> movementsFor(Long productionRunId) {
-        return repository.findByProductionRunIdOrderByOccurredAtDesc(productionRunId).stream()
-                .map(InventoryMovement::fromEntity)
-                .toList();
-    }
-
-    private int sumQuantityTo(
-            List<InventoryMovement> movements, LocationType locationType, Long locationId) {
-        return movements.stream()
-                .filter(
-                        m ->
-                                m.toLocationType() == locationType
-                                        && locationIdMatches(m.toLocationId(), locationId))
-                .mapToInt(InventoryMovement::quantity)
+    private int onHandAt(Long productionRunId, InventoryLocation location) {
+        return balancesFor(List.of(productionRunId)).stream()
+                .filter(balance -> balance.isAt(location))
+                .mapToInt(LocationBalance::onHand)
                 .sum();
     }
 
-    private int sumQuantityFrom(
-            List<InventoryMovement> movements, LocationType locationType, Long locationId) {
-        return movements.stream()
-                .filter(
-                        m ->
-                                m.fromLocationType() == locationType
-                                        && locationIdMatches(m.fromLocationId(), locationId))
-                .mapToInt(InventoryMovement::quantity)
-                .sum();
-    }
-
-    /**
-     * When no specific location ID is expected (WAREHOUSE, BANDCAMP, EXTERNAL), match by type
-     * alone.
-     */
-    private boolean locationIdMatches(Long actual, Long expected) {
-        if (expected == null) {
-            return true;
-        }
-        return expected.equals(actual);
+    /** Row shape: {@code (production_run_id, location_type, location_id, on_hand)}. */
+    private static LocationBalance toLocationBalance(Object[] row) {
+        return new LocationBalance(
+                ((Number) row[0]).longValue(),
+                new InventoryLocation(
+                        LocationType.valueOf((String) row[1]),
+                        row[2] == null ? null : ((Number) row[2]).longValue()),
+                ((Number) row[3]).intValue());
     }
 }

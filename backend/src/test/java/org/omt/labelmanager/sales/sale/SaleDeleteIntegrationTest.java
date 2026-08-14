@@ -117,7 +117,7 @@ class SaleDeleteIntegrationTest extends AbstractIntegrationTest {
         saleCommandApi.deleteSale(sale.id());
 
         List<InventoryMovement> movements =
-                inventoryMovementQueryApi.getMovementsForProductionRun(productionRunId);
+                inventoryMovementQueryApi.findByProductionRunId(productionRunId);
         boolean hasSaleMovement =
                 movements.stream()
                         .anyMatch(

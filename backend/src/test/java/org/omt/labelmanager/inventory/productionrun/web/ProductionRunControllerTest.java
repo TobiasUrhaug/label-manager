@@ -4,6 +4,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
@@ -22,7 +23,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.omt.labelmanager.catalog.release.api.ReleaseQueryApi;
 import org.omt.labelmanager.identity.api.user.AppUserDetails;
+import org.omt.labelmanager.inventory.InventoryLocation;
 import org.omt.labelmanager.inventory.inventorymovement.api.InventoryMovementQueryApi;
+import org.omt.labelmanager.inventory.inventorymovement.api.LocationBalance;
 import org.omt.labelmanager.inventory.productionrun.api.ProductionRunCommandApi;
 import org.omt.labelmanager.inventory.productionrun.api.ProductionRunQueryApi;
 import org.omt.labelmanager.inventory.productionrun.domain.ProductionRunFactory;
@@ -165,10 +168,12 @@ class ProductionRunControllerTest {
         when(queryApi.findByReleaseId(4L)).thenReturn(List.of(productionRun));
         // Reported as the ledger gives it. The run's 500 manufactured units are a PRODUCTION
         // movement (V33), so the controller no longer adds them back in.
-        when(inventoryMovementQueryApi.getWarehouseInventory(10L)).thenReturn(200);
-        when(inventoryMovementQueryApi.getBandcampInventory(10L)).thenReturn(25);
-        when(inventoryMovementQueryApi.getCurrentInventoryByDistributor(10L)).thenReturn(Map.of());
-        when(inventoryMovementQueryApi.getMovementsForProductionRun(10L)).thenReturn(List.of());
+        when(inventoryMovementQueryApi.balancesFor(List.of(10L)))
+                .thenReturn(
+                        List.of(
+                                new LocationBalance(10L, InventoryLocation.warehouse(), 200),
+                                new LocationBalance(10L, InventoryLocation.bandcamp(), 25)));
+        when(inventoryMovementQueryApi.findByProductionRunIds(List.of(10L))).thenReturn(Map.of());
 
         mockMvc.perform(get("/api/labels/1/releases/4/production-runs").with(user(testUser)))
                 .andExpect(status().isOk())
@@ -183,10 +188,13 @@ class ProductionRunControllerTest {
         var productionRun =
                 ProductionRunFactory.aProductionRun().id(10L).releaseId(4L).quantity(500).build();
         when(queryApi.findByReleaseId(4L)).thenReturn(List.of(productionRun));
-        when(inventoryMovementQueryApi.getWarehouseInventory(10L)).thenReturn(350);
-        when(inventoryMovementQueryApi.getCurrentInventoryByDistributor(10L))
-                .thenReturn(Map.of(1L, 80, 2L, 30));
-        when(inventoryMovementQueryApi.getMovementsForProductionRun(10L)).thenReturn(List.of());
+        when(inventoryMovementQueryApi.balancesFor(List.of(10L)))
+                .thenReturn(
+                        List.of(
+                                new LocationBalance(10L, InventoryLocation.warehouse(), 350),
+                                new LocationBalance(10L, InventoryLocation.distributor(2L), 30),
+                                new LocationBalance(10L, InventoryLocation.distributor(1L), 80)));
+        when(inventoryMovementQueryApi.findByProductionRunIds(List.of(10L))).thenReturn(Map.of());
 
         mockMvc.perform(get("/api/labels/1/releases/4/production-runs").with(user(testUser)))
                 .andExpect(status().isOk())
@@ -194,6 +202,57 @@ class ProductionRunControllerTest {
                 .andExpect(jsonPath("$[0].distributorInventories[0].current").value(80))
                 .andExpect(jsonPath("$[0].distributorInventories[1].distributorId").value(2))
                 .andExpect(jsonPath("$[0].distributorInventories[1].current").value(30));
+    }
+
+    /**
+     * A negative distributor balance means a sale or return was recorded against stock that
+     * distributor never held. It is a data error, and rendering it as inventory would present it as
+     * a fact about stock.
+     */
+    @Test
+    void productionRuns_omitsDistributorsWithANegativeBalance() throws Exception {
+        var productionRun =
+                ProductionRunFactory.aProductionRun().id(10L).releaseId(4L).quantity(500).build();
+
+        when(queryApi.findByReleaseId(4L)).thenReturn(List.of(productionRun));
+        when(inventoryMovementQueryApi.balancesFor(List.of(10L)))
+                .thenReturn(
+                        List.of(
+                                new LocationBalance(10L, InventoryLocation.distributor(1L), -40),
+                                new LocationBalance(10L, InventoryLocation.distributor(2L), 30)));
+        when(inventoryMovementQueryApi.findByProductionRunIds(List.of(10L))).thenReturn(Map.of());
+
+        mockMvc.perform(get("/api/labels/1/releases/4/production-runs").with(user(testUser)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].distributorInventories.length()").value(1))
+                .andExpect(jsonPath("$[0].distributorInventories[0].distributorId").value(2));
+    }
+
+    /**
+     * The page cost must not grow with the number of pressings — that is the N+1 this read model
+     * used to have, four queries per run.
+     */
+    @Test
+    void productionRuns_readsEveryPressingInOneRound() throws Exception {
+        var first = ProductionRunFactory.aProductionRun().id(10L).releaseId(4L).build();
+        var second = ProductionRunFactory.aProductionRun().id(11L).releaseId(4L).build();
+        var third = ProductionRunFactory.aProductionRun().id(12L).releaseId(4L).build();
+
+        when(queryApi.findByReleaseId(4L)).thenReturn(List.of(first, second, third));
+        when(inventoryMovementQueryApi.balancesFor(List.of(10L, 11L, 12L)))
+                .thenReturn(List.of(new LocationBalance(11L, InventoryLocation.warehouse(), 42)));
+        when(inventoryMovementQueryApi.findByProductionRunIds(List.of(10L, 11L, 12L)))
+                .thenReturn(Map.of());
+
+        mockMvc.perform(get("/api/labels/1/releases/4/production-runs").with(user(testUser)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].warehouseInventory").value(0))
+                .andExpect(jsonPath("$[1].warehouseInventory").value(42))
+                .andExpect(jsonPath("$[2].warehouseInventory").value(0));
+
+        verify(inventoryMovementQueryApi).balancesFor(List.of(10L, 11L, 12L));
+        verify(inventoryMovementQueryApi).findByProductionRunIds(List.of(10L, 11L, 12L));
+        verifyNoMoreInteractions(inventoryMovementQueryApi);
     }
 
     @Test

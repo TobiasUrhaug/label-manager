@@ -1,5 +1,6 @@
 package org.omt.labelmanager.inventory.inventorymovement.api;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import org.omt.labelmanager.inventory.inventorymovement.InventoryMovement;
@@ -17,13 +18,25 @@ public interface InventoryMovementQueryApi {
     List<InventoryMovement> findByProductionRunId(Long productionRunId);
 
     /**
-     * Returns all inventory movements for a production run, sorted by {@code occurredAt}
-     * descending. Alias for {@link #findByProductionRunId(Long)} with a more descriptive name.
+     * The same, for many runs in one query — for pages that show every pressing of a release.
      *
-     * @param productionRunId the production run ID
-     * @return movements, newest first
+     * @param productionRunIds the production runs
+     * @return movements by production run, newest first within each; runs with no movements are
+     *     absent
      */
-    List<InventoryMovement> getMovementsForProductionRun(Long productionRunId);
+    Map<Long, List<InventoryMovement>> findByProductionRunIds(Collection<Long> productionRunIds);
+
+    /**
+     * Every non-zero location balance for these runs, summed in the database.
+     *
+     * <p>The one call that answers "how much is where" — the per-location methods below are
+     * conveniences over it. Callers needing several runs, or several locations of one run, should
+     * use this rather than calling them in a loop.
+     *
+     * @param productionRunIds the production runs; an empty collection returns an empty list
+     * @return one entry per (run, location) holding a non-zero quantity
+     */
+    List<LocationBalance> balancesFor(Collection<Long> productionRunIds);
 
     /**
      * Calculates the current inventory held by a specific distributor for a production run.
@@ -39,7 +52,9 @@ public interface InventoryMovementQueryApi {
     /**
      * Calculates the current warehouse inventory for a production run.
      *
-     * <p>Result = SUM(quantity moving TO warehouse) − SUM(quantity moving FROM warehouse)
+     * <p>Result = SUM(quantity moving TO warehouse) − SUM(quantity moving FROM warehouse).
+     * Absolute, not a delta: manufacture is a PRODUCTION movement into the warehouse, so no caller
+     * adds the run's quantity back in.
      *
      * @param productionRunId the production run
      * @return current warehouse inventory quantity
@@ -64,14 +79,4 @@ public interface InventoryMovementQueryApi {
      * @return list of distinct production run IDs
      */
     List<Long> getProductionRunIdsAllocatedToDistributor(Long distributorId);
-
-    /**
-     * Returns current inventory per distributor for a production run.
-     *
-     * <p>Distributors with zero current inventory may be omitted from the result.
-     *
-     * @param productionRunId the production run
-     * @return map of distributorId → current quantity
-     */
-    Map<Long, Integer> getCurrentInventoryByDistributor(Long productionRunId);
 }

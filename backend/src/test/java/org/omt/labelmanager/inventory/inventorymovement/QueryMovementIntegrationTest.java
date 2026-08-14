@@ -7,6 +7,7 @@ import static org.omt.labelmanager.inventory.InventoryLocation.external;
 import static org.omt.labelmanager.inventory.InventoryLocation.warehouse;
 
 import java.time.LocalDate;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.omt.labelmanager.AbstractIntegrationTest;
@@ -15,9 +16,11 @@ import org.omt.labelmanager.catalog.release.ReleaseTestHelper;
 import org.omt.labelmanager.distribution.distributor.api.ChannelType;
 import org.omt.labelmanager.distribution.distributor.persistence.DistributorEntity;
 import org.omt.labelmanager.distribution.distributor.persistence.DistributorRepository;
+import org.omt.labelmanager.inventory.InventoryLocation;
 import org.omt.labelmanager.inventory.MovementType;
 import org.omt.labelmanager.inventory.inventorymovement.api.InventoryMovementCommandApi;
 import org.omt.labelmanager.inventory.inventorymovement.api.InventoryMovementQueryApi;
+import org.omt.labelmanager.inventory.inventorymovement.api.LocationBalance;
 import org.omt.labelmanager.inventory.productionrun.persistence.ProductionRunEntity;
 import org.omt.labelmanager.inventory.productionrun.persistence.ProductionRunRepository;
 import org.omt.labelmanager.shared.Format;
@@ -112,33 +115,33 @@ public class QueryMovementIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    void getCurrentInventoryByDistributor_returnsCurrentQuantities() {
+    void balancesFor_reportsWhatTheDistributorStillHolds() {
         recordAllocation(300);
         recordSale(100);
 
-        var byDistributor =
-                inventoryMovementQueryApi.getCurrentInventoryByDistributor(productionRunId);
-
-        assertThat(byDistributor).containsEntry(distributorId, 200);
+        assertThat(inventoryMovementQueryApi.balancesFor(List.of(productionRunId)))
+                .contains(
+                        new LocationBalance(
+                                productionRunId,
+                                InventoryLocation.distributor(distributorId),
+                                200));
     }
 
     @Test
-    void getCurrentInventoryByDistributor_excludesZeroInventory() {
+    void balancesFor_omitsADistributorWhoHasSoldEverything() {
         recordAllocation(100);
         recordSale(100);
 
-        var byDistributor =
-                inventoryMovementQueryApi.getCurrentInventoryByDistributor(productionRunId);
-
-        assertThat(byDistributor).doesNotContainKey(distributorId);
+        assertThat(inventoryMovementQueryApi.balancesFor(List.of(productionRunId)))
+                .noneMatch(balance -> balance.isAt(InventoryLocation.distributor(distributorId)));
     }
 
     @Test
-    void getMovementsForProductionRun_returnsNewestFirst() {
+    void findByProductionRunId_returnsNewestFirst() {
         recordAllocation(100);
         recordSale(20);
 
-        var movements = inventoryMovementQueryApi.getMovementsForProductionRun(productionRunId);
+        var movements = inventoryMovementQueryApi.findByProductionRunId(productionRunId);
 
         assertThat(movements).hasSize(2);
         assertThat(movements.get(0).movementType()).isEqualTo(MovementType.SALE);
