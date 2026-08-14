@@ -1,11 +1,10 @@
-package org.omt.labelmanager.sales.sale.application;
+package org.omt.labelmanager.sales.distributorreturn.application;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
@@ -23,13 +22,12 @@ import org.omt.labelmanager.inventory.domain.RunDraw;
 import org.omt.labelmanager.inventory.domain.RunStock;
 import org.omt.labelmanager.inventory.domain.StockLedger;
 import org.omt.labelmanager.inventory.productionrun.api.ProductionRunQueryApi;
-import org.omt.labelmanager.sales.sale.domain.SaleLineItemInput;
-import org.omt.labelmanager.sales.sale.infrastructure.SaleEntity;
+import org.omt.labelmanager.sales.distributorreturn.domain.ReturnLineItemInput;
+import org.omt.labelmanager.sales.distributorreturn.infrastructure.DistributorReturnEntity;
 import org.omt.labelmanager.shared.Format;
-import org.omt.labelmanager.shared.Money;
 
 @ExtendWith(MockitoExtension.class)
-class SaleLineItemProcessorTest {
+class ReturnLineItemProcessorTest {
 
     private static final long LABEL_ID = 1L;
     private static final long RELEASE_ID = 10L;
@@ -42,55 +40,53 @@ class SaleLineItemProcessorTest {
 
     @Mock private ProductionRunQueryApi productionRunQueryApi;
 
-    @Mock private SaleEntity saleEntity;
+    @Mock private DistributorReturnEntity returnEntity;
 
-    private SaleLineItemProcessor subject;
+    private ReturnLineItemProcessor subject;
 
     @BeforeEach
     void setUp() {
-        subject = new SaleLineItemProcessor(releaseQueryApi, productionRunQueryApi);
+        subject = new ReturnLineItemProcessor(releaseQueryApi, productionRunQueryApi);
     }
 
     @Test
-    void validateAndAdd_throwsInsufficientInventoryException_whenDistributorHasZeroStock() {
+    void validateAndAdd_refusesMoreThanTheDistributorHolds() {
         givenRelease();
-        givenLedger(pressing(FIRST_PRESSING, "2024-01-01", 0));
+        givenLedger(pressing(FIRST_PRESSING, "2024-01-01", 10));
 
         assertThatThrownBy(
                         () ->
                                 subject.validateAndAdd(
-                                        List.of(lineItem(1)), LABEL_ID, FROM, saleEntity))
+                                        List.of(lineItem(11)), LABEL_ID, FROM, returnEntity))
                 .isInstanceOf(InsufficientInventoryException.class);
     }
 
     @Test
-    void validateAndAdd_addsLineItemAndReportsWhereItCameFrom() {
+    void validateAndAdd_addsLineItemAndReportsWhichPressingComesBack() {
         givenRelease();
-        givenLedger(pressing(FIRST_PRESSING, "2024-01-01", 100));
+        givenLedger(pressing(FIRST_PRESSING, "2024-01-01", 40));
 
-        var draws = subject.validateAndAdd(List.of(lineItem(5)), LABEL_ID, FROM, saleEntity);
+        var draws = subject.validateAndAdd(List.of(lineItem(10)), LABEL_ID, FROM, returnEntity);
 
-        assertThat(draws).containsExactly(new RunDraw(FIRST_PRESSING, 5));
-        verify(saleEntity).addLineItem(org.mockito.ArgumentMatchers.any());
-    }
-
-    /** F4: the old code sold from the newest pressing and ignored stock sitting in older ones. */
-    @Test
-    void validateAndAdd_splitsALineItemAcrossPressingsOldestFirst() {
-        givenRelease();
-        givenLedger(
-                pressing(REPRESS, "2026-01-01", 100), pressing(FIRST_PRESSING, "2024-01-01", 30));
-
-        var draws = subject.validateAndAdd(List.of(lineItem(50)), LABEL_ID, FROM, saleEntity);
-
-        assertThat(draws)
-                .containsExactly(new RunDraw(FIRST_PRESSING, 30), new RunDraw(REPRESS, 20));
+        assertThat(draws).containsExactly(new RunDraw(FIRST_PRESSING, 10));
+        verify(returnEntity).addLineItem(org.mockito.ArgumentMatchers.any());
     }
 
     /**
-     * Two line items for the same release share stock. Validating each against the opening balances
-     * would let one sale take 60 units out of a pressing that only has 40.
+     * A return credits the oldest pressing the distributor still holds, as a sale draws from it.
      */
+    @Test
+    void validateAndAdd_splitsAcrossPressingsOldestFirst() {
+        givenRelease();
+        givenLedger(
+                pressing(REPRESS, "2026-01-01", 100), pressing(FIRST_PRESSING, "2024-01-01", 15));
+
+        var draws = subject.validateAndAdd(List.of(lineItem(40)), LABEL_ID, FROM, returnEntity);
+
+        assertThat(draws)
+                .containsExactly(new RunDraw(FIRST_PRESSING, 15), new RunDraw(REPRESS, 25));
+    }
+
     @Test
     void validateAndAdd_takesEarlierLineItemsOffTheStockLaterOnesSee() {
         givenRelease();
@@ -99,7 +95,7 @@ class SaleLineItemProcessorTest {
 
         var draws =
                 subject.validateAndAdd(
-                        List.of(lineItem(30), lineItem(30)), LABEL_ID, FROM, saleEntity);
+                        List.of(lineItem(30), lineItem(30)), LABEL_ID, FROM, returnEntity);
 
         assertThat(draws)
                 .containsExactly(
@@ -119,8 +115,24 @@ class SaleLineItemProcessorTest {
                                         List.of(lineItem(30), lineItem(30)),
                                         LABEL_ID,
                                         FROM,
-                                        saleEntity))
+                                        returnEntity))
                 .isInstanceOf(InsufficientInventoryException.class);
+    }
+
+    /** Vinyl and CD are separate stock, so one must not be drawn against the other's ledger. */
+    @Test
+    void validateAndAdd_keepsFormatsApart() {
+        givenRelease();
+        givenLedger(pressing(FIRST_PRESSING, "2024-01-01", 20));
+        when(productionRunQueryApi.ledgerAt(RELEASE_ID, Format.CD, FROM))
+                .thenReturn(StockLedger.of(List.of(pressing(REPRESS, "2025-01-01", 20))));
+
+        var draws =
+                subject.validateAndAdd(
+                        List.of(lineItem(20), cdLineItem(20)), LABEL_ID, FROM, returnEntity);
+
+        assertThat(draws)
+                .containsExactly(new RunDraw(FIRST_PRESSING, 20), new RunDraw(REPRESS, 20));
     }
 
     @Test
@@ -131,7 +143,7 @@ class SaleLineItemProcessorTest {
         assertThatThrownBy(
                         () ->
                                 subject.validateAndAdd(
-                                        List.of(lineItem(1)), LABEL_ID, FROM, saleEntity))
+                                        List.of(lineItem(1)), LABEL_ID, FROM, returnEntity))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessageContaining("No production run found");
     }
@@ -159,8 +171,11 @@ class SaleLineItemProcessorTest {
         return new RunStock(runId, LocalDate.parse(manufacturedOn), onHand);
     }
 
-    private SaleLineItemInput lineItem(int quantity) {
-        return new SaleLineItemInput(
-                RELEASE_ID, Format.VINYL, quantity, new Money(new BigDecimal("15.00"), "EUR"));
+    private ReturnLineItemInput lineItem(int quantity) {
+        return new ReturnLineItemInput(RELEASE_ID, Format.VINYL, quantity);
+    }
+
+    private ReturnLineItemInput cdLineItem(int quantity) {
+        return new ReturnLineItemInput(RELEASE_ID, Format.CD, quantity);
     }
 }

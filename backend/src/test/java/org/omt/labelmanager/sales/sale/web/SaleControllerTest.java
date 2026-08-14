@@ -345,6 +345,34 @@ class SaleControllerTest {
                 .andExpect(jsonPath("$.totalUnitsSold").value(5));
     }
 
+    /**
+     * A sale big enough to span two pressings is attributed to both, so both production runs return
+     * it. Listing it twice would double its units in the release total.
+     */
+    @Test
+    void salesForRelease_listsASaleSpanningTwoPressingsOnce() throws Exception {
+        var firstPressing =
+                ProductionRunFactory.aProductionRun().id(7L).releaseId(RELEASE_ID).build();
+        var repress = ProductionRunFactory.aProductionRun().id(8L).releaseId(RELEASE_ID).build();
+        var distributor = DistributorFactory.aDistributor().id(10L).name("Cargo").build();
+
+        when(productionRunQueryApi.findByReleaseId(RELEASE_ID))
+                .thenReturn(List.of(firstPressing, repress));
+        when(saleQueryApi.getSalesForProductionRun(7L)).thenReturn(List.of(testSale));
+        when(saleQueryApi.getSalesForProductionRun(8L)).thenReturn(List.of(testSale));
+        when(distributorQueryApi.findByLabelId(LABEL_ID)).thenReturn(List.of(distributor));
+
+        mockMvc.perform(
+                        get(
+                                        "/api/labels/{labelId}/releases/{releaseId}/sales",
+                                        LABEL_ID,
+                                        RELEASE_ID)
+                                .with(user(testUser)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.sales.length()").value(1))
+                .andExpect(jsonPath("$.totalUnitsSold").value(5));
+    }
+
     @Test
     void salesForRelease_returns404WhenReleaseBelongsToAnotherLabel() throws Exception {
         when(releaseQueryApi.belongsToLabel(RELEASE_ID, LABEL_ID)).thenReturn(false);

@@ -7,6 +7,9 @@ import org.junit.jupiter.api.Test;
 import org.omt.labelmanager.AbstractIntegrationTest;
 import org.omt.labelmanager.catalog.label.LabelTestHelper;
 import org.omt.labelmanager.catalog.release.ReleaseTestHelper;
+import org.omt.labelmanager.inventory.InventoryLocation;
+import org.omt.labelmanager.inventory.domain.RunDraw;
+import org.omt.labelmanager.inventory.domain.RunStock;
 import org.omt.labelmanager.inventory.productionrun.api.ProductionRunCommandApi;
 import org.omt.labelmanager.inventory.productionrun.api.ProductionRunQueryApi;
 import org.omt.labelmanager.shared.Format;
@@ -65,101 +68,78 @@ class QueryProductionRunIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    void findMostRecent_returnsMostRecentProductionRunForFormat() {
+    void ledgerAt_reportsEachPressingsWarehouseStockOldestFirst() {
         var label = labelTestHelper.createLabel("Test Label");
         Long releaseId = releaseTestHelper.createReleaseEntity("Test Release", label.id());
 
-        commandApi.createProductionRun(
-                releaseId,
-                Format.VINYL,
-                "First pressing",
-                "Manufacturer A",
-                LocalDate.of(2025, 1, 1),
-                500);
-
-        var secondPressing =
+        var repress =
                 commandApi.createProductionRun(
                         releaseId,
                         Format.VINYL,
                         "Second pressing",
                         "Manufacturer A",
-                        LocalDate.of(2025, 3, 1),
-                        400);
-
-        commandApi.createProductionRun(
-                releaseId,
-                Format.VINYL,
-                "Third pressing",
-                "Manufacturer A",
-                LocalDate.of(2025, 2, 15),
-                300);
-
-        var mostRecent = queryApi.findMostRecent(releaseId, Format.VINYL);
-
-        assertThat(mostRecent).isPresent();
-        assertThat(mostRecent.get().id()).isEqualTo(secondPressing.id());
-        assertThat(mostRecent.get().description()).isEqualTo("Second pressing");
-        assertThat(mostRecent.get().manufacturingDate()).isEqualTo(LocalDate.of(2025, 3, 1));
-    }
-
-    @Test
-    void findMostRecent_returnsEmptyWhenNoMatchingFormat() {
-        var label = labelTestHelper.createLabel("Test Label");
-        Long releaseId = releaseTestHelper.createReleaseEntity("Test Release", label.id());
-
-        commandApi.createProductionRun(
-                releaseId,
-                Format.VINYL,
-                "Vinyl pressing",
-                "Manufacturer A",
-                LocalDate.of(2025, 1, 1),
-                500);
-
-        var mostRecent = queryApi.findMostRecent(releaseId, Format.CD);
-
-        assertThat(mostRecent).isEmpty();
-    }
-
-    @Test
-    void findMostRecent_returnsEmptyWhenNoProductionRuns() {
-        var label = labelTestHelper.createLabel("Test Label");
-        Long releaseId = releaseTestHelper.createReleaseEntity("Test Release", label.id());
-
-        var mostRecent = queryApi.findMostRecent(releaseId, Format.VINYL);
-
-        assertThat(mostRecent).isEmpty();
-    }
-
-    @Test
-    void findMostRecent_distinguishesBetweenFormats() {
-        var label = labelTestHelper.createLabel("Test Label");
-        Long releaseId = releaseTestHelper.createReleaseEntity("Test Release", label.id());
-
-        var vinylRun =
+                        LocalDate.of(2026, 1, 1),
+                        200);
+        var firstPressing =
                 commandApi.createProductionRun(
                         releaseId,
                         Format.VINYL,
-                        "Vinyl pressing",
+                        "First pressing",
                         "Manufacturer A",
-                        LocalDate.of(2025, 3, 1),
+                        LocalDate.of(2025, 1, 1),
                         500);
 
-        var cdRun =
+        var ledger = queryApi.ledgerAt(releaseId, Format.VINYL, InventoryLocation.warehouse());
+
+        assertThat(ledger.onHand()).isEqualTo(700);
+        assertThat(ledger.drawFifo(600))
+                .containsExactly(
+                        new RunDraw(firstPressing.id(), 500), new RunDraw(repress.id(), 100));
+    }
+
+    @Test
+    void ledgerAt_countsOnlyTheRequestedFormat() {
+        var label = labelTestHelper.createLabel("Test Label");
+        Long releaseId = releaseTestHelper.createReleaseEntity("Test Release", label.id());
+
+        commandApi.createProductionRun(
+                releaseId, Format.VINYL, "Vinyl", "Manufacturer A", LocalDate.of(2025, 1, 1), 500);
+        commandApi.createProductionRun(
+                releaseId, Format.CD, "CD", "Manufacturer B", LocalDate.of(2025, 2, 1), 300);
+
+        assertThat(queryApi.ledgerAt(releaseId, Format.CD, InventoryLocation.warehouse()).onHand())
+                .isEqualTo(300);
+    }
+
+    @Test
+    void ledgerAt_isEmptyWhenTheReleaseHasNoPressingInThatFormat() {
+        var label = labelTestHelper.createLabel("Test Label");
+        Long releaseId = releaseTestHelper.createReleaseEntity("Test Release", label.id());
+
+        var ledger = queryApi.ledgerAt(releaseId, Format.VINYL, InventoryLocation.warehouse());
+
+        assertThat(ledger.runs()).isEmpty();
+        assertThat(ledger.onHand()).isZero();
+    }
+
+    /** A pressing that has never reached a location is still in the ledger, holding nothing. */
+    @Test
+    void ledgerAt_includesPressingsWithNoStockAtThatLocation() {
+        var label = labelTestHelper.createLabel("Test Label");
+        Long releaseId = releaseTestHelper.createReleaseEntity("Test Release", label.id());
+
+        var run =
                 commandApi.createProductionRun(
                         releaseId,
-                        Format.CD,
-                        "CD pressing",
-                        "Manufacturer B",
-                        LocalDate.of(2025, 2, 1),
-                        300);
+                        Format.VINYL,
+                        "First pressing",
+                        "Manufacturer A",
+                        LocalDate.of(2025, 1, 1),
+                        500);
 
-        var mostRecentVinyl = queryApi.findMostRecent(releaseId, Format.VINYL);
-        var mostRecentCd = queryApi.findMostRecent(releaseId, Format.CD);
+        var ledger = queryApi.ledgerAt(releaseId, Format.VINYL, InventoryLocation.distributor(7L));
 
-        assertThat(mostRecentVinyl).isPresent();
-        assertThat(mostRecentVinyl.get().id()).isEqualTo(vinylRun.id());
-
-        assertThat(mostRecentCd).isPresent();
-        assertThat(mostRecentCd.get().id()).isEqualTo(cdRun.id());
+        assertThat(ledger.runs()).extracting(RunStock::productionRunId).containsExactly(run.id());
+        assertThat(ledger.onHand()).isZero();
     }
 }

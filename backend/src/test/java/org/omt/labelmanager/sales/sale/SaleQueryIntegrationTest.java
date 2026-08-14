@@ -229,10 +229,7 @@ class SaleQueryIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     void getSalesForProductionRun_separatesRepressingsWithSameReleaseAndFormat() {
-        // Sale against the first pressing (findMostRecent picks productionRunId)
-        registerDirectSale(5);
-
-        // Create a repress of the same release+format with a later manufacturing date
+        // The direct distributor holds 80 of the first pressing. A repress adds 100 more.
         var repress =
                 productionRunTestHelper.createProductionRun(
                         releaseId,
@@ -249,13 +246,15 @@ class SaleQueryIntegrationTest extends AbstractIntegrationTest {
                 MovementType.ALLOCATION,
                 null);
 
-        // Sale against the repress (findMostRecent now returns the repress)
-        registerDirectSale(3);
+        // 5 comes out of the first pressing alone — FIFO, oldest first.
+        registerDirectSale(5);
+        // 100 cannot: it takes the first pressing's remaining 75 and 25 of the repress.
+        registerDirectSale(100);
 
         List<Sale> salesForFirstPressing = saleQueryApi.getSalesForProductionRun(productionRunId);
         List<Sale> salesForRepress = saleQueryApi.getSalesForProductionRun(repress.id());
 
-        assertThat(salesForFirstPressing).hasSize(1);
+        assertThat(salesForFirstPressing).hasSize(2);
         assertThat(salesForRepress).hasSize(1);
     }
 

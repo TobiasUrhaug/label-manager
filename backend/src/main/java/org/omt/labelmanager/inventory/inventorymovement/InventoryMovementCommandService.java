@@ -84,6 +84,12 @@ class InventoryMovementCommandService implements InventoryMovementCommandApi {
     @Transactional
     public void deleteMovementsByReference(MovementType movementType, Long referenceId) {
         repository.deleteByMovementTypeAndReferenceId(movementType, referenceId);
+        // Flushed deliberately, not left to the provider. Callers reverse a sale's movements and
+        // then re-read the balances to revalidate the new line items, and those balances are
+        // computed by a native query — which JPA does not promise to flush pending deletes before.
+        // Without this, an edit that reuses the stock it just released can be rejected as
+        // insufficient.
+        repository.flush();
         log.debug("Deleted all {} movements with referenceId={}", movementType, referenceId);
     }
 }
