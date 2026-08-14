@@ -5,11 +5,14 @@ info:
   description: |
     REST API for the Label Manager application.
 
-    This spec is the source of truth for the contract between frontend and backend, and now
+    This spec is the source of truth for the contract between frontend and backend, and
     covers the whole served surface rather than the three endpoints the React client happens
-    to call. Nothing enforces that yet: the conformance test that boots the app, reads
-    `/v3/api-docs` and fails on any drift is Phase 3. Until it exists, an endpoint added
-    without a change here will go unnoticed.
+    to call. `OpenApiConformanceTest` boots the app and diffs this file against `/v3/api-docs`
+    in both directions, so an endpoint added without a change here fails the build — and so
+    does an entry here with no endpoint behind it. It compares path and method only: springdoc
+    reports 200 for every operation returning a `ResponseEntity`, so the statuses below are
+    pinned by the `@WebMvcTest` slices instead. `/login` and `/logout` are exempt; Spring
+    Security's filter chain serves them and springdoc cannot see them.
 
     Errors are RFC 9457 `ProblemDetail`, served as `application/problem+json`. Every path
     below also answers 401 when the session cookie is missing and 403 when a mutating request

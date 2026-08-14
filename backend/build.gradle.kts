@@ -81,6 +81,8 @@ dependencies {
     // Plain ArchUnit, not archunit-junit5: ArchitectureTest calls ArchRule.check itself rather than
     // using @AnalyzeClasses, so the JUnit engine that artifact registers would go unused.
     testImplementation("com.tngtech.archunit:archunit:1.4.1")
+    // OpenApiConformanceTest reads contracts/openapi.yaml.
+    testImplementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml")
     testImplementation("org.junit.jupiter:junit-jupiter")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     testRuntimeOnly("com.h2database:h2")
