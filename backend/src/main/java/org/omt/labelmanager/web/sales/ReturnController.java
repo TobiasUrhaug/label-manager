@@ -111,6 +111,11 @@ public class ReturnController {
     @PostMapping("/api/labels/{labelId}/returns")
     public ResponseEntity<Void> registerReturn(
             @PathVariable Long labelId, @RequestBody RegisterReturnRequest request) {
+        if (request.distributorId() == null) {
+            // Not merely absent-and-harmless: findById(null) reaches JpaRepository and throws
+            // InvalidDataAccessApiUsageException, which nothing maps, so it would surface as 500.
+            throw new IllegalArgumentException("distributorId is required to register a return");
+        }
         labelScope.requireDistributor(labelId, request.distributorId());
         returnCommandApi.registerReturn(
                 labelId,

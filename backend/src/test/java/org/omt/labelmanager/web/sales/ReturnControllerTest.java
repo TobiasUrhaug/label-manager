@@ -331,4 +331,18 @@ class ReturnControllerTest {
 
         verify(returnQueryApi, org.mockito.Mockito.never()).getReturnsForDistributor(any());
     }
+
+    @Test
+    void registerReturn_returns400WhenDistributorIdIsMissing() throws Exception {
+        mockMvc.perform(
+                        post("/api/labels/1/returns")
+                                .with(user(testUser))
+                                .with(csrf())
+                                .contentType(APPLICATION_JSON)
+                                .content("{\"returnDate\": \"2026-01-15\", \"lineItems\": []}"))
+                .andExpect(status().isBadRequest());
+
+        verify(returnCommandApi, org.mockito.Mockito.never())
+                .registerReturn(any(), any(), any(), any(), any());
+    }
 }

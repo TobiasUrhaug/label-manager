@@ -2,6 +2,7 @@ package org.omt.labelmanager.web.distribution;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
@@ -13,6 +14,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import jakarta.persistence.EntityNotFoundException;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
@@ -28,6 +30,7 @@ import org.omt.labelmanager.inventory.productionrun.api.ProductionRunQueryApi;
 import org.omt.labelmanager.sales.distributorreturn.api.DistributorReturnQueryApi;
 import org.omt.labelmanager.sales.sale.api.SaleQueryApi;
 import org.omt.labelmanager.test.TestSecurityConfig;
+import org.omt.labelmanager.web.LabelScope;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
@@ -45,6 +48,8 @@ class DistributorControllerTest {
     @MockitoBean private DistributorQueryApi distributorQueryApi;
 
     @MockitoBean private LabelQueryApi labelQueryApi;
+
+    @MockitoBean private LabelScope labelScope;
 
     @MockitoBean private SaleQueryApi saleQueryApi;
 
@@ -213,5 +218,26 @@ class DistributorControllerTest {
                 .andExpect(status().isNotFound());
 
         verify(distributorCRUDHandler, org.mockito.Mockito.never()).delete(any());
+    }
+
+    @Test
+    void addDistributor_returns404WhenTheLabelDoesNotExist() throws Exception {
+        doThrow(new EntityNotFoundException("Label not found: 999"))
+                .when(labelScope)
+                .requireLabel(999L);
+
+        mockMvc.perform(
+                        post("/api/labels/999/distributors")
+                                .with(user(testUser))
+                                .with(csrf())
+                                .contentType(APPLICATION_JSON)
+                                .content(
+                                        """
+                                {"name": "Orphan", "channelType": "DISTRIBUTOR"}
+                                """))
+                .andExpect(status().isNotFound());
+
+        verify(distributorCRUDHandler, org.mockito.Mockito.never())
+                .createDistributor(any(), any(), any());
     }
 }

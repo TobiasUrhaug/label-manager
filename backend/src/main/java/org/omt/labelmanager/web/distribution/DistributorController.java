@@ -11,6 +11,7 @@ import org.omt.labelmanager.distribution.distributor.api.Distributor;
 import org.omt.labelmanager.distribution.distributor.api.DistributorCommandApi;
 import org.omt.labelmanager.distribution.distributor.api.DistributorQueryApi;
 import org.omt.labelmanager.inventory.productionrun.api.ProductionRunQueryApi;
+import org.omt.labelmanager.web.LabelScope;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -31,6 +32,7 @@ public class DistributorController {
     private final AgreementQueryApi agreementQueryApi;
     private final ProductionRunQueryApi productionRunQueryApi;
     private final ReleaseQueryApi releaseQueryApi;
+    private final LabelScope labelScope;
 
     public DistributorController(
             DistributorCommandApi commandApi,
@@ -38,13 +40,15 @@ public class DistributorController {
             LabelQueryApi labelQueryApi,
             AgreementQueryApi agreementQueryApi,
             ProductionRunQueryApi productionRunQueryApi,
-            ReleaseQueryApi releaseQueryApi) {
+            ReleaseQueryApi releaseQueryApi,
+            LabelScope labelScope) {
         this.commandApi = commandApi;
         this.distributorQueryApi = distributorQueryApi;
         this.labelQueryApi = labelQueryApi;
         this.agreementQueryApi = agreementQueryApi;
         this.productionRunQueryApi = productionRunQueryApi;
         this.releaseQueryApi = releaseQueryApi;
+        this.labelScope = labelScope;
     }
 
     record AddDistributorRequest(String name, ChannelType channelType) {}
@@ -97,6 +101,9 @@ public class DistributorController {
     @PostMapping
     public ResponseEntity<Void> addDistributor(
             @PathVariable Long labelId, @RequestBody AddDistributorRequest request) {
+        // DistributorCommandService saves without validating labelId, so without this a
+        // nonexistent label id returns 201 and writes an orphan row.
+        labelScope.requireLabel(labelId);
         commandApi.createDistributor(labelId, request.name(), request.channelType());
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
