@@ -1,7 +1,13 @@
-package org.omt.labelmanager.distribution.agreement.api;
+package org.omt.labelmanager.web.distribution;
 
 import java.math.BigDecimal;
+import org.omt.labelmanager.distribution.agreement.api.AgreementCommandApi;
+import org.omt.labelmanager.distribution.agreement.api.AgreementNotFoundException;
+import org.omt.labelmanager.distribution.agreement.api.AgreementQueryApi;
+import org.omt.labelmanager.distribution.agreement.api.CommissionType;
+import org.omt.labelmanager.distribution.agreement.api.DuplicateAgreementException;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -70,13 +76,13 @@ public class AgreementController {
         return ResponseEntity.noContent().build();
     }
 
-    @ExceptionHandler({DuplicateAgreementException.class, IllegalArgumentException.class})
-    public ResponseEntity<Void> handleBadRequest() {
-        return ResponseEntity.badRequest().build();
+    @ExceptionHandler(DuplicateAgreementException.class)
+    public ProblemDetail handleDuplicate(DuplicateAgreementException exception) {
+        return ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, exception.getMessage());
     }
 
     @ExceptionHandler(AgreementNotFoundException.class)
-    public ResponseEntity<Void> handleNotFound() {
-        return ResponseEntity.notFound().build();
+    public ProblemDetail handleNotFound(AgreementNotFoundException exception) {
+        return ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, exception.getMessage());
     }
 }

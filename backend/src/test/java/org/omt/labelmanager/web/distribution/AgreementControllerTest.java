@@ -1,4 +1,4 @@
-package org.omt.labelmanager.distribution.agreement.api;
+package org.omt.labelmanager.web.distribution;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -18,6 +18,11 @@ import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.omt.labelmanager.catalog.label.api.LabelQueryApi;
 import org.omt.labelmanager.catalog.release.api.ReleaseQueryApi;
+import org.omt.labelmanager.distribution.agreement.api.AgreementCommandApi;
+import org.omt.labelmanager.distribution.agreement.api.AgreementQueryApi;
+import org.omt.labelmanager.distribution.agreement.api.CommissionType;
+import org.omt.labelmanager.distribution.agreement.api.DuplicateAgreementException;
+import org.omt.labelmanager.distribution.agreement.api.PricingAgreement;
 import org.omt.labelmanager.distribution.distributor.api.DistributorQueryApi;
 import org.omt.labelmanager.identity.api.user.AppUserDetails;
 import org.omt.labelmanager.inventory.inventorymovement.api.InventoryMovementQueryApi;
