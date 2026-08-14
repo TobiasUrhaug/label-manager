@@ -1,7 +1,9 @@
 package org.omt.labelmanager.web.inventory;
 
 /**
- * Per-distributor inventory summary for a single production run, showing current stock derived from
- * inventory movements.
+ * How much of a production run one distributor currently holds, derived from inventory movements.
+ *
+ * <p>Identified by id rather than name, so inventory does not read from distribution to render a
+ * label.
  */
-public record DistributorInventoryView(String name, int current) {}
+public record DistributorInventoryView(Long distributorId, int current) {}

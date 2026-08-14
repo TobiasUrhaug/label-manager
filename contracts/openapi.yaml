@@ -520,6 +520,27 @@ paths:
               schema:
                 $ref: '#/components/schemas/ProblemDetail'
 
+  /api/labels/{labelId}/production-runs:
+    parameters:
+      - $ref: '#/components/parameters/LabelId'
+    get:
+      operationId: listProductionRunsForLabel
+      summary: Every production run under this label, across all its releases
+      description: |
+        Exists so a caller holding a productionRunId — from a pricing agreement, say — can
+        resolve it without that endpoint reaching into inventory to render a name.
+      responses:
+        '200':
+          description: The label's production runs, possibly empty.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ProductionRun'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
   /api/labels/{labelId}/distributors:
     parameters:
       - $ref: '#/components/parameters/LabelId'
@@ -642,15 +663,18 @@ paths:
     get:
       operationId: listAgreements
       summary: The distributor's pricing agreements
+      description: |
+        Each carries `productionRunId`. Resolve it against
+        `/api/labels/{labelId}/production-runs` rather than expecting a rendered name.
       responses:
         '200':
-          description: The agreements, each naming the production run it prices.
+          description: The agreements, possibly empty.
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/AgreementView'
+                  $ref: '#/components/schemas/PricingAgreement'
         '404':
           description: No such distributor under this label.
           content:
@@ -1493,12 +1517,26 @@ components:
 
     DistributorInventoryView:
       type: object
-      required: [name, current]
+      required: [distributorId, current]
       properties:
-        name:
-          type: string
-          description: Distributor name, or "Unknown" if the id no longer resolves.
+        distributorId:
+          type: integer
+          format: int64
         current: { type: integer }
+
+    MovementLocation:
+      description: |
+        Where stock moved from or to. `distributorId` is null unless the type is DISTRIBUTOR;
+        join against `/api/labels/{labelId}/distributors` for the name.
+      type: object
+      required: [type]
+      properties:
+        type:
+          $ref: '#/components/schemas/LocationType'
+        distributorId:
+          type: integer
+          format: int64
+          nullable: true
 
     MovementHistoryView:
       type: object
@@ -1508,9 +1546,9 @@ components:
         movementType:
           $ref: '#/components/schemas/MovementType'
         fromLocation:
-          type: string
-          description: Resolved for display — "Warehouse", "Bandcamp", "External (sold)", or a distributor name.
-        toLocation: { type: string }
+          $ref: '#/components/schemas/MovementLocation'
+        toLocation:
+          $ref: '#/components/schemas/MovementLocation'
         quantity: { type: integer }
 
     ProductionRunWithAllocation:
@@ -1553,15 +1591,6 @@ components:
         commissionValue: { type: number }
         createdAt: { type: string, format: date-time, nullable: true }
 
-    AgreementView:
-      type: object
-      required: [agreement, productionRunDisplayName]
-      properties:
-        agreement:
-          $ref: '#/components/schemas/PricingAgreement'
-        productionRunDisplayName:
-          type: string
-          description: '"Release name – FORMAT", or "Unknown" if the run no longer resolves.'
 
     AgreementRequest:
       type: object

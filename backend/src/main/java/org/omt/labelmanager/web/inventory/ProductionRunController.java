@@ -5,8 +5,6 @@ import java.time.LocalDate;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import org.omt.labelmanager.distribution.distributor.api.Distributor;
-import org.omt.labelmanager.distribution.distributor.api.DistributorQueryApi;
 import org.omt.labelmanager.inventory.LocationType;
 import org.omt.labelmanager.inventory.inventorymovement.InventoryMovement;
 import org.omt.labelmanager.inventory.inventorymovement.api.InventoryMovementQueryApi;
@@ -32,19 +30,16 @@ public class ProductionRunController {
     private final ProductionRunCommandApi commandApi;
     private final ProductionRunQueryApi queryApi;
     private final InventoryMovementQueryApi inventoryMovementQueryApi;
-    private final DistributorQueryApi distributorQueryApi;
     private final LabelScope labelScope;
 
     public ProductionRunController(
             ProductionRunCommandApi commandApi,
             ProductionRunQueryApi queryApi,
             InventoryMovementQueryApi inventoryMovementQueryApi,
-            DistributorQueryApi distributorQueryApi,
             LabelScope labelScope) {
         this.commandApi = commandApi;
         this.queryApi = queryApi;
         this.inventoryMovementQueryApi = inventoryMovementQueryApi;
-        this.distributorQueryApi = distributorQueryApi;
         this.labelScope = labelScope;
     }
 
@@ -58,17 +53,15 @@ public class ProductionRunController {
     /**
      * The release's production runs, each with its current inventory and movement history.
      *
-     * <p>Replaces the {@code productionRuns} field of the release detail response. Distributor
-     * names are resolved once for the whole collection rather than per movement.
+     * <p>Locations are reported as a type and an id, not as a resolved name. Naming a distributor
+     * here would mean inventory reading from distribution — sideways, and only ever for display.
+     * The caller already has {@code /api/labels/{labelId}/distributors} and can join once.
      */
     @GetMapping
     public List<ProductionRunWithAllocation> productionRuns(
             @PathVariable Long labelId, @PathVariable Long releaseId) {
         labelScope.requireRelease(labelId, releaseId);
-        List<Distributor> distributors = distributorQueryApi.findByLabelId(labelId);
-        return queryApi.findByReleaseId(releaseId).stream()
-                .map(run -> withAllocation(run, distributors))
-                .toList();
+        return queryApi.findByReleaseId(releaseId).stream().map(this::withAllocation).toList();
     }
 
     @PostMapping
@@ -108,8 +101,7 @@ public class ProductionRunController {
         return ResponseEntity.noContent().build();
     }
 
-    private ProductionRunWithAllocation withAllocation(
-            ProductionRun run, List<Distributor> distributors) {
+    private ProductionRunWithAllocation withAllocation(ProductionRun run) {
         int warehouseInventory =
                 run.quantity() + inventoryMovementQueryApi.getWarehouseInventory(run.id());
         int bandcampInventory = inventoryMovementQueryApi.getBandcampInventory(run.id());
@@ -122,55 +114,32 @@ public class ProductionRunController {
                 run,
                 bandcampInventory,
                 warehouseInventory,
-                distributorInventories(currentByDistributor, distributors),
-                movementHistory(movements, distributors));
+                distributorInventories(currentByDistributor),
+                movementHistory(movements));
     }
 
     private List<DistributorInventoryView> distributorInventories(
-            Map<Long, Integer> currentByDistributor, List<Distributor> distributors) {
+            Map<Long, Integer> currentByDistributor) {
         return currentByDistributor.entrySet().stream()
-                .map(
-                        entry ->
-                                new DistributorInventoryView(
-                                        distributorName(entry.getKey(), distributors),
-                                        entry.getValue()))
-                .sorted(Comparator.comparing(DistributorInventoryView::name))
+                .map(entry -> new DistributorInventoryView(entry.getKey(), entry.getValue()))
+                .sorted(Comparator.comparing(DistributorInventoryView::distributorId))
                 .toList();
     }
 
-    private List<MovementHistoryView> movementHistory(
-            List<InventoryMovement> movements, List<Distributor> distributors) {
+    private List<MovementHistoryView> movementHistory(List<InventoryMovement> movements) {
         return movements.stream()
                 .map(
                         m ->
                                 new MovementHistoryView(
                                         m.occurredAt(),
                                         m.movementType(),
-                                        locationName(
-                                                m.fromLocationType(),
-                                                m.fromLocationId(),
-                                                distributors),
-                                        locationName(
-                                                m.toLocationType(), m.toLocationId(), distributors),
+                                        location(m.fromLocationType(), m.fromLocationId()),
+                                        location(m.toLocationType(), m.toLocationId()),
                                         m.quantity()))
                 .toList();
     }
 
-    private String locationName(
-            LocationType locationType, Long locationId, List<Distributor> distributors) {
-        return switch (locationType) {
-            case WAREHOUSE -> "Warehouse";
-            case EXTERNAL -> "External (sold)";
-            case DISTRIBUTOR -> distributorName(locationId, distributors);
-            case BANDCAMP -> "Bandcamp";
-        };
-    }
-
-    private String distributorName(Long distributorId, List<Distributor> distributors) {
-        return distributors.stream()
-                .filter(d -> d.id().equals(distributorId))
-                .findFirst()
-                .map(Distributor::name)
-                .orElse("Unknown");
+    private MovementHistoryView.Location location(LocationType type, Long id) {
+        return new MovementHistoryView.Location(type, id);
     }
 }

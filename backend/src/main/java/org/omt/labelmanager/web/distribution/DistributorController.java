@@ -3,14 +3,12 @@ package org.omt.labelmanager.web.distribution;
 import jakarta.persistence.EntityNotFoundException;
 import java.util.List;
 import org.omt.labelmanager.catalog.label.api.LabelQueryApi;
-import org.omt.labelmanager.catalog.release.api.ReleaseQueryApi;
 import org.omt.labelmanager.distribution.agreement.api.AgreementQueryApi;
 import org.omt.labelmanager.distribution.agreement.api.PricingAgreement;
 import org.omt.labelmanager.distribution.distributor.api.ChannelType;
 import org.omt.labelmanager.distribution.distributor.api.Distributor;
 import org.omt.labelmanager.distribution.distributor.api.DistributorCommandApi;
 import org.omt.labelmanager.distribution.distributor.api.DistributorQueryApi;
-import org.omt.labelmanager.inventory.productionrun.api.ProductionRunQueryApi;
 import org.omt.labelmanager.web.LabelScope;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -30,8 +28,6 @@ public class DistributorController {
     private final DistributorQueryApi distributorQueryApi;
     private final LabelQueryApi labelQueryApi;
     private final AgreementQueryApi agreementQueryApi;
-    private final ProductionRunQueryApi productionRunQueryApi;
-    private final ReleaseQueryApi releaseQueryApi;
     private final LabelScope labelScope;
 
     public DistributorController(
@@ -39,15 +35,11 @@ public class DistributorController {
             DistributorQueryApi distributorQueryApi,
             LabelQueryApi labelQueryApi,
             AgreementQueryApi agreementQueryApi,
-            ProductionRunQueryApi productionRunQueryApi,
-            ReleaseQueryApi releaseQueryApi,
             LabelScope labelScope) {
         this.commandApi = commandApi;
         this.distributorQueryApi = distributorQueryApi;
         this.labelQueryApi = labelQueryApi;
         this.agreementQueryApi = agreementQueryApi;
-        this.productionRunQueryApi = productionRunQueryApi;
-        this.releaseQueryApi = releaseQueryApi;
         this.labelScope = labelScope;
     }
 
@@ -78,14 +70,18 @@ public class DistributorController {
         return requireDistributorOfLabel(labelId, distributorId);
     }
 
-    /** The distributor's agreements, each naming the production run it prices. */
+    /**
+     * The distributor's agreements.
+     *
+     * <p>Each carries {@code productionRunId}, not a rendered "Release – FORMAT" label. Resolving
+     * that here meant distribution reading from inventory and then catalog, sideways and only for
+     * display; the caller joins against {@code /api/labels/{labelId}/production-runs}.
+     */
     @GetMapping("/{distributorId}/agreements")
-    public List<AgreementView> agreements(
+    public List<PricingAgreement> agreements(
             @PathVariable Long labelId, @PathVariable Long distributorId) {
         requireDistributorOfLabel(labelId, distributorId);
-        return agreementQueryApi.findByDistributorId(distributorId).stream()
-                .map(this::enrichAgreement)
-                .toList();
+        return agreementQueryApi.findByDistributorId(distributorId);
     }
 
     private Distributor requireDistributorOfLabel(Long labelId, Long distributorId) {
@@ -114,22 +110,5 @@ public class DistributorController {
         requireDistributorOfLabel(labelId, distributorId);
         commandApi.delete(distributorId);
         return ResponseEntity.noContent().build();
-    }
-
-    private AgreementView enrichAgreement(PricingAgreement agreement) {
-        var displayName =
-                productionRunQueryApi
-                        .findById(agreement.productionRunId())
-                        .map(
-                                run -> {
-                                    var title =
-                                            releaseQueryApi
-                                                    .findById(run.releaseId())
-                                                    .map(r -> r.name())
-                                                    .orElse("Unknown Release");
-                                    return title + " – " + run.format();
-                                })
-                        .orElse("Unknown");
-        return new AgreementView(agreement, displayName);
     }
 }

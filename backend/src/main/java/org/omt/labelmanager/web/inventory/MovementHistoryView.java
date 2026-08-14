@@ -1,18 +1,24 @@
 package org.omt.labelmanager.web.inventory;
 
 import java.time.Instant;
-import org.omt.labelmanager.inventory.MovementType;
+import org.omt.labelmanager.inventory.LocationType;
 
 /**
- * A single inventory movement for display in the movement history table.
+ * A single inventory movement.
  *
- * <p>Location names ({@code fromLocation}, {@code toLocation}) are pre-resolved to human-readable
- * strings (e.g. "Warehouse", "Direct Sales", "External (sold)") so that clients do not need to
- * perform distributor lookups.
+ * <p>Locations carry a type and, for {@code DISTRIBUTOR}, the distributor id — not a name. Naming
+ * the distributor would make inventory read from distribution for presentation alone; the caller
+ * joins against {@code /api/labels/{labelId}/distributors}, which it already has.
  */
 public record MovementHistoryView(
         Instant occurredAt,
-        MovementType movementType,
-        String fromLocation,
-        String toLocation,
-        int quantity) {}
+        org.omt.labelmanager.inventory.MovementType movementType,
+        Location fromLocation,
+        Location toLocation,
+        int quantity) {
+
+    /**
+     * Where stock moved from or to. {@code distributorId} is null unless the type is DISTRIBUTOR.
+     */
+    public record Location(LocationType type, Long distributorId) {}
+}

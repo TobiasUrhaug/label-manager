@@ -20,8 +20,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
-import org.omt.labelmanager.distribution.distributor.DistributorFactory;
-import org.omt.labelmanager.distribution.distributor.api.DistributorQueryApi;
 import org.omt.labelmanager.identity.api.user.AppUserDetails;
 import org.omt.labelmanager.inventory.inventorymovement.api.InventoryMovementQueryApi;
 import org.omt.labelmanager.inventory.productionrun.api.ProductionRunCommandApi;
@@ -47,8 +45,6 @@ class ProductionRunControllerTest {
     @MockitoBean private ProductionRunQueryApi queryApi;
 
     @MockitoBean private InventoryMovementQueryApi inventoryMovementQueryApi;
-
-    @MockitoBean private DistributorQueryApi distributorQueryApi;
 
     @MockitoBean private LabelScope labelScope;
 
@@ -176,14 +172,10 @@ class ProductionRunControllerTest {
     }
 
     @Test
-    void productionRuns_namesDistributorsInInventories() throws Exception {
+    void productionRuns_reportsDistributorInventoriesById() throws Exception {
         var productionRun =
                 ProductionRunFactory.aProductionRun().id(10L).releaseId(4L).quantity(500).build();
-        var alpha = DistributorFactory.aDistributor().id(1L).name("Alpha Records").build();
-        var beta = DistributorFactory.aDistributor().id(2L).name("Beta Distribution").build();
-
         when(queryApi.findByReleaseId(4L)).thenReturn(List.of(productionRun));
-        when(distributorQueryApi.findByLabelId(1L)).thenReturn(List.of(alpha, beta));
         when(inventoryMovementQueryApi.getWarehouseInventory(10L)).thenReturn(350);
         when(inventoryMovementQueryApi.getCurrentInventoryByDistributor(10L))
                 .thenReturn(Map.of(1L, 80, 2L, 30));
@@ -191,10 +183,9 @@ class ProductionRunControllerTest {
 
         mockMvc.perform(get("/api/labels/1/releases/4/production-runs").with(user(testUser)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].distributorInventories[0].name").value("Alpha Records"))
+                .andExpect(jsonPath("$[0].distributorInventories[0].distributorId").value(1))
                 .andExpect(jsonPath("$[0].distributorInventories[0].current").value(80))
-                .andExpect(
-                        jsonPath("$[0].distributorInventories[1].name").value("Beta Distribution"))
+                .andExpect(jsonPath("$[0].distributorInventories[1].distributorId").value(2))
                 .andExpect(jsonPath("$[0].distributorInventories[1].current").value(30));
     }
 
