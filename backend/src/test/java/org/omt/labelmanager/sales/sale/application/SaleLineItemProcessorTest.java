@@ -2,6 +2,7 @@ package org.omt.labelmanager.sales.sale.application;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -35,6 +36,7 @@ class SaleLineItemProcessorTest {
     private static final long RELEASE_ID = 10L;
     private static final long FIRST_PRESSING = 100L;
     private static final long REPRESS = 101L;
+    private static final long OTHER_RELEASE_ID = 9L;
     private static final long DISTRIBUTOR_ID = 200L;
     private static final InventoryLocation FROM = InventoryLocation.distributor(DISTRIBUTOR_ID);
 
@@ -123,6 +125,28 @@ class SaleLineItemProcessorTest {
                 .isInstanceOf(InsufficientInventoryException.class);
     }
 
+    /**
+     * Locks go in a fixed order, not the order the line items happen to arrive in. Two sales
+     * listing the same two releases in opposite orders would otherwise each hold what the other
+     * waits for, and Postgres would kill one — a 500 rather than the 409 an out-of-stock sale gets.
+     */
+    @Test
+    void validateAndAdd_locksLedgersInAFixedOrderWhateverOrderTheLineItemsCome() {
+        givenRelease();
+        givenReleaseWithId(OTHER_RELEASE_ID);
+        givenLedger(pressing(FIRST_PRESSING, "2024-01-01", 100));
+        when(productionRunQueryApi.lockedLedgerAt(OTHER_RELEASE_ID, Format.VINYL, FROM))
+                .thenReturn(StockLedger.of(List.of(pressing(REPRESS, "2024-01-01", 100))));
+
+        // Line items in descending release order; the locks must still be taken in ascending.
+        subject.validateAndAdd(
+                List.of(lineItem(1), lineItemFor(OTHER_RELEASE_ID, 1)), LABEL_ID, FROM, saleEntity);
+
+        var inOrder = inOrder(productionRunQueryApi);
+        inOrder.verify(productionRunQueryApi).lockedLedgerAt(OTHER_RELEASE_ID, Format.VINYL, FROM);
+        inOrder.verify(productionRunQueryApi).lockedLedgerAt(RELEASE_ID, Format.VINYL, FROM);
+    }
+
     @Test
     void validateAndAdd_refusesAReleaseThatHasNeverBeenPressed() {
         givenRelease();
@@ -148,6 +172,25 @@ class SaleLineItemProcessorTest {
                                         List.of(),
                                         List.of(),
                                         Set.of(Format.VINYL))));
+    }
+
+    private void givenReleaseWithId(long releaseId) {
+        when(releaseQueryApi.findById(releaseId))
+                .thenReturn(
+                        Optional.of(
+                                new Release(
+                                        releaseId,
+                                        "Other Album",
+                                        LocalDate.now(),
+                                        LABEL_ID,
+                                        List.of(),
+                                        List.of(),
+                                        Set.of(Format.VINYL))));
+    }
+
+    private SaleLineItemInput lineItemFor(long releaseId, int quantity) {
+        return new SaleLineItemInput(
+                releaseId, Format.VINYL, quantity, new Money(new BigDecimal("15.00"), "EUR"));
     }
 
     private void givenLedger(RunStock... pressings) {

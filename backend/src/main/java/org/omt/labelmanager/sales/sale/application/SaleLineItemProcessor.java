@@ -2,6 +2,7 @@ package org.omt.labelmanager.sales.sale.application;
 
 import jakarta.persistence.EntityNotFoundException;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -59,7 +60,7 @@ class SaleLineItemProcessor {
             Long labelId,
             InventoryLocation from,
             SaleEntity saleEntity) {
-        Map<StockKey, StockLedger> ledgers = new HashMap<>();
+        Map<StockKey, StockLedger> ledgers = lockedLedgers(lineItems, from);
         List<RunDraw> allDraws = new ArrayList<>();
 
         for (var lineItemInput : lineItems) {
@@ -81,12 +82,7 @@ class SaleLineItemProcessor {
             }
 
             var key = new StockKey(lineItemInput.releaseId(), lineItemInput.format());
-            var ledger =
-                    ledgers.computeIfAbsent(
-                            key,
-                            k ->
-                                    productionRunQueryApi.lockedLedgerAt(
-                                            k.releaseId(), k.format(), from));
+            var ledger = ledgers.get(key);
 
             if (ledger.runs().isEmpty()) {
                 throw new IllegalStateException(
@@ -122,6 +118,35 @@ class SaleLineItemProcessor {
         return List.copyOf(allDraws);
     }
 
+    /**
+     * Locks and reads every ledger this sale will draw from, before drawing from any of them.
+     *
+     * <p>Order matters, not just coverage. Locking lazily as each line item is reached would take
+     * the locks in request-body order, so a sale of [A, B] and a concurrent sale of [B, A] would
+     * each hold what the other is waiting for, and Postgres would kill one with a deadlock — a 500,
+     * not the 409 an out-of-stock sale gets. Sorting the keys means every writer takes them in the
+     * same order, so one simply waits.
+     */
+    private Map<StockKey, StockLedger> lockedLedgers(
+            List<SaleLineItemInput> lineItems, InventoryLocation from) {
+        Map<StockKey, StockLedger> ledgers = new HashMap<>();
+        lineItems.stream()
+                .map(item -> new StockKey(item.releaseId(), item.format()))
+                .distinct()
+                .sorted(StockKey.LOCK_ORDER)
+                .forEach(
+                        key ->
+                                ledgers.put(
+                                        key,
+                                        productionRunQueryApi.lockedLedgerAt(
+                                                key.releaseId(), key.format(), from)));
+        return ledgers;
+    }
+
     /** Stock is per release and format — a release's vinyl and CD pressings are separate. */
-    private record StockKey(Long releaseId, Format format) {}
+    private record StockKey(Long releaseId, Format format) {
+
+        static final Comparator<StockKey> LOCK_ORDER =
+                Comparator.comparing(StockKey::releaseId).thenComparing(StockKey::format);
+    }
 }

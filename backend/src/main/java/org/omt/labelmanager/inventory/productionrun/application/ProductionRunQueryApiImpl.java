@@ -18,6 +18,7 @@ import org.omt.labelmanager.shared.Format;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
@@ -62,8 +63,11 @@ class ProductionRunQueryApiImpl implements ProductionRunQueryApi {
         return ledgerOf(repository.findByReleaseIdAndFormat(releaseId, format), location);
     }
 
+    // MANDATORY, not REQUIRED: a lock is only worth taking if it is held until the caller's write
+    // commits. Called without a transaction, REQUIRED would open one, take the lock, and release it
+    // on return — no error, no lock, and the oversell back. This way there is no such caller.
     @Override
-    @Transactional
+    @Transactional(propagation = Propagation.MANDATORY)
     public StockLedger lockedLedgerAt(Long releaseId, Format format, InventoryLocation location) {
         return ledgerOf(repository.lockByReleaseIdAndFormat(releaseId, format), location);
     }

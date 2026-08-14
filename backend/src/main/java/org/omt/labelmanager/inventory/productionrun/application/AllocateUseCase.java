@@ -31,7 +31,10 @@ class AllocateUseCase {
 
     @Transactional
     public void execute(Long productionRunId, InventoryLocation toLocation, int quantity) {
-        if (!repository.existsById(productionRunId)) {
+        // Locked, not merely fetched: reading the warehouse balance and inserting the movement that
+        // consumes it are two statements, so two concurrent allocations of the last units would
+        // both see them free. Same mutex the sale path takes.
+        if (repository.lockById(productionRunId).isEmpty()) {
             throw new IllegalArgumentException("Production run not found: " + productionRunId);
         }
 

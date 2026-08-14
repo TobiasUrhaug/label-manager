@@ -15,9 +15,12 @@ import org.omt.labelmanager.inventory.InventoryLocation;
 import org.omt.labelmanager.inventory.MovementType;
 import org.omt.labelmanager.inventory.inventorymovement.api.InventoryMovementCommandApi;
 import org.omt.labelmanager.inventory.inventorymovement.api.InventoryMovementQueryApi;
+import org.omt.labelmanager.inventory.productionrun.persistence.ProductionRunRepository;
 
 @ExtendWith(MockitoExtension.class)
 class CancelBandcampReservationUseCaseTest {
+
+    @Mock private ProductionRunRepository repository;
 
     @Mock private InventoryMovementQueryApi inventoryMovementQueryApi;
 
@@ -31,7 +34,7 @@ class CancelBandcampReservationUseCaseTest {
     void setUp() {
         subject =
                 new CancelBandcampReservationUseCase(
-                        inventoryMovementQueryApi, inventoryMovementCommandApi);
+                        repository, inventoryMovementQueryApi, inventoryMovementCommandApi);
     }
 
     @Test

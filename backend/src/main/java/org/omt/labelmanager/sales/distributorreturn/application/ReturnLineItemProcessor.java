@@ -2,6 +2,7 @@ package org.omt.labelmanager.sales.distributorreturn.application;
 
 import jakarta.persistence.EntityNotFoundException;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -59,7 +60,7 @@ class ReturnLineItemProcessor {
             Long labelId,
             InventoryLocation from,
             DistributorReturnEntity returnEntity) {
-        Map<StockKey, StockLedger> ledgers = new HashMap<>();
+        Map<StockKey, StockLedger> ledgers = lockedLedgers(lineItems, from);
         List<RunDraw> allDraws = new ArrayList<>();
 
         for (var lineItemInput : lineItems) {
@@ -81,12 +82,7 @@ class ReturnLineItemProcessor {
             }
 
             var key = new StockKey(lineItemInput.releaseId(), lineItemInput.format());
-            var ledger =
-                    ledgers.computeIfAbsent(
-                            key,
-                            k ->
-                                    productionRunQueryApi.lockedLedgerAt(
-                                            k.releaseId(), k.format(), from));
+            var ledger = ledgers.get(key);
 
             if (ledger.runs().isEmpty()) {
                 throw new IllegalStateException(
@@ -120,6 +116,32 @@ class ReturnLineItemProcessor {
         return List.copyOf(allDraws);
     }
 
+    /**
+     * Locks and reads every ledger this return will draw from, before drawing from any of them.
+     *
+     * <p>Sorted, so that a return of [A, B] and a concurrent sale of [B, A] take the two locks in
+     * the same order and one waits, instead of deadlocking and surfacing as a 500.
+     */
+    private Map<StockKey, StockLedger> lockedLedgers(
+            List<ReturnLineItemInput> lineItems, InventoryLocation from) {
+        Map<StockKey, StockLedger> ledgers = new HashMap<>();
+        lineItems.stream()
+                .map(item -> new StockKey(item.releaseId(), item.format()))
+                .distinct()
+                .sorted(StockKey.LOCK_ORDER)
+                .forEach(
+                        key ->
+                                ledgers.put(
+                                        key,
+                                        productionRunQueryApi.lockedLedgerAt(
+                                                key.releaseId(), key.format(), from)));
+        return ledgers;
+    }
+
     /** Stock is per release and format — a release's vinyl and CD pressings are separate. */
-    private record StockKey(Long releaseId, Format format) {}
+    private record StockKey(Long releaseId, Format format) {
+
+        static final Comparator<StockKey> LOCK_ORDER =
+                Comparator.comparing(StockKey::releaseId).thenComparing(StockKey::format);
+    }
 }

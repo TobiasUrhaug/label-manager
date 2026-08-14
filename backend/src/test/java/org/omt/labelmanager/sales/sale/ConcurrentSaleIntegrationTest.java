@@ -19,6 +19,7 @@ import org.omt.labelmanager.catalog.label.LabelTestHelper;
 import org.omt.labelmanager.catalog.release.ReleaseTestHelper;
 import org.omt.labelmanager.distribution.distributor.api.ChannelType;
 import org.omt.labelmanager.distribution.distributor.api.DistributorQueryApi;
+import org.omt.labelmanager.inventory.InsufficientInventoryException;
 import org.omt.labelmanager.inventory.InventoryLocation;
 import org.omt.labelmanager.inventory.MovementType;
 import org.omt.labelmanager.inventory.inventorymovement.api.InventoryMovementCommandApi;
@@ -116,7 +117,11 @@ class ConcurrentSaleIntegrationTest extends AbstractIntegrationTest {
                                                     10,
                                                     Money.of(new BigDecimal("15.00")))));
                             return Outcome.SOLD;
-                        } catch (RuntimeException e) {
+                        } catch (InsufficientInventoryException e) {
+                            // Deliberately narrow. Catching RuntimeException would let a deadlock,
+                            // a lock timeout or an exhausted connection pool read as a correct
+                            // rejection — the loser must fail *because the stock is gone*, which is
+                            // the 409 a caller can act on, not a 500.
                             return Outcome.REJECTED;
                         }
                     };
@@ -140,7 +145,9 @@ class ConcurrentSaleIntegrationTest extends AbstractIntegrationTest {
     /**
      * The sales this test commits outlive its transaction — it deliberately runs two of its own —
      * and a sale row keeps its distributor alive, which breaks the {@code deleteAll()} setup other
-     * classes use. Cleaned up here rather than left for whichever class runs next.
+     * classes use. Only the sales are removed here: the label, release, pressing and movements it
+     * leaves behind block nothing, and every neighbouring class clears those itself. Phase 6
+     * replaces that convention with transactional rollback.
      */
     @AfterEach
     void removeCommittedSales() {
