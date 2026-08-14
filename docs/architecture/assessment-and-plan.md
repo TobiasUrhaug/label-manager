@@ -917,8 +917,10 @@ unchanged except one new test asserting a `DIRECT` distributor exists after labe
   downstream could catch it. All six now check, through the same `LabelScope`.
 
 **Done when — status.** No `*Controller` outside `web` ✅. No `PackageName` suppressions ✅.
-`openapi.yaml` documents all 30 paths and 51 operations — 49 controller mappings plus `/login`
+`openapi.yaml` documents all 31 paths and 52 operations — 50 controller mappings plus `/login`
 and `/logout`, which Spring Security's form-login filter serves rather than a controller ✅.
+*(Counts corrected in Phase 3, where the conformance test made them checkable; the last Phase 2
+commit added an endpoint without updating this line.)*
 But *matching* is by hand, and the review caught several places where the document and the code
 disagreed (`Money` carries a `currency` field; `AgreementView.displayCommission` is a record
 method Jackson never serialises; the cost document is served with its stored content type). The
@@ -956,7 +958,50 @@ migrated path; no `PackageName` suppressions remain.
 
 ---
 
-### Phase 3 — Turn on enforcement
+### Phase 3 — Turn on enforcement ✅ *done, branch `feature/backend-phase-3`*
+
+**What actually differed from the plan below**, all verified:
+
+- **Spring Modulith is not managed by the Spring Boot BOM**, so it needs its own — `2.0.7`, the line
+  built against Boot 4.0. Main sources need the `@NamedInterface` annotation to compile, but nothing
+  reads it at runtime (`ModularityTest` reads it out of the bytecode), so `spring-modulith-api` is
+  `compileOnly` and stays off the application classpath.
+- **Thirteen `package-info.java` files, not one per module.** `api/` is nested per aggregate
+  (`catalog/label/api`, `catalog/release/api`, …), not directly under the module root. Several
+  packages carrying the same `@NamedInterface("api")` merge into one published surface, so the rule
+  stays "one api per module" even though it is spelled in more than one file. `finance/shared` is in
+  that set: it holds `DocumentStoragePort`, which `infrastructure` implements, so it is published
+  surface by §5.2 rule 5.
+- **Two `domain` packages had to be published as well** — `catalog/release/domain` and
+  `inventory/productionrun/domain`. §5.2 rule 2 already makes the records an api returns public;
+  Modulith made it concrete that this is `Release`/`Track`/`TrackDuration`/`TrackInput` and
+  `ProductionRun`, and nothing else. The 12 violations were all `var`-style calls on records that
+  came back from a query API (`SaleLineItemProcessor`, `ReturnLineItemProcessor`,
+  `LabelProductionRunController`), never an import of an internal. Moving those records into `api/`
+  would say the same thing without an annotation; it is ~25 files of churn and belongs with Phase 4,
+  which rewrites `ProductionRun` anyway.
+- **`verify()` passed with zero exclusions** once those fifteen files existed. No cycles, which is
+  what Phase 2 predicted when it closed F3 — the annotations only had to name the surface, not
+  relocate anything.
+- **`Documenter` was added too** (§5.4 adopts it alongside `verify()`). It writes the module
+  canvases and dependency diagrams to `build/spring-modulith-docs` from the package structure, so
+  unlike ARCHITECTURE.md's hand-drawn diagram it cannot drift. Its writers are named individually:
+  the convenience `writeDocumentation()` also runs `writeModuleMetadata()`, which ignores the output
+  folder and writes `application-modules.json` into `build/resources/main` — where `bootJar` packages
+  it, so `./gradlew build` and `./gradlew bootJar` produced different artifacts. Caught in review.
+- **The conformance test compares path and method, not status.** springdoc reports `200` for all 26
+  operations that return a `ResponseEntity` carrying 201 or 204, and infers no error responses at
+  all — so on statuses the served spec is the *less* accurate of the two documents, and diffing
+  against it would mean duplicating the contract into `@ApiResponse` annotations, i.e. a third
+  competing spec. The contract's statuses stay pinned by the `@WebMvcTest` slices, which assert what
+  the code really returns. That springdoc misreports 26 statuses is a defect of `/v3/api-docs` and
+  the Swagger UI built on it, worth fixing when controllers stop returning `ResponseEntity`.
+- **`POST /login` and `POST /logout` are excluded from the documented → served direction.** Spring
+  Security's filter chain serves them, so springdoc cannot see them. They are real endpoints and
+  belong in the contract; they just cannot be confirmed from the live spec.
+- **Both directions pass as written** — Phase 2's hand-matching was in fact correct at path and
+  method level, and is now checked rather than claimed. 391 tests pass (385 after Phase 2, plus the
+  6 added here).
 
 **Changes.** Add `spring-modulith-starter-test`; a `package-info.java` per module with
 `@NamedInterface("api")`; a `ModularityTest` calling `ApplicationModules.verify()`; an
@@ -965,8 +1010,10 @@ migrated path; no `PackageName` suppressions remain.
 **Why here.** These rules can only be switched on once Phases 1–2 make them pass. Earlier means a wall
 of suppressions, which is F8 again in a new file.
 
-**Done when.** `ModularityTest` and `ArchitectureTest` pass with **zero** exclusions; a deliberately
-introduced cross-module internal import fails the build.
+**Done when — status.** `ModularityTest` and `ArchitectureTest` pass with zero exclusions ✅. Each
+gate was checked against a deliberate violation, then reverted: a `Label` field in `SaleController`
+fails `ModularityTest`; a JPA field in a `..domain..` class and a `*Controller` in `application/`
+fail the two ArchUnit rules; an extra `@GetMapping` fails `OpenApiConformanceTest` ✅.
 
 ---
 

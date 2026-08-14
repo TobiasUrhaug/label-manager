@@ -70,6 +70,19 @@ dependencies {
     testImplementation("org.testcontainers:testcontainers-junit-jupiter")
     testImplementation("org.testcontainers:testcontainers-postgresql")
     testImplementation("org.testcontainers:testcontainers-minio")
+    // Spring Modulith is not in the Spring Boot BOM; the 2.0.x line is the one built against
+    // Spring Boot 4.0. Main sources need only the @NamedInterface annotation, and nothing reads it
+    // at runtime — ModularityTest reads it out of the bytecode — so it stays off the app classpath.
+    val modulithBom = platform("org.springframework.modulith:spring-modulith-bom:2.0.7")
+    compileOnly(modulithBom)
+    compileOnly("org.springframework.modulith:spring-modulith-api")
+    testImplementation(modulithBom)
+    testImplementation("org.springframework.modulith:spring-modulith-starter-test")
+    // Plain ArchUnit, not archunit-junit5: ArchitectureTest calls ArchRule.check itself rather than
+    // using @AnalyzeClasses, so the JUnit engine that artifact registers would go unused.
+    testImplementation("com.tngtech.archunit:archunit:1.4.1")
+    // OpenApiConformanceTest reads contracts/openapi.yaml.
+    testImplementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml")
     testImplementation("org.junit.jupiter:junit-jupiter")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     testRuntimeOnly("com.h2database:h2")
