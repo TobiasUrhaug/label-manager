@@ -123,11 +123,7 @@ public class ReturnController {
     @GetMapping("/api/labels/{labelId}/returns/{returnId}")
     public ReturnDetailResponse viewReturn(
             @PathVariable Long labelId, @PathVariable Long returnId) {
-        labelScope.requireLabel(labelId);
-        var distributorReturn =
-                returnQueryApi
-                        .findById(returnId)
-                        .orElseThrow(() -> new EntityNotFoundException("Return not found"));
+        var distributorReturn = requireReturnOfLabel(labelId, returnId);
         var distributor =
                 distributorQueryApi
                         .findById(distributorReturn.distributorId())
@@ -149,6 +145,7 @@ public class ReturnController {
             @PathVariable Long labelId,
             @PathVariable Long returnId,
             @RequestBody UpdateReturnRequest request) {
+        requireReturnOfLabel(labelId, returnId);
         returnCommandApi.updateReturn(
                 returnId, request.returnDate(), request.notes(), request.toLineItemInputs());
         return returnQueryApi
@@ -159,8 +156,26 @@ public class ReturnController {
     @DeleteMapping("/api/labels/{labelId}/returns/{returnId}")
     public ResponseEntity<Void> deleteReturn(
             @PathVariable Long labelId, @PathVariable Long returnId) {
+        requireReturnOfLabel(labelId, returnId);
         returnCommandApi.deleteReturn(returnId);
         return ResponseEntity.noContent().build();
+    }
+
+    /**
+     * DistributorReturnCommandApi's update and delete take a return id and nothing else, so the
+     * label in the path is only meaningful if it is checked here.
+     */
+    private DistributorReturn requireReturnOfLabel(Long labelId, Long returnId) {
+        return returnQueryApi
+                .findById(returnId)
+                .filter(distributorReturn -> labelId.equals(distributorReturn.labelId()))
+                .orElseThrow(
+                        () ->
+                                new EntityNotFoundException(
+                                        "Return "
+                                                + returnId
+                                                + " does not belong to label "
+                                                + labelId));
     }
 
     private EnrichedReturnLineItem enrichLineItem(ReturnLineItem item) {

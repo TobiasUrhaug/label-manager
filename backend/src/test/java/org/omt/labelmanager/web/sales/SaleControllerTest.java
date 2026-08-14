@@ -23,7 +23,6 @@ import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.omt.labelmanager.catalog.label.domain.Label;
 import org.omt.labelmanager.catalog.release.api.ReleaseQueryApi;
 import org.omt.labelmanager.catalog.release.domain.Release;
 import org.omt.labelmanager.distribution.distributor.DistributorFactory;
@@ -72,13 +71,10 @@ class SaleControllerTest {
     private static final Long SALE_ID = 42L;
     private static final Long RELEASE_ID = 10L;
 
-    private Label testLabel;
     private Sale testSale;
 
     @BeforeEach
     void setUp() {
-        testLabel = new Label(LABEL_ID, "Test Label", null, null, null, null, 1L);
-
         var lineItem =
                 new SaleLineItem(
                         1L,
@@ -393,5 +389,73 @@ class SaleControllerTest {
                 .andExpect(status().isNotFound());
 
         verify(saleQueryApi, org.mockito.Mockito.never()).getSalesForDistributor(any());
+    }
+
+    @Test
+    void viewSale_returns404WhenTheSaleBelongsToAnotherLabel() throws Exception {
+        var foreign =
+                new Sale(
+                        SALE_ID,
+                        99L,
+                        10L,
+                        LocalDate.of(2026, 1, 15),
+                        ChannelType.DIRECT,
+                        null,
+                        List.of(),
+                        Money.of(new BigDecimal("1.00")));
+        when(saleQueryApi.findById(SALE_ID)).thenReturn(Optional.of(foreign));
+
+        mockMvc.perform(
+                        get("/api/labels/{labelId}/sales/{saleId}", LABEL_ID, SALE_ID)
+                                .with(user(testUser)))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void updateSale_returns404AndMutatesNothingWhenTheSaleBelongsToAnotherLabel() throws Exception {
+        var foreign =
+                new Sale(
+                        SALE_ID,
+                        99L,
+                        10L,
+                        LocalDate.of(2026, 1, 15),
+                        ChannelType.DIRECT,
+                        null,
+                        List.of(),
+                        Money.of(new BigDecimal("1.00")));
+        when(saleQueryApi.findById(SALE_ID)).thenReturn(Optional.of(foreign));
+
+        mockMvc.perform(
+                        put("/api/labels/{labelId}/sales/{saleId}", LABEL_ID, SALE_ID)
+                                .with(user(testUser))
+                                .with(csrf())
+                                .contentType(APPLICATION_JSON)
+                                .content("{\"saleDate\": \"2026-02-01\", \"lineItems\": []}"))
+                .andExpect(status().isNotFound());
+
+        verify(saleCommandApi, org.mockito.Mockito.never()).updateSale(any(), any(), any(), any());
+    }
+
+    @Test
+    void deleteSale_returns404AndDeletesNothingWhenTheSaleBelongsToAnotherLabel() throws Exception {
+        var foreign =
+                new Sale(
+                        SALE_ID,
+                        99L,
+                        10L,
+                        LocalDate.of(2026, 1, 15),
+                        ChannelType.DIRECT,
+                        null,
+                        List.of(),
+                        Money.of(new BigDecimal("1.00")));
+        when(saleQueryApi.findById(SALE_ID)).thenReturn(Optional.of(foreign));
+
+        mockMvc.perform(
+                        delete("/api/labels/{labelId}/sales/{saleId}", LABEL_ID, SALE_ID)
+                                .with(user(testUser))
+                                .with(csrf()))
+                .andExpect(status().isNotFound());
+
+        verify(saleCommandApi, org.mockito.Mockito.never()).deleteSale(any());
     }
 }

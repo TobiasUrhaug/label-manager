@@ -379,7 +379,7 @@ record ReleaseDetailResponse(..., List<Cost> costs, List<ProductionRunWithAlloca
 GET /api/labels/{labelId}/releases/{releaseId}
 GET /api/labels/{labelId}/releases/{releaseId}/production-runs
 GET /api/labels/{labelId}/costs?releaseId=
-GET /api/labels/{labelId}/sales?releaseId=
+GET /api/labels/{labelId}/releases/{releaseId}/sales
 ```
 
 **Avoid bidirectional module dependencies**

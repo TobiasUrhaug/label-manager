@@ -64,6 +64,6 @@ class ApiExceptionHandlerTest {
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
                 .andExpect(jsonPath("$.status").value(404))
                 .andExpect(jsonPath("$.title").value("Not Found"))
-                .andExpect(jsonPath("$.detail").value("Sale not found"));
+                .andExpect(jsonPath("$.detail").value("Sale 404 does not belong to label 1"));
     }
 }

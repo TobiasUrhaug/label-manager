@@ -175,12 +175,7 @@ public class SaleController {
 
     @GetMapping("/api/labels/{labelId}/sales/{saleId}")
     public SaleDetailResponse viewSale(@PathVariable Long labelId, @PathVariable Long saleId) {
-        labelScope.requireLabel(labelId);
-        var sale =
-                saleQueryApi
-                        .findById(saleId)
-                        .orElseThrow(() -> new EntityNotFoundException("Sale not found"));
-        return toDetailResponse(sale);
+        return toDetailResponse(requireSaleOfLabel(labelId, saleId));
     }
 
     @PutMapping("/api/labels/{labelId}/sales/{saleId}")
@@ -188,14 +183,30 @@ public class SaleController {
             @PathVariable Long labelId,
             @PathVariable Long saleId,
             @RequestBody UpdateSaleRequest request) {
+        requireSaleOfLabel(labelId, saleId);
         return saleCommandApi.updateSale(
                 saleId, request.saleDate(), request.notes(), request.toLineItemInputs());
     }
 
     @DeleteMapping("/api/labels/{labelId}/sales/{saleId}")
     public ResponseEntity<Void> deleteSale(@PathVariable Long labelId, @PathVariable Long saleId) {
+        requireSaleOfLabel(labelId, saleId);
         saleCommandApi.deleteSale(saleId);
         return ResponseEntity.noContent().build();
+    }
+
+    /**
+     * SaleCommandApi's update and delete take a sale id and nothing else, so the label in the path
+     * is only meaningful if it is checked here.
+     */
+    private Sale requireSaleOfLabel(Long labelId, Long saleId) {
+        return saleQueryApi
+                .findById(saleId)
+                .filter(sale -> labelId.equals(sale.labelId()))
+                .orElseThrow(
+                        () ->
+                                new EntityNotFoundException(
+                                        "Sale " + saleId + " does not belong to label " + labelId));
     }
 
     private SaleDetailResponse toDetailResponse(Sale sale) {

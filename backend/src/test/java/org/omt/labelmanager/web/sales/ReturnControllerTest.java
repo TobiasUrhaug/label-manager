@@ -23,7 +23,6 @@ import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.omt.labelmanager.catalog.label.domain.Label;
 import org.omt.labelmanager.catalog.release.api.ReleaseQueryApi;
 import org.omt.labelmanager.catalog.release.domain.Release;
 import org.omt.labelmanager.distribution.distributor.api.ChannelType;
@@ -73,7 +72,6 @@ class ReturnControllerTest {
 
     @BeforeEach
     void setUp() {
-        var testLabel = new Label(LABEL_ID, "Test Label", null, null, null, null, 1L);
         var lineItem = new ReturnLineItem(1L, RETURN_ID, RELEASE_ID, Format.VINYL, 5);
         testReturn =
                 new DistributorReturn(

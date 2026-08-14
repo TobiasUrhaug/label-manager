@@ -18,6 +18,7 @@ import jakarta.persistence.EntityNotFoundException;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.omt.labelmanager.distribution.distributor.DistributorFactory;
 import org.omt.labelmanager.distribution.distributor.api.DistributorQueryApi;
@@ -137,6 +138,13 @@ class ProductionRunControllerTest {
 
     @Test
     void deleteProductionRun_callsHandlerAndReturnsNoContent() throws Exception {
+        when(queryApi.findById(99L))
+                .thenReturn(
+                        Optional.of(
+                                ProductionRunFactory.aProductionRun()
+                                        .id(99L)
+                                        .releaseId(42L)
+                                        .build()));
         when(commandApi.delete(99L)).thenReturn(true);
 
         mockMvc.perform(
@@ -200,5 +208,43 @@ class ProductionRunControllerTest {
                 .andExpect(status().isNotFound());
 
         verify(queryApi, org.mockito.Mockito.never()).findByReleaseId(any());
+    }
+
+    @Test
+    void deleteProductionRun_returns404WhenTheRunBelongsToAnotherRelease() throws Exception {
+        when(queryApi.findById(99L))
+                .thenReturn(
+                        Optional.of(
+                                ProductionRunFactory.aProductionRun()
+                                        .id(99L)
+                                        .releaseId(7L)
+                                        .build()));
+
+        mockMvc.perform(
+                        delete("/api/labels/1/releases/42/production-runs/99")
+                                .with(user(testUser))
+                                .with(csrf()))
+                .andExpect(status().isNotFound());
+
+        verify(commandApi, org.mockito.Mockito.never()).delete(any());
+    }
+
+    @Test
+    void addProductionRun_returns404WhenReleaseBelongsToAnotherLabel() throws Exception {
+        doThrow(new EntityNotFoundException("Release 42 does not belong to label 1"))
+                .when(labelScope)
+                .requireRelease(1L, 42L);
+
+        mockMvc.perform(
+                        post("/api/labels/1/releases/42/production-runs")
+                                .with(user(testUser))
+                                .with(csrf())
+                                .contentType(APPLICATION_JSON)
+                                .content("{\"format\": \"VINYL\", \"quantity\": 10}"))
+                .andExpect(status().isNotFound());
+
+        verify(commandApi, org.mockito.Mockito.never())
+                .createProductionRun(
+                        any(), any(), any(), any(), any(), org.mockito.ArgumentMatchers.anyInt());
     }
 }

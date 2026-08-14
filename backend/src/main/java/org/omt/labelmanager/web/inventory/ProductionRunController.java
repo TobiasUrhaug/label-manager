@@ -1,5 +1,6 @@
 package org.omt.labelmanager.web.inventory;
 
+import jakarta.persistence.EntityNotFoundException;
 import java.time.LocalDate;
 import java.util.Comparator;
 import java.util.List;
@@ -72,7 +73,10 @@ public class ProductionRunController {
 
     @PostMapping
     public ResponseEntity<Void> addProductionRun(
-            @PathVariable Long releaseId, @RequestBody AddProductionRunRequest request) {
+            @PathVariable Long labelId,
+            @PathVariable Long releaseId,
+            @RequestBody AddProductionRunRequest request) {
+        labelScope.requireRelease(labelId, releaseId);
         commandApi.createProductionRun(
                 releaseId,
                 request.format(),
@@ -84,7 +88,22 @@ public class ProductionRunController {
     }
 
     @DeleteMapping("/{productionRunId}")
-    public ResponseEntity<Void> deleteProductionRun(@PathVariable Long productionRunId) {
+    public ResponseEntity<Void> deleteProductionRun(
+            @PathVariable Long labelId,
+            @PathVariable Long releaseId,
+            @PathVariable Long productionRunId) {
+        labelScope.requireRelease(labelId, releaseId);
+        boolean underThisRelease =
+                queryApi.findById(productionRunId)
+                        .map(run -> releaseId.equals(run.releaseId()))
+                        .orElse(false);
+        if (!underThisRelease) {
+            throw new EntityNotFoundException(
+                    "Production run "
+                            + productionRunId
+                            + " does not belong to release "
+                            + releaseId);
+        }
         commandApi.delete(productionRunId);
         return ResponseEntity.noContent().build();
     }
