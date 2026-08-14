@@ -1,6 +1,9 @@
 package org.omt.labelmanager.web.sales;
 
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Comparator;
@@ -60,17 +63,18 @@ public class SaleController {
     }
 
     record RegisterSaleRequest(
-            LocalDate saleDate,
-            ChannelType channel,
+            @NotNull LocalDate saleDate,
+            @NotNull ChannelType channel,
             Long distributorId,
             String notes,
-            List<LineItemRequest> lineItems) {
+            @NotEmpty List<LineItemRequest> lineItems) {
         List<SaleLineItemInput> toLineItemInputs() {
             return lineItems.stream().map(LineItemRequest::toInput).toList();
         }
     }
 
-    record UpdateSaleRequest(LocalDate saleDate, String notes, List<LineItemRequest> lineItems) {
+    record UpdateSaleRequest(
+            @NotNull LocalDate saleDate, String notes, @NotEmpty List<LineItemRequest> lineItems) {
         List<SaleLineItemInput> toLineItemInputs() {
             return lineItems.stream().map(LineItemRequest::toInput).toList();
         }
@@ -162,7 +166,7 @@ public class SaleController {
 
     @PostMapping("/api/labels/{labelId}/sales")
     public ResponseEntity<Void> registerSale(
-            @PathVariable Long labelId, @RequestBody RegisterSaleRequest request) {
+            @PathVariable Long labelId, @Valid @RequestBody RegisterSaleRequest request) {
         if (request.distributorId() == null) {
             labelScope.requireLabel(labelId);
         } else {
@@ -187,7 +191,7 @@ public class SaleController {
     public Sale updateSale(
             @PathVariable Long labelId,
             @PathVariable Long saleId,
-            @RequestBody UpdateSaleRequest request) {
+            @Valid @RequestBody UpdateSaleRequest request) {
         requireSaleOfLabel(labelId, saleId);
         return saleCommandApi.updateSale(
                 saleId, request.saleDate(), request.notes(), request.toLineItemInputs());

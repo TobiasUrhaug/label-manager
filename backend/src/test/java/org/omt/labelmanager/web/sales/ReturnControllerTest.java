@@ -333,6 +333,20 @@ class ReturnControllerTest {
     }
 
     @Test
+    void registerReturn_returns400WhenLineItemsAreMissing() throws Exception {
+        mockMvc.perform(
+                        post("/api/labels/1/returns")
+                                .with(user(testUser))
+                                .with(csrf())
+                                .contentType(APPLICATION_JSON)
+                                .content("{\"distributorId\": 5, \"returnDate\": \"2026-01-15\"}"))
+                .andExpect(status().isBadRequest());
+
+        verify(returnCommandApi, org.mockito.Mockito.never())
+                .registerReturn(any(), any(), any(), any(), any());
+    }
+
+    @Test
     void registerReturn_returns400WhenDistributorIdIsMissing() throws Exception {
         mockMvc.perform(
                         post("/api/labels/1/returns")

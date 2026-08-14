@@ -5,6 +5,29 @@ on:
     branches: [main]
 
 jobs:
+  contracts:
+    name: Contracts
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: contracts
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: contracts/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      # openapi.yaml was once committed in a state no parser accepted, and nothing noticed.
+      - name: Validate OpenAPI contract
+        run: npm run validate
+
   backend:
     name: Backend
     runs-on: ubuntu-latest

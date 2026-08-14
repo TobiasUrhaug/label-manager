@@ -1,6 +1,9 @@
 package org.omt.labelmanager.web.sales;
 
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
@@ -53,17 +56,19 @@ public class ReturnController {
     }
 
     record RegisterReturnRequest(
-            Long distributorId,
-            LocalDate returnDate,
+            @NotNull Long distributorId,
+            @NotNull LocalDate returnDate,
             String notes,
-            List<ReturnLineItemRequest> lineItems) {
+            @NotEmpty List<ReturnLineItemRequest> lineItems) {
         List<ReturnLineItemInput> toLineItemInputs() {
             return lineItems.stream().map(ReturnLineItemRequest::toInput).toList();
         }
     }
 
     record UpdateReturnRequest(
-            LocalDate returnDate, String notes, List<ReturnLineItemRequest> lineItems) {
+            @NotNull LocalDate returnDate,
+            String notes,
+            @NotEmpty List<ReturnLineItemRequest> lineItems) {
         List<ReturnLineItemInput> toLineItemInputs() {
             return lineItems.stream().map(ReturnLineItemRequest::toInput).toList();
         }
@@ -110,12 +115,7 @@ public class ReturnController {
 
     @PostMapping("/api/labels/{labelId}/returns")
     public ResponseEntity<Void> registerReturn(
-            @PathVariable Long labelId, @RequestBody RegisterReturnRequest request) {
-        if (request.distributorId() == null) {
-            // Not merely absent-and-harmless: findById(null) reaches JpaRepository and throws
-            // InvalidDataAccessApiUsageException, which nothing maps, so it would surface as 500.
-            throw new IllegalArgumentException("distributorId is required to register a return");
-        }
+            @PathVariable Long labelId, @Valid @RequestBody RegisterReturnRequest request) {
         labelScope.requireDistributor(labelId, request.distributorId());
         returnCommandApi.registerReturn(
                 labelId,
@@ -150,7 +150,7 @@ public class ReturnController {
     public DistributorReturn updateReturn(
             @PathVariable Long labelId,
             @PathVariable Long returnId,
-            @RequestBody UpdateReturnRequest request) {
+            @Valid @RequestBody UpdateReturnRequest request) {
         requireReturnOfLabel(labelId, returnId);
         returnCommandApi.updateReturn(
                 returnId, request.returnDate(), request.notes(), request.toLineItemInputs());

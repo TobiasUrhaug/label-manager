@@ -430,7 +430,16 @@ class SaleControllerTest {
                                 .with(user(testUser))
                                 .with(csrf())
                                 .contentType(APPLICATION_JSON)
-                                .content("{\"saleDate\": \"2026-02-01\", \"lineItems\": []}"))
+                                .content(
+                                        """
+                                        {
+                                          "saleDate": "2026-02-01",
+                                          "lineItems": [
+                                            {"releaseId": 10, "format": "VINYL", "quantity": 1,
+                                             "unitPrice": 1.00}
+                                          ]
+                                        }
+                                        """))
                 .andExpect(status().isNotFound());
 
         verify(saleCommandApi, org.mockito.Mockito.never()).updateSale(any(), any(), any(), any());
@@ -457,5 +466,19 @@ class SaleControllerTest {
                 .andExpect(status().isNotFound());
 
         verify(saleCommandApi, org.mockito.Mockito.never()).deleteSale(any());
+    }
+
+    @Test
+    void registerSale_returns400WhenLineItemsAreMissing() throws Exception {
+        mockMvc.perform(
+                        post("/api/labels/{labelId}/sales", LABEL_ID)
+                                .with(user(testUser))
+                                .with(csrf())
+                                .contentType(APPLICATION_JSON)
+                                .content("{\"saleDate\": \"2026-01-15\", \"channel\": \"DIRECT\"}"))
+                .andExpect(status().isBadRequest());
+
+        verify(saleCommandApi, org.mockito.Mockito.never())
+                .registerSale(any(), any(), any(), any(), any(), any());
     }
 }

@@ -555,6 +555,8 @@ paths:
       responses:
         '201':
           description: Distributor created. The response has no body.
+        '404':
+          $ref: '#/components/responses/NotFound'
 
   /api/labels/{labelId}/distributors/{distributorId}:
     parameters:
@@ -924,7 +926,9 @@ paths:
         '201':
           description: Sale recorded. The response has no body.
         '400':
-          description: Insufficient stock, or the request was otherwise rejected.
+          description: |
+            A required field was missing, lineItems was empty, or the production runs
+            behind the line items cannot cover the sale.
           content:
             application/problem+json:
               schema:
@@ -969,7 +973,9 @@ paths:
               schema:
                 $ref: '#/components/schemas/Sale'
         '400':
-          description: Insufficient stock for the new line items.
+          description: |
+            A required field was missing, lineItems was empty, or there is not enough
+            stock for the new line items.
           content:
             application/problem+json:
               schema:
@@ -1023,7 +1029,9 @@ paths:
         '201':
           description: Return recorded. The response has no body.
         '400':
-          description: The distributor does not hold that many units.
+          description: |
+            A required field was missing, lineItems was empty, or the distributor does
+            not hold that many units.
           content:
             application/problem+json:
               schema:
@@ -1067,7 +1075,9 @@ paths:
               schema:
                 $ref: '#/components/schemas/DistributorReturn'
         '400':
-          description: The distributor does not hold that many units.
+          description: |
+            A required field was missing, lineItems was empty, or the distributor does
+            not hold that many units.
           content:
             application/problem+json:
               schema:
