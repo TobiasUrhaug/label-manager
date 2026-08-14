@@ -38,8 +38,21 @@ for (const [path, item] of Object.entries(doc.paths ?? {})) {
     operationCount++;
     const where = `${method.toUpperCase()} ${path}`;
 
-    if (!operation.operationId) problems.push(`${where}: no operationId`);
-    else if (operationIds.has(operation.operationId)) {
+    if (!operation || typeof operation !== 'object') {
+      problems.push(`${where}: empty operation`);
+      continue;
+    }
+
+    // Type, not truthiness. A response block indented one level too far lands *under*
+    // operationId, which is still valid YAML — operationId just becomes a map. That is the
+    // exact slip this script exists to catch, and a truthiness check waves it through.
+    if (typeof operation.operationId !== 'string') {
+      problems.push(
+        operation.operationId === undefined
+          ? `${where}: no operationId`
+          : `${where}: operationId is ${typeof operation.operationId}, not a string — something is indented under it`,
+      );
+    } else if (operationIds.has(operation.operationId)) {
       problems.push(
         `${where}: operationId "${operation.operationId}" also used by ${operationIds.get(operation.operationId)}`,
       );
@@ -61,7 +74,11 @@ for (const [path, item] of Object.entries(doc.paths ?? {})) {
         continue;
       }
       let target = doc;
-      for (const segment of value.slice(2).split('/')) target = target?.[segment];
+      for (const segment of value.slice(2).split('/')) {
+        // RFC 6901: ~1 is an escaped "/", ~0 an escaped "~". Path keys contain slashes, so a
+        // ref to a path item is all escapes; resolving without decoding fails on a valid spec.
+        target = target?.[segment.replace(/~1/g, '/').replace(/~0/g, '~')];
+      }
       if (target === undefined) problems.push(`${trail}: unresolved $ref "${value}"`);
     } else walk(value, `${trail}/${key}`);
   }

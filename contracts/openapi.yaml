@@ -1745,6 +1745,7 @@ components:
         notes: { type: string, nullable: true }
         lineItems:
           type: array
+          minItems: 1
           items:
             $ref: '#/components/schemas/LineItemRequest'
 
@@ -1756,6 +1757,7 @@ components:
         notes: { type: string, nullable: true }
         lineItems:
           type: array
+          minItems: 1
           items:
             $ref: '#/components/schemas/LineItemRequest'
 
@@ -1829,6 +1831,7 @@ components:
         notes: { type: string, nullable: true }
         lineItems:
           type: array
+          minItems: 1
           items:
             $ref: '#/components/schemas/ReturnLineItemRequest'
 
@@ -1840,6 +1843,7 @@ components:
         notes: { type: string, nullable: true }
         lineItems:
           type: array
+          minItems: 1
           items:
             $ref: '#/components/schemas/ReturnLineItemRequest'
 
