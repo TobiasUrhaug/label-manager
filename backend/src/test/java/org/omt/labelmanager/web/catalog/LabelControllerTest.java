@@ -1,4 +1,4 @@
-package org.omt.labelmanager.catalog.label.api;
+package org.omt.labelmanager.web.catalog;
 
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -16,6 +16,8 @@ import org.omt.labelmanager.catalog.artist.domain.ArtistFactory;
 import org.omt.labelmanager.catalog.domain.shared.Address;
 import org.omt.labelmanager.catalog.domain.shared.Person;
 import org.omt.labelmanager.catalog.label.LabelFactory;
+import org.omt.labelmanager.catalog.label.api.LabelCommandApi;
+import org.omt.labelmanager.catalog.label.api.LabelQueryApi;
 import org.omt.labelmanager.catalog.release.ReleaseFactory;
 import org.omt.labelmanager.catalog.release.api.ReleaseQueryApi;
 import org.omt.labelmanager.distribution.distributor.DistributorFactory;

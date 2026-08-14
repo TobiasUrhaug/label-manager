@@ -1,10 +1,12 @@
-package org.omt.labelmanager.catalog.label.api;
+package org.omt.labelmanager.web.catalog;
 
 import java.util.List;
 import org.omt.labelmanager.catalog.artist.api.ArtistQueryApi;
 import org.omt.labelmanager.catalog.artist.domain.Artist;
 import org.omt.labelmanager.catalog.domain.shared.Address;
 import org.omt.labelmanager.catalog.domain.shared.Person;
+import org.omt.labelmanager.catalog.label.api.LabelCommandApi;
+import org.omt.labelmanager.catalog.label.api.LabelQueryApi;
 import org.omt.labelmanager.catalog.label.domain.Label;
 import org.omt.labelmanager.catalog.release.api.ReleaseQueryApi;
 import org.omt.labelmanager.catalog.release.domain.Release;
