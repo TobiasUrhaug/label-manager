@@ -905,9 +905,13 @@ unchanged except one new test asserting a `DIRECT` distributor exists after labe
   downstream could catch it. All six now check, through the same `LabelScope`.
 
 **Done when — status.** No `*Controller` outside `web` ✅. No `PackageName` suppressions ✅.
-`openapi.yaml` documents all 30 paths and 51 operations, matching the 51 controller mappings ✅
-— but *matching* is by hand: the conformance test that boots the app and diffs `/v3/api-docs`
-is Phase 3, so nothing keeps them in step yet.
+`openapi.yaml` documents all 30 paths and 51 operations — 49 controller mappings plus `/login`
+and `/logout`, which Spring Security's form-login filter serves rather than a controller ✅.
+But *matching* is by hand, and the review caught several places where the document and the code
+disagreed (`Money` carries a `currency` field; `AgreementView.displayCommission` is a record
+method Jackson never serialises; the cost document is served with its stored content type). The
+conformance test that boots the app and diffs `/v3/api-docs` is Phase 3 — until it exists, this
+column is a claim, not a check.
 
 **Still open.** User-owned costs (`CostOwner.user`) are reachable under no endpoint: the
 document route used to serve them regardless of owner, and scoping it under a label closed
