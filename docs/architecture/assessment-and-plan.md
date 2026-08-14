@@ -864,7 +864,44 @@ unchanged except one new test asserting a `DIRECT` distributor exists after labe
 
 ---
 
-### Phase 2 — Extract `web` and reshape the API
+### Phase 2 — Extract `web` and reshape the API 🚧 *in progress, branch `feature/backend-phase-2`*
+
+**What actually differed from the plan below**, all verified:
+
+- **Moves came first, reshaping second.** The plan asks for both in the same commit per controller.
+  They cannot be: the release composite cannot shed its `productionRuns` field until that collection
+  exists on `ProductionRunController`, which was still in `inventory` at the time. Every controller
+  moved on its own commit, then each composite was split on its own.
+- **F3 is fully closed and can be checked.** `catalog → catalog, shared`; `sales → catalog,
+  distribution, inventory, shared`; `distribution → catalog`; `finance → catalog, identity, shared`;
+  `inventory → shared`; `identity → nothing`; and nothing imports `web`. Every arrow points
+  downward, so Phase 3's `ApplicationModules.verify()` has something that can pass.
+- **The `api/` surface had to be opened first, twice.** `RegisterController` could not move while it
+  injected `UserCRUDHandler` (public, in `application/`) and caught an exception from `domain/`; four
+  controllers had the same problem with `AppUserDetails`. `UserCommandApi`, `EmailAlreadyExistsException`
+  and `AppUserDetails` moved into `identity/api/user/`. Q4's `ChannelType` move exposed the same thing
+  in `distribution`, where `Distributor`, `PricingAgreement` and `CommissionType` followed.
+- **`src/test/resources/application.yaml` was shadowing the main file, not adding to it.** Same
+  classpath name, test resources first — so `spring.mvc.problemdetails.enabled`, `ddl-auto: validate`
+  and the multipart limits were absent from every test. Phase 0 turned problemdetails on; no test
+  could observe it, and one written against the documented behaviour failed against a correct
+  application. Renamed to `application-test.yaml` and activated from a small `application.properties`.
+- **The reviews found four ownership regressions the split introduced**, all in the new collections:
+  `?distributorId=` and `?releaseId=` filters returned another label's sales, returns and production
+  runs, because the bundled responses had resolved the parent once and the collections resolved
+  nothing. The check is now `web/LabelScope`, which is also where Phase 5's tenant guard goes. The
+  two filtered collections became sub-resources — as sibling `@GetMapping(params=…)` they were
+  ambiguous and `?releaseId=4&distributorId=5` was a 500.
+- **Bugs fixed that were not on the list:** registration accepted a null email and 500'd on the NOT
+  NULL constraint, and raced two concurrent signups into a 500 on the unique index; `PUT`/`DELETE
+  /api/artists/{id}` returned 204 for ids that do not exist, so a client believed a no-op update had
+  applied; CSRF-rejected 403s had no body; the invoice parser swallowed every transport failure into
+  an empty 200, so a dead integration was indistinguishable from a blank invoice.
+
+**Still open.** `openapi.yaml` documents auth and artists; the other ~30 endpoints and the
+conformance test are not done, so the second done-when condition is unmet. User-owned costs
+(`CostOwner.user`) are now reachable under no endpoint — nothing creates them over HTTP, but
+`CostQueryApi.getCostsForUser` has no caller and should either get a surface or go.
 
 **Changes.** Move every `*Controller`, its nested request/response records, and the `*View` DTOs into
 `web/` — **one controller per commit**. Rename `sales/distributor_return` → `sales/distributorreturn`
