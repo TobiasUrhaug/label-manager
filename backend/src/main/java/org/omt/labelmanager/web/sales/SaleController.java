@@ -1,4 +1,4 @@
-package org.omt.labelmanager.sales.sale.api;
+package org.omt.labelmanager.web.sales;
 
 import jakarta.persistence.EntityNotFoundException;
 import java.math.BigDecimal;
@@ -7,7 +7,8 @@ import java.util.List;
 import org.omt.labelmanager.catalog.label.api.LabelQueryApi;
 import org.omt.labelmanager.catalog.release.api.ReleaseQueryApi;
 import org.omt.labelmanager.distribution.distributor.api.ChannelType;
-import org.omt.labelmanager.inventory.InsufficientInventoryException;
+import org.omt.labelmanager.sales.sale.api.SaleCommandApi;
+import org.omt.labelmanager.sales.sale.api.SaleQueryApi;
 import org.omt.labelmanager.sales.sale.domain.Sale;
 import org.omt.labelmanager.sales.sale.domain.SaleLineItem;
 import org.omt.labelmanager.sales.sale.domain.SaleLineItemInput;
@@ -16,7 +17,6 @@ import org.omt.labelmanager.shared.Money;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -137,15 +137,6 @@ public class SaleController {
     public ResponseEntity<Void> deleteSale(@PathVariable Long labelId, @PathVariable Long saleId) {
         saleCommandApi.deleteSale(saleId);
         return ResponseEntity.noContent().build();
-    }
-
-    @ExceptionHandler({
-        IllegalStateException.class,
-        IllegalArgumentException.class,
-        InsufficientInventoryException.class
-    })
-    public ResponseEntity<Void> handleBadRequest() {
-        return ResponseEntity.badRequest().build();
     }
 
     private SaleDetailResponse toDetailResponse(Sale sale) {

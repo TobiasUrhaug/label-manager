@@ -1,4 +1,4 @@
-package org.omt.labelmanager.sales.distributorreturn.api;
+package org.omt.labelmanager.web.sales;
 
 import jakarta.persistence.EntityNotFoundException;
 import java.time.Instant;
@@ -8,7 +8,8 @@ import org.omt.labelmanager.catalog.label.api.LabelQueryApi;
 import org.omt.labelmanager.catalog.release.api.ReleaseQueryApi;
 import org.omt.labelmanager.distribution.distributor.api.Distributor;
 import org.omt.labelmanager.distribution.distributor.api.DistributorQueryApi;
-import org.omt.labelmanager.inventory.InsufficientInventoryException;
+import org.omt.labelmanager.sales.distributorreturn.api.DistributorReturnCommandApi;
+import org.omt.labelmanager.sales.distributorreturn.api.DistributorReturnQueryApi;
 import org.omt.labelmanager.sales.distributorreturn.domain.DistributorReturn;
 import org.omt.labelmanager.sales.distributorreturn.domain.ReturnLineItem;
 import org.omt.labelmanager.sales.distributorreturn.domain.ReturnLineItemInput;
@@ -16,7 +17,6 @@ import org.omt.labelmanager.shared.Format;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -156,15 +156,6 @@ public class ReturnController {
             @PathVariable Long labelId, @PathVariable Long returnId) {
         returnCommandApi.deleteReturn(returnId);
         return ResponseEntity.noContent().build();
-    }
-
-    @ExceptionHandler({
-        IllegalStateException.class,
-        IllegalArgumentException.class,
-        InsufficientInventoryException.class
-    })
-    public ResponseEntity<Void> handleBadRequest() {
-        return ResponseEntity.badRequest().build();
     }
 
     private EnrichedReturnLineItem enrichLineItem(ReturnLineItem item) {

@@ -1,4 +1,4 @@
-package org.omt.labelmanager.sales.sale.api;
+package org.omt.labelmanager.web.sales;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -16,7 +16,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import java.math.BigDecimal;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
@@ -27,13 +27,15 @@ import org.omt.labelmanager.catalog.label.domain.Label;
 import org.omt.labelmanager.catalog.release.api.ReleaseQueryApi;
 import org.omt.labelmanager.catalog.release.domain.Release;
 import org.omt.labelmanager.distribution.distributor.api.ChannelType;
+import org.omt.labelmanager.distribution.distributor.api.Distributor;
 import org.omt.labelmanager.distribution.distributor.api.DistributorQueryApi;
 import org.omt.labelmanager.identity.api.user.AppUserDetails;
 import org.omt.labelmanager.inventory.InsufficientInventoryException;
-import org.omt.labelmanager.sales.sale.domain.Sale;
-import org.omt.labelmanager.sales.sale.domain.SaleLineItem;
+import org.omt.labelmanager.sales.distributorreturn.api.DistributorReturnCommandApi;
+import org.omt.labelmanager.sales.distributorreturn.api.DistributorReturnQueryApi;
+import org.omt.labelmanager.sales.distributorreturn.domain.DistributorReturn;
+import org.omt.labelmanager.sales.distributorreturn.domain.ReturnLineItem;
 import org.omt.labelmanager.shared.Format;
-import org.omt.labelmanager.shared.Money;
 import org.omt.labelmanager.test.TestSecurityConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
@@ -41,15 +43,15 @@ import org.springframework.context.annotation.Import;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-@WebMvcTest(SaleController.class)
+@WebMvcTest(ReturnController.class)
 @Import(TestSecurityConfig.class)
-class SaleControllerTest {
+class ReturnControllerTest {
 
     @Autowired private MockMvc mockMvc;
 
-    @MockitoBean private SaleCommandApi saleCommandApi;
+    @MockitoBean private DistributorReturnCommandApi returnCommandApi;
 
-    @MockitoBean private SaleQueryApi saleQueryApi;
+    @MockitoBean private DistributorReturnQueryApi returnQueryApi;
 
     @MockitoBean private LabelQueryApi labelQueryApi;
 
@@ -61,37 +63,35 @@ class SaleControllerTest {
             new AppUserDetails(1L, "test@example.com", "password", "Test User");
 
     private static final Long LABEL_ID = 1L;
-    private static final Long SALE_ID = 42L;
+    private static final Long RETURN_ID = 42L;
     private static final Long RELEASE_ID = 10L;
+    private static final Long DISTRIBUTOR_ID = 5L;
 
-    private Label testLabel;
-    private Sale testSale;
+    private DistributorReturn testReturn;
+    private Distributor testDistributor;
 
     @BeforeEach
     void setUp() {
-        testLabel = new Label(LABEL_ID, "Test Label", null, null, null, null, 1L);
-
-        var lineItem =
-                new SaleLineItem(
-                        1L,
-                        RELEASE_ID,
-                        Format.VINYL,
-                        5,
-                        Money.of(new BigDecimal("15.00")),
-                        Money.of(new BigDecimal("75.00")));
-        testSale =
-                new Sale(
-                        SALE_ID,
+        var testLabel = new Label(LABEL_ID, "Test Label", null, null, null, null, 1L);
+        var lineItem = new ReturnLineItem(1L, RETURN_ID, RELEASE_ID, Format.VINYL, 5);
+        testReturn =
+                new DistributorReturn(
+                        RETURN_ID,
                         LABEL_ID,
-                        10L,
+                        DISTRIBUTOR_ID,
                         LocalDate.of(2026, 1, 15),
-                        ChannelType.DIRECT,
                         "Original notes",
                         List.of(lineItem),
-                        Money.of(new BigDecimal("75.00")));
+                        Instant.now());
+        testDistributor =
+                new Distributor(
+                        DISTRIBUTOR_ID, LABEL_ID, "Test Distributor", ChannelType.DISTRIBUTOR);
 
         when(labelQueryApi.findById(LABEL_ID)).thenReturn(Optional.of(testLabel));
-        when(saleQueryApi.findById(SALE_ID)).thenReturn(Optional.of(testSale));
+        when(returnQueryApi.findById(RETURN_ID)).thenReturn(Optional.of(testReturn));
+        when(returnQueryApi.getReturnsForLabel(LABEL_ID)).thenReturn(List.of(testReturn));
+        when(distributorQueryApi.findByLabelId(LABEL_ID)).thenReturn(List.of(testDistributor));
+        when(distributorQueryApi.findById(DISTRIBUTOR_ID)).thenReturn(Optional.of(testDistributor));
         when(releaseQueryApi.findById(RELEASE_ID))
                 .thenReturn(
                         Optional.of(
@@ -108,39 +108,35 @@ class SaleControllerTest {
     // ── GET list ──────────────────────────────────────────────────────────────
 
     @Test
-    void listSales_returnsOkWithSalesAndTotalRevenue() throws Exception {
-        when(saleQueryApi.getSalesForLabel(LABEL_ID)).thenReturn(List.of(testSale));
-        when(saleQueryApi.getTotalRevenueForLabel(LABEL_ID))
-                .thenReturn(Money.of(new BigDecimal("75.00")));
-
-        mockMvc.perform(get("/api/labels/{labelId}/sales", LABEL_ID).with(user(testUser)))
+    void listReturns_returnsOkWithReturnsAndDistributors() throws Exception {
+        mockMvc.perform(get("/api/labels/{labelId}/returns", LABEL_ID).with(user(testUser)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.sales").isArray())
-                .andExpect(jsonPath("$.sales[0].id").value(SALE_ID.intValue()))
-                .andExpect(jsonPath("$.totalRevenue.amount").value(75.00));
+                .andExpect(jsonPath("$.returns").isArray())
+                .andExpect(jsonPath("$.returns[0].id").value(RETURN_ID.intValue()))
+                .andExpect(jsonPath("$.distributors").isArray())
+                .andExpect(jsonPath("$.distributors[0].name").value("Test Distributor"));
     }
 
     // ── POST register ─────────────────────────────────────────────────────────
 
     @Test
-    void registerSale_returnsCreated() throws Exception {
-        when(saleCommandApi.registerSale(any(), any(), any(), any(), any(), any()))
-                .thenReturn(testSale);
+    void registerReturn_returnsCreated() throws Exception {
+        when(returnCommandApi.registerReturn(any(), any(), any(), any(), any()))
+                .thenReturn(testReturn);
 
         mockMvc.perform(
-                        post("/api/labels/{labelId}/sales", LABEL_ID)
+                        post("/api/labels/{labelId}/returns", LABEL_ID)
                                 .with(user(testUser))
                                 .with(csrf())
                                 .contentType(APPLICATION_JSON)
                                 .content(
                                         """
                                 {
-                                  "saleDate": "2026-01-15",
-                                  "channel": "DIRECT",
-                                  "distributorId": null,
+                                  "distributorId": 5,
+                                  "returnDate": "2026-01-15",
                                   "notes": "Test notes",
                                   "lineItems": [
-                                    {"releaseId": 10, "format": "VINYL", "quantity": 5, "unitPrice": 15.00}
+                                    {"releaseId": 10, "format": "VINYL", "quantity": 5}
                                   ]
                                 }
                                 """))
@@ -148,59 +144,56 @@ class SaleControllerTest {
     }
 
     @Test
-    void registerSale_callsCommandWithCorrectParameters() throws Exception {
-        when(saleCommandApi.registerSale(any(), any(), any(), any(), any(), any()))
-                .thenReturn(testSale);
+    void registerReturn_callsCommandWithCorrectParameters() throws Exception {
+        when(returnCommandApi.registerReturn(any(), any(), any(), any(), any()))
+                .thenReturn(testReturn);
 
         mockMvc.perform(
-                        post("/api/labels/{labelId}/sales", LABEL_ID)
+                        post("/api/labels/{labelId}/returns", LABEL_ID)
                                 .with(user(testUser))
                                 .with(csrf())
                                 .contentType(APPLICATION_JSON)
                                 .content(
                                         """
                                 {
-                                  "saleDate": "2026-01-15",
-                                  "channel": "DIRECT",
-                                  "distributorId": null,
+                                  "distributorId": 5,
+                                  "returnDate": "2026-01-15",
                                   "notes": "Test notes",
                                   "lineItems": [
-                                    {"releaseId": 10, "format": "VINYL", "quantity": 5, "unitPrice": 15.00}
+                                    {"releaseId": 10, "format": "VINYL", "quantity": 5}
                                   ]
                                 }
                                 """))
                 .andExpect(status().isCreated());
 
-        verify(saleCommandApi)
-                .registerSale(
+        verify(returnCommandApi)
+                .registerReturn(
                         eq(LABEL_ID),
+                        eq(DISTRIBUTOR_ID),
                         eq(LocalDate.of(2026, 1, 15)),
-                        eq(ChannelType.DIRECT),
                         eq("Test notes"),
-                        eq(null),
                         any());
     }
 
     @Test
-    void registerSale_returnsBadRequest_onInsufficientInventory() throws Exception {
+    void registerReturn_returnsBadRequest_onInsufficientInventory() throws Exception {
         doThrow(new InsufficientInventoryException(999, 0))
-                .when(saleCommandApi)
-                .registerSale(any(), any(), any(), any(), any(), any());
+                .when(returnCommandApi)
+                .registerReturn(any(), any(), any(), any(), any());
 
         mockMvc.perform(
-                        post("/api/labels/{labelId}/sales", LABEL_ID)
+                        post("/api/labels/{labelId}/returns", LABEL_ID)
                                 .with(user(testUser))
                                 .with(csrf())
                                 .contentType(APPLICATION_JSON)
                                 .content(
                                         """
                                 {
-                                  "saleDate": "2026-01-15",
-                                  "channel": "DIRECT",
-                                  "distributorId": null,
+                                  "distributorId": 5,
+                                  "returnDate": "2026-01-15",
                                   "notes": "",
                                   "lineItems": [
-                                    {"releaseId": 10, "format": "VINYL", "quantity": 999, "unitPrice": 15.00}
+                                    {"releaseId": 10, "format": "VINYL", "quantity": 999}
                                   ]
                                 }
                                 """))
@@ -210,13 +203,14 @@ class SaleControllerTest {
     // ── GET detail ────────────────────────────────────────────────────────────
 
     @Test
-    void viewSale_returnsOkWithEnrichedLineItems() throws Exception {
+    void viewReturn_returnsOkWithEnrichedLineItemsAndDistributor() throws Exception {
         mockMvc.perform(
-                        get("/api/labels/{labelId}/sales/{saleId}", LABEL_ID, SALE_ID)
+                        get("/api/labels/{labelId}/returns/{returnId}", LABEL_ID, RETURN_ID)
                                 .with(user(testUser)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(SALE_ID.intValue()))
-                .andExpect(jsonPath("$.saleDate").value("2026-01-15"))
+                .andExpect(jsonPath("$.id").value(RETURN_ID.intValue()))
+                .andExpect(jsonPath("$.returnDate").value("2026-01-15"))
+                .andExpect(jsonPath("$.distributor.name").value("Test Distributor"))
                 .andExpect(jsonPath("$.lineItems").isArray())
                 .andExpect(jsonPath("$.lineItems[0].releaseName").value("Test Release"))
                 .andExpect(jsonPath("$.lineItems[0].quantity").value(5));
@@ -225,71 +219,68 @@ class SaleControllerTest {
     // ── PUT update ────────────────────────────────────────────────────────────
 
     @Test
-    void updateSale_returnsOkWithUpdatedSale() throws Exception {
-        when(saleCommandApi.updateSale(any(), any(), any(), any())).thenReturn(testSale);
-
+    void updateReturn_returnsOkWithUpdatedReturn() throws Exception {
         mockMvc.perform(
-                        put("/api/labels/{labelId}/sales/{saleId}", LABEL_ID, SALE_ID)
+                        put("/api/labels/{labelId}/returns/{returnId}", LABEL_ID, RETURN_ID)
                                 .with(user(testUser))
                                 .with(csrf())
                                 .contentType(APPLICATION_JSON)
                                 .content(
                                         """
                                 {
-                                  "saleDate": "2026-01-20",
+                                  "returnDate": "2026-01-20",
                                   "notes": "Updated notes",
                                   "lineItems": [
-                                    {"releaseId": 10, "format": "VINYL", "quantity": 3, "unitPrice": 15.00}
+                                    {"releaseId": 10, "format": "VINYL", "quantity": 3}
                                   ]
                                 }
                                 """))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(SALE_ID.intValue()));
+                .andExpect(jsonPath("$.id").value(RETURN_ID.intValue()));
     }
 
     @Test
-    void updateSale_callsCommandWithCorrectParameters() throws Exception {
-        when(saleCommandApi.updateSale(any(), any(), any(), any())).thenReturn(testSale);
-
+    void updateReturn_callsCommandWithCorrectParameters() throws Exception {
         mockMvc.perform(
-                        put("/api/labels/{labelId}/sales/{saleId}", LABEL_ID, SALE_ID)
+                        put("/api/labels/{labelId}/returns/{returnId}", LABEL_ID, RETURN_ID)
                                 .with(user(testUser))
                                 .with(csrf())
                                 .contentType(APPLICATION_JSON)
                                 .content(
                                         """
                                 {
-                                  "saleDate": "2026-01-20",
+                                  "returnDate": "2026-01-20",
                                   "notes": "Updated notes",
                                   "lineItems": [
-                                    {"releaseId": 10, "format": "VINYL", "quantity": 3, "unitPrice": 15.00}
+                                    {"releaseId": 10, "format": "VINYL", "quantity": 3}
                                   ]
                                 }
                                 """))
                 .andExpect(status().isOk());
 
-        verify(saleCommandApi)
-                .updateSale(eq(SALE_ID), eq(LocalDate.of(2026, 1, 20)), eq("Updated notes"), any());
+        verify(returnCommandApi)
+                .updateReturn(
+                        eq(RETURN_ID), eq(LocalDate.of(2026, 1, 20)), eq("Updated notes"), any());
     }
 
     @Test
-    void updateSale_returnsBadRequest_onInsufficientInventory() throws Exception {
+    void updateReturn_returnsBadRequest_onInsufficientInventory() throws Exception {
         doThrow(new InsufficientInventoryException(999, 0))
-                .when(saleCommandApi)
-                .updateSale(anyLong(), any(), any(), any());
+                .when(returnCommandApi)
+                .updateReturn(anyLong(), any(), any(), any());
 
         mockMvc.perform(
-                        put("/api/labels/{labelId}/sales/{saleId}", LABEL_ID, SALE_ID)
+                        put("/api/labels/{labelId}/returns/{returnId}", LABEL_ID, RETURN_ID)
                                 .with(user(testUser))
                                 .with(csrf())
                                 .contentType(APPLICATION_JSON)
                                 .content(
                                         """
                                 {
-                                  "saleDate": "2026-01-20",
+                                  "returnDate": "2026-01-20",
                                   "notes": "",
                                   "lineItems": [
-                                    {"releaseId": 10, "format": "VINYL", "quantity": 999, "unitPrice": 15.00}
+                                    {"releaseId": 10, "format": "VINYL", "quantity": 999}
                                   ]
                                 }
                                 """))
@@ -299,22 +290,22 @@ class SaleControllerTest {
     // ── DELETE ────────────────────────────────────────────────────────────────
 
     @Test
-    void deleteSale_returnsNoContent() throws Exception {
+    void deleteReturn_returnsNoContent() throws Exception {
         mockMvc.perform(
-                        delete("/api/labels/{labelId}/sales/{saleId}", LABEL_ID, SALE_ID)
+                        delete("/api/labels/{labelId}/returns/{returnId}", LABEL_ID, RETURN_ID)
                                 .with(user(testUser))
                                 .with(csrf()))
                 .andExpect(status().isNoContent());
     }
 
     @Test
-    void deleteSale_callsDeleteSaleWithCorrectId() throws Exception {
+    void deleteReturn_callsDeleteReturnWithCorrectId() throws Exception {
         mockMvc.perform(
-                        delete("/api/labels/{labelId}/sales/{saleId}", LABEL_ID, SALE_ID)
+                        delete("/api/labels/{labelId}/returns/{returnId}", LABEL_ID, RETURN_ID)
                                 .with(user(testUser))
                                 .with(csrf()))
                 .andExpect(status().isNoContent());
 
-        verify(saleCommandApi).deleteSale(SALE_ID);
+        verify(returnCommandApi).deleteReturn(RETURN_ID);
     }
 }
