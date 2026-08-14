@@ -1,7 +1,9 @@
 package org.omt.labelmanager.catalog.artist;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.Test;
 import org.omt.labelmanager.AbstractIntegrationTest;
 import org.omt.labelmanager.catalog.artist.api.ArtistCommandApi;
@@ -28,5 +30,12 @@ public class DeleteArtistIntegrationTest extends AbstractIntegrationTest {
         artistCommandApi.delete(entity.getId());
 
         assertThat(artistQueryApi.findById(entity.getId())).isEmpty();
+    }
+
+    @Test
+    void deleteArtist_throwsEntityNotFound_whenArtistDoesNotExist() {
+        assertThatThrownBy(() -> artistCommandApi.delete(999_999L))
+                .isInstanceOf(EntityNotFoundException.class)
+                .hasMessageContaining("999999");
     }
 }

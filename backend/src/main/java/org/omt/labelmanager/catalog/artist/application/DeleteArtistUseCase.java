@@ -1,5 +1,6 @@
 package org.omt.labelmanager.catalog.artist.application;
 
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import org.omt.labelmanager.catalog.artist.infrastructure.ArtistRepository;
 import org.slf4j.Logger;
@@ -20,6 +21,9 @@ class DeleteArtistUseCase {
     @Transactional
     public void execute(Long id) {
         log.info("Deleting artist with id {}", id);
+        if (!repository.existsById(id)) {
+            throw new EntityNotFoundException("Artist not found: " + id);
+        }
         repository.deleteById(id);
     }
 }
