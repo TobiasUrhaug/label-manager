@@ -124,7 +124,7 @@ class ReturnLineItemProcessorTest {
     void validateAndAdd_keepsFormatsApart() {
         givenRelease();
         givenLedger(pressing(FIRST_PRESSING, "2024-01-01", 20));
-        when(productionRunQueryApi.ledgerAt(RELEASE_ID, Format.CD, FROM))
+        when(productionRunQueryApi.lockedLedgerAt(RELEASE_ID, Format.CD, FROM))
                 .thenReturn(StockLedger.of(List.of(pressing(REPRESS, "2025-01-01", 20))));
 
         var draws =
@@ -163,7 +163,7 @@ class ReturnLineItemProcessorTest {
     }
 
     private void givenLedger(RunStock... pressings) {
-        when(productionRunQueryApi.ledgerAt(RELEASE_ID, Format.VINYL, FROM))
+        when(productionRunQueryApi.lockedLedgerAt(RELEASE_ID, Format.VINYL, FROM))
                 .thenReturn(StockLedger.of(List.of(pressings)));
     }
 

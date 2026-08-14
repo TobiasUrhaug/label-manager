@@ -84,7 +84,9 @@ class ReturnLineItemProcessor {
             var ledger =
                     ledgers.computeIfAbsent(
                             key,
-                            k -> productionRunQueryApi.ledgerAt(k.releaseId(), k.format(), from));
+                            k ->
+                                    productionRunQueryApi.lockedLedgerAt(
+                                            k.releaseId(), k.format(), from));
 
             if (ledger.runs().isEmpty()) {
                 throw new IllegalStateException(

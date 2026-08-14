@@ -18,6 +18,7 @@ import org.omt.labelmanager.shared.Format;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 class ProductionRunQueryApiImpl implements ProductionRunQueryApi {
@@ -58,7 +59,16 @@ class ProductionRunQueryApiImpl implements ProductionRunQueryApi {
 
     @Override
     public StockLedger ledgerAt(Long releaseId, Format format, InventoryLocation location) {
-        List<ProductionRunEntity> runs = repository.findByReleaseIdAndFormat(releaseId, format);
+        return ledgerOf(repository.findByReleaseIdAndFormat(releaseId, format), location);
+    }
+
+    @Override
+    @Transactional
+    public StockLedger lockedLedgerAt(Long releaseId, Format format, InventoryLocation location) {
+        return ledgerOf(repository.lockByReleaseIdAndFormat(releaseId, format), location);
+    }
+
+    private StockLedger ledgerOf(List<ProductionRunEntity> runs, InventoryLocation location) {
         if (runs.isEmpty()) {
             return StockLedger.of(List.of());
         }

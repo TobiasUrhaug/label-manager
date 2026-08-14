@@ -151,7 +151,7 @@ class SaleLineItemProcessorTest {
     }
 
     private void givenLedger(RunStock... pressings) {
-        when(productionRunQueryApi.ledgerAt(RELEASE_ID, Format.VINYL, FROM))
+        when(productionRunQueryApi.lockedLedgerAt(RELEASE_ID, Format.VINYL, FROM))
                 .thenReturn(StockLedger.of(List.of(pressings)));
     }
 

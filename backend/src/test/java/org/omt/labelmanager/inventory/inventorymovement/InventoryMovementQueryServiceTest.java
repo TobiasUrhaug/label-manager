@@ -128,7 +128,9 @@ public class InventoryMovementQueryServiceTest extends AbstractIntegrationTest {
     void
             getProductionRunIdsAllocatedToDistributor_returnsBothRunIds_whenEachHasAllocationToDistributor() {
         var label = labelTestHelper.createLabel("Label 2");
-        Long releaseId2 = releaseTestHelper.createReleaseEntity("Release 2", label.id());
+        // Named for this test specifically: nothing here cleans up, and TrackRemixerIntegrationTest
+        // looks a release up by name expecting exactly one. Whichever ran second used to fail.
+        Long releaseId2 = releaseTestHelper.createReleaseEntity("Allocated Release", label.id());
         Long runId2 =
                 productionRunRepository
                         .save(

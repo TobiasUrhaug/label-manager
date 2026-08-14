@@ -36,4 +36,19 @@ public interface ProductionRunQueryApi {
      * @return the ledger; empty if the release has no pressings in that format
      */
     StockLedger ledgerAt(Long releaseId, Format format, InventoryLocation location);
+
+    /**
+     * The same ledger, with the pressings locked until the caller's transaction ends.
+     *
+     * <p>For callers that are about to draw from it. Checking stock and recording the movement that
+     * consumes it are two statements, so without the lock two concurrent sales of the last units
+     * both read the same balance and both succeed, leaving the location negative. Must be called
+     * inside a transaction; readers that only display stock should use {@link #ledgerAt}.
+     *
+     * @param releaseId the release
+     * @param format the format
+     * @param location where the stock is being taken from
+     * @return the ledger; empty if the release has no pressings in that format
+     */
+    StockLedger lockedLedgerAt(Long releaseId, Format format, InventoryLocation location);
 }
