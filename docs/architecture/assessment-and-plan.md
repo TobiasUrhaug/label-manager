@@ -670,9 +670,17 @@ graph TD
    `persistence/`. This is the existing convention; it just becomes checked.
 3. **Never inject another module's repository.** Already in `ARCHITECTURE.md`; the verifier makes it
    real (`RegisterCostUseCase` is the current violation).
-4. **`web` is the only module allowed to depend on several domain modules at once**, and only for
-   read-model composition. All controllers, request/response records and `*View` DTOs live there.
-   This single rule deletes every wrong-direction edge in F3's table.
+4. ~~**`web` is the only module allowed to depend on several domain modules at once.**~~
+   **Withdrawn during Phase 2, after being implemented and reverted.** The justification — that it
+   "deletes every wrong-direction edge in F3's table" — was true but not causal: splitting the
+   page-shaped composites (§3.1) is what removed them. With the release resource no longer carrying
+   its costs, runs, distributors and sales, twelve of fourteen controllers had only downward
+   dependencies; the two that did not were resolving ids to display names, which was the actual
+   defect. A top-level `web` module bought a layer split at the cost of every feature living in two
+   trees. **Controllers live in their own module, in a `web/` sub-package** — not `api/`, since rule
+   2 does not list controllers among what `api/` publishes and Phase 3 marks `api/` as a named
+   interface. Cross-context read-model composition is still allowed in a controller, but only
+   through edges its own module already has.
 5. **Ports belong to the domain module that needs them; adapters live in `platform`.**
    `DocumentStoragePort` moves into `finance`; `S3DocumentStorageAdapter` implements it from
    `platform`. The direction becomes `platform → finance`, one way.
@@ -870,8 +878,12 @@ unchanged except one new test asserting a `DIRECT` distributor exists after labe
 
 - **Moves came first, reshaping second.** The plan asks for both in the same commit per controller.
   They cannot be: the release composite cannot shed its `productionRuns` field until that collection
-  exists on `ProductionRunController`, which was still in `inventory` at the time. Every controller
-  moved on its own commit, then each composite was split on its own.
+  exists on `ProductionRunController`. Every controller moved on its own commit, then each composite
+  was split on its own.
+- **Then the `web` module was removed again — see rule 4 above.** Controllers were extracted to a
+  top-level `web` as the plan specified, and moved back into their modules once it was clear the
+  composite split had done the work rule 4 claimed. The intermediate state was not wasted: it is
+  what made the redundancy visible, and the reshaping done while there is what the modules kept.
 - **F3 is fully closed and can be checked.** `catalog → catalog, shared`; `sales → catalog,
   distribution, inventory, shared`; `distribution → catalog`; `finance → catalog, identity, shared`;
   `inventory → shared`; `identity → nothing`; and nothing imports `web`. Every arrow points

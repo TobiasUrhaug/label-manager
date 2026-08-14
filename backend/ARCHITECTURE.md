@@ -8,7 +8,6 @@ Organized by bounded context, each following clean architecture:
 
 ```
 org.omt.labelmanager/
-├── web/               # Every controller, read model and *View DTO; the ProblemDetail advice
 ├── catalog/           # Labels, releases, artists, tracks
 ├── identity/          # Users, authentication
 ├── finance/           # Costs, invoice extraction
@@ -16,31 +15,46 @@ org.omt.labelmanager/
 ├── inventory/         # Production runs, allocations, inventory movements
 ├── sales/             # Sales, distributor returns
 ├── shared/            # Domain primitives used by more than one context (Money, Format)
-└── infrastructure/    # Cross-cutting: security, storage
+└── infrastructure/    # Cross-cutting: security, storage, the ProblemDetail advice
 ```
 
 Within each bounded context, organize by **module** (not by layer).
 
-### `web` is the only module allowed to depend on several contexts at once
+### A module owns its whole stack, HTTP included
 
-Controllers live in `web/<context>/`, not in the module whose data they serve. A response
-that needs data from more than one bounded context is composed there and nowhere else.
+Everything about a feature lives in its module: the controller, the use cases, the domain
+records, the persistence. Changing how artists work means opening `catalog/artist/` and
+nothing else.
 
-This rule is what keeps every other arrow pointing one way. A release detail response that
-carried its costs, production runs, distributors and sales forced `catalog` to depend on
-`finance`, `inventory`, `distribution` and `sales`; putting that composition in `web` deletes
-all four edges without changing a line of domain code.
+```
+catalog/artist/
+├── api/            # what other modules may call
+├── web/            # what HTTP exposes — controller, request records, *View DTOs
+├── application/    # use cases
+├── domain/
+└── infrastructure/ # entities, repositories
+```
 
-Two consequences worth stating:
+**`web/`, not `api/`.** `api/` is the module's contract with other *modules*: the
+Command/Query interfaces, the domain records they return, the exceptions they throw. A
+controller is none of those — nothing in Java should ever call it. Phase 3 marks `api/` as a
+published named interface, which would make `ArtistController` importable anywhere; `web/` is
+module-internal, so the verifier enforces what we mean. It also gives request records and
+`*View` DTOs an unambiguous home, which `api/` never did — that ambiguity is how
+`AgreementView`, a record that formats `"2.50 €"`, came to sit beside domain types.
 
-- **Nothing depends on `web`.** If a domain module needs something from it, the thing is in
-  the wrong place.
-- **`web` composes, it does not decide.** Business rules stay in the module that owns them.
-  Assembling a response from three query APIs is composition; choosing whether a sale is
-  allowed is not.
+`web/` is the inbound adapter; `infrastructure/` (or `persistence/`) is the outbound one. They
+are peers, and neither belongs inside the port package between them.
 
-Read models and `*View` records live in `web/` beside the controller that returns them —
-they are presentation shapes, and a module's `api/` package is not for presentation.
+**A controller may read from any module its own module may.** `SaleController` calls catalog,
+distribution and inventory because `sales` is allowed to. What it may not do is make its module
+reach sideways or upward — and if a response seems to require that, the response is the
+problem. Two read models once resolved a distributor's name inside inventory and a release's
+name inside distribution; both were deleted in favour of returning ids, which is what let every
+controller move home.
+
+There is no `web` module. A top-level one was tried and removed: it split each feature across
+two trees for a benefit that splitting the page-shaped composites had already delivered.
 
 ## Modular Architecture Pattern
 
@@ -64,7 +78,7 @@ catalog/release/
 ├── api/
 │   ├── ReleaseCommandApi.java       # Public interface (mutations)
 │   └── ReleaseQueryApi.java         # Public interface (queries)
-│                                    # No controller — those live in web/catalog/
+│                                    # Controller lives in this module's web/
 │
 ├── application/                     # package-private
 │   ├── CreateReleaseUseCase.java    # Focused business operations
@@ -91,7 +105,7 @@ distribution/distributor/
 │   ├── DistributorQueryApi.java    # Public interface (queries) — only if other modules depend on this module
 │   ├── Distributor.java            # Public domain record — part of the API's return type
 │   └── ChannelType.java            # Public enum used in that record
-│                                   # No controller — those live in web/distribution/
+│                                   # Controller lives in this module's web/
 │
 ├── persistence/                    # public
 │   ├── DistributorEntity.java      # JPA entity
@@ -341,7 +355,7 @@ class RegisterSaleUseCase {
 }
 ```
 
-**In controllers** (which live in `web/`), if you need data from multiple modules, fetch them separately:
+**In controllers** (in their module's `web/`), if you need data from multiple modules, fetch them separately:
 ```java
 @GetMapping("/{id}")
 public ReleaseDetailResponse getRelease(@PathVariable Long id) {
@@ -353,10 +367,10 @@ public ReleaseDetailResponse getRelease(@PathVariable Long id) {
 
 **Composite response records (aggregating data from multiple modules)**
 
-When a REST response genuinely needs data assembled from several modules, compose it in the controller in `web/` — not in a service or use case, and never in a domain module. Response shaping is a presentation concern.
+When a REST response genuinely needs data assembled from several modules, compose it in the controller — not in a service or use case. Response shaping is a presentation concern, and the controller may call any module its own module is allowed to.
 
 ```java
-// ✅ web/inventory/ProductionRunController assembles from several module APIs
+// ✅ inventory/productionrun/web/ProductionRunController assembles from several module APIs
 @GetMapping
 public List<ProductionRunWithAllocation> productionRuns(@PathVariable Long labelId, ...) {
     List<Distributor> distributors = distributorQueryApi.findByLabelId(labelId);   // distribution
@@ -366,7 +380,7 @@ public List<ProductionRunWithAllocation> productionRuns(@PathVariable Long label
 }
 ```
 
-Response records that exist solely to carry assembled data live in `web/`, next to the controller — not in any module's `api/` package.
+Response records that exist solely to carry assembled data live in the module's `web/`, next to the controller — not in its `api/` package.
 
 **But prefer a resource to a bundle.** "This screen shows four things" is not a reason for one endpoint to return four things. Composites that mirror a page are how a module ends up depending on four others, and how a response ends up issuing a query per row. Give each thing its own collection, and compose only when a client genuinely cannot make two calls:
 
@@ -431,7 +445,7 @@ Exceptions that cross a module boundary belong in the throwing module's `api/` p
 public class InsufficientInventoryException extends RuntimeException { ... }
 
 // application/SomeCommandApiImpl.java (throws it)
-// web/'s controller or ApiExceptionHandler (catches it) — both reference the same api/ package
+// another module's web/ controller, or ApiExceptionHandler (catches it)
 ```
 
 ## Layer Separation
@@ -464,7 +478,7 @@ Every error this application raises deliberately is an RFC 9457 `ProblemDetail`,
 
 | Source | Covers |
 |--------|--------|
-| `web/ApiExceptionHandler` | `EntityNotFoundException` → 404, `InsufficientInventoryException` / `IllegalArgumentException` / `IllegalStateException` → 400 |
+| `infrastructure/web/ApiExceptionHandler` | `EntityNotFoundException` → 404, `InsufficientInventoryException` / `IllegalArgumentException` / `IllegalStateException` → 400 |
 | A controller-local `@ExceptionHandler` | Exceptions only that controller knows about (`AgreementNotFoundException`, `InvoiceParserUnavailableException`) |
 | `infrastructure/security` | The filter chain's 401 and 403, written through the application's `JsonMapper` so the mixin applies |
 
