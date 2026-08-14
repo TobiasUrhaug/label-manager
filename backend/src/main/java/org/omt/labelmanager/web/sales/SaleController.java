@@ -146,6 +146,19 @@ public class SaleController {
                 sale.id(), sale.saleDate(), distributorName, totalUnits, sale.totalAmount());
     }
 
+    /**
+     * The sales made through one distributor. Replaces the {@code sales} field of the distributor
+     * detail response.
+     */
+    @GetMapping(params = "distributorId")
+    public List<Sale> salesForDistributor(
+            @PathVariable Long labelId, @RequestParam Long distributorId) {
+        labelQueryApi
+                .findById(labelId)
+                .orElseThrow(() -> new EntityNotFoundException("Label not found"));
+        return saleQueryApi.getSalesForDistributor(distributorId);
+    }
+
     @GetMapping
     public SaleListResponse listSales(@PathVariable Long labelId) {
         labelQueryApi

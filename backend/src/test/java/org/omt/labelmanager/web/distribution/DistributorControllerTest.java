@@ -12,7 +12,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
@@ -26,9 +25,7 @@ import org.omt.labelmanager.distribution.distributor.api.DistributorQueryApi;
 import org.omt.labelmanager.identity.api.user.AppUserDetails;
 import org.omt.labelmanager.inventory.productionrun.api.ProductionRunQueryApi;
 import org.omt.labelmanager.sales.distributorreturn.api.DistributorReturnQueryApi;
-import org.omt.labelmanager.sales.distributorreturn.domain.DistributorReturn;
 import org.omt.labelmanager.sales.sale.api.SaleQueryApi;
-import org.omt.labelmanager.sales.sale.domain.Sale;
 import org.omt.labelmanager.test.TestSecurityConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
@@ -137,7 +134,7 @@ class DistributorControllerTest {
     }
 
     @Test
-    void showDistributor_returnsDetailWithSalesAndReturns() throws Exception {
+    void showDistributor_returnsTheDistributor() throws Exception {
         var label = LabelFactory.aLabel().id(1L).name("My Label").build();
         var distributor =
                 DistributorFactory.aDistributor()
@@ -146,33 +143,16 @@ class DistributorControllerTest {
                         .name("Cargo Records")
                         .channelType(ChannelType.DISTRIBUTOR)
                         .build();
-        var sale =
-                new Sale(
-                        10L,
-                        1L,
-                        5L,
-                        LocalDate.of(2026, 1, 10),
-                        ChannelType.DISTRIBUTOR,
-                        null,
-                        List.of(),
-                        null);
-        var distributorReturn =
-                new DistributorReturn(20L, 1L, 5L, LocalDate.of(2026, 2, 1), null, List.of(), null);
 
         when(labelQueryApi.findById(1L)).thenReturn(Optional.of(label));
         when(distributorQueryApi.findById(5L)).thenReturn(Optional.of(distributor));
-        when(saleQueryApi.getSalesForDistributor(5L)).thenReturn(List.of(sale));
-        when(returnQueryApi.getReturnsForDistributor(5L)).thenReturn(List.of(distributorReturn));
-        when(agreementQueryApi.findByDistributorId(5L)).thenReturn(List.of());
 
         mockMvc.perform(get("/api/labels/1/distributors/5").with(user(testUser)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.distributor.name").value("Cargo Records"))
-                .andExpect(jsonPath("$.sales").isArray())
-                .andExpect(jsonPath("$.sales[0].id").value(10))
-                .andExpect(jsonPath("$.returns").isArray())
-                .andExpect(jsonPath("$.returns[0].id").value(20))
-                .andExpect(jsonPath("$.agreements").isArray());
+                .andExpect(jsonPath("$.name").value("Cargo Records"))
+                .andExpect(jsonPath("$.sales").doesNotExist())
+                .andExpect(jsonPath("$.returns").doesNotExist())
+                .andExpect(jsonPath("$.agreements").doesNotExist());
     }
 
     @Test
@@ -190,19 +170,28 @@ class DistributorControllerTest {
     }
 
     @Test
-    void showDistributor_returnsEmptyListsWhenNoActivity() throws Exception {
+    void agreements_returnsTheDistributorsAgreements() throws Exception {
         var label = LabelFactory.aLabel().id(1L).build();
         var distributor = DistributorFactory.aDistributor().id(5L).labelId(1L).build();
 
         when(labelQueryApi.findById(1L)).thenReturn(Optional.of(label));
         when(distributorQueryApi.findById(5L)).thenReturn(Optional.of(distributor));
-        when(saleQueryApi.getSalesForDistributor(5L)).thenReturn(List.of());
-        when(returnQueryApi.getReturnsForDistributor(5L)).thenReturn(List.of());
         when(agreementQueryApi.findByDistributorId(5L)).thenReturn(List.of());
 
-        mockMvc.perform(get("/api/labels/1/distributors/5").with(user(testUser)))
+        mockMvc.perform(get("/api/labels/1/distributors/5/agreements").with(user(testUser)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.sales").isEmpty())
-                .andExpect(jsonPath("$.returns").isEmpty());
+                .andExpect(jsonPath("$").isArray());
+    }
+
+    @Test
+    void agreements_returnsNotFoundWhenDistributorBelongsToAnotherLabel() throws Exception {
+        var label = LabelFactory.aLabel().id(1L).build();
+        when(labelQueryApi.findById(1L)).thenReturn(Optional.of(label));
+        when(distributorQueryApi.findById(99L))
+                .thenReturn(
+                        Optional.of(DistributorFactory.aDistributor().id(99L).labelId(2L).build()));
+
+        mockMvc.perform(get("/api/labels/1/distributors/99/agreements").with(user(testUser)))
+                .andExpect(status().isNotFound());
     }
 }

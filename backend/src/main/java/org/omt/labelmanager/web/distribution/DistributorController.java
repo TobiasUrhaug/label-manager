@@ -11,10 +11,6 @@ import org.omt.labelmanager.distribution.distributor.api.Distributor;
 import org.omt.labelmanager.distribution.distributor.api.DistributorCommandApi;
 import org.omt.labelmanager.distribution.distributor.api.DistributorQueryApi;
 import org.omt.labelmanager.inventory.productionrun.api.ProductionRunQueryApi;
-import org.omt.labelmanager.sales.distributorreturn.api.DistributorReturnQueryApi;
-import org.omt.labelmanager.sales.distributorreturn.domain.DistributorReturn;
-import org.omt.labelmanager.sales.sale.api.SaleQueryApi;
-import org.omt.labelmanager.sales.sale.domain.Sale;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -32,8 +28,6 @@ public class DistributorController {
     private final DistributorCommandApi commandApi;
     private final DistributorQueryApi distributorQueryApi;
     private final LabelQueryApi labelQueryApi;
-    private final SaleQueryApi saleQueryApi;
-    private final DistributorReturnQueryApi returnQueryApi;
     private final AgreementQueryApi agreementQueryApi;
     private final ProductionRunQueryApi productionRunQueryApi;
     private final ReleaseQueryApi releaseQueryApi;
@@ -42,28 +36,18 @@ public class DistributorController {
             DistributorCommandApi commandApi,
             DistributorQueryApi distributorQueryApi,
             LabelQueryApi labelQueryApi,
-            SaleQueryApi saleQueryApi,
-            DistributorReturnQueryApi returnQueryApi,
             AgreementQueryApi agreementQueryApi,
             ProductionRunQueryApi productionRunQueryApi,
             ReleaseQueryApi releaseQueryApi) {
         this.commandApi = commandApi;
         this.distributorQueryApi = distributorQueryApi;
         this.labelQueryApi = labelQueryApi;
-        this.saleQueryApi = saleQueryApi;
-        this.returnQueryApi = returnQueryApi;
         this.agreementQueryApi = agreementQueryApi;
         this.productionRunQueryApi = productionRunQueryApi;
         this.releaseQueryApi = releaseQueryApi;
     }
 
     record AddDistributorRequest(String name, ChannelType channelType) {}
-
-    record DistributorDetailResponse(
-            Distributor distributor,
-            List<Sale> sales,
-            List<DistributorReturn> returns,
-            List<AgreementView> agreements) {}
 
     /**
      * The label's distributors. Replaces the list that {@code GET /api/labels/{labelId}} bundled.
@@ -76,25 +60,38 @@ public class DistributorController {
         return distributorQueryApi.findByLabelId(labelId);
     }
 
+    /**
+     * The distributor itself.
+     *
+     * <p>Its sales, returns and agreements are separate collections — see {@code
+     * /api/labels/{labelId}/sales?distributorId=}, {@code
+     * /api/labels/{labelId}/returns?distributorId=} and {@code .../distributors/{id}/agreements}.
+     * Bundling them made distribution depend on sales.
+     */
     @GetMapping("/{distributorId}")
-    public DistributorDetailResponse showDistributor(
+    public Distributor showDistributor(
             @PathVariable Long labelId, @PathVariable Long distributorId) {
+        return requireDistributorOfLabel(labelId, distributorId);
+    }
+
+    /** The distributor's agreements, each naming the production run it prices. */
+    @GetMapping("/{distributorId}/agreements")
+    public List<AgreementView> agreements(
+            @PathVariable Long labelId, @PathVariable Long distributorId) {
+        requireDistributorOfLabel(labelId, distributorId);
+        return agreementQueryApi.findByDistributorId(distributorId).stream()
+                .map(this::enrichAgreement)
+                .toList();
+    }
+
+    private Distributor requireDistributorOfLabel(Long labelId, Long distributorId) {
         labelQueryApi
                 .findById(labelId)
                 .orElseThrow(() -> new EntityNotFoundException("Label not found"));
-        var distributor =
-                distributorQueryApi
-                        .findById(distributorId)
-                        .filter(d -> d.labelId().equals(labelId))
-                        .orElseThrow(() -> new EntityNotFoundException("Distributor not found"));
-        var sales = saleQueryApi.getSalesForDistributor(distributorId);
-        var returns = returnQueryApi.getReturnsForDistributor(distributorId);
-        var agreements =
-                agreementQueryApi.findByDistributorId(distributorId).stream()
-                        .map(this::enrichAgreement)
-                        .toList();
-
-        return new DistributorDetailResponse(distributor, sales, returns, agreements);
+        return distributorQueryApi
+                .findById(distributorId)
+                .filter(d -> d.labelId().equals(labelId))
+                .orElseThrow(() -> new EntityNotFoundException("Distributor not found"));
     }
 
     @PostMapping
