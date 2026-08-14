@@ -366,9 +366,9 @@ removes the "unused" expression silently deletes the validation.
 
 ## 2. Database schema
 
-**Verdict: fit for purpose. Keep it and evolve it — five migrations, no reset.**
+**Verdict: fit for purpose. Keep it and evolve it — six migrations, no reset.**
 
-31 Flyway migrations, all forward-only, with a genuinely careful style: `V25` and `V27` both add
+32 Flyway migrations, all forward-only, with a genuinely careful style: `V25` and `V27` both add
 columns as nullable, backfill, then apply `SET NOT NULL`. `V19` renames a table and correctly drops
 and recreates dependent FKs and indexes. `V31` cleanly retires `channel_allocation` after `V26`
 emptied it. Better migration hygiene than most codebases of this age.
@@ -397,12 +397,13 @@ Indexing is reasonable: composite indexes on the movement location columns (`V25
 | | Migration | Phase |
 |---|---|---|
 | V32 | `app_user.created_at` → `TIMESTAMPTZ`; drop `spring.flyway.baseline-on-migrate` | 0 |
-| V33 | Insert one `PRODUCTION` movement (`EXTERNAL → WAREHOUSE`, `quantity = production_run.quantity`) per existing run, so stock becomes uniformly `Σ in − Σ out` | 4 |
-| V34 | Create `stock_reservation`; **convert** existing `WAREHOUSE → BANDCAMP` movements into reservation rows (net of cancellations) and delete both movement legs; drop `LocationType.BANDCAMP` usage | 4 |
-| V35 | Add `user_id` to `cost`; add `label_id` to `production_run`, `inventory_movement`, `pricing_agreement`, `stock_reservation`; backfill via joins; `NOT NULL` + FK + index | 5 |
-| V36 | Drop `sale.channel` (derive from the distributor / platform) | 5 |
+| V33 | Insert one `PRODUCTION` movement (`EXTERNAL → WAREHOUSE`, `quantity = production_run.quantity`) per existing run, so stock becomes uniformly `Σ in − Σ out` | 4a |
+| V34 | Create `stock_reservation`; **convert** existing `WAREHOUSE → BANDCAMP` movements into reservation rows (net of cancellations) and delete both movement legs; drop `LocationType.BANDCAMP` usage | 4b |
+| V35 | Make `sale.distributor_id` nullable, add the counterparty discriminator, repoint direct sales at `WAREHOUSE → EXTERNAL`, **delete the matching `WAREHOUSE → DISTRIBUTOR(direct)` ALLOCATION legs**, delete the pseudo-distributors (Q9) | 4b |
+| V36 | Add `user_id` to `cost`; add `label_id` to `production_run`, `inventory_movement`, `pricing_agreement`, `stock_reservation`; backfill via joins; `NOT NULL` + FK + index | 5 |
+| V37 | Drop `sale.channel` (derive from the distributor / platform) | 5 |
 
-Proposed `stock_reservation` shape, to confirm at Phase 4:
+`stock_reservation` shape, confirmed at Phase 4 (Q10):
 
 ```sql
 CREATE TABLE stock_reservation (
@@ -415,7 +416,7 @@ CREATE TABLE stock_reservation (
 ```
 
 `purpose` rather than a platform FK keeps Phase 4 from having to build PDR-007's platform module
-first; it becomes a foreign key when that module lands.
+first; it becomes a foreign key when that module lands (Q10).
 
 ---
 
@@ -588,7 +589,7 @@ domain types gain behaviour (Phase 4).
 |---|---|---|
 | **Identity** | `User` | email is unique; password always stored encoded |
 | **Catalog** | `Label`, `Release` (with `Track`), `Artist` | a release belongs to exactly one label; ≥1 track; contiguous track positions |
-| **Distribution** | `Distributor`, `PricingAgreement`; later `Platform`, `DirectSales` (Q4) | exactly one `DIRECT` distributor per label; one agreement per (distributor, run); commission valid for its type |
+| **Distribution** | `Distributor`, `PricingAgreement`; later `Platform`, `DirectSales` (Q4) | every distributor is an external counterparty *(replaces "exactly one `DIRECT` distributor per label", retired by Q9)*; one agreement per (distributor, run); commission valid for its type |
 | **Inventory** | **`Stock`** — `ProductionRun` + its movement ledger + its reservations | every movement is a conserved transfer of a positive quantity between two locations; **no location balance is ever negative**; **reserved ≤ on-hand**; draws follow FIFO across runs |
 | **Sales** | `Sale`, `DistributorReturn` | ≥1 line item; total = Σ line totals; attributed to exactly one counterparty; counterparty and channel immutable after registration |
 | **Finance** | `Cost`, invoice extraction | gross = net + VAT; a cost has exactly one owner |
@@ -603,7 +604,8 @@ computable in one aggregate SQL query, with one owner:
 ```java
 // inventory/domain/StockLedger.java — the rule, in one place, unit-testable without Spring
 int onHandAt(InventoryLocation location);            // Σ in − Σ out, never caller-corrected
-int availableAt(InventoryLocation location);         // onHand − reserved  (WAREHOUSE only)
+int availableAt(InventoryLocation location);         // onHand − reserved  (WAREHOUSE only; 4b —
+                                                     // there is nothing reserved until V34)
 List<RunDraw> drawFifo(Long releaseId, Format format, InventoryLocation from, int quantity);
 ```
 
@@ -692,15 +694,18 @@ graph TD
 
 ### 5.3 Inter-module communication — and the event-driven verdict
 
-**Verdict: synchronous `api/` calls everywhere, with exactly one domain event.**
+**Verdict: synchronous `api/` calls everywhere. The one domain event is retired by Q9.**
 
-**The one event: `LabelCreated`.** `CreateLabelUseCase` currently calls
-`distributorCommandApi.createDistributor(labelId, "Direct Sales", DIRECT)` — the last cycle once the
-misplaced types move in Phase 1, and the only one that is a genuine policy rather than a misplaced
-file. It earns an event because catalog has no business knowing that distribution wants to provision
-anything; because the rule is a policy that will gain subscribers rather than lose them; and because
-it is safely atomic via `ApplicationEventPublisher` + `@TransactionalEventListener` in the same
-transaction, with no queue and no outbox.
+**The one event was `LabelCreated`.** Phase 1 broke catalog's last cycle by having `CreateLabelUseCase`
+publish it and `DirectSalesProvisioner` subscribe, provisioning the per-label "Direct Sales"
+distributor. The reasoning held that the rule was a policy that would gain subscribers rather than
+lose them. Q9 disproves that: retiring the pseudo-distributor removes the provisioner, and with it the
+event's only subscriber. **Phase 4b deletes the event, its publisher and `DirectSalesProvisioner`
+together** — an event with no subscribers is a cycle-breaker with nothing left to break.
+
+The mechanism was never the problem, and the judgement stands should a genuine policy appear:
+`ApplicationEventPublisher` + `@TransactionalEventListener` in the same transaction, no queue, no
+outbox. It simply has no instance left in this codebase.
 
 **Where events would actively hurt.** Sale registration → inventory must stay a direct synchronous
 call. The sale is *rejected* when stock is insufficient (`InsufficientInventoryException`); that is a
@@ -740,8 +745,8 @@ which needs it.
 
 - **No rewrite, of any module.** Earned: the dependency analysis shows five offending edges outside
   controllers, four of them single-file moves. The module skeleton is already right and applied
-  consistently across eight modules. The largest behavioural change (§5.1) is two migrations plus one
-  class, done in Phase 4 with boundaries already enforced.
+  consistently across eight modules. The largest behavioural change (§5.1) is three migrations plus
+  one class, done in Phase 4 with boundaries already enforced.
 - **No new abstractions where the existing ones suffice.** `CommandApi`/`QueryApi` stays.
   `InventoryLocation` stays. The from/to ledger stays. `fromEntity()` stays *except* where a domain
   type gains behaviour and must lose its JPA dependency.
@@ -1019,40 +1024,57 @@ fail the two ArchUnit rules; an extra `@GetMapping` fails `OpenApiConformanceTes
 
 ### Phase 4 — Rebuild the Inventory aggregate
 
-**Settle first (see §7, carried).** `sale.distributor_id` is `NOT NULL`, and `CreateLabelUseCase`
-creates a "Direct Sales" distributor representing the label itself — so direct sales currently record
-`DISTRIBUTOR(direct) → EXTERNAL`, a custody transfer to a pseudo-partner for stock that never left the
-warehouse. That is the same modelling error Q8 just removed for Bandcamp. Recommendation: direct and
-Bandcamp sales both become `WAREHOUSE → EXTERNAL`, the pseudo-distributor is retired, and
-`sale.distributor_id` becomes nullable with a counterparty discriminator. **This must be decided
-before the migrations are written.**
+**Settled before starting** (Q9, Q10 in §7). The pseudo-distributor is retired and `purpose` stays a
+`VARCHAR`. Taken as the risk table's named split point: **4a** is the ledger and FIFO rewrite with no
+`sale` schema change, **4b** is the counterparty remodelling that Q8 and Q9 share.
+
+#### Phase 4a — `V33`, `StockLedger`, FIFO 🚧 *in progress, branch `feature/backend-phase-4`*
 
 **Changes.** `MovementType` becomes `ALLOCATION, SALE, RETURN, PRODUCTION` — drop `TRANSFER_IN`,
 `TRANSFER_OUT`, `ADJUSTMENT` and delete `MovementTypeTest` (Q6). `V33` inserts one `PRODUCTION`
-movement per existing run. `V34` creates `stock_reservation`, converts existing Bandcamp movements to
-reservation rows net of cancellations, and removes the `BANDCAMP` location (Q8). Introduce
-`inventory/domain/StockLedger` owning `onHandAt`, `availableAt` and `drawFifo`; rewrite
+movement per existing run. Introduce `inventory/domain/StockLedger` owning `onHandAt` and `drawFifo`
+— **not `availableAt`, which subtracts reservations that do not exist until `V34`** — and rewrite
 `SaleLineItemProcessor` and `ReturnLineItemProcessor` to consume the FIFO split (Q1). Delete the
-`+ run.quantity()` correction from `AllocateUseCase:47` and the `web` read model. Replace in-memory
+`+ run.quantity()` correction from `AllocateUseCase:45` and the `web` read model. Replace in-memory
 summation with aggregate SQL (`SUM(...) FILTER (WHERE ...)`), fixing the N+1. Add `SELECT ... FOR
 UPDATE` on the balance read in the sale path to close the oversell race. Collapse the duplicate
 `findByProductionRunId`/`getMovementsForProductionRun`.
 
+**Expected churn in 4b.** 4a makes no `sale` schema change, so its FIFO draw and its lock land on
+`DISTRIBUTOR(id)` — the location the sale path reads today. 4b re-points direct and Bandcamp sales at
+`WAREHOUSE`. This is bounded by design: `drawFifo` takes the location as a parameter (§5.1), so 4b
+changes call sites and test fixtures, not the algorithm or the lock.
+
+**Done when.** `V33` is idempotent and a verification query shows every run's post-migration on-hand
+equals its pre-migration `quantity + delta`; `onHandAt` returns an absolute figure with no
+caller-side arithmetic; a multi-pressing test asserts FIFO attribution across two runs; a test
+asserts two concurrent sales cannot oversell.
+
+#### Phase 4b — `V34`/`V35`, reservations, counterparty remodelling
+
+**Changes.** `V34` creates `stock_reservation`, converts existing Bandcamp movements to reservation
+rows net of cancellations, and removes the `BANDCAMP` location (Q8); `StockLedger` gains
+`availableAt`. `V35` makes `sale.distributor_id` nullable, adds the counterparty discriminator,
+repoints existing direct sales at `WAREHOUSE → EXTERNAL`, deletes their matching
+`WAREHOUSE → DISTRIBUTOR(direct)` ALLOCATION legs, and deletes the per-label "Direct Sales"
+distributor (Q9). The code that creates them goes too: `DirectSalesProvisioner`, the `LabelCreated`
+event and its publisher (§5.3), and `RegisterSaleUseCase`'s DIRECT-distributor lookup, which today
+throws when the pseudo-distributor is absent.
+
+**Done when.** Reserved equals the prior Bandcamp balance; a test asserts a Bandcamp sale decrements
+the reservation and records `WAREHOUSE → EXTERNAL`; a test asserts a direct sale records
+`WAREHOUSE → EXTERNAL` against a null distributor; creating a label provisions no distributor; every
+run's on-hand is unchanged by `V35`, the deleted ALLOCATION legs and repointed sales cancelling out.
+
 **Why here.** The only phase with irreversible data migrations, and the real behavioural redesign.
 Much safer once boundaries are enforced (Phase 3) and the API surface has stopped moving (Phase 2).
-
-**Done when.** `V33`/`V34` are idempotent and a verification query shows every run's post-migration
-on-hand equals its pre-migration `quantity + delta`, and reserved equals the prior Bandcamp balance;
-`onHandAt` returns an absolute figure with no caller-side arithmetic; a multi-pressing test asserts
-FIFO attribution across two runs; a test asserts a Bandcamp sale decrements the reservation and
-records `WAREHOUSE → EXTERNAL`; a test asserts two concurrent sales cannot oversell.
 
 ---
 
 ### Phase 5 — Tenant isolation
 
-**Changes.** `V35` adds and backfills tenant columns (`cost.user_id`; `label_id` on `production_run`,
-`inventory_movement`, `pricing_agreement`, `stock_reservation`) with FKs and indexes. `V36` drops
+**Changes.** `V36` adds and backfills tenant columns (`cost.user_id`; `label_id` on `production_run`,
+`inventory_movement`, `pricing_agreement`, `stock_reservation`) with FKs and indexes. `V37` drops
 `sale.channel`. A single `TenantAccessGuard` in `web` — a `HandlerInterceptor` resolving `{labelId}`
 against the authenticated principal — applied to every label-scoped route. Ownership check on the
 cost-document endpoint.
@@ -1097,26 +1119,15 @@ runtime; no test `@Autowired`s a repository outside its own module.
 | Q6b | Own reason code for reservation cancellation? | **Superseded by Q8.** Cancellations stop being movements, so there is nothing to retype and no `RESERVATION_CANCELLED` is needed. `V34` converts rather than relabels. |
 | Q7 | Extraction failure semantics? | **Separate transport failure from empty result.** 502 `ProblemDetail` for unreachable/5xx/401; 200 + `extracted:false` for a successful-but-empty parse, finally giving `hasAnyData()` a caller. |
 | Q8 | How is Bandcamp modelled? | **Reservation against warehouse stock**, not a location. `LocationType` reduces to `WAREHOUSE / DISTRIBUTOR(id) / EXTERNAL`; a Bandcamp sale is `WAREHOUSE → EXTERNAL` consuming the reservation. Closes F6. |
-
-### Carried — must be settled before Phase 4 writes its migrations
-
-**The "Direct Sales" pseudo-distributor.** `sale.distributor_id` is `NOT NULL` and `CreateLabelUseCase`
-creates a distributor representing the label itself, so direct sales record
-`DISTRIBUTOR(direct) → EXTERNAL` — a custody transfer for stock that never left the warehouse, the
-same error Q8 removed for Bandcamp. Recommendation: direct and Bandcamp sales both become
-`WAREHOUSE → EXTERNAL`, the pseudo-distributor is retired, and `sale.distributor_id` becomes nullable
-with a counterparty discriminator. This interacts with Q4 (`directsales` is a planned PDR-007 module)
-and must be decided before `V33`/`V34` are written.
-
-**`stock_reservation.purpose` vs. a platform FK.** Proposed as a `VARCHAR` so Phase 4 need not build
-PDR-007's platform module first, becoming a foreign key when that module lands. Confirm at Phase 4.
+| Q9 | The "Direct Sales" pseudo-distributor? | **Retire it.** Direct and Bandcamp sales both become `WAREHOUSE → EXTERNAL`; `sale.distributor_id` becomes nullable with a counterparty discriminator, and the per-label pseudo-distributor is deleted by migration. Same error Q8 removed for Bandcamp; deferring it to PDR-007's `directsales` module would leave a custody transfer for stock that never left the warehouse. Lands in Phase 4b with Q8. |
+| Q10 | `stock_reservation.purpose` vs. a platform FK? | **`VARCHAR` as proposed**, becoming a foreign key when PDR-007's platform module lands. Keeps Phase 4 independent of Q4. |
 
 ### Risks
 
 | Risk | Mitigation |
 |---|---|
-| **`V33` and `V34` are the only irreversible data changes.** A wrong backfill silently corrupts every stock figure. | Both idempotent (`WHERE NOT EXISTS`); capture pre-migration on-hand and Bandcamp balances into a temp table and assert equality post-migration; verify against a production dump before deploying. |
-| **Phase 4 now carries two migrations plus a domain rewrite**, having absorbed Q1 and Q8. | It is the natural split point if the phase proves too large: `V33` + `StockLedger` + FIFO first, `V34` + reservations second, each independently green. |
+| **`V33`–`V35` are the only irreversible data changes.** A wrong backfill silently corrupts every stock figure. | All idempotent, though by different mechanisms: `V33`/`V34` insert `WHERE NOT EXISTS`, while `V35`'s `UPDATE`/`DELETE` are naturally re-runnable because they select on the old shape they remove. Capture pre-migration on-hand and Bandcamp balances into a temp table and assert equality post-migration; verify against a production dump before deploying. |
+| **Phase 4 carries three migrations plus a domain rewrite**, having absorbed Q1, Q8 and Q9. | **Split taken:** 4a is `V33` + `StockLedger` + FIFO, 4b is `V34`/`V35` + reservations + counterparty remodelling, each independently green and deployable. |
 | **Phase 2 is the largest phase** — 14 controllers, ~1,500 LOC moving and changing shape. | One controller per commit, each independently reviewable and deployable; slice tests move with their controller. |
 | **Fixing F1 pulls a newer Testcontainers**, which may shift container startup behaviour. | Phase 0 is that change and little else, so fallout is isolated. |
 | **CI does not reproduce local failure** (older Docker on `ubuntu-latest`), so CI green ≠ working. | After Phase 0 both agree; consider pinning a CI Docker version to keep them aligned. |
