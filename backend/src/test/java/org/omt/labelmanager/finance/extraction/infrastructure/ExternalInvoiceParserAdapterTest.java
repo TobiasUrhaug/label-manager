@@ -142,6 +142,30 @@ class ExternalInvoiceParserAdapterTest {
     }
 
     @Test
+    void throwsUnreadable_whenTheParserAnswersWithAnUnparseableAmount() {
+        server.expect(requestTo("http://test/api/v1/extract"))
+                .andExpect(method(HttpMethod.POST))
+                .andRespond(
+                        withSuccess(
+                                """
+                        {
+                            "invoiceReference": "INV-003",
+                            "netAmount": {"amount": "1.234,00", "currency": "NOK"}
+                        }
+                        """,
+                                MediaType.APPLICATION_JSON));
+
+        assertThatThrownBy(
+                        () ->
+                                adapter.extract(
+                                        new ByteArrayInputStream(new byte[] {1, 2, 3}),
+                                        "application/pdf"))
+                .isInstanceOf(InvoiceParserUnavailableException.class)
+                .hasMessageContaining("could not be read")
+                .hasMessageNotContaining("could not be reached");
+    }
+
+    @Test
     void returnsEmptyData_whenTheParserAnswersWithNoBody() {
         server.expect(requestTo("http://test/api/v1/extract"))
                 .andExpect(method(HttpMethod.POST))

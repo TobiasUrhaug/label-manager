@@ -7,6 +7,6 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 public class InvalidDocumentTypeException extends RuntimeException {
 
     public InvalidDocumentTypeException(String contentType) {
-        super("Invalid document type: " + contentType + ". Allowed types: PDF, PNG, JPEG");
+        super("Invalid document type: " + contentType + ". Extraction accepts PDF only.");
     }
 }
