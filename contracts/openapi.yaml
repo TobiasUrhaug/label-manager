@@ -5,8 +5,19 @@ info:
   description: |
     REST API for the Label Manager application.
 
-    This spec is the source of truth for the contract between frontend and backend.
-    Add endpoints here as they are introduced during the Thymeleaf → React migration.
+    This spec is the source of truth for the contract between frontend and backend, and now
+    covers the whole served surface rather than the three endpoints the React client happens
+    to call. Nothing enforces that yet: the conformance test that boots the app, reads
+    `/v3/api-docs` and fails on any drift is Phase 3. Until it exists, an endpoint added
+    without a change here will go unnoticed.
+
+    Errors are RFC 9457 `ProblemDetail`, served as `application/problem+json`. Every path
+    below also answers 401 when the session cookie is missing and 403 when a mutating request
+    arrives without a valid CSRF token; neither is repeated per operation.
+
+    Ownership: a nested id is checked against the label in its path, so asking for one label's
+    release under another's id is a 404. That is not a tenant guard — nothing yet checks that
+    the caller owns the label at all (F2, Phase 5).
 
 paths:
   /login:
@@ -30,25 +41,57 @@ paths:
         '401':
           description: Invalid username or password.
           content:
-            application/json:
+            application/problem+json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '#/components/schemas/ProblemDetail'
 
   /logout:
     post:
       operationId: logout
       summary: Invalidate the current session
       description: |
-        Ends the authenticated session. Requires an active session cookie.
+        Ends the session. Requires a valid CSRF token, but not a session — logout is
+        permitted to anyone and is idempotent.
       responses:
         '200':
-          description: Logout successful. Session has been invalidated.
-        '401':
-          description: No active session.
+          description: Session invalidated, or there was none to invalidate.
+        '403':
+          description: The CSRF token was missing or stale.
           content:
-            application/json:
+            application/problem+json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '#/components/schemas/ProblemDetail'
+
+  /api/auth/register:
+    post:
+      operationId: register
+      summary: Create an account
+      description: |
+        Creates a user and returns immediately — it does not start a session.
+        The caller logs in separately via `POST /login`. This endpoint is
+        unauthenticated and exempt from CSRF.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '201':
+          description: Account created. The response has no body.
+        '400':
+          description: A required field was missing or blank, or the body was not valid JSON.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '409':
+          description: An account with this email already exists.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
 
   /api/session:
     get:
@@ -67,9 +110,1012 @@ paths:
         '401':
           description: Not authenticated — no valid session cookie present.
           content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  /api/artists:
+    get:
+      operationId: listArtists
+      summary: List the artists belonging to the caller
+      description: |
+        Scoped to the authenticated user. Replaces the artist list that used to be
+        bundled into `GET /api/labels/{labelId}`.
+      responses:
+        '200':
+          description: The caller's artists, possibly empty.
+          content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                type: array
+                items:
+                  $ref: '#/components/schemas/Artist'
+    post:
+      operationId: createArtist
+      summary: Create an artist owned by the caller
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ArtistRequest'
+      responses:
+        '201':
+          description: Artist created. The response has no body.
+        '400':
+          description: artistName was missing or blank.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  /api/artists/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+    get:
+      operationId: getArtist
+      summary: Get one artist
+      responses:
+        '200':
+          description: The artist.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Artist'
+        '404':
+          description: No artist with that id.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+    put:
+      operationId: updateArtist
+      summary: Replace an artist's details
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ArtistRequest'
+      responses:
+        '204':
+          description: Artist updated.
+        '400':
+          description: artistName was missing or blank.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          description: No artist with that id.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+    delete:
+      operationId: deleteArtist
+      summary: Delete an artist
+      responses:
+        '204':
+          description: Artist deleted.
+        '404':
+          description: No artist with that id.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  /api/dashboard:
+    get:
+      operationId: getDashboard
+      summary: The caller's labels and artists
+      responses:
+        '200':
+          description: Dashboard data.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [labels, artists]
+                properties:
+                  labels:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Label'
+                  artists:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Artist'
+
+  /api/labels:
+    post:
+      operationId: createLabel
+      summary: Create a label owned by the caller
+      description: |
+        Also provisions the label's DIRECT distributor, via the `LabelCreated` event, in the
+        same transaction.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LabelRequest'
+      responses:
+        '201':
+          description: Label created. The response has no body.
+
+  /api/labels/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema: { type: integer, format: int64 }
+    get:
+      operationId: getLabel
+      summary: Get one label
+      description: |
+        The label alone. Its releases, distributors and the caller's artists are
+        `/api/labels/{labelId}/releases`, `/api/labels/{labelId}/distributors` and
+        `/api/artists`.
+      responses:
+        '200':
+          description: The label.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Label'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      operationId: updateLabel
+      summary: Replace a label's details
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LabelRequest'
+      responses:
+        '204':
+          description: Label updated.
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      operationId: deleteLabel
+      summary: Delete a label
+      responses:
+        '204':
+          description: Label deleted.
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /api/labels/{labelId}/releases:
+    parameters:
+      - $ref: '#/components/parameters/LabelId'
+    get:
+      operationId: listReleases
+      summary: The label's releases
+      responses:
+        '200':
+          description: The label's releases, possibly empty.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Release'
+    post:
+      operationId: createRelease
+      summary: Create a release under this label
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReleaseRequest'
+      responses:
+        '201':
+          description: Release created. The response has no body.
+
+  /api/labels/{labelId}/releases/{releaseId}:
+    parameters:
+      - $ref: '#/components/parameters/LabelId'
+      - $ref: '#/components/parameters/ReleaseId'
+    get:
+      operationId: getRelease
+      summary: Get one release
+      description: |
+        The release with its tracks, and the artists behind the ids it holds. Its costs,
+        production runs, sales and the label's distributors are separate collections.
+      responses:
+        '200':
+          description: The release.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReleaseDetail'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      operationId: updateRelease
+      summary: Replace a release's details, tracks and formats
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReleaseRequest'
+      responses:
+        '204':
+          description: Release updated.
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      operationId: deleteRelease
+      summary: Delete a release
+      responses:
+        '204':
+          description: Release deleted.
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /api/labels/{labelId}/releases/{releaseId}/production-runs:
+    parameters:
+      - $ref: '#/components/parameters/LabelId'
+      - $ref: '#/components/parameters/ReleaseId'
+    get:
+      operationId: listProductionRuns
+      summary: The release's production runs, with inventory and movement history
+      responses:
+        '200':
+          description: The production runs, possibly empty.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ProductionRunWithAllocation'
+        '404':
+          description: No such release under this label.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+    post:
+      operationId: createProductionRun
+      summary: Record a pressing of this release
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductionRunRequest'
+      responses:
+        '201':
+          description: Production run created. The response has no body.
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /api/labels/{labelId}/releases/{releaseId}/production-runs/{productionRunId}:
+    parameters:
+      - $ref: '#/components/parameters/LabelId'
+      - $ref: '#/components/parameters/ReleaseId'
+      - name: productionRunId
+        in: path
+        required: true
+        schema: { type: integer, format: int64 }
+    delete:
+      operationId: deleteProductionRun
+      summary: Delete a production run
+      responses:
+        '204':
+          description: Production run deleted.
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /api/labels/{labelId}/releases/{releaseId}/production-runs/{runId}/allocations:
+    parameters:
+      - $ref: '#/components/parameters/LabelId'
+      - $ref: '#/components/parameters/ReleaseId'
+      - name: runId
+        in: path
+        required: true
+        schema: { type: integer, format: int64 }
+    post:
+      operationId: allocate
+      summary: Move stock from the warehouse to a distributor or to Bandcamp
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [locationType, quantity]
+              properties:
+                locationType:
+                  $ref: '#/components/schemas/LocationType'
+                distributorId:
+                  type: integer
+                  format: int64
+                  nullable: true
+                  description: Required when locationType is DISTRIBUTOR.
+                quantity:
+                  type: integer
+                  minimum: 1
+      responses:
+        '204':
+          description: Stock allocated.
+        '400':
+          description: |
+            Quantity was not positive, no location type was given, DISTRIBUTOR was given
+            without a distributorId, or the warehouse does not hold that many units.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  /api/labels/{labelId}/releases/{releaseId}/production-runs/{runId}/bandcamp-cancellations:
+    parameters:
+      - $ref: '#/components/parameters/LabelId'
+      - $ref: '#/components/parameters/ReleaseId'
+      - name: runId
+        in: path
+        required: true
+        schema: { type: integer, format: int64 }
+    post:
+      operationId: cancelBandcampReservation
+      summary: Return a Bandcamp reservation to the warehouse
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [quantity]
+              properties:
+                quantity:
+                  type: integer
+                  minimum: 1
+      responses:
+        '204':
+          description: Reservation cancelled.
+        '400':
+          description: Quantity was not positive, or exceeds what is held for Bandcamp.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  /api/labels/{labelId}/releases/{releaseId}/sales:
+    parameters:
+      - $ref: '#/components/parameters/LabelId'
+      - $ref: '#/components/parameters/ReleaseId'
+    get:
+      operationId: listSalesForRelease
+      summary: The sales attributed to this release, through its production runs
+      responses:
+        '200':
+          description: The release's sales and total units sold.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [sales, totalUnitsSold]
+                properties:
+                  sales:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ReleaseSaleView'
+                  totalUnitsSold:
+                    type: integer
+        '404':
+          description: No such release under this label.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  /api/labels/{labelId}/production-runs:
+    parameters:
+      - $ref: '#/components/parameters/LabelId'
+    get:
+      operationId: listProductionRunsForLabel
+      summary: Every production run under this label, across all its releases
+      description: |
+        Exists so a caller holding a productionRunId — from a pricing agreement, say — can
+        resolve it without that endpoint reaching into inventory to render a name.
+      responses:
+        '200':
+          description: The label's production runs, possibly empty.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ProductionRun'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /api/labels/{labelId}/distributors:
+    parameters:
+      - $ref: '#/components/parameters/LabelId'
+    get:
+      operationId: listDistributors
+      summary: The label's distributors
+      responses:
+        '200':
+          description: The label's distributors, possibly empty.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Distributor'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    post:
+      operationId: createDistributor
+      summary: Add a distributor to this label
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, channelType]
+              properties:
+                name:
+                  type: string
+                channelType:
+                  $ref: '#/components/schemas/ChannelType'
+      responses:
+        '201':
+          description: Distributor created. The response has no body.
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /api/labels/{labelId}/distributors/{distributorId}:
+    parameters:
+      - $ref: '#/components/parameters/LabelId'
+      - $ref: '#/components/parameters/DistributorId'
+    get:
+      operationId: getDistributor
+      summary: Get one distributor
+      description: |
+        The distributor alone. Its sales, returns and agreements are sub-resources.
+      responses:
+        '200':
+          description: The distributor.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Distributor'
+        '404':
+          description: No such distributor under this label.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+    delete:
+      operationId: deleteDistributor
+      summary: Delete a distributor
+      responses:
+        '204':
+          description: Distributor deleted.
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /api/labels/{labelId}/distributors/{distributorId}/sales:
+    parameters:
+      - $ref: '#/components/parameters/LabelId'
+      - $ref: '#/components/parameters/DistributorId'
+    get:
+      operationId: listSalesForDistributor
+      summary: The sales made through this distributor
+      responses:
+        '200':
+          description: The distributor's sales, possibly empty.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Sale'
+        '404':
+          description: No such distributor under this label.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  /api/labels/{labelId}/distributors/{distributorId}/returns:
+    parameters:
+      - $ref: '#/components/parameters/LabelId'
+      - $ref: '#/components/parameters/DistributorId'
+    get:
+      operationId: listReturnsForDistributor
+      summary: The returns received from this distributor
+      responses:
+        '200':
+          description: The distributor's returns, possibly empty.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DistributorReturn'
+        '404':
+          description: No such distributor under this label.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  /api/labels/{labelId}/distributors/{distributorId}/agreements:
+    parameters:
+      - $ref: '#/components/parameters/LabelId'
+      - $ref: '#/components/parameters/DistributorId'
+    get:
+      operationId: listAgreements
+      summary: The distributor's pricing agreements
+      description: |
+        Each carries `productionRunId`. Resolve it against
+        `/api/labels/{labelId}/production-runs` rather than expecting a rendered name.
+      responses:
+        '200':
+          description: The agreements, possibly empty.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PricingAgreement'
+        '404':
+          description: No such distributor under this label.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+    post:
+      operationId: createAgreement
+      summary: Price one production run for this distributor
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AgreementRequest'
+      responses:
+        '201':
+          description: Agreement created. The response has no body.
+        '400':
+          description: This distributor already has an agreement for that production run.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /api/labels/{labelId}/distributors/{distributorId}/agreements/{id}:
+    parameters:
+      - $ref: '#/components/parameters/LabelId'
+      - $ref: '#/components/parameters/DistributorId'
+      - name: id
+        in: path
+        required: true
+        schema: { type: integer, format: int64 }
+    put:
+      operationId: updateAgreement
+      summary: Change an agreement's price or commission
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [unitPrice, commissionType, commissionValue]
+              properties:
+                unitPrice:
+                  type: number
+                commissionType:
+                  $ref: '#/components/schemas/CommissionType'
+                commissionValue:
+                  type: number
+      responses:
+        '204':
+          description: Agreement updated.
+        '404':
+          description: No such agreement for this distributor.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+    delete:
+      operationId: deleteAgreement
+      summary: Delete an agreement
+      responses:
+        '204':
+          description: Agreement deleted.
+        '404':
+          description: No such agreement for this distributor.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  /api/labels/{labelId}/costs:
+    parameters:
+      - $ref: '#/components/parameters/LabelId'
+    get:
+      operationId: listCosts
+      summary: The label's costs, or one release's
+      parameters:
+        - name: releaseId
+          in: query
+          required: false
+          description: When given, only costs owned by that release.
+          schema: { type: integer, format: int64 }
+      responses:
+        '200':
+          description: The costs, possibly empty.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Cost'
+        '404':
+          description: No such release under this label.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+    post:
+      operationId: registerCost
+      summary: Record a cost against the label or one of its releases
+      description: |
+        Multipart, because the invoice may be attached in the same request. `releaseId` names
+        the owner: absent means the label owns the cost.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CostForm'
+      responses:
+        '201':
+          description: Cost created. The response has no body.
+        '400':
+          description: The attached document is not an accepted type.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          description: No such release under this label.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  /api/labels/{labelId}/costs/{costId}:
+    parameters:
+      - $ref: '#/components/parameters/LabelId'
+      - $ref: '#/components/parameters/CostId'
+    put:
+      operationId: updateCost
+      summary: Replace a cost's details
+      description: |
+        `releaseId` is not read here — a cost's owner is fixed at creation. Send it and it is
+        ignored.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CostForm'
+      responses:
+        '204':
+          description: Cost updated.
+        '400':
+          description: The attached document is not an accepted type.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          $ref: '#/components/responses/CostNotUnderLabel'
+    delete:
+      operationId: deleteCost
+      summary: Delete a cost
+      responses:
+        '204':
+          description: Cost deleted.
+        '404':
+          $ref: '#/components/responses/CostNotUnderLabel'
+
+  /api/labels/{labelId}/costs/{costId}/document:
+    parameters:
+      - $ref: '#/components/parameters/LabelId'
+      - $ref: '#/components/parameters/CostId'
+    get:
+      operationId: getCostDocument
+      summary: Download or view the invoice attached to a cost
+      parameters:
+        - name: action
+          in: query
+          required: false
+          description: '`download` sends Content-Disposition attachment; anything else, inline.'
+          schema:
+            type: string
+            default: view
+            enum: [view, download]
+      responses:
+        '200':
+          description: |
+            The document, served with the content type it was stored under — one of
+            application/pdf, image/png, image/jpeg, or the Word and Excel types.
+          content:
+            '*/*':
+              schema:
+                type: string
+                format: binary
+        '404':
+          description: No such cost under this label, or it has no document attached.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  /api/costs/extract:
+    post:
+      operationId: extractInvoiceData
+      summary: Read an invoice PDF without storing it
+      description: |
+        Calls the external parser. A parse that runs and finds nothing is a 200 with
+        `extracted: false` and null fields; a parser that cannot be reached, answers with an
+        error, or returns something unreadable is a 502.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [document]
+              properties:
+                document:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: The parser ran. Check `extracted`.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExtractionResponse'
+        '400':
+          description: No document was sent, or it was not a PDF.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '502':
+          description: The invoice parser is unreachable, errored, or answered unreadably.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  /api/labels/{labelId}/sales:
+    parameters:
+      - $ref: '#/components/parameters/LabelId'
+    get:
+      operationId: listSales
+      summary: The label's sales and total revenue
+      responses:
+        '200':
+          description: The sales, possibly empty, with the label's total revenue.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [sales, totalRevenue]
+                properties:
+                  sales:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Sale'
+                  totalRevenue:
+                    $ref: '#/components/schemas/Money'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    post:
+      operationId: registerSale
+      summary: Record a sale
+      description: |
+        Consumes stock. Rejected if the production runs behind the line items cannot cover it.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterSaleRequest'
+      responses:
+        '201':
+          description: Sale recorded. The response has no body.
+        '400':
+          description: |
+            A required field was missing, lineItems was empty, or the production runs
+            behind the line items cannot cover the sale.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /api/labels/{labelId}/sales/{saleId}:
+    parameters:
+      - $ref: '#/components/parameters/LabelId'
+      - name: saleId
+        in: path
+        required: true
+        schema: { type: integer, format: int64 }
+    get:
+      operationId: getSale
+      summary: Get one sale, with its line items named
+      responses:
+        '200':
+          description: The sale.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SaleDetail'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      operationId: updateSale
+      summary: Replace a sale's date, notes and line items
+      description: Reverses the original stock movements and applies the new ones.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateSaleRequest'
+      responses:
+        '200':
+          description: The updated sale.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Sale'
+        '400':
+          description: |
+            A required field was missing, lineItems was empty, or there is not enough
+            stock for the new line items.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      operationId: deleteSale
+      summary: Delete a sale and reverse its stock movements
+      responses:
+        '204':
+          description: Sale deleted.
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /api/labels/{labelId}/returns:
+    parameters:
+      - $ref: '#/components/parameters/LabelId'
+    get:
+      operationId: listReturns
+      summary: The label's returns, with its distributors
+      responses:
+        '200':
+          description: The returns, possibly empty.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [returns, distributors]
+                properties:
+                  returns:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/DistributorReturn'
+                  distributors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Distributor'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    post:
+      operationId: registerReturn
+      summary: Record stock coming back from a distributor
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterReturnRequest'
+      responses:
+        '201':
+          description: Return recorded. The response has no body.
+        '400':
+          description: |
+            A required field was missing, lineItems was empty, or the distributor does
+            not hold that many units.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /api/labels/{labelId}/returns/{returnId}:
+    parameters:
+      - $ref: '#/components/parameters/LabelId'
+      - name: returnId
+        in: path
+        required: true
+        schema: { type: integer, format: int64 }
+    get:
+      operationId: getReturn
+      summary: Get one return, with its line items named
+      responses:
+        '200':
+          description: The return.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReturnDetail'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      operationId: updateReturn
+      summary: Replace a return's date, notes and line items
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateReturnRequest'
+      responses:
+        '200':
+          description: The updated return.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DistributorReturn'
+        '400':
+          description: |
+            A required field was missing, lineItems was empty, or the distributor does
+            not hold that many units.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      operationId: deleteReturn
+      summary: Delete a return and reverse its stock movements
+      responses:
+        '204':
+          description: Return deleted.
+        '404':
+          $ref: '#/components/responses/NotFound'
 
 components:
   securitySchemes:
@@ -77,6 +1123,44 @@ components:
       type: apiKey
       in: cookie
       name: JSESSIONID
+
+  parameters:
+    LabelId:
+      name: labelId
+      in: path
+      required: true
+      schema: { type: integer, format: int64 }
+    ReleaseId:
+      name: releaseId
+      in: path
+      required: true
+      schema: { type: integer, format: int64 }
+    DistributorId:
+      name: distributorId
+      in: path
+      required: true
+      schema: { type: integer, format: int64 }
+    CostId:
+      name: costId
+      in: path
+      required: true
+      schema: { type: integer, format: int64 }
+
+  responses:
+    NotFound:
+      description: No such resource.
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetail'
+    CostNotUnderLabel:
+      description: |
+        No cost with that id is reachable under this label — it may belong to another label,
+        to a release of another label, or to a user.
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetail'
 
   schemas:
     LoginRequest:
@@ -91,6 +1175,102 @@ components:
           type: string
           format: password
 
+    Address:
+      type: object
+      nullable: true
+      properties:
+        street:
+          type: string
+        street2:
+          type: string
+          nullable: true
+        city:
+          type: string
+        postalCode:
+          type: string
+        country:
+          type: string
+
+    Person:
+      type: object
+      nullable: true
+      required:
+        - name
+      properties:
+        name:
+          type: string
+
+    Artist:
+      type: object
+      required:
+        - id
+        - artistName
+        - userId
+      properties:
+        id:
+          type: integer
+          format: int64
+        artistName:
+          type: string
+        realName:
+          $ref: '#/components/schemas/Person'
+        email:
+          type: string
+          nullable: true
+        address:
+          $ref: '#/components/schemas/Address'
+        userId:
+          type: integer
+          format: int64
+
+    ArtistRequest:
+      description: |
+        Address and real name are sent flat and assembled server-side; a blank `street`
+        means no address, a blank `realName` means none.
+      type: object
+      required:
+        - artistName
+      properties:
+        artistName:
+          type: string
+        realName:
+          type: string
+          nullable: true
+        email:
+          type: string
+          nullable: true
+        street:
+          type: string
+          nullable: true
+        street2:
+          type: string
+          nullable: true
+        city:
+          type: string
+          nullable: true
+        postalCode:
+          type: string
+          nullable: true
+        country:
+          type: string
+          nullable: true
+
+    RegisterRequest:
+      type: object
+      required:
+        - email
+        - password
+        - displayName
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+        displayName:
+          type: string
+
     SessionResponse:
       type: object
       required:
@@ -99,13 +1279,602 @@ components:
         username:
           type: string
 
-    ErrorResponse:
+    ProblemDetail:
+      description: |
+        RFC 9457 problem details, served as `application/problem+json`.
+
+        Used by every error this application raises deliberately: the security filter
+        chain's 401 and 403, and anything `ApiExceptionHandler` maps. An unmapped
+        exception still falls through to Spring Boot's `/error` controller, which emits
+        `{timestamp, status, error, path}` as `application/json` — that is a bug to be
+        closed, not a second documented shape.
       type: object
       required:
-        - message
+        - status
       properties:
-        message:
+        type:
           type: string
+          format: uri
+          default: 'about:blank'
+        title:
+          type: string
+          description: Short, human-readable summary of the problem type.
+        status:
+          type: integer
+          description: The HTTP status code.
+        detail:
+          type: string
+          description: Human-readable explanation specific to this occurrence.
+        instance:
+          type: string
+          format: uri
+
+    Money:
+      type: object
+      required: [amount, currency]
+      properties:
+        amount:
+          type: number
+        currency:
+          type: string
+          description: Always "EUR" today — Money.of sets it and nothing else does.
+
+    Format:
+      type: string
+      enum: [DIGITAL, VINYL, CD, CASSETTE]
+
+    ChannelType:
+      type: string
+      enum: [DIRECT, DISTRIBUTOR, RECORD_STORE, EVENT]
+
+    CommissionType:
+      type: string
+      enum: [PERCENTAGE, FIXED_AMOUNT]
+
+    LocationType:
+      type: string
+      enum: [WAREHOUSE, DISTRIBUTOR, EXTERNAL, BANDCAMP]
+
+    MovementType:
+      type: string
+      enum: [ALLOCATION, SALE, RETURN, TRANSFER_IN, TRANSFER_OUT, ADJUSTMENT]
+
+    CostType:
+      type: string
+      description: See CostType in finance; the set is stable but not enumerated here.
+
+    Label:
+      type: object
+      required: [id, name, userId]
+      properties:
+        id: { type: integer, format: int64 }
+        name: { type: string }
+        email: { type: string, nullable: true }
+        website: { type: string, nullable: true }
+        address:
+          $ref: '#/components/schemas/Address'
+        owner:
+          $ref: '#/components/schemas/Person'
+        userId: { type: integer, format: int64 }
+
+    LabelRequest:
+      description: Address and owner are sent flat and assembled server-side.
+      type: object
+      required: [labelName]
+      properties:
+        labelName: { type: string }
+        email: { type: string, nullable: true }
+        website: { type: string, nullable: true }
+        ownerName: { type: string, nullable: true }
+        street: { type: string, nullable: true }
+        street2: { type: string, nullable: true }
+        city: { type: string, nullable: true }
+        postalCode: { type: string, nullable: true }
+        country: { type: string, nullable: true }
+
+    TrackDuration:
+      type: object
+      required: [totalSeconds]
+      properties:
+        totalSeconds: { type: integer }
+
+    Track:
+      type: object
+      required: [id, name, position]
+      properties:
+        id: { type: integer, format: int64 }
+        artistIds:
+          type: array
+          items: { type: integer, format: int64 }
+        name: { type: string }
+        duration:
+          $ref: '#/components/schemas/TrackDuration'
+        position: { type: integer }
+        remixerIds:
+          type: array
+          items: { type: integer, format: int64 }
+
+    TrackView:
+      description: A track with its artist and remixer ids resolved to artists.
+      type: object
+      required: [id, name, position]
+      properties:
+        id: { type: integer, format: int64 }
+        artists:
+          type: array
+          items:
+            $ref: '#/components/schemas/Artist'
+        name: { type: string }
+        duration:
+          $ref: '#/components/schemas/TrackDuration'
+        position: { type: integer }
+        remixers:
+          type: array
+          items:
+            $ref: '#/components/schemas/Artist'
+
+    Release:
+      type: object
+      required: [id, name, labelId]
+      properties:
+        id: { type: integer, format: int64 }
+        name: { type: string }
+        releaseDate: { type: string, format: date, nullable: true }
+        labelId: { type: integer, format: int64 }
+        artistIds:
+          type: array
+          items: { type: integer, format: int64 }
+        tracks:
+          type: array
+          items:
+            $ref: '#/components/schemas/Track'
+        formats:
+          type: array
+          uniqueItems: true
+          items:
+            $ref: '#/components/schemas/Format'
+
+    ReleaseDetail:
+      type: object
+      required: [releaseId, labelId, name]
+      properties:
+        releaseId: { type: integer, format: int64 }
+        labelId: { type: integer, format: int64 }
+        name: { type: string }
+        releaseDate: { type: string, format: date, nullable: true }
+        artists:
+          type: array
+          items:
+            $ref: '#/components/schemas/Artist'
+        tracks:
+          type: array
+          items:
+            $ref: '#/components/schemas/TrackView'
+        formats:
+          type: array
+          uniqueItems: true
+          items:
+            $ref: '#/components/schemas/Format'
+
+    ReleaseRequest:
+      type: object
+      required: [releaseName, releaseDate]
+      properties:
+        releaseName: { type: string }
+        releaseDate:
+          type: string
+          format: date
+          description: |
+            ISO-8601, required and non-blank. A malformed value is a 400 —
+            DateTimeException is mapped by ApiExceptionHandler.
+        artistIds:
+          type: array
+          items: { type: integer, format: int64 }
+        tracks:
+          type: array
+          description: Position is assigned from array order, starting at 1.
+          items:
+            type: object
+            properties:
+              artistIds:
+                type: array
+                items: { type: integer, format: int64 }
+              name: { type: string }
+              duration:
+                type: string
+                description: 'mm:ss'
+              remixerIds:
+                type: array
+                items: { type: integer, format: int64 }
+        formats:
+          type: array
+          items:
+            $ref: '#/components/schemas/Format'
+
+    ProductionRun:
+      type: object
+      required: [id, releaseId, format, quantity]
+      properties:
+        id: { type: integer, format: int64 }
+        releaseId: { type: integer, format: int64 }
+        format:
+          $ref: '#/components/schemas/Format'
+        description: { type: string, nullable: true }
+        manufacturer: { type: string, nullable: true }
+        manufacturingDate: { type: string, format: date, nullable: true }
+        quantity: { type: integer }
+
+    ProductionRunRequest:
+      type: object
+      required: [format, quantity]
+      properties:
+        format:
+          $ref: '#/components/schemas/Format'
+        description: { type: string, nullable: true }
+        manufacturer: { type: string, nullable: true }
+        manufacturingDate: { type: string, format: date, nullable: true }
+        quantity: { type: integer }
+
+    DistributorInventoryView:
+      type: object
+      required: [distributorId, current]
+      properties:
+        distributorId:
+          type: integer
+          format: int64
+        current: { type: integer }
+
+    MovementLocation:
+      description: |
+        Where stock moved from or to. `distributorId` is null unless the type is DISTRIBUTOR;
+        join against `/api/labels/{labelId}/distributors` for the name.
+      type: object
+      required: [type]
+      properties:
+        type:
+          $ref: '#/components/schemas/LocationType'
+        distributorId:
+          type: integer
+          format: int64
+          nullable: true
+
+    MovementHistoryView:
+      type: object
+      required: [occurredAt, movementType, fromLocation, toLocation, quantity]
+      properties:
+        occurredAt: { type: string, format: date-time }
+        movementType:
+          $ref: '#/components/schemas/MovementType'
+        fromLocation:
+          $ref: '#/components/schemas/MovementLocation'
+        toLocation:
+          $ref: '#/components/schemas/MovementLocation'
+        quantity: { type: integer }
+
+    ProductionRunWithAllocation:
+      type: object
+      required: [productionRun, bandcampInventory, warehouseInventory]
+      properties:
+        productionRun:
+          $ref: '#/components/schemas/ProductionRun'
+        bandcampInventory: { type: integer }
+        warehouseInventory: { type: integer }
+        distributorInventories:
+          type: array
+          items:
+            $ref: '#/components/schemas/DistributorInventoryView'
+        movements:
+          type: array
+          items:
+            $ref: '#/components/schemas/MovementHistoryView'
+
+    Distributor:
+      type: object
+      required: [id, labelId, name, channelType]
+      properties:
+        id: { type: integer, format: int64 }
+        labelId: { type: integer, format: int64 }
+        name: { type: string }
+        channelType:
+          $ref: '#/components/schemas/ChannelType'
+
+    PricingAgreement:
+      type: object
+      required: [id, distributorId, productionRunId, unitPrice, commissionType, commissionValue]
+      properties:
+        id: { type: integer, format: int64 }
+        distributorId: { type: integer, format: int64 }
+        productionRunId: { type: integer, format: int64 }
+        unitPrice: { type: number }
+        commissionType:
+          $ref: '#/components/schemas/CommissionType'
+        commissionValue: { type: number }
+        createdAt: { type: string, format: date-time, nullable: true }
+
+
+    AgreementRequest:
+      type: object
+      required: [productionRunId, unitPrice, commissionType, commissionValue]
+      properties:
+        productionRunId: { type: integer, format: int64 }
+        unitPrice: { type: number }
+        commissionType:
+          $ref: '#/components/schemas/CommissionType'
+        commissionValue: { type: number }
+
+    VatAmount:
+      type: object
+      required: [amount, rate]
+      properties:
+        amount:
+          $ref: '#/components/schemas/Money'
+        rate: { type: number }
+
+    CostOwner:
+      type: object
+      required: [type, id]
+      properties:
+        type:
+          type: string
+          enum: [LABEL, RELEASE, USER]
+        id: { type: integer, format: int64 }
+
+    Cost:
+      type: object
+      required: [id, netAmount, grossAmount, type, incurredOn, owner]
+      properties:
+        id: { type: integer, format: int64 }
+        netAmount:
+          $ref: '#/components/schemas/Money'
+        vat:
+          $ref: '#/components/schemas/VatAmount'
+        grossAmount:
+          $ref: '#/components/schemas/Money'
+        type:
+          $ref: '#/components/schemas/CostType'
+        incurredOn: { type: string, format: date }
+        description: { type: string, nullable: true }
+        owner:
+          $ref: '#/components/schemas/CostOwner'
+        documentReference: { type: string, nullable: true }
+        documentStorageKey: { type: string, nullable: true }
+
+    CostForm:
+      type: object
+      required: [netAmount, grossAmount, costType, incurredOn]
+      properties:
+        releaseId:
+          type: integer
+          format: int64
+          nullable: true
+          description: Owner discriminator. Absent means the label owns the cost.
+        netAmount: { type: number }
+        vatAmount: { type: number }
+        vatRate: { type: number }
+        grossAmount: { type: number }
+        costType:
+          $ref: '#/components/schemas/CostType'
+        incurredOn: { type: string, format: date }
+        description: { type: string, nullable: true }
+        documentReference: { type: string, nullable: true }
+        document:
+          type: string
+          format: binary
+          description: |
+            Optional. PDF, PNG, JPEG, Word or Excel; anything else is a 400.
+
+    ExtractionResponse:
+      type: object
+      required: [extracted]
+      properties:
+        extracted:
+          type: boolean
+          description: False when the parser ran and found nothing; every other field is then null.
+        netAmount: { type: number, nullable: true }
+        vatAmount: { type: number, nullable: true }
+        vatRate: { type: number, nullable: true }
+        grossAmount: { type: number, nullable: true }
+        invoiceDate: { type: string, format: date, nullable: true }
+        invoiceReference: { type: string, nullable: true }
+        currency: { type: string, nullable: true }
+
+    SaleLineItem:
+      type: object
+      required: [id, releaseId, format, quantity]
+      properties:
+        id: { type: integer, format: int64 }
+        releaseId: { type: integer, format: int64 }
+        format:
+          $ref: '#/components/schemas/Format'
+        quantity: { type: integer }
+        unitPrice:
+          $ref: '#/components/schemas/Money'
+        lineTotal:
+          $ref: '#/components/schemas/Money'
+
+    Sale:
+      type: object
+      required: [id, labelId, saleDate, channel]
+      properties:
+        id: { type: integer, format: int64 }
+        labelId: { type: integer, format: int64 }
+        distributorId: { type: integer, format: int64, nullable: true }
+        saleDate: { type: string, format: date }
+        channel:
+          $ref: '#/components/schemas/ChannelType'
+        notes: { type: string, nullable: true }
+        lineItems:
+          type: array
+          items:
+            $ref: '#/components/schemas/SaleLineItem'
+        totalAmount:
+          $ref: '#/components/schemas/Money'
+
+    SaleDetail:
+      description: A sale with each line item's release resolved to its name.
+      type: object
+      required: [id, labelId, saleDate, channel]
+      properties:
+        id: { type: integer, format: int64 }
+        labelId: { type: integer, format: int64 }
+        distributorId: { type: integer, format: int64, nullable: true }
+        saleDate: { type: string, format: date }
+        channel:
+          $ref: '#/components/schemas/ChannelType'
+        notes: { type: string, nullable: true }
+        totalAmount:
+          $ref: '#/components/schemas/Money'
+        lineItems:
+          type: array
+          items:
+            type: object
+            properties:
+              id: { type: integer, format: int64 }
+              releaseId: { type: integer, format: int64 }
+              releaseName:
+                type: string
+                description: '"Unknown" if the release no longer resolves.'
+              format:
+                $ref: '#/components/schemas/Format'
+              quantity: { type: integer }
+              unitPrice:
+                $ref: '#/components/schemas/Money'
+              lineTotal:
+                $ref: '#/components/schemas/Money'
+
+    ReleaseSaleView:
+      type: object
+      required: [saleId, saleDate, distributorName, totalUnits]
+      properties:
+        saleId: { type: integer, format: int64 }
+        saleDate: { type: string, format: date }
+        distributorName: { type: string }
+        totalUnits: { type: integer }
+        totalRevenue:
+          $ref: '#/components/schemas/Money'
+
+    LineItemRequest:
+      type: object
+      required: [releaseId, format, quantity]
+      properties:
+        releaseId: { type: integer, format: int64 }
+        format:
+          $ref: '#/components/schemas/Format'
+        quantity: { type: integer }
+        unitPrice: { type: number }
+
+    RegisterSaleRequest:
+      type: object
+      required: [saleDate, channel, lineItems]
+      properties:
+        saleDate: { type: string, format: date }
+        channel:
+          $ref: '#/components/schemas/ChannelType'
+        distributorId: { type: integer, format: int64, nullable: true }
+        notes: { type: string, nullable: true }
+        lineItems:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/LineItemRequest'
+
+    UpdateSaleRequest:
+      type: object
+      required: [saleDate, lineItems]
+      properties:
+        saleDate: { type: string, format: date }
+        notes: { type: string, nullable: true }
+        lineItems:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/LineItemRequest'
+
+    ReturnLineItem:
+      type: object
+      required: [id, returnId, releaseId, format, quantity]
+      properties:
+        id: { type: integer, format: int64 }
+        returnId: { type: integer, format: int64 }
+        releaseId: { type: integer, format: int64 }
+        format:
+          $ref: '#/components/schemas/Format'
+        quantity: { type: integer }
+
+    DistributorReturn:
+      type: object
+      required: [id, labelId, distributorId, returnDate]
+      properties:
+        id: { type: integer, format: int64 }
+        labelId: { type: integer, format: int64 }
+        distributorId: { type: integer, format: int64 }
+        returnDate: { type: string, format: date }
+        notes: { type: string, nullable: true }
+        lineItems:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReturnLineItem'
+        createdAt: { type: string, format: date-time, nullable: true }
+
+    ReturnDetail:
+      description: A return with its distributor embedded and each line item's release named.
+      type: object
+      required: [id, labelId, distributorId, returnDate]
+      properties:
+        id: { type: integer, format: int64 }
+        labelId: { type: integer, format: int64 }
+        distributorId: { type: integer, format: int64 }
+        returnDate: { type: string, format: date }
+        notes: { type: string, nullable: true }
+        createdAt: { type: string, format: date-time, nullable: true }
+        distributor:
+          $ref: '#/components/schemas/Distributor'
+        lineItems:
+          type: array
+          items:
+            type: object
+            properties:
+              id: { type: integer, format: int64 }
+              returnId: { type: integer, format: int64 }
+              releaseId: { type: integer, format: int64 }
+              releaseName: { type: string }
+              format:
+                $ref: '#/components/schemas/Format'
+              quantity: { type: integer }
+
+    ReturnLineItemRequest:
+      type: object
+      required: [releaseId, format, quantity]
+      properties:
+        releaseId: { type: integer, format: int64 }
+        format:
+          $ref: '#/components/schemas/Format'
+        quantity: { type: integer }
+
+    RegisterReturnRequest:
+      type: object
+      required: [distributorId, returnDate, lineItems]
+      properties:
+        distributorId: { type: integer, format: int64 }
+        returnDate: { type: string, format: date }
+        notes: { type: string, nullable: true }
+        lineItems:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/ReturnLineItemRequest'
+
+    UpdateReturnRequest:
+      type: object
+      required: [returnDate, lineItems]
+      properties:
+        returnDate: { type: string, format: date }
+        notes: { type: string, nullable: true }
+        lineItems:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/ReturnLineItemRequest'
 
 security:
   - cookieAuth: []

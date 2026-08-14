@@ -11,7 +11,10 @@ public interface ExtractionCommandApi {
      *
      * @param content the document content stream
      * @param contentType the MIME type of the document
-     * @return extracted invoice data, or empty data if extraction fails
+     * @return the extracted data, or {@link ExtractedInvoiceData#empty()} when the parser ran and
+     *     found nothing
+     * @throws InvoiceParserUnavailableException if the parser could not be reached, answered with
+     *     an error status, or returned something that could not be read
      */
     ExtractedInvoiceData extract(InputStream content, String contentType);
 }

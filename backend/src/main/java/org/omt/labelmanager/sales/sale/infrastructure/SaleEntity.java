@@ -15,7 +15,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
-import org.omt.labelmanager.distribution.distributor.ChannelType;
+import org.omt.labelmanager.distribution.distributor.api.ChannelType;
 
 @Entity
 @Table(name = "sale")

@@ -1,6 +1,7 @@
 package org.omt.labelmanager.distribution.distributor;
 
 import org.omt.labelmanager.catalog.label.api.LabelCreated;
+import org.omt.labelmanager.distribution.distributor.api.ChannelType;
 import org.omt.labelmanager.distribution.distributor.api.DistributorCommandApi;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

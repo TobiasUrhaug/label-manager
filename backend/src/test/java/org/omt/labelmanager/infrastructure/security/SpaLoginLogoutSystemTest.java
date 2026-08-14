@@ -5,8 +5,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.omt.labelmanager.AbstractIntegrationTest;
-import org.omt.labelmanager.identity.application.UserCRUDHandler;
-import org.omt.labelmanager.identity.domain.user.EmailAlreadyExistsException;
+import org.omt.labelmanager.identity.api.user.EmailAlreadyExistsException;
+import org.omt.labelmanager.identity.api.user.UserCommandApi;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.resttestclient.TestRestTemplate;
 import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureTestRestTemplate;
@@ -26,12 +26,12 @@ class SpaLoginLogoutSystemTest extends AbstractIntegrationTest {
 
     @Autowired private TestRestTemplate restTemplate;
 
-    @Autowired private UserCRUDHandler userCRUDHandler;
+    @Autowired private UserCommandApi userCommandApi;
 
     @BeforeEach
     void createTestUser() {
         try {
-            userCRUDHandler.registerUser("login@example.com", "password123", "Login User");
+            userCommandApi.registerUser("login@example.com", "password123", "Login User");
         } catch (EmailAlreadyExistsException ignored) {
             // user already exists from a previous test run
         }
@@ -59,7 +59,7 @@ class SpaLoginLogoutSystemTest extends AbstractIntegrationTest {
     }
 
     @Test
-    void postLogin_withWrongPassword_returns401WithErrorBody() {
+    void postLogin_withWrongPassword_returns401ProblemDetail() {
         String xsrfToken = fetchXsrfToken();
 
         HttpHeaders headers = new HttpHeaders();
@@ -75,27 +75,48 @@ class SpaLoginLogoutSystemTest extends AbstractIntegrationTest {
                 restTemplate.postForEntity("/login", new HttpEntity<>(body, headers), String.class);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
-        assertThat(response.getHeaders().getContentType()).isNotNull();
-        assertThat(
-                        response.getHeaders()
-                                .getContentType()
-                                .isCompatibleWith(MediaType.APPLICATION_JSON))
-                .isTrue();
-        assertThat(response.getBody()).contains("Invalid credentials.");
+        assertThat(response.getHeaders().getContentType())
+                .isNotNull()
+                .matches(it -> it.isCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON));
+        assertThat(response.getBody())
+                .contains("\"status\":401")
+                .contains("Invalid credentials.")
+                .doesNotContain("\"properties\"");
     }
 
     @Test
-    void apiRequest_withoutSession_returns401WithJsonBody() {
+    void apiRequest_withoutSession_returns401ProblemDetail() {
         ResponseEntity<String> response = restTemplate.getForEntity("/api/session", String.class);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
-        assertThat(response.getHeaders().getContentType()).isNotNull();
-        assertThat(
-                        response.getHeaders()
-                                .getContentType()
-                                .isCompatibleWith(MediaType.APPLICATION_JSON))
-                .isTrue();
-        assertThat(response.getBody()).contains("message");
+        assertThat(response.getHeaders().getContentType())
+                .isNotNull()
+                .matches(it -> it.isCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON));
+        assertThat(response.getBody())
+                .contains("\"status\":401")
+                .contains("Authentication required.")
+                .doesNotContain("\"properties\"");
+    }
+
+    @Test
+    void authenticatedRequest_withoutCsrfToken_returns403ProblemDetail() {
+        String jsessionId = loginAndGetSessionId("login@example.com", "password123");
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.add(HttpHeaders.COOKIE, "JSESSIONID=" + jsessionId);
+
+        ResponseEntity<String> response =
+                restTemplate.exchange(
+                        "/logout", HttpMethod.POST, new HttpEntity<>(headers), String.class);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+        assertThat(response.getHeaders().getContentType())
+                .isNotNull()
+                .matches(it -> it.isCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON));
+        assertThat(response.getBody())
+                .contains("\"status\":403")
+                .contains("Access denied.")
+                .doesNotContain("\"properties\"");
     }
 
     @Test

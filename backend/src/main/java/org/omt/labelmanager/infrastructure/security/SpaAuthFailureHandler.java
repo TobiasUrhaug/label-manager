@@ -1,15 +1,20 @@
 package org.omt.labelmanager.infrastructure.security;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
+import tools.jackson.databind.json.JsonMapper;
 
 public class SpaAuthFailureHandler implements AuthenticationFailureHandler {
 
-    private static final ObjectMapper MAPPER = new ObjectMapper();
+    private final ProblemDetailWriter problemDetailWriter;
+
+    public SpaAuthFailureHandler(JsonMapper jsonMapper) {
+        this.problemDetailWriter = new ProblemDetailWriter(jsonMapper);
+    }
 
     @Override
     public void onAuthenticationFailure(
@@ -17,8 +22,6 @@ public class SpaAuthFailureHandler implements AuthenticationFailureHandler {
             HttpServletResponse response,
             AuthenticationException exception)
             throws IOException {
-        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-        response.setContentType("application/json;charset=UTF-8");
-        MAPPER.writeValue(response.getWriter(), new ErrorResponse("Invalid credentials."));
+        problemDetailWriter.write(response, HttpStatus.UNAUTHORIZED, "Invalid credentials.");
     }
 }

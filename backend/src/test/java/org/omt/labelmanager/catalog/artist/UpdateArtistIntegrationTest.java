@@ -1,7 +1,9 @@
 package org.omt.labelmanager.catalog.artist;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.Test;
 import org.omt.labelmanager.AbstractIntegrationTest;
 import org.omt.labelmanager.catalog.artist.api.ArtistCommandApi;
@@ -40,5 +42,15 @@ public class UpdateArtistIntegrationTest extends AbstractIntegrationTest {
         assertThat(updated.get().getRealName().getName()).isEqualTo("New Real Name");
         assertThat(updated.get().getAddress().getStreet()).isEqualTo("New Street");
         assertThat(updated.get().getAddress().getCity()).isEqualTo("Bergen");
+    }
+
+    @Test
+    void updateArtist_throwsEntityNotFound_whenArtistDoesNotExist() {
+        assertThatThrownBy(
+                        () ->
+                                artistCommandApi.updateArtist(
+                                        999_999L, "Ghost", null, "ghost@email.com", null))
+                .isInstanceOf(EntityNotFoundException.class)
+                .hasMessageContaining("999999");
     }
 }

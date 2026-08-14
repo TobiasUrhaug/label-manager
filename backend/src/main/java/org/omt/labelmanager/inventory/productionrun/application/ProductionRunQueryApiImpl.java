@@ -1,5 +1,6 @@
 package org.omt.labelmanager.inventory.productionrun.application;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import org.omt.labelmanager.inventory.productionrun.api.ProductionRunQueryApi;
@@ -26,6 +27,16 @@ class ProductionRunQueryApiImpl implements ProductionRunQueryApi {
     @Override
     public List<ProductionRun> findByReleaseId(Long releaseId) {
         return repository.findByReleaseId(releaseId).stream()
+                .map(ProductionRun::fromEntity)
+                .toList();
+    }
+
+    @Override
+    public List<ProductionRun> findByReleaseIds(Collection<Long> releaseIds) {
+        if (releaseIds.isEmpty()) {
+            return List.of();
+        }
+        return repository.findByReleaseIdIn(releaseIds).stream()
                 .map(ProductionRun::fromEntity)
                 .toList();
     }

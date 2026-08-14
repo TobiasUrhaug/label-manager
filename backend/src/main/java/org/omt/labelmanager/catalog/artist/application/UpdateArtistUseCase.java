@@ -1,5 +1,6 @@
 package org.omt.labelmanager.catalog.artist.application;
 
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import org.omt.labelmanager.catalog.artist.infrastructure.ArtistRepository;
 import org.omt.labelmanager.catalog.domain.shared.Address;
@@ -25,19 +26,18 @@ class UpdateArtistUseCase {
     public void execute(
             Long id, String artistName, Person realName, String email, Address address) {
         log.info("Updating artist {}", id);
-        repository
-                .findById(id)
-                .ifPresent(
-                        entity -> {
-                            entity.setArtistName(artistName);
-                            if (realName != null) {
-                                entity.setRealName(PersonEmbeddable.fromPerson(realName));
-                            }
-                            entity.setEmail(email);
-                            if (address != null) {
-                                entity.setAddress(AddressEmbeddable.fromAddress(address));
-                            }
-                            repository.save(entity);
-                        });
+        var entity =
+                repository
+                        .findById(id)
+                        .orElseThrow(() -> new EntityNotFoundException("Artist not found: " + id));
+        entity.setArtistName(artistName);
+        if (realName != null) {
+            entity.setRealName(PersonEmbeddable.fromPerson(realName));
+        }
+        entity.setEmail(email);
+        if (address != null) {
+            entity.setAddress(AddressEmbeddable.fromAddress(address));
+        }
+        repository.save(entity);
     }
 }

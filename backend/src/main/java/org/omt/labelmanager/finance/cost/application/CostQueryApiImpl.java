@@ -1,6 +1,7 @@
 package org.omt.labelmanager.finance.cost.application;
 
 import java.util.List;
+import java.util.Optional;
 import org.omt.labelmanager.finance.cost.CostMapper;
 import org.omt.labelmanager.finance.cost.api.CostQueryApi;
 import org.omt.labelmanager.finance.cost.domain.Cost;
@@ -15,6 +16,11 @@ class CostQueryApiImpl implements CostQueryApi {
 
     CostQueryApiImpl(CostRepository costRepository) {
         this.costRepository = costRepository;
+    }
+
+    @Override
+    public Optional<Cost> findById(Long costId) {
+        return costRepository.findById(costId).map(CostMapper::fromEntity);
     }
 
     @Override

@@ -1,6 +1,8 @@
 package org.omt.labelmanager.distribution.distributor;
 
 import java.util.concurrent.atomic.AtomicLong;
+import org.omt.labelmanager.distribution.distributor.api.ChannelType;
+import org.omt.labelmanager.distribution.distributor.api.Distributor;
 
 public final class DistributorFactory {
 

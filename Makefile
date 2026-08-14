@@ -1,4 +1,4 @@
-.PHONY: build test test-js test-e2e start
+.PHONY: build test test-js test-e2e start lint-contracts
 
 # Build backend
 build:
@@ -11,6 +11,10 @@ test:
 # Run backend checkstyle
 lint:
 	cd backend && ./gradlew checkstyleMain checkstyleTest
+
+# Check the OpenAPI contract parses and every $ref resolves
+lint-contracts:
+	cd contracts && npm run validate
 
 # Run JS unit tests (Thymeleaf static JS — temporary, removed when migration is complete)
 test-js:
@@ -46,3 +50,4 @@ install:
 	cd backend && npm install
 	cd frontend && npm install
 	cd e2e && npm install
+	cd contracts && npm install

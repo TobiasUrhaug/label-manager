@@ -670,9 +670,17 @@ graph TD
    `persistence/`. This is the existing convention; it just becomes checked.
 3. **Never inject another module's repository.** Already in `ARCHITECTURE.md`; the verifier makes it
    real (`RegisterCostUseCase` is the current violation).
-4. **`web` is the only module allowed to depend on several domain modules at once**, and only for
-   read-model composition. All controllers, request/response records and `*View` DTOs live there.
-   This single rule deletes every wrong-direction edge in F3's table.
+4. ~~**`web` is the only module allowed to depend on several domain modules at once.**~~
+   **Withdrawn during Phase 2, after being implemented and reverted.** The justification — that it
+   "deletes every wrong-direction edge in F3's table" — was true but not causal: splitting the
+   page-shaped composites (§3.1) is what removed them. With the release resource no longer carrying
+   its costs, runs, distributors and sales, twelve of fourteen controllers had only downward
+   dependencies; the two that did not were resolving ids to display names, which was the actual
+   defect. A top-level `web` module bought a layer split at the cost of every feature living in two
+   trees. **Controllers live in their own module, in a `web/` sub-package** — not `api/`, since rule
+   2 does not list controllers among what `api/` publishes and Phase 3 marks `api/` as a named
+   interface. Cross-context read-model composition is still allowed in a controller, but only
+   through edges its own module already has.
 5. **Ports belong to the domain module that needs them; adapters live in `platform`.**
    `DocumentStoragePort` moves into `finance`; `S3DocumentStorageAdapter` implements it from
    `platform`. The direction becomes `platform → finance`, one way.
@@ -864,7 +872,73 @@ unchanged except one new test asserting a `DIRECT` distributor exists after labe
 
 ---
 
-### Phase 2 — Extract `web` and reshape the API
+### Phase 2 — Extract `web` and reshape the API 🚧 *in progress, branch `feature/backend-phase-2`*
+
+**What actually differed from the plan below**, all verified:
+
+- **Moves came first, reshaping second.** The plan asks for both in the same commit per controller.
+  They cannot be: the release composite cannot shed its `productionRuns` field until that collection
+  exists on `ProductionRunController`. Every controller moved on its own commit, then each composite
+  was split on its own.
+- **Then the `web` module was removed again — see rule 4 above.** Controllers were extracted to a
+  top-level `web` as the plan specified, and moved back into their modules once it was clear the
+  composite split had done the work rule 4 claimed. The intermediate state was not wasted: it is
+  what made the redundancy visible, and the reshaping done while there is what the modules kept.
+- **F3 is fully closed and can be checked.** `catalog → catalog, shared`; `sales → catalog,
+  distribution, inventory, shared`; `distribution → catalog`; `finance → catalog, identity, shared`;
+  `inventory → shared`; `identity → nothing`; and nothing imports `web`. Every arrow points
+  downward, so Phase 3's `ApplicationModules.verify()` has something that can pass.
+- **The `api/` surface had to be opened first, twice.** `RegisterController` could not move while it
+  injected `UserCRUDHandler` (public, in `application/`) and caught an exception from `domain/`; four
+  controllers had the same problem with `AppUserDetails`. `UserCommandApi`, `EmailAlreadyExistsException`
+  and `AppUserDetails` moved into `identity/api/user/`. Q4's `ChannelType` move exposed the same thing
+  in `distribution`, where `Distributor`, `PricingAgreement` and `CommissionType` followed.
+- **`src/test/resources/application.yaml` was shadowing the main file, not adding to it.** Same
+  classpath name, test resources first — so `spring.mvc.problemdetails.enabled`, `ddl-auto: validate`
+  and the multipart limits were absent from every test. Phase 0 turned problemdetails on; no test
+  could observe it, and one written against the documented behaviour failed against a correct
+  application. Renamed to `application-test.yaml` and activated from a small `application.properties`.
+- **The reviews found four ownership regressions the split introduced**, all in the new collections:
+  `?distributorId=` and `?releaseId=` filters returned another label's sales, returns and production
+  runs, because the bundled responses had resolved the parent once and the collections resolved
+  nothing. The check is now `web/LabelScope`, which is also where Phase 5's tenant guard goes. The
+  two filtered collections became sub-resources — as sibling `@GetMapping(params=…)` they were
+  ambiguous and `?releaseId=4&distributorId=5` was a 500.
+- **Bugs fixed that were not on the list:** registration accepted a null email and 500'd on the NOT
+  NULL constraint, and raced two concurrent signups into a 500 on the unique index; `PUT`/`DELETE
+  /api/artists/{id}` returned 204 for ids that do not exist, so a client believed a no-op update had
+  applied; CSRF-rejected 403s had no body; the invoice parser swallowed every transport failure into
+  an empty 200, so a dead integration was indistinguishable from a blank invoice.
+
+- **The item endpoints were never scoped either, and predate Phase 2.** `GET`/`PUT`/`DELETE
+  /api/labels/1/sales/{saleOwnedByLabel2}` read, mutated and deleted another label's sale;
+  same for returns; `POST`/`DELETE` on production runs ignored the label and release in the
+  path entirely. `SaleCommandApi.updateSale` takes a sale id and nothing else, so nothing
+  downstream could catch it. All six now check, through the same `LabelScope`.
+
+**Done when — status.** No `*Controller` outside `web` ✅. No `PackageName` suppressions ✅.
+`openapi.yaml` documents all 30 paths and 51 operations — 49 controller mappings plus `/login`
+and `/logout`, which Spring Security's form-login filter serves rather than a controller ✅.
+But *matching* is by hand, and the review caught several places where the document and the code
+disagreed (`Money` carries a `currency` field; `AgreementView.displayCommission` is a record
+method Jackson never serialises; the cost document is served with its stored content type). The
+conformance test that boots the app and diffs `/v3/api-docs` is Phase 3 — until it exists, this
+column is a claim, not a check.
+
+**Still open — `distribution` cannot validate a `productionRunId`.** `PricingAgreement` holds one,
+and `POST .../agreements` checks that the distributor belongs to the label but never that the
+production run does. It could not: the check needs inventory, and `distribution → inventory` is not
+on §5.2's map. Previously this was masked — a cross-label run rendered as the other label's release
+name — and returning the raw id makes it visible: the client gets an id that will not appear in
+`/api/labels/{labelId}/production-runs`. Three ways out, none free: allow `distribution → inventory`
+(an admission that pricing genuinely references pressings); move agreements into `inventory`; or
+have `inventory` own a "price for this run" concept. Worth settling in Phase 4, which is already
+rebuilding the inventory aggregate.
+
+**Still open.** User-owned costs (`CostOwner.user`) are reachable under no endpoint: the
+document route used to serve them regardless of owner, and scoping it under a label closed
+that. Nothing creates them over HTTP and `CostQueryApi.getCostsForUser` has no caller, so this
+is a decision to take, not a regression to undo — give them a surface or delete the concept.
 
 **Changes.** Move every `*Controller`, its nested request/response records, and the `*View` DTOs into
 `web/` — **one controller per commit**. Rename `sales/distributor_return` → `sales/distributorreturn`

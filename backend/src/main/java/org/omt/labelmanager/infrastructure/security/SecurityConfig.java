@@ -7,10 +7,17 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import tools.jackson.databind.json.JsonMapper;
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
+
+    private final JsonMapper jsonMapper;
+
+    public SecurityConfig(JsonMapper jsonMapper) {
+        this.jsonMapper = jsonMapper;
+    }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -40,7 +47,10 @@ public class SecurityConfig {
                         logout ->
                                 logout.logoutSuccessHandler(spaLogoutSuccessHandler()).permitAll())
                 .httpBasic(basic -> basic.authenticationEntryPoint(authenticationEntryPoint()))
-                .exceptionHandling(ex -> ex.authenticationEntryPoint(authenticationEntryPoint()));
+                .exceptionHandling(
+                        ex ->
+                                ex.authenticationEntryPoint(authenticationEntryPoint())
+                                        .accessDeniedHandler(accessDeniedHandler()));
 
         return http.build();
     }
@@ -52,7 +62,7 @@ public class SecurityConfig {
 
     @Bean
     public SpaAuthFailureHandler spaAuthFailureHandler() {
-        return new SpaAuthFailureHandler();
+        return new SpaAuthFailureHandler(jsonMapper);
     }
 
     @Bean
@@ -62,7 +72,12 @@ public class SecurityConfig {
 
     @Bean
     public SpaApiAuthenticationEntryPoint authenticationEntryPoint() {
-        return new SpaApiAuthenticationEntryPoint();
+        return new SpaApiAuthenticationEntryPoint(jsonMapper);
+    }
+
+    @Bean
+    public SpaAccessDeniedHandler accessDeniedHandler() {
+        return new SpaAccessDeniedHandler(jsonMapper);
     }
 
     @Bean

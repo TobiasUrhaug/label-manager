@@ -3,6 +3,7 @@ package org.omt.labelmanager.finance.extraction.infrastructure;
 import java.io.InputStream;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import org.omt.labelmanager.finance.extraction.api.InvoiceParserUnavailableException;
 import org.omt.labelmanager.finance.extraction.domain.ExtractedInvoiceData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,6 +17,7 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestClient;
+import org.springframework.web.client.RestClientException;
 
 @Component
 public class ExternalInvoiceParserAdapter {
@@ -29,19 +31,33 @@ public class ExternalInvoiceParserAdapter {
     }
 
     public ExtractedInvoiceData extract(InputStream content, String contentType) {
+        ExternalInvoiceResponse response;
         try {
-            var response = postToExternalParser(content, contentType);
-            if (response == null) {
-                log.warn("External invoice parser returned empty body");
-                return ExtractedInvoiceData.empty();
-            }
-            return mapToExtractedInvoiceData(response);
+            response = postToExternalParser(content, contentType);
         } catch (HttpStatusCodeException e) {
             logHttpError(e);
+            throw new InvoiceParserUnavailableException(
+                    "Invoice parser answered with status " + e.getStatusCode(), e);
+        } catch (RestClientException e) {
+            log.warn("External invoice parser could not be called: {}", e.getMessage());
+            throw new InvoiceParserUnavailableException("Invoice parser could not be reached", e);
+        }
+
+        if (response == null) {
+            // A 2xx with no body is a parse that found nothing, not a broken integration.
+            log.warn("External invoice parser returned empty body");
             return ExtractedInvoiceData.empty();
-        } catch (Exception e) {
-            log.warn("External invoice parser failed: {}", e.getMessage());
-            return ExtractedInvoiceData.empty();
+        }
+
+        try {
+            return mapToExtractedInvoiceData(response);
+        } catch (RuntimeException e) {
+            // The parser answered, so it is not down — but an unparseable amount or date means
+            // its response does not match the contract. Still a 502, because the upstream reply
+            // is the problem; the message must not claim it was unreachable.
+            log.warn("External invoice parser returned an unreadable response", e);
+            throw new InvoiceParserUnavailableException(
+                    "Invoice parser returned a response that could not be read", e);
         }
     }
 

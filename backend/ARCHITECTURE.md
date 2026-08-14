@@ -10,14 +10,51 @@ Organized by bounded context, each following clean architecture:
 org.omt.labelmanager/
 ├── catalog/           # Labels, releases, artists, tracks
 ├── identity/          # Users, authentication
-├── finance/           # Costs
+├── finance/           # Costs, invoice extraction
 ├── distribution/      # Distributors, pricing agreements
 ├── inventory/         # Production runs, allocations, inventory movements
+├── sales/             # Sales, distributor returns
 ├── shared/            # Domain primitives used by more than one context (Money, Format)
-└── infrastructure/    # Cross-cutting: security, storage, dashboard
+└── infrastructure/    # Cross-cutting: security, storage, the ProblemDetail advice
 ```
 
 Within each bounded context, organize by **module** (not by layer).
+
+### A module owns its whole stack, HTTP included
+
+Everything about a feature lives in its module: the controller, the use cases, the domain
+records, the persistence. Changing how artists work means opening `catalog/artist/` and
+nothing else.
+
+```
+catalog/artist/
+├── api/            # what other modules may call
+├── web/            # what HTTP exposes — controller, request records, *View DTOs
+├── application/    # use cases
+├── domain/
+└── infrastructure/ # entities, repositories
+```
+
+**`web/`, not `api/`.** `api/` is the module's contract with other *modules*: the
+Command/Query interfaces, the domain records they return, the exceptions they throw. A
+controller is none of those — nothing in Java should ever call it. Phase 3 marks `api/` as a
+published named interface, which would make `ArtistController` importable anywhere; `web/` is
+module-internal, so the verifier enforces what we mean. It also gives request records and
+`*View` DTOs an unambiguous home, which `api/` never did — that ambiguity is how
+`AgreementView`, a record that formats `"2.50 €"`, came to sit beside domain types.
+
+`web/` is the inbound adapter; `infrastructure/` (or `persistence/`) is the outbound one. They
+are peers, and neither belongs inside the port package between them.
+
+**A controller may read from any module its own module may.** `SaleController` calls catalog,
+distribution and inventory because `sales` is allowed to. What it may not do is make its module
+reach sideways or upward — and if a response seems to require that, the response is the
+problem. Two read models once resolved a distributor's name inside inventory and a release's
+name inside distribution; both were deleted in favour of returning ids, which is what let every
+controller move home.
+
+There is no `web` module. A top-level one was tried and removed: it split each feature across
+two trees for a benefit that splitting the page-shaped composites had already delivered.
 
 ## Modular Architecture Pattern
 
@@ -40,8 +77,8 @@ For modules with real business logic (e.g., `release`, `sale`, `allocation`):
 catalog/release/
 ├── api/
 │   ├── ReleaseCommandApi.java       # Public interface (mutations)
-│   ├── ReleaseQueryApi.java         # Public interface (queries)
-│   └── ReleaseController.java       # Public HTTP interface
+│   └── ReleaseQueryApi.java         # Public interface (queries)
+│                                    # Controller lives in this module's web/
 │
 ├── application/                     # package-private
 │   ├── CreateReleaseUseCase.java    # Focused business operations
@@ -62,31 +99,33 @@ catalog/release/
 For CRUD-dominant modules (e.g., `label`, `artist`, `distributor`):
 
 ```
-catalog/label/
+distribution/distributor/
 ├── api/
-│   ├── LabelCommandApi.java       # Public interface (mutations) — only if other modules depend on this module
-│   ├── LabelQueryApi.java         # Public interface (queries) — only if other modules depend on this module
-│   └── LabelController.java       # Public HTTP interface
+│   ├── DistributorCommandApi.java  # Public interface (mutations) — only if other modules depend on this module
+│   ├── DistributorQueryApi.java    # Public interface (queries) — only if other modules depend on this module
+│   ├── Distributor.java            # Public domain record — part of the API's return type
+│   └── ChannelType.java            # Public enum used in that record
+│                                   # Controller lives in this module's web/
 │
-├── persistence/                   # public
-│   ├── LabelEntity.java           # JPA entity
-│   └── LabelRepository.java       # Spring Data repository
+├── persistence/                    # public
+│   ├── DistributorEntity.java      # JPA entity
+│   └── DistributorRepository.java  # Spring Data repository
 │
-├── Label.java                     # Public domain record
-├── LabelCommandService.java       # package-private: handles all mutations directly
-└── LabelQueryService.java         # package-private: handles all queries directly
+├── DistributorCommandService.java  # package-private: handles all mutations directly
+└── DistributorQueryService.java    # package-private: handles all queries directly
 ```
 
 **Key differences from full structure:**
-- No separate `application/`, `domain/`, or `persistence/` sub-packages — domain records and services live flat in the module root
+- No separate `application/` or `domain/` sub-packages — services live flat in the module root and the domain record sits in `api/` next to the interfaces that return it
 - No separate `*UseCase` classes — the service handles CRUD operations directly
 - `CommandApi`/`QueryApi` interfaces are only needed if other modules depend on this module. If only the controller calls the service, skip the interfaces entirely and inject the service directly. (Indicated by the "— only if other modules depend on this module" note in the diagram above.)
 - `persistence/` is the only sub-package besides `api/`, separating JPA artifacts from the domain record
 
 **Key principles**:
-- The `api/` package is the module's public boundary: interfaces (`CommandApi`, `QueryApi`), controllers, and request/response records. It does not contain view-specific DTOs assembled for presentation.
+- The `api/` package is the module's public boundary: interfaces (`CommandApi`, `QueryApi`), the domain records and enums they expose, and domain exceptions and events. It does not contain view-specific DTOs assembled for presentation.
+- In a simplified module, everything a caller outside the module needs is reachable from `api/` alone. A type another module imports from the module root is a boundary leak — that is where the package-private services live. (`persistence/` stays public for test helpers and infrastructure adapters, as below.)
 - The `persistence/` package contains JPA entities and Spring Data repositories — public so test helpers and shared infrastructure adapters can access them.
-- Services (`LabelCommandService`, `LabelQueryService`) are package-private and live flat in the module root alongside the domain record.
+- Services (`DistributorCommandService`, `DistributorQueryService`) are package-private and live flat in the module root.
 - When a module gains non-trivial business logic, promote it to the full structure.
 
 ### Encapsulation Rules
@@ -316,7 +355,7 @@ class RegisterSaleUseCase {
 }
 ```
 
-**In controllers**, if you need data from multiple modules, fetch them separately:
+**In controllers** (in their module's `web/`), if you need data from multiple modules, fetch them separately:
 ```java
 @GetMapping("/{id}")
 public ReleaseDetailResponse getRelease(@PathVariable Long id) {
@@ -328,20 +367,34 @@ public ReleaseDetailResponse getRelease(@PathVariable Long id) {
 
 **Composite response records (aggregating data from multiple modules)**
 
-When a REST response needs data assembled from several modules, compose it in the controller — not in a service or use case. Response shaping is a presentation concern, not a domain concern.
+When a REST response genuinely needs data assembled from several modules, compose it in the controller — not in a service or use case. Response shaping is a presentation concern, and the controller may call any module its own module is allowed to.
 
 ```java
-// ✅ Controller assembles the JSON response from multiple module APIs
-@GetMapping("/{id}")
-public ProductionRunResponse getProductionRun(@PathVariable Long id) {
-    ProductionRun run = productionRunQuery.findById(id).orElseThrow(...);
-    List<ChannelAllocation> allocations = allocationQuery.getAllocationsForProductionRun(id);
-    int warehouseInventory = inventoryMovementQuery.getWarehouseInventory(id);
-    return new ProductionRunResponse(run, allocations, warehouseInventory);
+// ✅ inventory/productionrun/web/ProductionRunController assembles from several module APIs
+@GetMapping
+public List<ProductionRunWithAllocation> productionRuns(@PathVariable Long labelId, ...) {
+    List<Distributor> distributors = distributorQueryApi.findByLabelId(labelId);   // distribution
+    return queryApi.findByReleaseId(releaseId).stream()                            // inventory
+            .map(run -> withAllocation(run, distributors))
+            .toList();
 }
 ```
 
-Response records that exist solely to carry assembled data belong in the controller's package or a sibling `api/` subpackage — not in any module's core `api/` package.
+Response records that exist solely to carry assembled data live in the module's `web/`, next to the controller — not in its `api/` package.
+
+**But prefer a resource to a bundle.** "This screen shows four things" is not a reason for one endpoint to return four things. Composites that mirror a page are how a module ends up depending on four others, and how a response ends up issuing a query per row. Give each thing its own collection, and compose only when a client genuinely cannot make two calls:
+
+```java
+// ❌ A page model: twelve fields from five bounded contexts, one query per movement row
+record ReleaseDetailResponse(..., List<Cost> costs, List<ProductionRunWithAllocation> runs,
+                             List<Distributor> distributors, List<ReleaseSaleView> sales) {}
+
+// ✅ A release, plus sibling collections that stand on their own
+GET /api/labels/{labelId}/releases/{releaseId}
+GET /api/labels/{labelId}/releases/{releaseId}/production-runs
+GET /api/labels/{labelId}/costs?releaseId=
+GET /api/labels/{labelId}/releases/{releaseId}/sales
+```
 
 **Avoid bidirectional module dependencies**
 
@@ -392,7 +445,7 @@ Exceptions that cross a module boundary belong in the throwing module's `api/` p
 public class InsufficientInventoryException extends RuntimeException { ... }
 
 // application/SomeCommandApiImpl.java (throws it)
-// another module's Controller (catches it) — both reference the same api/ package
+// another module's web/ controller, or ApiExceptionHandler (catches it)
 ```
 
 ## Layer Separation
@@ -401,7 +454,7 @@ public class InsufficientInventoryException extends RuntimeException { ... }
 
 | Subdirectory | Contains | Visibility | Example |
 |--------------|----------|------------|---------|
-| `api/` | Module contracts: interfaces, controllers, request/response records, domain exceptions, domain events | Public | `LabelCommandApi.java`, `LabelController.java`, `LabelNotFoundException.java`, `LabelCreated.java` |
+| `api/` | Module contracts: interfaces, domain exceptions, domain events | Public | `LabelCommandApi.java`, `LabelNotFoundException.java`, `LabelCreated.java` |
 | `application/` | Use cases, API implementations | Package-private | `CreateLabelUseCase.java`, `LabelCommandApiImpl.java` |
 | `domain/` | Domain records | Public | `Label.java` |
 | `persistence/` | JPA entities, repositories | Public | `LabelEntity.java`, `LabelRepository.java` |
@@ -410,13 +463,35 @@ public class InsufficientInventoryException extends RuntimeException { ... }
 
 | Location | Contains | Visibility | Example |
 |----------|----------|------------|---------|
-| `api/` | Module contracts: interfaces, controllers, request/response records, domain exceptions, domain events | Public | `LabelCommandApi.java`, `LabelController.java` |
-| `persistence/` | JPA entities, repositories | Public | `LabelEntity.java`, `LabelRepository.java` |
-| module root (flat) | Domain records, command/query services | Domain records public; services package-private | `Label.java`, `LabelCommandService.java` |
+| `api/` | Module contracts: interfaces, domain records and enums, domain exceptions, domain events | Public | `DistributorQueryApi.java`, `Distributor.java`, `ChannelType.java` |
+| `persistence/` | JPA entities, repositories | Public | `DistributorEntity.java`, `DistributorRepository.java` |
+| module root (flat) | Command/query services | Package-private | `DistributorCommandService.java` |
 
 Note: Shared infrastructure (cross-cutting concerns like security, storage) lives in the `infrastructure/` **bounded context**, not within individual modules.
 
 Ports are the exception: a port belongs to the bounded context that needs it, and `infrastructure/` holds only the adapter. `DocumentStoragePort` and `DocumentStorageException` live in `finance/shared/`; `S3DocumentStorageAdapter` implements them from `infrastructure/storage/`. The dependency runs `infrastructure → finance`, never the other way.
+
+## Errors
+
+Every error this application raises deliberately is an RFC 9457 `ProblemDetail`, served as
+`application/problem+json`. There are three places it comes from:
+
+| Source | Covers |
+|--------|--------|
+| `infrastructure/web/ApiExceptionHandler` | `EntityNotFoundException` → 404, `InsufficientInventoryException` / `IllegalArgumentException` / `IllegalStateException` → 400 |
+| A controller-local `@ExceptionHandler` | Exceptions only that controller knows about (`AgreementNotFoundException`, `InvoiceParserUnavailableException`) |
+| `infrastructure/security` | The filter chain's 401 and 403, written through the application's `JsonMapper` so the mixin applies |
+
+Spring's own exceptions — validation failures, unreadable bodies, `ResponseStatusException` —
+are rendered by Boot, via `spring.mvc.problemdetails.enabled` in `application.yaml`.
+
+Two rules:
+
+- **A handler that returns no body is a bug.** `ResponseEntity.badRequest().build()` throws away
+  an exception message the caller needed. If a local handler exists only to set a status the
+  advice already sets, delete it.
+- **Validate at the edge.** A request that cannot succeed should be rejected by `@Valid` with a
+  400, not discovered by a database constraint and surfaced as a 500.
 
 ## Database
 

@@ -1,5 +1,6 @@
 package org.omt.labelmanager.identity.application;
 
+import org.omt.labelmanager.identity.api.user.AppUserDetails;
 import org.omt.labelmanager.identity.infrastructure.persistence.user.UserEntity;
 import org.omt.labelmanager.identity.infrastructure.persistence.user.UserRepository;
 import org.slf4j.Logger;

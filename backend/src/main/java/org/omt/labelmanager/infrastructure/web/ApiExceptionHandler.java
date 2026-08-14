@@ -1,6 +1,7 @@
 package org.omt.labelmanager.infrastructure.web;
 
 import jakarta.persistence.EntityNotFoundException;
+import java.time.format.DateTimeParseException;
 import org.omt.labelmanager.inventory.InsufficientInventoryException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,6 +38,22 @@ public class ApiExceptionHandler {
 
     @ExceptionHandler({IllegalArgumentException.class, IllegalStateException.class})
     public ProblemDetail handleBadRequest(RuntimeException exception) {
+        log.debug("Rejected request: {}", exception.getMessage());
+        return ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, exception.getMessage());
+    }
+
+    /**
+     * A malformed date in a request body is the caller's mistake, not ours.
+     *
+     * <p>{@code DateTimeParseException} extends {@code DateTimeException}, not {@code
+     * IllegalArgumentException}, so it fell past the handler above and out as a 500.
+     *
+     * <p>Deliberately not {@code DateTimeException}: that would also catch arithmetic overflow and
+     * unsupported-field access, which are our bugs, and report them to the caller as a 400 with an
+     * internal message attached.
+     */
+    @ExceptionHandler(DateTimeParseException.class)
+    public ProblemDetail handleUnparseableDate(DateTimeParseException exception) {
         log.debug("Rejected request: {}", exception.getMessage());
         return ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, exception.getMessage());
     }

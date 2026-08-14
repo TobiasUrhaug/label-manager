@@ -1,8 +1,6 @@
 package org.omt.labelmanager.distribution.agreement.api;
 
 import java.math.BigDecimal;
-import org.omt.labelmanager.distribution.agreement.CommissionType;
-import org.omt.labelmanager.distribution.agreement.PricingAgreement;
 
 public interface AgreementCommandApi {
 

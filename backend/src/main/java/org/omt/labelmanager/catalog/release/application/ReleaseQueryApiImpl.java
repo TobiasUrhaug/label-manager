@@ -61,6 +61,14 @@ class ReleaseQueryApiImpl implements ReleaseQueryApi {
         return releaseRepository.existsById(id);
     }
 
+    @Override
+    public boolean belongsToLabel(Long releaseId, Long labelId) {
+        return releaseRepository
+                .findById(releaseId)
+                .map(release -> release.getLabelId().equals(labelId))
+                .orElse(false);
+    }
+
     private Release buildRelease(ReleaseEntity releaseEntity) {
         List<Long> artistIds =
                 releaseArtistRepository.findArtistIdsByReleaseId(releaseEntity.getId());

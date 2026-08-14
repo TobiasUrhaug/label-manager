@@ -3,6 +3,7 @@ package org.omt.labelmanager.distribution.agreement;
 import java.util.List;
 import java.util.Optional;
 import org.omt.labelmanager.distribution.agreement.api.AgreementQueryApi;
+import org.omt.labelmanager.distribution.agreement.api.PricingAgreement;
 import org.omt.labelmanager.distribution.agreement.persistence.PricingAgreementRepository;
 import org.springframework.stereotype.Service;
 
