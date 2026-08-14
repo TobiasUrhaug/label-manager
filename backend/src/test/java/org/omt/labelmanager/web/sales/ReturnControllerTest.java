@@ -16,13 +16,13 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import jakarta.persistence.EntityNotFoundException;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.omt.labelmanager.catalog.label.api.LabelQueryApi;
 import org.omt.labelmanager.catalog.label.domain.Label;
 import org.omt.labelmanager.catalog.release.api.ReleaseQueryApi;
 import org.omt.labelmanager.catalog.release.domain.Release;
@@ -37,6 +37,7 @@ import org.omt.labelmanager.sales.distributorreturn.domain.DistributorReturn;
 import org.omt.labelmanager.sales.distributorreturn.domain.ReturnLineItem;
 import org.omt.labelmanager.shared.Format;
 import org.omt.labelmanager.test.TestSecurityConfig;
+import org.omt.labelmanager.web.LabelScope;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
@@ -53,7 +54,7 @@ class ReturnControllerTest {
 
     @MockitoBean private DistributorReturnQueryApi returnQueryApi;
 
-    @MockitoBean private LabelQueryApi labelQueryApi;
+    @MockitoBean private LabelScope labelScope;
 
     @MockitoBean private ReleaseQueryApi releaseQueryApi;
 
@@ -87,7 +88,6 @@ class ReturnControllerTest {
                 new Distributor(
                         DISTRIBUTOR_ID, LABEL_ID, "Test Distributor", ChannelType.DISTRIBUTOR);
 
-        when(labelQueryApi.findById(LABEL_ID)).thenReturn(Optional.of(testLabel));
         when(returnQueryApi.findById(RETURN_ID)).thenReturn(Optional.of(testReturn));
         when(returnQueryApi.getReturnsForLabel(LABEL_ID)).thenReturn(List.of(testReturn));
         when(distributorQueryApi.findByLabelId(LABEL_ID)).thenReturn(List.of(testDistributor));
@@ -307,5 +307,30 @@ class ReturnControllerTest {
                 .andExpect(status().isNoContent());
 
         verify(returnCommandApi).deleteReturn(RETURN_ID);
+    }
+
+    @Test
+    void returnsForDistributor_returnsThatDistributorsReturns() throws Exception {
+        when(returnQueryApi.getReturnsForDistributor(5L)).thenReturn(List.of());
+
+        mockMvc.perform(
+                        get("/api/labels/{labelId}/distributors/{distributorId}/returns", 1L, 5L)
+                                .with(user(testUser)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isArray());
+    }
+
+    @Test
+    void returnsForDistributor_returns404WhenDistributorBelongsToAnotherLabel() throws Exception {
+        doThrow(new EntityNotFoundException("Distributor 99 does not belong to label 1"))
+                .when(labelScope)
+                .requireDistributor(1L, 99L);
+
+        mockMvc.perform(
+                        get("/api/labels/{labelId}/distributors/{distributorId}/returns", 1L, 99L)
+                                .with(user(testUser)))
+                .andExpect(status().isNotFound());
+
+        verify(returnQueryApi, org.mockito.Mockito.never()).getReturnsForDistributor(any());
     }
 }

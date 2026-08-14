@@ -2,6 +2,7 @@ package org.omt.labelmanager.web.inventory;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
@@ -13,6 +14,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import jakarta.persistence.EntityNotFoundException;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
@@ -26,6 +28,7 @@ import org.omt.labelmanager.inventory.productionrun.api.ProductionRunQueryApi;
 import org.omt.labelmanager.inventory.productionrun.domain.ProductionRunFactory;
 import org.omt.labelmanager.shared.Format;
 import org.omt.labelmanager.test.TestSecurityConfig;
+import org.omt.labelmanager.web.LabelScope;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
@@ -45,6 +48,8 @@ class ProductionRunControllerTest {
     @MockitoBean private InventoryMovementQueryApi inventoryMovementQueryApi;
 
     @MockitoBean private DistributorQueryApi distributorQueryApi;
+
+    @MockitoBean private LabelScope labelScope;
 
     private final AppUserDetails testUser =
             new AppUserDetails(1L, "test@example.com", "password", "Test User");
@@ -183,5 +188,17 @@ class ProductionRunControllerTest {
                 .andExpect(
                         jsonPath("$[0].distributorInventories[1].name").value("Beta Distribution"))
                 .andExpect(jsonPath("$[0].distributorInventories[1].current").value(30));
+    }
+
+    @Test
+    void productionRuns_returns404WhenReleaseBelongsToAnotherLabel() throws Exception {
+        doThrow(new EntityNotFoundException("Release 4 does not belong to label 1"))
+                .when(labelScope)
+                .requireRelease(1L, 4L);
+
+        mockMvc.perform(get("/api/labels/1/releases/4/production-runs").with(user(testUser)))
+                .andExpect(status().isNotFound());
+
+        verify(queryApi, org.mockito.Mockito.never()).findByReleaseId(any());
     }
 }

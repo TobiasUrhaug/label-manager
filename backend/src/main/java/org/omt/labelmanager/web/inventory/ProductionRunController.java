@@ -13,6 +13,7 @@ import org.omt.labelmanager.inventory.productionrun.api.ProductionRunCommandApi;
 import org.omt.labelmanager.inventory.productionrun.api.ProductionRunQueryApi;
 import org.omt.labelmanager.inventory.productionrun.domain.ProductionRun;
 import org.omt.labelmanager.shared.Format;
+import org.omt.labelmanager.web.LabelScope;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -31,16 +32,19 @@ public class ProductionRunController {
     private final ProductionRunQueryApi queryApi;
     private final InventoryMovementQueryApi inventoryMovementQueryApi;
     private final DistributorQueryApi distributorQueryApi;
+    private final LabelScope labelScope;
 
     public ProductionRunController(
             ProductionRunCommandApi commandApi,
             ProductionRunQueryApi queryApi,
             InventoryMovementQueryApi inventoryMovementQueryApi,
-            DistributorQueryApi distributorQueryApi) {
+            DistributorQueryApi distributorQueryApi,
+            LabelScope labelScope) {
         this.commandApi = commandApi;
         this.queryApi = queryApi;
         this.inventoryMovementQueryApi = inventoryMovementQueryApi;
         this.distributorQueryApi = distributorQueryApi;
+        this.labelScope = labelScope;
     }
 
     record AddProductionRunRequest(
@@ -59,6 +63,7 @@ public class ProductionRunController {
     @GetMapping
     public List<ProductionRunWithAllocation> productionRuns(
             @PathVariable Long labelId, @PathVariable Long releaseId) {
+        labelScope.requireRelease(labelId, releaseId);
         List<Distributor> distributors = distributorQueryApi.findByLabelId(labelId);
         return queryApi.findByReleaseId(releaseId).stream()
                 .map(run -> withAllocation(run, distributors))

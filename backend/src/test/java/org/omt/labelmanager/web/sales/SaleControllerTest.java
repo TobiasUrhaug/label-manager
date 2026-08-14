@@ -16,21 +16,23 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import jakarta.persistence.EntityNotFoundException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.omt.labelmanager.catalog.label.api.LabelQueryApi;
 import org.omt.labelmanager.catalog.label.domain.Label;
 import org.omt.labelmanager.catalog.release.api.ReleaseQueryApi;
 import org.omt.labelmanager.catalog.release.domain.Release;
+import org.omt.labelmanager.distribution.distributor.DistributorFactory;
 import org.omt.labelmanager.distribution.distributor.api.ChannelType;
 import org.omt.labelmanager.distribution.distributor.api.DistributorQueryApi;
 import org.omt.labelmanager.identity.api.user.AppUserDetails;
 import org.omt.labelmanager.inventory.InsufficientInventoryException;
 import org.omt.labelmanager.inventory.productionrun.api.ProductionRunQueryApi;
+import org.omt.labelmanager.inventory.productionrun.domain.ProductionRunFactory;
 import org.omt.labelmanager.sales.sale.api.SaleCommandApi;
 import org.omt.labelmanager.sales.sale.api.SaleQueryApi;
 import org.omt.labelmanager.sales.sale.domain.Sale;
@@ -38,6 +40,7 @@ import org.omt.labelmanager.sales.sale.domain.SaleLineItem;
 import org.omt.labelmanager.shared.Format;
 import org.omt.labelmanager.shared.Money;
 import org.omt.labelmanager.test.TestSecurityConfig;
+import org.omt.labelmanager.web.LabelScope;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
@@ -54,7 +57,7 @@ class SaleControllerTest {
 
     @MockitoBean private SaleQueryApi saleQueryApi;
 
-    @MockitoBean private LabelQueryApi labelQueryApi;
+    @MockitoBean private LabelScope labelScope;
 
     @MockitoBean private ReleaseQueryApi releaseQueryApi;
 
@@ -95,7 +98,6 @@ class SaleControllerTest {
                         List.of(lineItem),
                         Money.of(new BigDecimal("75.00")));
 
-        when(labelQueryApi.findById(LABEL_ID)).thenReturn(Optional.of(testLabel));
         when(saleQueryApi.findById(SALE_ID)).thenReturn(Optional.of(testSale));
         when(releaseQueryApi.findById(RELEASE_ID))
                 .thenReturn(
@@ -321,5 +323,75 @@ class SaleControllerTest {
                 .andExpect(status().isNoContent());
 
         verify(saleCommandApi).deleteSale(SALE_ID);
+    }
+
+    // ── GET scoped collections ────────────────────────────────────────────────
+
+    @Test
+    void salesForRelease_returnsSalesAcrossProductionRuns() throws Exception {
+        var run = ProductionRunFactory.aProductionRun().id(7L).releaseId(RELEASE_ID).build();
+        var distributor = DistributorFactory.aDistributor().id(10L).name("Cargo").build();
+        when(productionRunQueryApi.findByReleaseId(RELEASE_ID)).thenReturn(List.of(run));
+        when(saleQueryApi.getSalesForProductionRun(7L)).thenReturn(List.of(testSale));
+        when(distributorQueryApi.findByLabelId(LABEL_ID)).thenReturn(List.of(distributor));
+
+        mockMvc.perform(
+                        get(
+                                        "/api/labels/{labelId}/releases/{releaseId}/sales",
+                                        LABEL_ID,
+                                        RELEASE_ID)
+                                .with(user(testUser)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.sales[0].distributorName").value("Cargo"))
+                .andExpect(jsonPath("$.sales[0].totalUnits").value(5))
+                .andExpect(jsonPath("$.totalUnitsSold").value(5));
+    }
+
+    @Test
+    void salesForRelease_returns404WhenReleaseBelongsToAnotherLabel() throws Exception {
+        doThrow(new EntityNotFoundException("Release 10 does not belong to label 1"))
+                .when(labelScope)
+                .requireRelease(LABEL_ID, RELEASE_ID);
+
+        mockMvc.perform(
+                        get(
+                                        "/api/labels/{labelId}/releases/{releaseId}/sales",
+                                        LABEL_ID,
+                                        RELEASE_ID)
+                                .with(user(testUser)))
+                .andExpect(status().isNotFound());
+
+        verify(saleQueryApi, org.mockito.Mockito.never()).getSalesForProductionRun(any());
+    }
+
+    @Test
+    void salesForDistributor_returnsThatDistributorsSales() throws Exception {
+        when(saleQueryApi.getSalesForDistributor(10L)).thenReturn(List.of(testSale));
+
+        mockMvc.perform(
+                        get(
+                                        "/api/labels/{labelId}/distributors/{distributorId}/sales",
+                                        LABEL_ID,
+                                        10L)
+                                .with(user(testUser)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].id").value(SALE_ID.intValue()));
+    }
+
+    @Test
+    void salesForDistributor_returns404WhenDistributorBelongsToAnotherLabel() throws Exception {
+        doThrow(new EntityNotFoundException("Distributor 99 does not belong to label 1"))
+                .when(labelScope)
+                .requireDistributor(LABEL_ID, 99L);
+
+        mockMvc.perform(
+                        get(
+                                        "/api/labels/{labelId}/distributors/{distributorId}/sales",
+                                        LABEL_ID,
+                                        99L)
+                                .with(user(testUser)))
+                .andExpect(status().isNotFound());
+
+        verify(saleQueryApi, org.mockito.Mockito.never()).getSalesForDistributor(any());
     }
 }

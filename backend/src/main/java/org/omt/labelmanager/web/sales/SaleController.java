@@ -5,7 +5,6 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Comparator;
 import java.util.List;
-import org.omt.labelmanager.catalog.label.api.LabelQueryApi;
 import org.omt.labelmanager.catalog.release.api.ReleaseQueryApi;
 import org.omt.labelmanager.distribution.distributor.api.ChannelType;
 import org.omt.labelmanager.distribution.distributor.api.Distributor;
@@ -18,6 +17,7 @@ import org.omt.labelmanager.sales.sale.domain.SaleLineItem;
 import org.omt.labelmanager.sales.sale.domain.SaleLineItemInput;
 import org.omt.labelmanager.shared.Format;
 import org.omt.labelmanager.shared.Money;
+import org.omt.labelmanager.web.LabelScope;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -26,17 +26,14 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/labels/{labelId}/sales")
 public class SaleController {
 
     private final SaleCommandApi saleCommandApi;
     private final SaleQueryApi saleQueryApi;
-    private final LabelQueryApi labelQueryApi;
+    private final LabelScope labelScope;
     private final ReleaseQueryApi releaseQueryApi;
     private final ProductionRunQueryApi productionRunQueryApi;
     private final DistributorQueryApi distributorQueryApi;
@@ -44,13 +41,13 @@ public class SaleController {
     public SaleController(
             SaleCommandApi saleCommandApi,
             SaleQueryApi saleQueryApi,
-            LabelQueryApi labelQueryApi,
+            LabelScope labelScope,
             ReleaseQueryApi releaseQueryApi,
             ProductionRunQueryApi productionRunQueryApi,
             DistributorQueryApi distributorQueryApi) {
         this.saleCommandApi = saleCommandApi;
         this.saleQueryApi = saleQueryApi;
-        this.labelQueryApi = labelQueryApi;
+        this.labelScope = labelScope;
         this.releaseQueryApi = releaseQueryApi;
         this.productionRunQueryApi = productionRunQueryApi;
         this.distributorQueryApi = distributorQueryApi;
@@ -115,12 +112,10 @@ public class SaleController {
      * <p>Replaces the {@code releaseSales} and {@code totalUnitsSold} fields of the release detail
      * response.
      */
-    @GetMapping(params = "releaseId")
+    @GetMapping("/api/labels/{labelId}/releases/{releaseId}/sales")
     public ReleaseSalesResponse salesForRelease(
-            @PathVariable Long labelId, @RequestParam Long releaseId) {
-        labelQueryApi
-                .findById(labelId)
-                .orElseThrow(() -> new EntityNotFoundException("Label not found"));
+            @PathVariable Long labelId, @PathVariable Long releaseId) {
+        labelScope.requireRelease(labelId, releaseId);
 
         List<Distributor> distributors = distributorQueryApi.findByLabelId(labelId);
         List<ReleaseSaleView> sales =
@@ -150,26 +145,22 @@ public class SaleController {
      * The sales made through one distributor. Replaces the {@code sales} field of the distributor
      * detail response.
      */
-    @GetMapping(params = "distributorId")
+    @GetMapping("/api/labels/{labelId}/distributors/{distributorId}/sales")
     public List<Sale> salesForDistributor(
-            @PathVariable Long labelId, @RequestParam Long distributorId) {
-        labelQueryApi
-                .findById(labelId)
-                .orElseThrow(() -> new EntityNotFoundException("Label not found"));
+            @PathVariable Long labelId, @PathVariable Long distributorId) {
+        labelScope.requireDistributor(labelId, distributorId);
         return saleQueryApi.getSalesForDistributor(distributorId);
     }
 
-    @GetMapping
+    @GetMapping("/api/labels/{labelId}/sales")
     public SaleListResponse listSales(@PathVariable Long labelId) {
-        labelQueryApi
-                .findById(labelId)
-                .orElseThrow(() -> new EntityNotFoundException("Label not found"));
+        labelScope.requireLabel(labelId);
         var sales = saleQueryApi.getSalesForLabel(labelId);
         var totalRevenue = saleQueryApi.getTotalRevenueForLabel(labelId);
         return new SaleListResponse(sales, totalRevenue);
     }
 
-    @PostMapping
+    @PostMapping("/api/labels/{labelId}/sales")
     public ResponseEntity<Void> registerSale(
             @PathVariable Long labelId, @RequestBody RegisterSaleRequest request) {
         saleCommandApi.registerSale(
@@ -182,11 +173,9 @@ public class SaleController {
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
-    @GetMapping("/{saleId}")
+    @GetMapping("/api/labels/{labelId}/sales/{saleId}")
     public SaleDetailResponse viewSale(@PathVariable Long labelId, @PathVariable Long saleId) {
-        labelQueryApi
-                .findById(labelId)
-                .orElseThrow(() -> new EntityNotFoundException("Label not found"));
+        labelScope.requireLabel(labelId);
         var sale =
                 saleQueryApi
                         .findById(saleId)
@@ -194,7 +183,7 @@ public class SaleController {
         return toDetailResponse(sale);
     }
 
-    @PutMapping("/{saleId}")
+    @PutMapping("/api/labels/{labelId}/sales/{saleId}")
     public Sale updateSale(
             @PathVariable Long labelId,
             @PathVariable Long saleId,
@@ -203,7 +192,7 @@ public class SaleController {
                 saleId, request.saleDate(), request.notes(), request.toLineItemInputs());
     }
 
-    @DeleteMapping("/{saleId}")
+    @DeleteMapping("/api/labels/{labelId}/sales/{saleId}")
     public ResponseEntity<Void> deleteSale(@PathVariable Long labelId, @PathVariable Long saleId) {
         saleCommandApi.deleteSale(saleId);
         return ResponseEntity.noContent().build();

@@ -4,7 +4,6 @@ import jakarta.persistence.EntityNotFoundException;
 import java.io.IOException;
 import java.util.List;
 import java.util.Set;
-import org.omt.labelmanager.catalog.release.api.ReleaseQueryApi;
 import org.omt.labelmanager.finance.cost.api.CostCommandApi;
 import org.omt.labelmanager.finance.cost.api.CostQueryApi;
 import org.omt.labelmanager.finance.cost.api.DocumentNotFoundException;
@@ -13,6 +12,7 @@ import org.omt.labelmanager.finance.cost.domain.Cost;
 import org.omt.labelmanager.finance.cost.domain.CostOwner;
 import org.omt.labelmanager.finance.shared.DocumentUpload;
 import org.omt.labelmanager.finance.shared.RetrievedDocument;
+import org.omt.labelmanager.web.LabelScope;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -51,15 +51,13 @@ public class CostController {
 
     private final CostCommandApi costCommandApi;
     private final CostQueryApi costQueryApi;
-    private final ReleaseQueryApi releaseQueryApi;
+    private final LabelScope labelScope;
 
     public CostController(
-            CostCommandApi costCommandApi,
-            CostQueryApi costQueryApi,
-            ReleaseQueryApi releaseQueryApi) {
+            CostCommandApi costCommandApi, CostQueryApi costQueryApi, LabelScope labelScope) {
         this.costCommandApi = costCommandApi;
         this.costQueryApi = costQueryApi;
-        this.releaseQueryApi = releaseQueryApi;
+        this.labelScope = labelScope;
     }
 
     /**
@@ -75,10 +73,7 @@ public class CostController {
         if (releaseId == null) {
             return costQueryApi.getCostsForLabel(labelId);
         }
-        if (!releaseBelongsToLabel(releaseId, labelId)) {
-            throw new EntityNotFoundException(
-                    "Release " + releaseId + " does not belong to label " + labelId);
-        }
+        labelScope.requireRelease(labelId, releaseId);
         return costQueryApi.getCostsForRelease(releaseId);
     }
 
@@ -158,10 +153,7 @@ public class CostController {
         if (releaseId == null) {
             return CostOwner.label(labelId);
         }
-        if (!releaseBelongsToLabel(releaseId, labelId)) {
-            throw new EntityNotFoundException(
-                    "Release " + releaseId + " does not belong to label " + labelId);
-        }
+        labelScope.requireRelease(labelId, releaseId);
         return CostOwner.release(releaseId);
     }
 
@@ -180,7 +172,7 @@ public class CostController {
         boolean reachable =
                 switch (cost.owner().type()) {
                     case LABEL -> labelId.equals(cost.owner().id());
-                    case RELEASE -> releaseBelongsToLabel(cost.owner().id(), labelId);
+                    case RELEASE -> labelScope.isReleaseOfLabel(labelId, cost.owner().id());
                     case USER -> false;
                 };
 
@@ -188,13 +180,6 @@ public class CostController {
             throw new EntityNotFoundException(
                     "Cost " + costId + " does not belong to label " + labelId);
         }
-    }
-
-    private boolean releaseBelongsToLabel(Long releaseId, Long labelId) {
-        return releaseQueryApi
-                .findById(releaseId)
-                .map(release -> labelId.equals(release.labelId()))
-                .orElse(false);
     }
 
     private DocumentUpload toDocumentUpload(MultipartFile file) throws IOException {
