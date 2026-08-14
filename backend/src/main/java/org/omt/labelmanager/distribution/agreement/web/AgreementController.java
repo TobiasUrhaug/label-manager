@@ -37,7 +37,7 @@ public class AgreementController {
         this.distributorQueryApi = distributorQueryApi;
     }
 
-    private void requireDistributor(Long labelId, Long distributorId) {
+    private void requireDistributorOfLabel(Long distributorId, Long labelId) {
         if (!distributorQueryApi.belongsToLabel(distributorId, labelId)) {
             throw new EntityNotFoundException(
                     "Distributor " + distributorId + " does not belong to label " + labelId);
@@ -58,7 +58,7 @@ public class AgreementController {
             @PathVariable Long labelId,
             @PathVariable Long distributorId,
             @RequestBody CreateAgreementRequest request) {
-        requireDistributor(labelId, distributorId);
+        requireDistributorOfLabel(distributorId, labelId);
         commandApi.create(
                 distributorId,
                 request.productionRunId(),
@@ -74,7 +74,7 @@ public class AgreementController {
             @PathVariable Long distributorId,
             @PathVariable Long id,
             @RequestBody UpdateAgreementRequest request) {
-        requireDistributor(labelId, distributorId);
+        requireDistributorOfLabel(distributorId, labelId);
         var agreement = queryApi.findById(id).orElseThrow(() -> new AgreementNotFoundException(id));
         if (!agreement.distributorId().equals(distributorId)) {
             throw new AgreementNotFoundException(id);
@@ -87,7 +87,7 @@ public class AgreementController {
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteAgreement(
             @PathVariable Long labelId, @PathVariable Long distributorId, @PathVariable Long id) {
-        requireDistributor(labelId, distributorId);
+        requireDistributorOfLabel(distributorId, labelId);
         var agreement = queryApi.findById(id).orElseThrow(() -> new AgreementNotFoundException(id));
         if (!agreement.distributorId().equals(distributorId)) {
             throw new AgreementNotFoundException(id);

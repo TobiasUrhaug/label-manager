@@ -62,7 +62,7 @@ public class CostController {
         this.releaseQueryApi = releaseQueryApi;
     }
 
-    private void requireRelease(Long labelId, Long releaseId) {
+    private void requireReleaseOfLabel(Long releaseId, Long labelId) {
         if (!releaseQueryApi.belongsToLabel(releaseId, labelId)) {
             throw new EntityNotFoundException(
                     "Release " + releaseId + " does not belong to label " + labelId);
@@ -82,7 +82,7 @@ public class CostController {
         if (releaseId == null) {
             return costQueryApi.getCostsForLabel(labelId);
         }
-        requireRelease(labelId, releaseId);
+        requireReleaseOfLabel(releaseId, labelId);
         return costQueryApi.getCostsForRelease(releaseId);
     }
 
@@ -162,7 +162,7 @@ public class CostController {
         if (releaseId == null) {
             return CostOwner.label(labelId);
         }
-        requireRelease(labelId, releaseId);
+        requireReleaseOfLabel(releaseId, labelId);
         return CostOwner.release(releaseId);
     }
 

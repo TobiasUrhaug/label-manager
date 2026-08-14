@@ -43,7 +43,7 @@ public class ProductionRunController {
         this.releaseQueryApi = releaseQueryApi;
     }
 
-    private void requireRelease(Long labelId, Long releaseId) {
+    private void requireReleaseOfLabel(Long releaseId, Long labelId) {
         if (!releaseQueryApi.belongsToLabel(releaseId, labelId)) {
             throw new EntityNotFoundException(
                     "Release " + releaseId + " does not belong to label " + labelId);
@@ -67,7 +67,7 @@ public class ProductionRunController {
     @GetMapping
     public List<ProductionRunWithAllocation> productionRuns(
             @PathVariable Long labelId, @PathVariable Long releaseId) {
-        requireRelease(labelId, releaseId);
+        requireReleaseOfLabel(releaseId, labelId);
         return queryApi.findByReleaseId(releaseId).stream().map(this::withAllocation).toList();
     }
 
@@ -76,7 +76,7 @@ public class ProductionRunController {
             @PathVariable Long labelId,
             @PathVariable Long releaseId,
             @RequestBody AddProductionRunRequest request) {
-        requireRelease(labelId, releaseId);
+        requireReleaseOfLabel(releaseId, labelId);
         commandApi.createProductionRun(
                 releaseId,
                 request.format(),
@@ -92,7 +92,7 @@ public class ProductionRunController {
             @PathVariable Long labelId,
             @PathVariable Long releaseId,
             @PathVariable Long productionRunId) {
-        requireRelease(labelId, releaseId);
+        requireReleaseOfLabel(releaseId, labelId);
         boolean underThisRelease =
                 queryApi.findById(productionRunId)
                         .map(run -> releaseId.equals(run.releaseId()))

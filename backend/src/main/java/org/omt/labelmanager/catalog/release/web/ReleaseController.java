@@ -50,7 +50,7 @@ public class ReleaseController {
     }
 
     /** Catalog owns the answer; this only turns "no" into a 404. */
-    private void requireRelease(Long labelId, Long releaseId) {
+    private void requireReleaseOfLabel(Long releaseId, Long labelId) {
         if (!releaseQueryApi.belongsToLabel(releaseId, labelId)) {
             throw new EntityNotFoundException(
                     "Release " + releaseId + " does not belong to label " + labelId);
@@ -144,7 +144,7 @@ public class ReleaseController {
             @AuthenticationPrincipal AppUserDetails user,
             @PathVariable Long labelId,
             @PathVariable Long releaseId) {
-        requireRelease(labelId, releaseId);
+        requireReleaseOfLabel(releaseId, labelId);
         Release release =
                 releaseQueryApi
                         .findById(releaseId)
@@ -185,7 +185,7 @@ public class ReleaseController {
             @PathVariable Long labelId,
             @PathVariable Long releaseId,
             @Valid @RequestBody UpdateReleaseRequest request) {
-        requireRelease(labelId, releaseId);
+        requireReleaseOfLabel(releaseId, labelId);
         releaseCommandApi.updateRelease(
                 releaseId,
                 request.releaseName(),
@@ -199,7 +199,7 @@ public class ReleaseController {
     @DeleteMapping("/{releaseId}")
     public ResponseEntity<Void> deleteRelease(
             @PathVariable Long labelId, @PathVariable Long releaseId) {
-        requireRelease(labelId, releaseId);
+        requireReleaseOfLabel(releaseId, labelId);
         releaseCommandApi.delete(releaseId);
         return ResponseEntity.noContent().build();
     }

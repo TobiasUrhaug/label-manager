@@ -52,9 +52,7 @@ public class DistributorController {
      */
     @GetMapping
     public List<Distributor> distributors(@PathVariable Long labelId) {
-        labelQueryApi
-                .findById(labelId)
-                .orElseThrow(() -> new EntityNotFoundException("Label not found"));
+        requireLabel(labelId);
         return distributorQueryApi.findByLabelId(labelId);
     }
 
@@ -69,7 +67,7 @@ public class DistributorController {
     @GetMapping("/{distributorId}")
     public Distributor showDistributor(
             @PathVariable Long labelId, @PathVariable Long distributorId) {
-        return requireDistributorOfLabel(labelId, distributorId);
+        return requireDistributorOfLabel(distributorId, labelId);
     }
 
     /**
@@ -82,18 +80,22 @@ public class DistributorController {
     @GetMapping("/{distributorId}/agreements")
     public List<PricingAgreement> agreements(
             @PathVariable Long labelId, @PathVariable Long distributorId) {
-        requireDistributorOfLabel(labelId, distributorId);
+        requireDistributorOfLabel(distributorId, labelId);
         return agreementQueryApi.findByDistributorId(distributorId);
     }
 
-    private Distributor requireDistributorOfLabel(Long labelId, Long distributorId) {
-        labelQueryApi
-                .findById(labelId)
-                .orElseThrow(() -> new EntityNotFoundException("Label not found"));
+    /** Same (childId, labelId) order as DistributorQueryApi.belongsToLabel, deliberately. */
+    private Distributor requireDistributorOfLabel(Long distributorId, Long labelId) {
         return distributorQueryApi
                 .findById(distributorId)
-                .filter(d -> d.labelId().equals(labelId))
-                .orElseThrow(() -> new EntityNotFoundException("Distributor not found"));
+                .filter(distributor -> labelId.equals(distributor.labelId()))
+                .orElseThrow(
+                        () ->
+                                new EntityNotFoundException(
+                                        "Distributor "
+                                                + distributorId
+                                                + " does not belong to label "
+                                                + labelId));
     }
 
     @PostMapping
@@ -109,7 +111,7 @@ public class DistributorController {
     @DeleteMapping("/{distributorId}")
     public ResponseEntity<Void> deleteDistributor(
             @PathVariable Long labelId, @PathVariable Long distributorId) {
-        requireDistributorOfLabel(labelId, distributorId);
+        requireDistributorOfLabel(distributorId, labelId);
         commandApi.delete(distributorId);
         return ResponseEntity.noContent().build();
     }

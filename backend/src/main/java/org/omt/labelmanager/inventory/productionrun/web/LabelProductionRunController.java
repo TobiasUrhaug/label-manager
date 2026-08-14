@@ -42,9 +42,8 @@ public class LabelProductionRunController {
     @GetMapping("/api/labels/{labelId}/production-runs")
     public List<ProductionRun> productionRuns(@PathVariable Long labelId) {
         requireLabel(labelId);
-        return releaseQueryApi.getReleasesForLabel(labelId).stream()
-                .map(Release::id)
-                .flatMap(releaseId -> productionRunQueryApi.findByReleaseId(releaseId).stream())
-                .toList();
+        List<Long> releaseIds =
+                releaseQueryApi.getReleasesForLabel(labelId).stream().map(Release::id).toList();
+        return productionRunQueryApi.findByReleaseIds(releaseIds);
     }
 }

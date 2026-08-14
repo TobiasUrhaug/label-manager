@@ -55,7 +55,7 @@ public class ReturnController {
         }
     }
 
-    private void requireDistributor(Long labelId, Long distributorId) {
+    private void requireDistributorOfLabel(Long distributorId, Long labelId) {
         if (!distributorQueryApi.belongsToLabel(distributorId, labelId)) {
             throw new EntityNotFoundException(
                     "Distributor " + distributorId + " does not belong to label " + labelId);
@@ -114,7 +114,7 @@ public class ReturnController {
     @GetMapping("/api/labels/{labelId}/distributors/{distributorId}/returns")
     public List<DistributorReturn> returnsForDistributor(
             @PathVariable Long labelId, @PathVariable Long distributorId) {
-        requireDistributor(labelId, distributorId);
+        requireDistributorOfLabel(distributorId, labelId);
         return returnQueryApi.getReturnsForDistributor(distributorId);
     }
 
@@ -129,7 +129,7 @@ public class ReturnController {
     @PostMapping("/api/labels/{labelId}/returns")
     public ResponseEntity<Void> registerReturn(
             @PathVariable Long labelId, @Valid @RequestBody RegisterReturnRequest request) {
-        requireDistributor(labelId, request.distributorId());
+        requireDistributorOfLabel(request.distributorId(), labelId);
         returnCommandApi.registerReturn(
                 labelId,
                 request.distributorId(),

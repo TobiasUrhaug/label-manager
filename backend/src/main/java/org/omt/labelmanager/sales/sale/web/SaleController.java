@@ -62,14 +62,14 @@ public class SaleController {
         }
     }
 
-    private void requireRelease(Long labelId, Long releaseId) {
+    private void requireReleaseOfLabel(Long releaseId, Long labelId) {
         if (!releaseQueryApi.belongsToLabel(releaseId, labelId)) {
             throw new EntityNotFoundException(
                     "Release " + releaseId + " does not belong to label " + labelId);
         }
     }
 
-    private void requireDistributor(Long labelId, Long distributorId) {
+    private void requireDistributorOfLabel(Long distributorId, Long labelId) {
         if (!distributorQueryApi.belongsToLabel(distributorId, labelId)) {
             throw new EntityNotFoundException(
                     "Distributor " + distributorId + " does not belong to label " + labelId);
@@ -139,7 +139,7 @@ public class SaleController {
     @GetMapping("/api/labels/{labelId}/releases/{releaseId}/sales")
     public ReleaseSalesResponse salesForRelease(
             @PathVariable Long labelId, @PathVariable Long releaseId) {
-        requireRelease(labelId, releaseId);
+        requireReleaseOfLabel(releaseId, labelId);
 
         List<Distributor> distributors = distributorQueryApi.findByLabelId(labelId);
         List<ReleaseSaleView> sales =
@@ -172,7 +172,7 @@ public class SaleController {
     @GetMapping("/api/labels/{labelId}/distributors/{distributorId}/sales")
     public List<Sale> salesForDistributor(
             @PathVariable Long labelId, @PathVariable Long distributorId) {
-        requireDistributor(labelId, distributorId);
+        requireDistributorOfLabel(distributorId, labelId);
         return saleQueryApi.getSalesForDistributor(distributorId);
     }
 
@@ -190,7 +190,7 @@ public class SaleController {
         if (request.distributorId() == null) {
             requireLabel(labelId);
         } else {
-            requireDistributor(labelId, request.distributorId());
+            requireDistributorOfLabel(request.distributorId(), labelId);
         }
         saleCommandApi.registerSale(
                 labelId,

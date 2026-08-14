@@ -925,6 +925,16 @@ method Jackson never serialises; the cost document is served with its stored con
 conformance test that boots the app and diffs `/v3/api-docs` is Phase 3 — until it exists, this
 column is a claim, not a check.
 
+**Still open — `distribution` cannot validate a `productionRunId`.** `PricingAgreement` holds one,
+and `POST .../agreements` checks that the distributor belongs to the label but never that the
+production run does. It could not: the check needs inventory, and `distribution → inventory` is not
+on §5.2's map. Previously this was masked — a cross-label run rendered as the other label's release
+name — and returning the raw id makes it visible: the client gets an id that will not appear in
+`/api/labels/{labelId}/production-runs`. Three ways out, none free: allow `distribution → inventory`
+(an admission that pricing genuinely references pressings); move agreements into `inventory`; or
+have `inventory` own a "price for this run" concept. Worth settling in Phase 4, which is already
+rebuilding the inventory aggregate.
+
 **Still open.** User-owned costs (`CostOwner.user`) are reachable under no endpoint: the
 document route used to serve them regardless of owner, and scoping it under a label closed
 that. Nothing creates them over HTTP and `CostQueryApi.getCostsForUser` has no caller, so this
