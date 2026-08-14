@@ -898,10 +898,21 @@ unchanged except one new test asserting a `DIRECT` distributor exists after labe
   applied; CSRF-rejected 403s had no body; the invoice parser swallowed every transport failure into
   an empty 200, so a dead integration was indistinguishable from a blank invoice.
 
-**Still open.** `openapi.yaml` documents auth and artists; the other ~30 endpoints and the
-conformance test are not done, so the second done-when condition is unmet. User-owned costs
-(`CostOwner.user`) are now reachable under no endpoint — nothing creates them over HTTP, but
-`CostQueryApi.getCostsForUser` has no caller and should either get a surface or go.
+- **The item endpoints were never scoped either, and predate Phase 2.** `GET`/`PUT`/`DELETE
+  /api/labels/1/sales/{saleOwnedByLabel2}` read, mutated and deleted another label's sale;
+  same for returns; `POST`/`DELETE` on production runs ignored the label and release in the
+  path entirely. `SaleCommandApi.updateSale` takes a sale id and nothing else, so nothing
+  downstream could catch it. All six now check, through the same `LabelScope`.
+
+**Done when — status.** No `*Controller` outside `web` ✅. No `PackageName` suppressions ✅.
+`openapi.yaml` documents all 30 paths and 51 operations, matching the 51 controller mappings ✅
+— but *matching* is by hand: the conformance test that boots the app and diffs `/v3/api-docs`
+is Phase 3, so nothing keeps them in step yet.
+
+**Still open.** User-owned costs (`CostOwner.user`) are reachable under no endpoint: the
+document route used to serve them regardless of owner, and scoping it under a label closed
+that. Nothing creates them over HTTP and `CostQueryApi.getCostsForUser` has no caller, so this
+is a decision to take, not a regression to undo — give them a surface or delete the concept.
 
 **Changes.** Move every `*Controller`, its nested request/response records, and the `*View` DTOs into
 `web/` — **one controller per commit**. Rename `sales/distributor_return` → `sales/distributorreturn`
