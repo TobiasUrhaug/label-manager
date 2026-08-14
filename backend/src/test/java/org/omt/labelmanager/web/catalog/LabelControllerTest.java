@@ -8,20 +8,13 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
-import org.omt.labelmanager.catalog.artist.api.ArtistQueryApi;
-import org.omt.labelmanager.catalog.artist.domain.ArtistFactory;
 import org.omt.labelmanager.catalog.domain.shared.Address;
 import org.omt.labelmanager.catalog.domain.shared.Person;
 import org.omt.labelmanager.catalog.label.LabelFactory;
 import org.omt.labelmanager.catalog.label.api.LabelCommandApi;
 import org.omt.labelmanager.catalog.label.api.LabelQueryApi;
-import org.omt.labelmanager.catalog.release.ReleaseFactory;
-import org.omt.labelmanager.catalog.release.api.ReleaseQueryApi;
-import org.omt.labelmanager.distribution.distributor.DistributorFactory;
-import org.omt.labelmanager.distribution.distributor.api.DistributorQueryApi;
 import org.omt.labelmanager.identity.api.user.AppUserDetails;
 import org.omt.labelmanager.test.TestSecurityConfig;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,12 +33,6 @@ class LabelControllerTest {
 
     @MockitoBean private LabelQueryApi labelQueryFacade;
 
-    @MockitoBean private ReleaseQueryApi releaseQueryFacade;
-
-    @MockitoBean private ArtistQueryApi artistQueryApi;
-
-    @MockitoBean private DistributorQueryApi distributorQueryService;
-
     private final AppUserDetails testUser =
             new AppUserDetails(1L, "test@example.com", "password", "Test User");
 
@@ -60,31 +47,33 @@ class LabelControllerTest {
                         .build();
         when(labelQueryFacade.findById(1L)).thenReturn(Optional.of(label));
 
-        var release = ReleaseFactory.aRelease().id(1L).name("My Release").build();
-        when(releaseQueryFacade.getReleasesForLabel(1L)).thenReturn(List.of(release));
-
-        var artist = ArtistFactory.anArtist().id(1L).artistName("Unknown").build();
-        when(artistQueryApi.getArtistsForUser(1L)).thenReturn(List.of(artist));
-
-        var distributor = DistributorFactory.aDistributor().id(1L).name("Direct Sales").build();
-        when(distributorQueryService.findByLabelId(1L)).thenReturn(List.of(distributor));
-
         mockMvc.perform(get("/api/labels/1").with(user(testUser)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.name").value("My Label"))
                 .andExpect(jsonPath("$.email").value("contact@mylabel.com"))
-                .andExpect(jsonPath("$.website").value("https://mylabel.com"))
-                .andExpect(jsonPath("$.releases").isArray())
-                .andExpect(jsonPath("$.artists").isArray())
-                .andExpect(jsonPath("$.distributors").isArray());
+                .andExpect(jsonPath("$.website").value("https://mylabel.com"));
     }
 
     @Test
-    void label_returns404_whenResourceNotFound() throws Exception {
+    void label_doesNotBundleReleasesArtistsOrDistributors() throws Exception {
+        var label = LabelFactory.aLabel().id(1L).name("My Label").build();
+        when(labelQueryFacade.findById(1L)).thenReturn(Optional.of(label));
+
+        mockMvc.perform(get("/api/labels/1").with(user(testUser)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.releases").doesNotExist())
+                .andExpect(jsonPath("$.artists").doesNotExist())
+                .andExpect(jsonPath("$.distributors").doesNotExist());
+    }
+
+    @Test
+    void label_returns404ProblemDetail_whenResourceNotFound() throws Exception {
         when(labelQueryFacade.findById(1123L)).thenReturn(Optional.empty());
 
         mockMvc.perform(get("/api/labels/1123").with(user(testUser)))
-                .andExpect(status().isNotFound());
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.status").value(404))
+                .andExpect(jsonPath("$.detail").value("Label not found: 1123"));
     }
 
     @Test

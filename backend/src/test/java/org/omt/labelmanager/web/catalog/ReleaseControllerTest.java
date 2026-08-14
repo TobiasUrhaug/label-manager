@@ -71,6 +71,17 @@ class ReleaseControllerTest {
             new AppUserDetails(1L, "test@example.com", "password", "Test User");
 
     @Test
+    void releases_returnsTheLabelsReleases() throws Exception {
+        var release = ReleaseFactory.aRelease().id(4L).name("First Release").labelId(1L).build();
+        when(releaseQueryFacade.getReleasesForLabel(1L)).thenReturn(List.of(release));
+
+        mockMvc.perform(get("/api/labels/1/releases").with(user(testUser)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isArray())
+                .andExpect(jsonPath("$[0].name").value("First Release"));
+    }
+
+    @Test
     void release_returnsReleaseJson() throws Exception {
         var releaseDate = LocalDate.of(2026, 3, 15);
         var artist = ArtistFactory.anArtist().id(1L).artistName("Test Artist").build();

@@ -1,17 +1,11 @@
 package org.omt.labelmanager.web.catalog;
 
-import java.util.List;
-import org.omt.labelmanager.catalog.artist.api.ArtistQueryApi;
-import org.omt.labelmanager.catalog.artist.domain.Artist;
+import jakarta.persistence.EntityNotFoundException;
 import org.omt.labelmanager.catalog.domain.shared.Address;
 import org.omt.labelmanager.catalog.domain.shared.Person;
 import org.omt.labelmanager.catalog.label.api.LabelCommandApi;
 import org.omt.labelmanager.catalog.label.api.LabelQueryApi;
 import org.omt.labelmanager.catalog.label.domain.Label;
-import org.omt.labelmanager.catalog.release.api.ReleaseQueryApi;
-import org.omt.labelmanager.catalog.release.domain.Release;
-import org.omt.labelmanager.distribution.distributor.api.Distributor;
-import org.omt.labelmanager.distribution.distributor.api.DistributorQueryApi;
 import org.omt.labelmanager.identity.api.user.AppUserDetails;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,7 +20,6 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.server.ResponseStatusException;
 
 @RestController
 @RequestMapping("/api/labels")
@@ -36,33 +29,11 @@ public class LabelController {
 
     private final LabelCommandApi labelCommandHandler;
     private final LabelQueryApi labelQueryFacade;
-    private final ReleaseQueryApi releaseQueryFacade;
-    private final ArtistQueryApi artistQueryApi;
-    private final DistributorQueryApi distributorQueryApi;
 
-    public LabelController(
-            LabelCommandApi labelCommandHandler,
-            LabelQueryApi labelQueryFacade,
-            ReleaseQueryApi releaseQueryFacade,
-            ArtistQueryApi artistQueryApi,
-            DistributorQueryApi distributorQueryApi) {
+    public LabelController(LabelCommandApi labelCommandHandler, LabelQueryApi labelQueryFacade) {
         this.labelCommandHandler = labelCommandHandler;
         this.labelQueryFacade = labelQueryFacade;
-        this.releaseQueryFacade = releaseQueryFacade;
-        this.artistQueryApi = artistQueryApi;
-        this.distributorQueryApi = distributorQueryApi;
     }
-
-    record LabelDetailResponse(
-            Long id,
-            String name,
-            String email,
-            String website,
-            Address address,
-            Person owner,
-            List<Release> releases,
-            List<Artist> artists,
-            List<Distributor> distributors) {}
 
     record CreateLabelRequest(
             String labelName,
@@ -114,32 +85,23 @@ public class LabelController {
         }
     }
 
+    /**
+     * The label itself.
+     *
+     * <p>Its releases, distributors and the caller's artists are separate collections — {@code
+     * /api/labels/{id}/releases}, {@code /api/labels/{id}/distributors} and {@code /api/artists}.
+     * Bundling them here was a page model for a screen that no longer exists, and the reason
+     * catalog depended on distribution.
+     */
     @GetMapping("/{id}")
-    public LabelDetailResponse label(
-            @AuthenticationPrincipal AppUserDetails user, @PathVariable Long id) {
-        Label label =
-                labelQueryFacade
-                        .findById(id)
-                        .orElseThrow(
-                                () -> {
-                                    log.warn("Label with id {} not found", id);
-                                    return new ResponseStatusException(HttpStatus.NOT_FOUND);
-                                });
-
-        List<Release> releases = releaseQueryFacade.getReleasesForLabel(id);
-        List<Artist> artists = artistQueryApi.getArtistsForUser(user.getId());
-        List<Distributor> distributors = distributorQueryApi.findByLabelId(id);
-
-        return new LabelDetailResponse(
-                label.id(),
-                label.name(),
-                label.email(),
-                label.website(),
-                label.address(),
-                label.owner(),
-                releases,
-                artists,
-                distributors);
+    public Label label(@PathVariable Long id) {
+        return labelQueryFacade
+                .findById(id)
+                .orElseThrow(
+                        () -> {
+                            log.warn("Label with id {} not found", id);
+                            return new EntityNotFoundException("Label not found: " + id);
+                        });
     }
 
     @PostMapping

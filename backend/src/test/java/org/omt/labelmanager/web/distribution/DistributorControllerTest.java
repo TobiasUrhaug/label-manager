@@ -123,6 +123,20 @@ class DistributorControllerTest {
     }
 
     @Test
+    void distributors_returnsTheLabelsDistributors() throws Exception {
+        var label = LabelFactory.aLabel().id(1L).name("My Label").build();
+        var distributor =
+                DistributorFactory.aDistributor().id(5L).labelId(1L).name("Alpha").build();
+        when(labelQueryApi.findById(1L)).thenReturn(Optional.of(label));
+        when(distributorQueryApi.findByLabelId(1L)).thenReturn(List.of(distributor));
+
+        mockMvc.perform(get("/api/labels/1/distributors").with(user(testUser)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isArray())
+                .andExpect(jsonPath("$[0].name").value("Alpha"));
+    }
+
+    @Test
     void showDistributor_returnsDetailWithSalesAndReturns() throws Exception {
         var label = LabelFactory.aLabel().id(1L).name("My Label").build();
         var distributor =

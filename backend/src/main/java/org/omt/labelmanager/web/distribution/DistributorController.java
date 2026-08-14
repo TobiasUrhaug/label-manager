@@ -65,6 +65,17 @@ public class DistributorController {
             List<DistributorReturn> returns,
             List<AgreementView> agreements) {}
 
+    /**
+     * The label's distributors. Replaces the list that {@code GET /api/labels/{labelId}} bundled.
+     */
+    @GetMapping
+    public List<Distributor> distributors(@PathVariable Long labelId) {
+        labelQueryApi
+                .findById(labelId)
+                .orElseThrow(() -> new EntityNotFoundException("Label not found"));
+        return distributorQueryApi.findByLabelId(labelId);
+    }
+
     @GetMapping("/{distributorId}")
     public DistributorDetailResponse showDistributor(
             @PathVariable Long labelId, @PathVariable Long distributorId) {

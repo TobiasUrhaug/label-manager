@@ -152,6 +152,12 @@ public class ReleaseController {
             List<ReleaseSaleView> releaseSales,
             int totalUnitsSold) {}
 
+    /** The label's releases. Replaces the list that {@code GET /api/labels/{labelId}} bundled. */
+    @GetMapping
+    public List<Release> releases(@PathVariable Long labelId) {
+        return releaseQueryApi.getReleasesForLabel(labelId);
+    }
+
     @GetMapping("/{releaseId}")
     public ReleaseDetailResponse release(
             @AuthenticationPrincipal AppUserDetails user,
