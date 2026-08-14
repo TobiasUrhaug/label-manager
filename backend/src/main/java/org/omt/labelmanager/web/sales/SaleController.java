@@ -3,10 +3,14 @@ package org.omt.labelmanager.web.sales;
 import jakarta.persistence.EntityNotFoundException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.Comparator;
 import java.util.List;
 import org.omt.labelmanager.catalog.label.api.LabelQueryApi;
 import org.omt.labelmanager.catalog.release.api.ReleaseQueryApi;
 import org.omt.labelmanager.distribution.distributor.api.ChannelType;
+import org.omt.labelmanager.distribution.distributor.api.Distributor;
+import org.omt.labelmanager.distribution.distributor.api.DistributorQueryApi;
+import org.omt.labelmanager.inventory.productionrun.api.ProductionRunQueryApi;
 import org.omt.labelmanager.sales.sale.api.SaleCommandApi;
 import org.omt.labelmanager.sales.sale.api.SaleQueryApi;
 import org.omt.labelmanager.sales.sale.domain.Sale;
@@ -23,6 +27,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -33,16 +38,22 @@ public class SaleController {
     private final SaleQueryApi saleQueryApi;
     private final LabelQueryApi labelQueryApi;
     private final ReleaseQueryApi releaseQueryApi;
+    private final ProductionRunQueryApi productionRunQueryApi;
+    private final DistributorQueryApi distributorQueryApi;
 
     public SaleController(
             SaleCommandApi saleCommandApi,
             SaleQueryApi saleQueryApi,
             LabelQueryApi labelQueryApi,
-            ReleaseQueryApi releaseQueryApi) {
+            ReleaseQueryApi releaseQueryApi,
+            ProductionRunQueryApi productionRunQueryApi,
+            DistributorQueryApi distributorQueryApi) {
         this.saleCommandApi = saleCommandApi;
         this.saleQueryApi = saleQueryApi;
         this.labelQueryApi = labelQueryApi;
         this.releaseQueryApi = releaseQueryApi;
+        this.productionRunQueryApi = productionRunQueryApi;
+        this.distributorQueryApi = distributorQueryApi;
     }
 
     record LineItemRequest(Long releaseId, Format format, int quantity, BigDecimal unitPrice) {
@@ -88,6 +99,52 @@ public class SaleController {
             String notes,
             Money totalAmount,
             List<EnrichedLineItem> lineItems) {}
+
+    record ReleaseSaleView(
+            Long saleId,
+            LocalDate saleDate,
+            String distributorName,
+            int totalUnits,
+            Money totalRevenue) {}
+
+    record ReleaseSalesResponse(List<ReleaseSaleView> sales, int totalUnitsSold) {}
+
+    /**
+     * The sales attributed to one release, through its production runs.
+     *
+     * <p>Replaces the {@code releaseSales} and {@code totalUnitsSold} fields of the release detail
+     * response.
+     */
+    @GetMapping(params = "releaseId")
+    public ReleaseSalesResponse salesForRelease(
+            @PathVariable Long labelId, @RequestParam Long releaseId) {
+        labelQueryApi
+                .findById(labelId)
+                .orElseThrow(() -> new EntityNotFoundException("Label not found"));
+
+        List<Distributor> distributors = distributorQueryApi.findByLabelId(labelId);
+        List<ReleaseSaleView> sales =
+                productionRunQueryApi.findByReleaseId(releaseId).stream()
+                        .flatMap(run -> saleQueryApi.getSalesForProductionRun(run.id()).stream())
+                        .map(sale -> toReleaseSaleView(sale, distributors))
+                        .sorted(Comparator.comparing(ReleaseSaleView::saleDate).reversed())
+                        .toList();
+
+        int totalUnitsSold = sales.stream().mapToInt(ReleaseSaleView::totalUnits).sum();
+        return new ReleaseSalesResponse(sales, totalUnitsSold);
+    }
+
+    private ReleaseSaleView toReleaseSaleView(Sale sale, List<Distributor> distributors) {
+        int totalUnits = sale.lineItems().stream().mapToInt(SaleLineItem::quantity).sum();
+        String distributorName =
+                distributors.stream()
+                        .filter(d -> d.id().equals(sale.distributorId()))
+                        .findFirst()
+                        .map(Distributor::name)
+                        .orElse("Unknown");
+        return new ReleaseSaleView(
+                sale.id(), sale.saleDate(), distributorName, totalUnits, sale.totalAmount());
+    }
 
     @GetMapping
     public SaleListResponse listSales(@PathVariable Long labelId) {

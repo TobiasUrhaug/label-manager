@@ -13,6 +13,7 @@ import org.omt.labelmanager.catalog.label.api.LabelQueryApi;
 import org.omt.labelmanager.catalog.release.api.ReleaseQueryApi;
 import org.omt.labelmanager.distribution.distributor.api.DistributorQueryApi;
 import org.omt.labelmanager.identity.api.user.AppUserDetails;
+import org.omt.labelmanager.inventory.productionrun.api.ProductionRunQueryApi;
 import org.omt.labelmanager.sales.sale.api.SaleCommandApi;
 import org.omt.labelmanager.sales.sale.api.SaleQueryApi;
 import org.omt.labelmanager.test.TestSecurityConfig;
@@ -47,6 +48,8 @@ class ApiExceptionHandlerTest {
     @MockitoBean private ReleaseQueryApi releaseQueryApi;
 
     @MockitoBean private DistributorQueryApi distributorQueryApi;
+
+    @MockitoBean private ProductionRunQueryApi productionRunQueryApi;
 
     private final AppUserDetails testUser =
             new AppUserDetails(1L, "test@example.com", "password", "Test User");

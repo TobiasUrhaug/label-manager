@@ -12,10 +12,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
@@ -25,19 +23,13 @@ import org.omt.labelmanager.catalog.release.ReleaseFactory;
 import org.omt.labelmanager.catalog.release.TrackFactory;
 import org.omt.labelmanager.catalog.release.api.ReleaseCommandApi;
 import org.omt.labelmanager.catalog.release.api.ReleaseQueryApi;
-import org.omt.labelmanager.distribution.distributor.DistributorFactory;
-import org.omt.labelmanager.distribution.distributor.api.ChannelType;
 import org.omt.labelmanager.distribution.distributor.api.DistributorQueryApi;
 import org.omt.labelmanager.finance.cost.api.CostQueryApi;
 import org.omt.labelmanager.identity.api.user.AppUserDetails;
 import org.omt.labelmanager.inventory.inventorymovement.api.InventoryMovementQueryApi;
 import org.omt.labelmanager.inventory.productionrun.api.ProductionRunQueryApi;
-import org.omt.labelmanager.inventory.productionrun.domain.ProductionRunFactory;
 import org.omt.labelmanager.sales.sale.api.SaleQueryApi;
-import org.omt.labelmanager.sales.sale.domain.Sale;
-import org.omt.labelmanager.sales.sale.domain.SaleLineItem;
 import org.omt.labelmanager.shared.Format;
-import org.omt.labelmanager.shared.Money;
 import org.omt.labelmanager.test.TestSecurityConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
@@ -116,58 +108,18 @@ class ReleaseControllerTest {
     }
 
     @Test
-    void release_populatesInventoryDataInProductionRuns() throws Exception {
+    void release_doesNotBundleCostsRunsDistributorsOrSales() throws Exception {
         var release = ReleaseFactory.aRelease().id(4L).labelId(1L).build();
-        var productionRun =
-                ProductionRunFactory.aProductionRun().id(10L).releaseId(4L).quantity(500).build();
-
         when(releaseQueryFacade.findById(4L)).thenReturn(Optional.of(release));
-        when(productionRunQueryService.findByReleaseId(4L)).thenReturn(List.of(productionRun));
-        when(inventoryMovementQueryApi.getWarehouseInventory(10L)).thenReturn(200);
-        when(inventoryMovementQueryApi.getBandcampInventory(10L)).thenReturn(25);
-        when(inventoryMovementQueryApi.getCurrentInventoryByDistributor(10L)).thenReturn(Map.of());
-        when(inventoryMovementQueryApi.getMovementsForProductionRun(10L)).thenReturn(List.of());
+        when(artistQueryApi.getArtistsForUser(1L)).thenReturn(List.of());
 
         mockMvc.perform(get("/api/labels/1/releases/4").with(user(testUser)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.productionRuns[0].warehouseInventory").value(700))
-                .andExpect(jsonPath("$.productionRuns[0].bandcampInventory").value(25))
-                .andExpect(jsonPath("$.productionRuns[0].distributorInventories").isEmpty())
-                .andExpect(jsonPath("$.productionRuns[0].movements").isEmpty());
-    }
-
-    @Test
-    void release_populatesNonEmptyDistributorInventories() throws Exception {
-        var release = ReleaseFactory.aRelease().id(4L).labelId(1L).build();
-        var productionRun =
-                ProductionRunFactory.aProductionRun().id(10L).releaseId(4L).quantity(500).build();
-        var alphaDistributor =
-                DistributorFactory.aDistributor().id(1L).name("Alpha Records").build();
-        var betaDistributor =
-                DistributorFactory.aDistributor().id(2L).name("Beta Distribution").build();
-
-        when(releaseQueryFacade.findById(4L)).thenReturn(Optional.of(release));
-        when(productionRunQueryService.findByReleaseId(4L)).thenReturn(List.of(productionRun));
-        when(distributorQueryService.findByLabelId(1L))
-                .thenReturn(List.of(alphaDistributor, betaDistributor));
-        when(inventoryMovementQueryApi.getWarehouseInventory(10L)).thenReturn(350);
-        when(inventoryMovementQueryApi.getCurrentInventoryByDistributor(10L))
-                .thenReturn(Map.of(1L, 80, 2L, 30));
-        when(inventoryMovementQueryApi.getMovementsForProductionRun(10L)).thenReturn(List.of());
-
-        mockMvc.perform(get("/api/labels/1/releases/4").with(user(testUser)))
-                .andExpect(status().isOk())
-                .andExpect(
-                        jsonPath("$.productionRuns[0].distributorInventories[0].name")
-                                .value("Alpha Records"))
-                .andExpect(
-                        jsonPath("$.productionRuns[0].distributorInventories[0].current").value(80))
-                .andExpect(
-                        jsonPath("$.productionRuns[0].distributorInventories[1].name")
-                                .value("Beta Distribution"))
-                .andExpect(
-                        jsonPath("$.productionRuns[0].distributorInventories[1].current")
-                                .value(30));
+                .andExpect(jsonPath("$.costs").doesNotExist())
+                .andExpect(jsonPath("$.productionRuns").doesNotExist())
+                .andExpect(jsonPath("$.distributors").doesNotExist())
+                .andExpect(jsonPath("$.releaseSales").doesNotExist())
+                .andExpect(jsonPath("$.totalUnitsSold").doesNotExist());
     }
 
     @Test
@@ -242,49 +194,5 @@ class ReleaseControllerTest {
                 .andExpect(status().isNoContent());
 
         verify(releaseCommandFacade).delete(5L);
-    }
-
-    @Test
-    void release_populatesReleaseSalesAcrossProductionRuns() throws Exception {
-        var release = ReleaseFactory.aRelease().id(4L).labelId(1L).build();
-        var productionRun =
-                ProductionRunFactory.aProductionRun().id(10L).releaseId(4L).quantity(500).build();
-        var distributor =
-                DistributorFactory.aDistributor()
-                        .id(1L)
-                        .name("Cargo Records")
-                        .channelType(ChannelType.DISTRIBUTOR)
-                        .build();
-        var lineItem =
-                new SaleLineItem(
-                        1L,
-                        4L,
-                        Format.VINYL,
-                        30,
-                        Money.of(BigDecimal.valueOf(15)),
-                        Money.of(BigDecimal.valueOf(450)));
-        var sale =
-                new Sale(
-                        10L,
-                        1L,
-                        1L,
-                        LocalDate.of(2026, 1, 10),
-                        ChannelType.DISTRIBUTOR,
-                        null,
-                        List.of(lineItem),
-                        Money.of(BigDecimal.valueOf(450)));
-
-        when(releaseQueryFacade.findById(4L)).thenReturn(Optional.of(release));
-        when(productionRunQueryService.findByReleaseId(4L)).thenReturn(List.of(productionRun));
-        when(distributorQueryService.findByLabelId(1L)).thenReturn(List.of(distributor));
-        when(inventoryMovementQueryApi.getCurrentInventoryByDistributor(10L)).thenReturn(Map.of());
-        when(inventoryMovementQueryApi.getMovementsForProductionRun(10L)).thenReturn(List.of());
-        when(saleQueryApi.getSalesForProductionRun(10L)).thenReturn(List.of(sale));
-
-        mockMvc.perform(get("/api/labels/1/releases/4").with(user(testUser)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.releaseSales[0].distributorName").value("Cargo Records"))
-                .andExpect(jsonPath("$.releaseSales[0].totalUnits").value(30))
-                .andExpect(jsonPath("$.totalUnitsSold").value(30));
     }
 }

@@ -30,6 +30,7 @@ import org.omt.labelmanager.distribution.distributor.api.ChannelType;
 import org.omt.labelmanager.distribution.distributor.api.DistributorQueryApi;
 import org.omt.labelmanager.identity.api.user.AppUserDetails;
 import org.omt.labelmanager.inventory.InsufficientInventoryException;
+import org.omt.labelmanager.inventory.productionrun.api.ProductionRunQueryApi;
 import org.omt.labelmanager.sales.sale.api.SaleCommandApi;
 import org.omt.labelmanager.sales.sale.api.SaleQueryApi;
 import org.omt.labelmanager.sales.sale.domain.Sale;
@@ -58,6 +59,8 @@ class SaleControllerTest {
     @MockitoBean private ReleaseQueryApi releaseQueryApi;
 
     @MockitoBean private DistributorQueryApi distributorQueryApi;
+
+    @MockitoBean private ProductionRunQueryApi productionRunQueryApi;
 
     private final AppUserDetails testUser =
             new AppUserDetails(1L, "test@example.com", "password", "Test User");

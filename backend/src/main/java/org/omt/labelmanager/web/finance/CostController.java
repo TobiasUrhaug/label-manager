@@ -2,6 +2,7 @@ package org.omt.labelmanager.web.finance;
 
 import jakarta.persistence.EntityNotFoundException;
 import java.io.IOException;
+import java.util.List;
 import java.util.Set;
 import org.omt.labelmanager.catalog.release.api.ReleaseQueryApi;
 import org.omt.labelmanager.finance.cost.api.CostCommandApi;
@@ -59,6 +60,26 @@ public class CostController {
         this.costCommandApi = costCommandApi;
         this.costQueryApi = costQueryApi;
         this.releaseQueryApi = releaseQueryApi;
+    }
+
+    /**
+     * The label's costs, or one release's when {@code releaseId} is given.
+     *
+     * <p>Replaces the {@code costs} field of the release detail response. There was no way to read
+     * costs over HTTP at all before this — they were only ever bundled into that page model.
+     */
+    @GetMapping
+    public List<Cost> costs(
+            @PathVariable Long labelId,
+            @RequestParam(value = "releaseId", required = false) Long releaseId) {
+        if (releaseId == null) {
+            return costQueryApi.getCostsForLabel(labelId);
+        }
+        if (!releaseBelongsToLabel(releaseId, labelId)) {
+            throw new EntityNotFoundException(
+                    "Release " + releaseId + " does not belong to label " + labelId);
+        }
+        return costQueryApi.getCostsForRelease(releaseId);
     }
 
     @PostMapping
