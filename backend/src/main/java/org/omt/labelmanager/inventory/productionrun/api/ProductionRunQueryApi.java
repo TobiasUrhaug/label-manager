@@ -25,7 +25,4 @@ public interface ProductionRunQueryApi {
      * pressing to sell from.
      */
     Optional<ProductionRun> findMostRecent(Long releaseId, Format format);
-
-    /** Returns the quantity manufactured for this production run. */
-    int getManufacturedQuantity(Long productionRunId);
 }

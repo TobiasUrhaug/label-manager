@@ -2,6 +2,7 @@ package org.omt.labelmanager.inventory.productionrun.application;
 
 import java.time.LocalDate;
 import org.omt.labelmanager.inventory.InventoryLocation;
+import org.omt.labelmanager.inventory.inventorymovement.api.InventoryMovementCommandApi;
 import org.omt.labelmanager.inventory.productionrun.api.ProductionRunCommandApi;
 import org.omt.labelmanager.inventory.productionrun.domain.ProductionRun;
 import org.omt.labelmanager.inventory.productionrun.persistence.ProductionRunEntity;
@@ -18,14 +19,17 @@ class ProductionRunCommandApiImpl implements ProductionRunCommandApi {
     private static final Logger log = LoggerFactory.getLogger(ProductionRunCommandApiImpl.class);
 
     private final ProductionRunRepository repository;
+    private final InventoryMovementCommandApi inventoryMovementCommandApi;
     private final AllocateUseCase allocate;
     private final CancelBandcampReservationUseCase cancelBandcampReservation;
 
     ProductionRunCommandApiImpl(
             ProductionRunRepository repository,
+            InventoryMovementCommandApi inventoryMovementCommandApi,
             AllocateUseCase allocate,
             CancelBandcampReservationUseCase cancelBandcampReservation) {
         this.repository = repository;
+        this.inventoryMovementCommandApi = inventoryMovementCommandApi;
         this.allocate = allocate;
         this.cancelBandcampReservation = cancelBandcampReservation;
     }
@@ -44,6 +48,11 @@ class ProductionRunCommandApiImpl implements ProductionRunCommandApi {
                 new ProductionRunEntity(
                         releaseId, format, description, manufacturer, manufacturingDate, quantity);
         entity = repository.save(entity);
+
+        // Manufacture is a movement like any other, so warehouse stock is Σ in − Σ out and no
+        // caller has to add the run's quantity back in.
+        inventoryMovementCommandApi.recordManufacture(entity.getId(), quantity, manufacturingDate);
+
         log.debug("Production run created with id {}", entity.getId());
         return ProductionRun.fromEntity(entity);
     }

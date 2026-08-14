@@ -12,6 +12,7 @@ import org.omt.labelmanager.inventory.inventorymovement.persistence.InventoryMov
  * toLocationType}. Standard patterns:
  *
  * <ul>
+ *   <li>Production: {@code EXTERNAL → WAREHOUSE}
  *   <li>Allocation: {@code WAREHOUSE → DISTRIBUTOR(toLocationId)}
  *   <li>Sale: {@code DISTRIBUTOR(fromLocationId) → EXTERNAL}
  *   <li>Return: {@code DISTRIBUTOR(fromLocationId) → WAREHOUSE}

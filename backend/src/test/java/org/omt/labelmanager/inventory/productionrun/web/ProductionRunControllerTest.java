@@ -163,6 +163,8 @@ class ProductionRunControllerTest {
                 ProductionRunFactory.aProductionRun().id(10L).releaseId(4L).quantity(500).build();
 
         when(queryApi.findByReleaseId(4L)).thenReturn(List.of(productionRun));
+        // Reported as the ledger gives it. The run's 500 manufactured units are a PRODUCTION
+        // movement (V33), so the controller no longer adds them back in.
         when(inventoryMovementQueryApi.getWarehouseInventory(10L)).thenReturn(200);
         when(inventoryMovementQueryApi.getBandcampInventory(10L)).thenReturn(25);
         when(inventoryMovementQueryApi.getCurrentInventoryByDistributor(10L)).thenReturn(Map.of());
@@ -170,7 +172,7 @@ class ProductionRunControllerTest {
 
         mockMvc.perform(get("/api/labels/1/releases/4/production-runs").with(user(testUser)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].warehouseInventory").value(700))
+                .andExpect(jsonPath("$[0].warehouseInventory").value(200))
                 .andExpect(jsonPath("$[0].bandcampInventory").value(25))
                 .andExpect(jsonPath("$[0].distributorInventories").isEmpty())
                 .andExpect(jsonPath("$[0].movements").isEmpty());

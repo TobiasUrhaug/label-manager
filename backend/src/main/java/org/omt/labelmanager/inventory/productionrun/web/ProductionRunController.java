@@ -109,8 +109,7 @@ public class ProductionRunController {
     }
 
     private ProductionRunWithAllocation withAllocation(ProductionRun run) {
-        int warehouseInventory =
-                run.quantity() + inventoryMovementQueryApi.getWarehouseInventory(run.id());
+        int warehouseInventory = inventoryMovementQueryApi.getWarehouseInventory(run.id());
         int bandcampInventory = inventoryMovementQueryApi.getBandcampInventory(run.id());
         Map<Long, Integer> currentByDistributor =
                 inventoryMovementQueryApi.getCurrentInventoryByDistributor(run.id());

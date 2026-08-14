@@ -162,30 +162,4 @@ class QueryProductionRunIntegrationTest extends AbstractIntegrationTest {
         assertThat(mostRecentCd).isPresent();
         assertThat(mostRecentCd.get().id()).isEqualTo(cdRun.id());
     }
-
-    @Test
-    void getManufacturedQuantity_returnsQuantityForExistingProductionRun() {
-        var label = labelTestHelper.createLabel("Test Label");
-        Long releaseId = releaseTestHelper.createReleaseEntity("Test Release", label.id());
-
-        var productionRun =
-                commandApi.createProductionRun(
-                        releaseId,
-                        Format.VINYL,
-                        "Pressing",
-                        "Manufacturer A",
-                        LocalDate.of(2025, 1, 1),
-                        500);
-
-        int quantity = queryApi.getManufacturedQuantity(productionRun.id());
-
-        assertThat(quantity).isEqualTo(500);
-    }
-
-    @Test
-    void getManufacturedQuantity_returnsZeroForNonExistentProductionRun() {
-        int quantity = queryApi.getManufacturedQuantity(999L);
-
-        assertThat(quantity).isZero();
-    }
 }

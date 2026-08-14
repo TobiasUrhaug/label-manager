@@ -1340,7 +1340,11 @@ components:
 
     MovementType:
       type: string
-      enum: [ALLOCATION, SALE, RETURN, TRANSFER_IN, TRANSFER_OUT, ADJUSTMENT]
+      description: >-
+        PRODUCTION is manufacture entering the warehouse, and is the first movement of every
+        production run. It is what makes a location balance Σ in − Σ out with no caller-side
+        correction.
+      enum: [PRODUCTION, ALLOCATION, SALE, RETURN]
 
     CostType:
       type: string

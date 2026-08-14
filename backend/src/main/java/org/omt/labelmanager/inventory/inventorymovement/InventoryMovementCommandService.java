@@ -1,7 +1,10 @@
 package org.omt.labelmanager.inventory.inventorymovement;
 
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneOffset;
 import org.omt.labelmanager.inventory.InventoryLocation;
+import org.omt.labelmanager.inventory.LocationType;
 import org.omt.labelmanager.inventory.MovementType;
 import org.omt.labelmanager.inventory.inventorymovement.api.InventoryMovementCommandApi;
 import org.omt.labelmanager.inventory.inventorymovement.persistence.InventoryMovementEntity;
@@ -21,6 +24,28 @@ class InventoryMovementCommandService implements InventoryMovementCommandApi {
 
     InventoryMovementCommandService(InventoryMovementRepository repository) {
         this.repository = repository;
+    }
+
+    @Override
+    @Transactional
+    public void recordManufacture(Long productionRunId, int quantity, LocalDate manufacturedOn) {
+        var movement =
+                new InventoryMovementEntity(
+                        productionRunId,
+                        LocationType.EXTERNAL,
+                        null,
+                        LocationType.WAREHOUSE,
+                        null,
+                        quantity,
+                        MovementType.PRODUCTION,
+                        manufacturedOn.atStartOfDay(ZoneOffset.UTC).toInstant(),
+                        null);
+        repository.save(movement);
+        log.debug(
+                "Recorded manufacture of {} units for production run {} on {}",
+                quantity,
+                productionRunId,
+                manufacturedOn);
     }
 
     @Override
