@@ -104,6 +104,7 @@ public class DistributorController {
     @DeleteMapping("/{distributorId}")
     public ResponseEntity<Void> deleteDistributor(
             @PathVariable Long labelId, @PathVariable Long distributorId) {
+        requireDistributorOfLabel(labelId, distributorId);
         commandApi.delete(distributorId);
         return ResponseEntity.noContent().build();
     }

@@ -111,6 +111,7 @@ public class ReturnController {
     @PostMapping("/api/labels/{labelId}/returns")
     public ResponseEntity<Void> registerReturn(
             @PathVariable Long labelId, @RequestBody RegisterReturnRequest request) {
+        labelScope.requireDistributor(labelId, request.distributorId());
         returnCommandApi.registerReturn(
                 labelId,
                 request.distributorId(),

@@ -28,6 +28,7 @@ import org.omt.labelmanager.identity.api.user.AppUserDetails;
 import org.omt.labelmanager.inventory.inventorymovement.api.InventoryMovementQueryApi;
 import org.omt.labelmanager.inventory.productionrun.api.ProductionRunQueryApi;
 import org.omt.labelmanager.test.TestSecurityConfig;
+import org.omt.labelmanager.web.LabelScope;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
@@ -43,6 +44,8 @@ class AgreementControllerTest {
     @MockitoBean private AgreementCommandApi commandApi;
 
     @MockitoBean private AgreementQueryApi queryApi;
+
+    @MockitoBean private LabelScope labelScope;
 
     @MockitoBean private DistributorQueryApi distributorQueryApi;
 

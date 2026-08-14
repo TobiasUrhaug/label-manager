@@ -249,9 +249,12 @@ paths:
         '201':
           description: Label created. The response has no body.
 
-  /api/labels/{labelId}:
+  /api/labels/{id}:
     parameters:
-      - $ref: '#/components/parameters/LabelId'
+      - name: id
+        in: path
+        required: true
+        schema: { type: integer, format: int64 }
     get:
       operationId: getLabel
       summary: Get one label
@@ -270,6 +273,8 @@ paths:
           $ref: '#/components/responses/NotFound'
     put:
       operationId: updateLabel
+        '404':
+          $ref: '#/components/responses/NotFound'
       summary: Replace a label's details
       requestBody:
         required: true
@@ -282,6 +287,8 @@ paths:
           description: Label updated.
     delete:
       operationId: deleteLabel
+        '404':
+          $ref: '#/components/responses/NotFound'
       summary: Delete a label
       responses:
         '204':
@@ -336,6 +343,8 @@ paths:
           $ref: '#/components/responses/NotFound'
     put:
       operationId: updateRelease
+        '404':
+          $ref: '#/components/responses/NotFound'
       summary: Replace a release's details, tracks and formats
       requestBody:
         required: true
@@ -348,6 +357,8 @@ paths:
           description: Release updated.
     delete:
       operationId: deleteRelease
+        '404':
+          $ref: '#/components/responses/NotFound'
       summary: Delete a release
       responses:
         '204':
@@ -377,6 +388,8 @@ paths:
                 $ref: '#/components/schemas/ProblemDetail'
     post:
       operationId: createProductionRun
+        '404':
+          $ref: '#/components/responses/NotFound'
       summary: Record a pressing of this release
       requestBody:
         required: true
@@ -398,6 +411,8 @@ paths:
         schema: { type: integer, format: int64 }
     delete:
       operationId: deleteProductionRun
+        '404':
+          $ref: '#/components/responses/NotFound'
       summary: Delete a production run
       responses:
         '204':
@@ -565,6 +580,8 @@ paths:
                 $ref: '#/components/schemas/ProblemDetail'
     delete:
       operationId: deleteDistributor
+        '404':
+          $ref: '#/components/responses/NotFound'
       summary: Delete a distributor
       responses:
         '204':
@@ -640,6 +657,8 @@ paths:
                 $ref: '#/components/schemas/ProblemDetail'
     post:
       operationId: createAgreement
+        '404':
+          $ref: '#/components/responses/NotFound'
       summary: Price one production run for this distributor
       requestBody:
         required: true
@@ -766,6 +785,9 @@ paths:
     put:
       operationId: updateCost
       summary: Replace a cost's details
+      description: |
+        `releaseId` is not read here — a cost's owner is fixed at creation. Send it and it is
+        ignored.
       requestBody:
         required: true
         content:
@@ -775,6 +797,12 @@ paths:
       responses:
         '204':
           description: Cost updated.
+        '400':
+          description: The attached document is not an accepted type.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
         '404':
           $ref: '#/components/responses/CostNotUnderLabel'
     delete:
@@ -804,9 +832,11 @@ paths:
             enum: [view, download]
       responses:
         '200':
-          description: The document, with its stored content type.
+          description: |
+            The document, served with the content type it was stored under — one of
+            application/pdf, image/png, image/jpeg, or the Word and Excel types.
           content:
-            application/octet-stream:
+            '*/*':
               schema:
                 type: string
                 format: binary
@@ -881,6 +911,8 @@ paths:
           $ref: '#/components/responses/NotFound'
     post:
       operationId: registerSale
+        '404':
+          $ref: '#/components/responses/NotFound'
       summary: Record a sale
       description: |
         Consumes stock. Rejected if the production runs behind the line items cannot cover it.
@@ -921,6 +953,8 @@ paths:
           $ref: '#/components/responses/NotFound'
     put:
       operationId: updateSale
+        '404':
+          $ref: '#/components/responses/NotFound'
       summary: Replace a sale's date, notes and line items
       description: Reverses the original stock movements and applies the new ones.
       requestBody:
@@ -944,6 +978,8 @@ paths:
                 $ref: '#/components/schemas/ProblemDetail'
     delete:
       operationId: deleteSale
+        '404':
+          $ref: '#/components/responses/NotFound'
       summary: Delete a sale and reverse its stock movements
       responses:
         '204':
@@ -976,6 +1012,8 @@ paths:
           $ref: '#/components/responses/NotFound'
     post:
       operationId: registerReturn
+        '404':
+          $ref: '#/components/responses/NotFound'
       summary: Record stock coming back from a distributor
       requestBody:
         required: true
@@ -1014,6 +1052,8 @@ paths:
           $ref: '#/components/responses/NotFound'
     put:
       operationId: updateReturn
+        '404':
+          $ref: '#/components/responses/NotFound'
       summary: Replace a return's date, notes and line items
       requestBody:
         required: true
@@ -1036,6 +1076,8 @@ paths:
                 $ref: '#/components/schemas/ProblemDetail'
     delete:
       operationId: deleteReturn
+        '404':
+          $ref: '#/components/responses/NotFound'
       summary: Delete a return and reverse its stock movements
       responses:
         '204':
@@ -1235,11 +1277,13 @@ components:
 
     Money:
       type: object
-      required: [amount]
+      required: [amount, currency]
       properties:
         amount:
           type: number
-      description: A monetary amount. Currency is implicit — the application is single-currency.
+        currency:
+          type: string
+          description: Always "EUR" today — Money.of sets it and nothing else does.
 
     Format:
       type: string
@@ -1386,7 +1430,9 @@ components:
         releaseDate:
           type: string
           format: date
-          description: ISO-8601. Parsed strictly; a malformed value is a 400.
+          description: |
+            ISO-8601, required and non-blank. A malformed value is a 400 —
+            DateTimeException is mapped by ApiExceptionHandler.
         artistIds:
           type: array
           items: { type: integer, format: int64 }
@@ -1506,9 +1552,6 @@ components:
         productionRunDisplayName:
           type: string
           description: '"Release name – FORMAT", or "Unknown" if the run no longer resolves.'
-        displayCommission:
-          type: string
-          description: The commission rendered for display, e.g. "15%" or "2.50 €".
 
     AgreementRequest:
       type: object

@@ -1,5 +1,8 @@
 package org.omt.labelmanager.web.catalog;
 
+import jakarta.persistence.EntityNotFoundException;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
@@ -17,8 +20,7 @@ import org.omt.labelmanager.catalog.release.domain.TrackDuration;
 import org.omt.labelmanager.catalog.release.domain.TrackInput;
 import org.omt.labelmanager.identity.api.user.AppUserDetails;
 import org.omt.labelmanager.shared.Format;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.omt.labelmanager.web.LabelScope;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -30,25 +32,25 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.server.ResponseStatusException;
 
 @RestController
 @RequestMapping("/api/labels/{labelId}/releases")
 public class ReleaseController {
 
-    private static final Logger log = LoggerFactory.getLogger(ReleaseController.class);
-
     private final ReleaseCommandApi releaseCommandApi;
     private final ReleaseQueryApi releaseQueryApi;
     private final ArtistQueryApi artistQueryApi;
+    private final LabelScope labelScope;
 
     public ReleaseController(
             ReleaseCommandApi releaseCommandApi,
             ReleaseQueryApi releaseQueryApi,
-            ArtistQueryApi artistQueryApi) {
+            ArtistQueryApi artistQueryApi,
+            LabelScope labelScope) {
         this.releaseCommandApi = releaseCommandApi;
         this.releaseQueryApi = releaseQueryApi;
         this.artistQueryApi = artistQueryApi;
+        this.labelScope = labelScope;
     }
 
     record TrackRequest(List<Long> artistIds, String name, String duration, List<Long> remixerIds) {
@@ -63,8 +65,8 @@ public class ReleaseController {
     }
 
     record CreateReleaseRequest(
-            String releaseName,
-            String releaseDate,
+            @NotBlank String releaseName,
+            @NotBlank String releaseDate,
             List<Long> artistIds,
             List<TrackRequest> tracks,
             List<String> formats) {
@@ -86,8 +88,8 @@ public class ReleaseController {
     }
 
     record UpdateReleaseRequest(
-            String releaseName,
-            String releaseDate,
+            @NotBlank String releaseName,
+            @NotBlank String releaseDate,
             List<Long> artistIds,
             List<TrackRequest> tracks,
             List<String> formats) {
@@ -138,14 +140,14 @@ public class ReleaseController {
             @AuthenticationPrincipal AppUserDetails user,
             @PathVariable Long labelId,
             @PathVariable Long releaseId) {
+        labelScope.requireRelease(labelId, releaseId);
         Release release =
                 releaseQueryApi
                         .findById(releaseId)
                         .orElseThrow(
-                                () -> {
-                                    log.warn("Release with id {} not found", releaseId);
-                                    return new ResponseStatusException(HttpStatus.NOT_FOUND);
-                                });
+                                () ->
+                                        new EntityNotFoundException(
+                                                "Release not found: " + releaseId));
 
         List<Artist> allArtists = artistQueryApi.getArtistsForUser(user.getId());
         Map<Long, Artist> artistMap =
@@ -163,7 +165,7 @@ public class ReleaseController {
 
     @PostMapping
     public ResponseEntity<Void> createRelease(
-            @PathVariable Long labelId, @RequestBody CreateReleaseRequest request) {
+            @PathVariable Long labelId, @Valid @RequestBody CreateReleaseRequest request) {
         releaseCommandApi.createRelease(
                 request.releaseName(),
                 LocalDate.parse(request.releaseDate()),
@@ -176,7 +178,10 @@ public class ReleaseController {
 
     @PutMapping("/{releaseId}")
     public ResponseEntity<Void> updateRelease(
-            @PathVariable Long releaseId, @RequestBody UpdateReleaseRequest request) {
+            @PathVariable Long labelId,
+            @PathVariable Long releaseId,
+            @Valid @RequestBody UpdateReleaseRequest request) {
+        labelScope.requireRelease(labelId, releaseId);
         releaseCommandApi.updateRelease(
                 releaseId,
                 request.releaseName(),
@@ -188,7 +193,9 @@ public class ReleaseController {
     }
 
     @DeleteMapping("/{releaseId}")
-    public ResponseEntity<Void> deleteRelease(@PathVariable Long releaseId) {
+    public ResponseEntity<Void> deleteRelease(
+            @PathVariable Long labelId, @PathVariable Long releaseId) {
+        labelScope.requireRelease(labelId, releaseId);
         releaseCommandApi.delete(releaseId);
         return ResponseEntity.noContent().build();
     }

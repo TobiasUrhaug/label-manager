@@ -1,5 +1,6 @@
 package org.omt.labelmanager.web.distribution;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -111,6 +112,11 @@ class DistributorControllerTest {
 
     @Test
     void deleteDistributor_callsHandlerAndReturnsNoContent() throws Exception {
+        when(labelQueryApi.findById(1L))
+                .thenReturn(Optional.of(LabelFactory.aLabel().id(1L).build()));
+        when(distributorQueryApi.findById(99L))
+                .thenReturn(
+                        Optional.of(DistributorFactory.aDistributor().id(99L).labelId(1L).build()));
         when(distributorCRUDHandler.delete(99L)).thenReturn(true);
 
         mockMvc.perform(delete("/api/labels/1/distributors/99").with(user(testUser)).with(csrf()))
@@ -193,5 +199,19 @@ class DistributorControllerTest {
 
         mockMvc.perform(get("/api/labels/1/distributors/99/agreements").with(user(testUser)))
                 .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void deleteDistributor_returns404WhenItBelongsToAnotherLabel() throws Exception {
+        when(labelQueryApi.findById(1L))
+                .thenReturn(Optional.of(LabelFactory.aLabel().id(1L).build()));
+        when(distributorQueryApi.findById(99L))
+                .thenReturn(
+                        Optional.of(DistributorFactory.aDistributor().id(99L).labelId(2L).build()));
+
+        mockMvc.perform(delete("/api/labels/1/distributors/99").with(user(testUser)).with(csrf()))
+                .andExpect(status().isNotFound());
+
+        verify(distributorCRUDHandler, org.mockito.Mockito.never()).delete(any());
     }
 }

@@ -31,6 +31,7 @@ import org.omt.labelmanager.inventory.productionrun.api.ProductionRunQueryApi;
 import org.omt.labelmanager.sales.sale.api.SaleQueryApi;
 import org.omt.labelmanager.shared.Format;
 import org.omt.labelmanager.test.TestSecurityConfig;
+import org.omt.labelmanager.web.LabelScope;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
@@ -58,6 +59,8 @@ class ReleaseControllerTest {
     @MockitoBean private InventoryMovementQueryApi inventoryMovementQueryApi;
 
     @MockitoBean private SaleQueryApi saleQueryApi;
+
+    @MockitoBean private LabelScope labelScope;
 
     private final AppUserDetails testUser =
             new AppUserDetails(1L, "test@example.com", "password", "Test User");

@@ -163,6 +163,11 @@ public class SaleController {
     @PostMapping("/api/labels/{labelId}/sales")
     public ResponseEntity<Void> registerSale(
             @PathVariable Long labelId, @RequestBody RegisterSaleRequest request) {
+        if (request.distributorId() == null) {
+            labelScope.requireLabel(labelId);
+        } else {
+            labelScope.requireDistributor(labelId, request.distributorId());
+        }
         saleCommandApi.registerSale(
                 labelId,
                 request.saleDate(),
