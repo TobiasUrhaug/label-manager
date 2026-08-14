@@ -3,6 +3,7 @@ package org.omt.labelmanager.finance.extraction.infrastructure;
 import java.io.InputStream;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import org.omt.labelmanager.finance.extraction.api.InvoiceParserUnavailableException;
 import org.omt.labelmanager.finance.extraction.domain.ExtractedInvoiceData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,16 +33,18 @@ public class ExternalInvoiceParserAdapter {
         try {
             var response = postToExternalParser(content, contentType);
             if (response == null) {
+                // A 2xx with no body is a parse that found nothing, not a broken integration.
                 log.warn("External invoice parser returned empty body");
                 return ExtractedInvoiceData.empty();
             }
             return mapToExtractedInvoiceData(response);
         } catch (HttpStatusCodeException e) {
             logHttpError(e);
-            return ExtractedInvoiceData.empty();
+            throw new InvoiceParserUnavailableException(
+                    "Invoice parser answered with status " + e.getStatusCode(), e);
         } catch (Exception e) {
             log.warn("External invoice parser failed: {}", e.getMessage());
-            return ExtractedInvoiceData.empty();
+            throw new InvoiceParserUnavailableException("Invoice parser could not be reached", e);
         }
     }
 

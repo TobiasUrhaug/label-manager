@@ -1,6 +1,7 @@
 package org.omt.labelmanager.finance.extraction.infrastructure;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withBadRequest;
@@ -13,6 +14,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.omt.labelmanager.finance.extraction.api.InvoiceParserUnavailableException;
 import org.omt.labelmanager.finance.extraction.domain.ExtractedInvoiceData;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
@@ -92,31 +94,37 @@ class ExternalInvoiceParserAdapterTest {
     }
 
     @Test
-    void returnsEmptyData_whenExternalServiceReturns400() {
+    void throwsUnavailable_whenExternalServiceReturns400() {
         server.expect(requestTo("http://test/api/v1/extract"))
                 .andExpect(method(HttpMethod.POST))
                 .andRespond(withBadRequest());
 
-        var result =
-                adapter.extract(new ByteArrayInputStream(new byte[] {1, 2, 3}), "application/pdf");
-
-        assertThat(result).isEqualTo(ExtractedInvoiceData.empty());
+        assertThatThrownBy(
+                        () ->
+                                adapter.extract(
+                                        new ByteArrayInputStream(new byte[] {1, 2, 3}),
+                                        "application/pdf"))
+                .isInstanceOf(InvoiceParserUnavailableException.class)
+                .hasMessageContaining("400");
     }
 
     @Test
-    void returnsEmptyData_whenExternalServiceReturns503() {
+    void throwsUnavailable_whenExternalServiceReturns503() {
         server.expect(requestTo("http://test/api/v1/extract"))
                 .andExpect(method(HttpMethod.POST))
                 .andRespond(withServiceUnavailable());
 
-        var result =
-                adapter.extract(new ByteArrayInputStream(new byte[] {1, 2, 3}), "application/pdf");
-
-        assertThat(result).isEqualTo(ExtractedInvoiceData.empty());
+        assertThatThrownBy(
+                        () ->
+                                adapter.extract(
+                                        new ByteArrayInputStream(new byte[] {1, 2, 3}),
+                                        "application/pdf"))
+                .isInstanceOf(InvoiceParserUnavailableException.class)
+                .hasMessageContaining("503");
     }
 
     @Test
-    void returnsEmptyData_whenNetworkErrorOccurs() {
+    void throwsUnavailable_whenNetworkErrorOccurs() {
         server.expect(requestTo("http://test/api/v1/extract"))
                 .andExpect(method(HttpMethod.POST))
                 .andRespond(
@@ -124,9 +132,25 @@ class ExternalInvoiceParserAdapterTest {
                             throw new IOException("Connection refused");
                         });
 
+        assertThatThrownBy(
+                        () ->
+                                adapter.extract(
+                                        new ByteArrayInputStream(new byte[] {1, 2, 3}),
+                                        "application/pdf"))
+                .isInstanceOf(InvoiceParserUnavailableException.class)
+                .hasMessageContaining("could not be reached");
+    }
+
+    @Test
+    void returnsEmptyData_whenTheParserAnswersWithNoBody() {
+        server.expect(requestTo("http://test/api/v1/extract"))
+                .andExpect(method(HttpMethod.POST))
+                .andRespond(withSuccess());
+
         var result =
                 adapter.extract(new ByteArrayInputStream(new byte[] {1, 2, 3}), "application/pdf");
 
         assertThat(result).isEqualTo(ExtractedInvoiceData.empty());
+        assertThat(result.hasAnyData()).isFalse();
     }
 }

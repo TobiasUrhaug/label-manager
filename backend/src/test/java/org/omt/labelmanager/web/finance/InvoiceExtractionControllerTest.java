@@ -1,4 +1,4 @@
-package org.omt.labelmanager.finance.extraction.api;
+package org.omt.labelmanager.web.finance;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -6,18 +6,22 @@ import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import org.junit.jupiter.api.Test;
+import org.omt.labelmanager.finance.extraction.api.ExtractionCommandApi;
+import org.omt.labelmanager.finance.extraction.api.InvoiceParserUnavailableException;
 import org.omt.labelmanager.finance.extraction.domain.ExtractedInvoiceData;
 import org.omt.labelmanager.identity.api.user.AppUserDetails;
 import org.omt.labelmanager.test.TestSecurityConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -56,6 +60,7 @@ class InvoiceExtractionControllerTest {
                                 .with(user(testUser))
                                 .with(csrf()))
                 .andExpect(status().isOk())
+                .andExpect(jsonPath("$.extracted").value(true))
                 .andExpect(jsonPath("$.netAmount").value(100.00))
                 .andExpect(jsonPath("$.vatAmount").value(21.00))
                 .andExpect(jsonPath("$.vatRate").isEmpty())
@@ -114,7 +119,7 @@ class InvoiceExtractionControllerTest {
     }
 
     @Test
-    void returnsEmptyDataWhenExtractionFails() throws Exception {
+    void returnsExtractedFalseWhenTheParserFoundNothing() throws Exception {
         MockMultipartFile document =
                 new MockMultipartFile(
                         "document", "invoice.pdf", "application/pdf", "pdf content".getBytes());
@@ -128,7 +133,29 @@ class InvoiceExtractionControllerTest {
                                 .with(user(testUser))
                                 .with(csrf()))
                 .andExpect(status().isOk())
+                .andExpect(jsonPath("$.extracted").value(false))
                 .andExpect(jsonPath("$.netAmount").isEmpty())
                 .andExpect(jsonPath("$.invoiceReference").isEmpty());
+    }
+
+    @Test
+    void returns502ProblemDetailWhenTheParserIsUnreachable() throws Exception {
+        MockMultipartFile document =
+                new MockMultipartFile(
+                        "document", "invoice.pdf", "application/pdf", "pdf content".getBytes());
+
+        when(extractionCommandApi.extract(any(), eq("application/pdf")))
+                .thenThrow(
+                        new InvoiceParserUnavailableException("Invoice parser answered with 503"));
+
+        mockMvc.perform(
+                        multipart("/api/costs/extract")
+                                .file(document)
+                                .with(user(testUser))
+                                .with(csrf()))
+                .andExpect(status().isBadGateway())
+                .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+                .andExpect(jsonPath("$.status").value(502))
+                .andExpect(jsonPath("$.detail").value("Invoice parser answered with 503"));
     }
 }
