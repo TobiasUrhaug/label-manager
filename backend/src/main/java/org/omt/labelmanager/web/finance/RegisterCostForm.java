@@ -1,4 +1,4 @@
-package org.omt.labelmanager.finance.cost.api;
+package org.omt.labelmanager.web.finance;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;

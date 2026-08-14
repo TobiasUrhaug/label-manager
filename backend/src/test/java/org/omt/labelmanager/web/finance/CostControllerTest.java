@@ -1,10 +1,11 @@
-package org.omt.labelmanager.finance.api.cost;
+package org.omt.labelmanager.web.finance;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
@@ -20,8 +21,11 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
+import org.omt.labelmanager.catalog.release.ReleaseFactory;
+import org.omt.labelmanager.catalog.release.api.ReleaseQueryApi;
 import org.omt.labelmanager.finance.cost.api.CostCommandApi;
-import org.omt.labelmanager.finance.cost.api.CostController;
+import org.omt.labelmanager.finance.cost.api.CostQueryApi;
+import org.omt.labelmanager.finance.cost.domain.Cost;
 import org.omt.labelmanager.finance.cost.domain.CostOwner;
 import org.omt.labelmanager.finance.cost.domain.CostType;
 import org.omt.labelmanager.finance.cost.domain.VatAmount;
@@ -41,19 +45,59 @@ import org.springframework.test.web.servlet.MockMvc;
 @Import(TestSecurityConfig.class)
 class CostControllerTest {
 
+    private static final Long LABEL_ID = 1L;
+    private static final Long RELEASE_ID = 42L;
+    private static final Long COST_ID = 99L;
+
     @Autowired private MockMvc mockMvc;
 
-    @MockitoBean private CostCommandApi costCommandFacade;
+    @MockitoBean private CostCommandApi costCommandApi;
+
+    @MockitoBean private CostQueryApi costQueryApi;
+
+    @MockitoBean private ReleaseQueryApi releaseQueryApi;
 
     private final AppUserDetails testUser =
             new AppUserDetails(1L, "test@example.com", "password", "Test User");
 
+    private void releaseBelongsToLabel() {
+        when(releaseQueryApi.findById(RELEASE_ID))
+                .thenReturn(
+                        Optional.of(
+                                ReleaseFactory.aRelease()
+                                        .id(RELEASE_ID)
+                                        .labelId(LABEL_ID)
+                                        .build()));
+    }
+
+    private void costOwnedBy(CostOwner owner) {
+        when(costQueryApi.findById(COST_ID))
+                .thenReturn(
+                        Optional.of(
+                                new Cost(
+                                        COST_ID,
+                                        Money.of(new BigDecimal("100.00")),
+                                        new VatAmount(
+                                                Money.of(new BigDecimal("25.00")),
+                                                new BigDecimal("0.25")),
+                                        Money.of(new BigDecimal("125.00")),
+                                        CostType.MASTERING,
+                                        LocalDate.of(2024, 6, 15),
+                                        "A cost",
+                                        owner,
+                                        null,
+                                        null)));
+    }
+
     @Test
-    void registerCostForRelease_callsUseCaseAndReturnsCreated() throws Exception {
+    void registerCost_withReleaseId_ownsTheCostByTheRelease() throws Exception {
+        releaseBelongsToLabel();
+
         mockMvc.perform(
-                        multipart("/api/labels/1/releases/42/costs")
+                        multipart("/api/labels/1/costs")
                                 .with(user(testUser))
                                 .with(csrf())
+                                .param("releaseId", "42")
                                 .param("netAmount", "100.00")
                                 .param("vatAmount", "25.00")
                                 .param("vatRate", "0.25")
@@ -64,7 +108,7 @@ class CostControllerTest {
                                 .param("documentReference", "INV-2024-001"))
                 .andExpect(status().isCreated());
 
-        verify(costCommandFacade)
+        verify(costCommandApi)
                 .registerCost(
                         eq(Money.of(new BigDecimal("100.00"))),
                         eq(
@@ -74,15 +118,15 @@ class CostControllerTest {
                         eq(CostType.MASTERING),
                         eq(LocalDate.of(2024, 6, 15)),
                         eq("Mastering for album"),
-                        eq(CostOwner.release(42L)),
+                        eq(CostOwner.release(RELEASE_ID)),
                         eq("INV-2024-001"),
                         isNull());
     }
 
     @Test
-    void registerCostForLabel_callsUseCaseAndReturnsCreated() throws Exception {
+    void registerCost_withoutReleaseId_ownsTheCostByTheLabel() throws Exception {
         mockMvc.perform(
-                        multipart("/api/labels/10/costs")
+                        multipart("/api/labels/1/costs")
                                 .with(user(testUser))
                                 .with(csrf())
                                 .param("netAmount", "50.00")
@@ -94,7 +138,7 @@ class CostControllerTest {
                                 .param("description", "Website hosting"))
                 .andExpect(status().isCreated());
 
-        verify(costCommandFacade)
+        verify(costCommandApi)
                 .registerCost(
                         eq(Money.of(new BigDecimal("50.00"))),
                         eq(
@@ -104,22 +148,47 @@ class CostControllerTest {
                         eq(CostType.HOSTING),
                         eq(LocalDate.of(2024, 7, 1)),
                         eq("Website hosting"),
-                        eq(CostOwner.label(10L)),
+                        eq(CostOwner.label(LABEL_ID)),
                         isNull(),
                         isNull());
     }
 
     @Test
-    void registerCostForRelease_withDocumentUpload() throws Exception {
+    void registerCost_rejectsAReleaseBelongingToAnotherLabel() throws Exception {
+        when(releaseQueryApi.findById(RELEASE_ID))
+                .thenReturn(
+                        Optional.of(ReleaseFactory.aRelease().id(RELEASE_ID).labelId(7L).build()));
+
+        mockMvc.perform(
+                        multipart("/api/labels/1/costs")
+                                .with(user(testUser))
+                                .with(csrf())
+                                .param("releaseId", "42")
+                                .param("netAmount", "100.00")
+                                .param("vatAmount", "25.00")
+                                .param("vatRate", "0.25")
+                                .param("grossAmount", "125.00")
+                                .param("costType", "MASTERING")
+                                .param("incurredOn", "2024-06-15")
+                                .param("description", "Mastering for album"))
+                .andExpect(status().isNotFound());
+
+        verifyNoInteractions(costCommandApi);
+    }
+
+    @Test
+    void registerCost_withDocumentUpload() throws Exception {
+        releaseBelongsToLabel();
         MockMultipartFile document =
                 new MockMultipartFile(
                         "document", "invoice.pdf", "application/pdf", "PDF content".getBytes());
 
         mockMvc.perform(
-                        multipart("/api/labels/1/releases/42/costs")
+                        multipart("/api/labels/1/costs")
                                 .file(document)
                                 .with(user(testUser))
                                 .with(csrf())
+                                .param("releaseId", "42")
                                 .param("netAmount", "100.00")
                                 .param("vatAmount", "25.00")
                                 .param("vatRate", "0.25")
@@ -129,17 +198,15 @@ class CostControllerTest {
                                 .param("description", "Mastering for album"))
                 .andExpect(status().isCreated());
 
-        verify(costCommandFacade)
+        verify(costCommandApi)
                 .registerCost(
-                        eq(Money.of(new BigDecimal("100.00"))),
-                        eq(
-                                new VatAmount(
-                                        Money.of(new BigDecimal("25.00")), new BigDecimal("0.25"))),
-                        eq(Money.of(new BigDecimal("125.00"))),
-                        eq(CostType.MASTERING),
-                        eq(LocalDate.of(2024, 6, 15)),
-                        eq("Mastering for album"),
-                        eq(CostOwner.release(42L)),
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                        eq(CostOwner.release(RELEASE_ID)),
                         isNull(),
                         argThat(
                                 (DocumentUpload doc) ->
@@ -149,7 +216,7 @@ class CostControllerTest {
     }
 
     @Test
-    void registerCostForRelease_rejectsInvalidDocumentType() throws Exception {
+    void registerCost_rejectsInvalidDocumentType() throws Exception {
         MockMultipartFile document =
                 new MockMultipartFile(
                         "document",
@@ -158,7 +225,7 @@ class CostControllerTest {
                         "alert('bad')".getBytes());
 
         mockMvc.perform(
-                        multipart("/api/labels/1/releases/42/costs")
+                        multipart("/api/labels/1/costs")
                                 .file(document)
                                 .with(user(testUser))
                                 .with(csrf())
@@ -173,44 +240,8 @@ class CostControllerTest {
     }
 
     @Test
-    void registerCostForLabel_withImageUpload() throws Exception {
-        MockMultipartFile document =
-                new MockMultipartFile(
-                        "document", "receipt.png", "image/png", "PNG content".getBytes());
-
-        mockMvc.perform(
-                        multipart("/api/labels/10/costs")
-                                .file(document)
-                                .with(user(testUser))
-                                .with(csrf())
-                                .param("netAmount", "50.00")
-                                .param("vatAmount", "12.50")
-                                .param("vatRate", "0.25")
-                                .param("grossAmount", "62.50")
-                                .param("costType", "HOSTING")
-                                .param("incurredOn", "2024-07-01")
-                                .param("description", "Website hosting"))
-                .andExpect(status().isCreated());
-
-        verify(costCommandFacade)
-                .registerCost(
-                        any(),
-                        any(),
-                        any(),
-                        any(),
-                        any(),
-                        any(),
-                        any(),
-                        any(),
-                        argThat(
-                                (DocumentUpload doc) ->
-                                        doc != null
-                                                && "receipt.png".equals(doc.filename())
-                                                && "image/png".equals(doc.contentType())));
-    }
-
-    @Test
     void getDocument_returnsDocumentInlineByDefault() throws Exception {
+        costOwnedBy(CostOwner.label(LABEL_ID));
         byte[] content = "PDF content".getBytes();
         RetrievedDocument document =
                 new RetrievedDocument(
@@ -218,9 +249,9 @@ class CostControllerTest {
                         "application/pdf",
                         "invoice.pdf",
                         content.length);
-        when(costCommandFacade.retrieveDocument(1L)).thenReturn(Optional.of(document));
+        when(costCommandApi.retrieveDocument(COST_ID)).thenReturn(Optional.of(document));
 
-        mockMvc.perform(get("/api/costs/1/document").with(user(testUser)))
+        mockMvc.perform(get("/api/labels/1/costs/99/document").with(user(testUser)))
                 .andExpect(status().isOk())
                 .andExpect(
                         header().string("Content-Disposition", "inline; filename=\"invoice.pdf\""))
@@ -230,6 +261,7 @@ class CostControllerTest {
 
     @Test
     void getDocument_returnsDocumentAsAttachmentWhenDownload() throws Exception {
+        costOwnedBy(CostOwner.label(LABEL_ID));
         byte[] content = "PDF content".getBytes();
         RetrievedDocument document =
                 new RetrievedDocument(
@@ -237,10 +269,10 @@ class CostControllerTest {
                         "application/pdf",
                         "invoice.pdf",
                         content.length);
-        when(costCommandFacade.retrieveDocument(1L)).thenReturn(Optional.of(document));
+        when(costCommandApi.retrieveDocument(COST_ID)).thenReturn(Optional.of(document));
 
         mockMvc.perform(
-                        get("/api/costs/1/document")
+                        get("/api/labels/1/costs/99/document")
                                 .param("action", "download")
                                 .with(user(testUser)))
                 .andExpect(status().isOk())
@@ -251,52 +283,81 @@ class CostControllerTest {
     }
 
     @Test
-    void getDocument_returns404WhenCostNotFound() throws Exception {
-        when(costCommandFacade.retrieveDocument(999L)).thenReturn(Optional.empty());
+    void getDocument_reachesACostOwnedByAReleaseOfThisLabel() throws Exception {
+        costOwnedBy(CostOwner.release(RELEASE_ID));
+        releaseBelongsToLabel();
+        byte[] content = "PDF content".getBytes();
+        when(costCommandApi.retrieveDocument(COST_ID))
+                .thenReturn(
+                        Optional.of(
+                                new RetrievedDocument(
+                                        new ByteArrayInputStream(content),
+                                        "application/pdf",
+                                        "invoice.pdf",
+                                        content.length)));
 
-        mockMvc.perform(get("/api/costs/999/document").with(user(testUser)))
+        mockMvc.perform(get("/api/labels/1/costs/99/document").with(user(testUser)))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void getDocument_returns404WhenTheCostBelongsToAnotherLabel() throws Exception {
+        costOwnedBy(CostOwner.label(7L));
+
+        mockMvc.perform(get("/api/labels/1/costs/99/document").with(user(testUser)))
+                .andExpect(status().isNotFound());
+
+        verify(costCommandApi, org.mockito.Mockito.never()).retrieveDocument(any());
+    }
+
+    @Test
+    void getDocument_returns404WhenCostNotFound() throws Exception {
+        when(costQueryApi.findById(COST_ID)).thenReturn(Optional.empty());
+
+        mockMvc.perform(get("/api/labels/1/costs/99/document").with(user(testUser)))
                 .andExpect(status().isNotFound());
     }
 
     @Test
     void getDocument_returns404WhenNoDocumentAttached() throws Exception {
-        when(costCommandFacade.retrieveDocument(1L)).thenReturn(Optional.empty());
+        costOwnedBy(CostOwner.label(LABEL_ID));
+        when(costCommandApi.retrieveDocument(COST_ID)).thenReturn(Optional.empty());
 
-        mockMvc.perform(get("/api/costs/1/document").with(user(testUser)))
+        mockMvc.perform(get("/api/labels/1/costs/99/document").with(user(testUser)))
                 .andExpect(status().isNotFound());
     }
 
     @Test
-    void deleteCostForRelease_callsUseCaseAndReturnsNoContent() throws Exception {
-        when(costCommandFacade.deleteCost(99L)).thenReturn(true);
+    void deleteCost_callsUseCaseAndReturnsNoContent() throws Exception {
+        costOwnedBy(CostOwner.label(LABEL_ID));
+        when(costCommandApi.deleteCost(COST_ID)).thenReturn(true);
 
-        mockMvc.perform(
-                        delete("/api/labels/1/releases/42/costs/99")
-                                .with(user(testUser))
-                                .with(csrf()))
+        mockMvc.perform(delete("/api/labels/1/costs/99").with(user(testUser)).with(csrf()))
                 .andExpect(status().isNoContent());
 
-        verify(costCommandFacade).deleteCost(99L);
+        verify(costCommandApi).deleteCost(COST_ID);
     }
 
     @Test
-    void deleteCostForLabel_callsUseCaseAndReturnsNoContent() throws Exception {
-        when(costCommandFacade.deleteCost(99L)).thenReturn(true);
+    void deleteCost_returns404WhenTheCostBelongsToAnotherLabel() throws Exception {
+        costOwnedBy(CostOwner.label(7L));
 
-        mockMvc.perform(delete("/api/labels/10/costs/99").with(user(testUser)).with(csrf()))
-                .andExpect(status().isNoContent());
+        mockMvc.perform(delete("/api/labels/1/costs/99").with(user(testUser)).with(csrf()))
+                .andExpect(status().isNotFound());
 
-        verify(costCommandFacade).deleteCost(99L);
+        verify(costCommandApi, org.mockito.Mockito.never()).deleteCost(any());
     }
 
     @Test
-    void updateCostForRelease_callsUseCaseAndReturnsNoContent() throws Exception {
-        when(costCommandFacade.updateCost(
+    void updateCost_callsUseCaseAndReturnsNoContent() throws Exception {
+        costOwnedBy(CostOwner.release(RELEASE_ID));
+        releaseBelongsToLabel();
+        when(costCommandApi.updateCost(
                         any(), any(), any(), any(), any(), any(), any(), any(), any()))
                 .thenReturn(true);
 
         mockMvc.perform(
-                        multipart("/api/labels/1/releases/42/costs/99")
+                        multipart("/api/labels/1/costs/99")
                                 .with(
                                         req -> {
                                             req.setMethod("PUT");
@@ -314,9 +375,9 @@ class CostControllerTest {
                                 .param("documentReference", "INV-2024-002"))
                 .andExpect(status().isNoContent());
 
-        verify(costCommandFacade)
+        verify(costCommandApi)
                 .updateCost(
-                        eq(99L),
+                        eq(COST_ID),
                         eq(Money.of(new BigDecimal("200.00"))),
                         eq(
                                 new VatAmount(
@@ -330,13 +391,11 @@ class CostControllerTest {
     }
 
     @Test
-    void updateCostForLabel_callsUseCaseAndReturnsNoContent() throws Exception {
-        when(costCommandFacade.updateCost(
-                        any(), any(), any(), any(), any(), any(), any(), any(), any()))
-                .thenReturn(true);
+    void updateCost_returns404WhenTheCostIsOwnedByAUser() throws Exception {
+        costOwnedBy(CostOwner.user(3L));
 
         mockMvc.perform(
-                        multipart("/api/labels/10/costs/99")
+                        multipart("/api/labels/1/costs/99")
                                 .with(
                                         req -> {
                                             req.setMethod("PUT");
@@ -351,20 +410,6 @@ class CostControllerTest {
                                 .param("costType", "MARKETING")
                                 .param("incurredOn", "2024-08-01")
                                 .param("description", "Marketing campaign"))
-                .andExpect(status().isNoContent());
-
-        verify(costCommandFacade)
-                .updateCost(
-                        eq(99L),
-                        eq(Money.of(new BigDecimal("75.00"))),
-                        eq(
-                                new VatAmount(
-                                        Money.of(new BigDecimal("18.75")), new BigDecimal("0.25"))),
-                        eq(Money.of(new BigDecimal("93.75"))),
-                        eq(CostType.MARKETING),
-                        eq(LocalDate.of(2024, 8, 1)),
-                        eq("Marketing campaign"),
-                        isNull(),
-                        isNull());
+                .andExpect(status().isNotFound());
     }
 }
