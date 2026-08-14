@@ -58,11 +58,6 @@ class ProductionRunQueryApiImpl implements ProductionRunQueryApi {
                 .toList();
     }
 
-    @Override
-    public StockLedger ledgerAt(Long releaseId, Format format, InventoryLocation location) {
-        return ledgerOf(repository.findByReleaseIdAndFormat(releaseId, format), location);
-    }
-
     // MANDATORY, not REQUIRED: a lock is only worth taking if it is held until the caller's write
     // commits. Called without a transaction, REQUIRED would open one, take the lock, and release it
     // on return — no error, no lock, and the oversell back. This way there is no such caller.

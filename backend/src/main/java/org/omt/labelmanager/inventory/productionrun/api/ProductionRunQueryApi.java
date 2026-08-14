@@ -24,31 +24,24 @@ public interface ProductionRunQueryApi {
 
     /**
      * What a location holds of a release in a given format, pressing by pressing, ready to draw
-     * from.
+     * from — with those pressings locked until the caller's transaction ends.
      *
      * <p>This is how callers decide which pressing stock comes out of. It replaces picking the most
      * recent run and hoping it covers the quantity, which ignored every earlier pressing that still
      * had stock.
      *
+     * <p>Locking is not optional, which is why there is no unlocked variant to reach for. Checking
+     * stock and recording the movement that consumes it are two statements, so an unlocked reader
+     * that then writes lets two concurrent sales of the last units both succeed. A caller that only
+     * wants to display stock wants {@code InventoryMovementQueryApi.balancesFor}, which does not
+     * pretend to be drawable-from.
+     *
      * @param releaseId the release
      * @param format the format — a release's vinyl and CD pressings are separate stock
      * @param location where the stock is being taken from
      * @return the ledger; empty if the release has no pressings in that format
-     */
-    StockLedger ledgerAt(Long releaseId, Format format, InventoryLocation location);
-
-    /**
-     * The same ledger, with the pressings locked until the caller's transaction ends.
-     *
-     * <p>For callers that are about to draw from it. Checking stock and recording the movement that
-     * consumes it are two statements, so without the lock two concurrent sales of the last units
-     * both read the same balance and both succeed, leaving the location negative. Must be called
-     * inside a transaction; readers that only display stock should use {@link #ledgerAt}.
-     *
-     * @param releaseId the release
-     * @param format the format
-     * @param location where the stock is being taken from
-     * @return the ledger; empty if the release has no pressings in that format
+     * @throws org.springframework.transaction.IllegalTransactionStateException if called outside a
+     *     transaction, since a lock released on return is no lock at all
      */
     StockLedger lockedLedgerAt(Long releaseId, Format format, InventoryLocation location);
 }

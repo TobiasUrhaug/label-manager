@@ -175,8 +175,9 @@ tracking is load-bearing — `pricing_agreement` is keyed on `(distributor_id, p
 so it cannot simply be collapsed.
 
 **Resolved by Q1: FIFO across runs.** A line item draws from the oldest run the distributor still
-holds stock in, splitting across runs when one is short. No API change; ledger attribution becomes
-correct.
+holds stock in, splitting across runs when one is short; ledger attribution becomes correct. No
+request change — but a sale that spans two pressings is attributed to both, which `GET
+/releases/{id}/sales` listed twice until 4a deduped it.
 
 *Impact: high, and it is a correctness bug rather than a design preference.*
 
@@ -189,7 +190,7 @@ stock is not `Σ movements` — it is `run.quantity + Σ movements`. Callers app
 hand, in two places:
 
 - `AllocateUseCase.java:47` — `int available = run.quantity() + warehouseDelta;`
-- `ReleaseController.java` (`buildProductionRunWithAllocation`) —
+- `ProductionRunController.java` (`withAllocation`) —
   `int warehouseInventory = run.quantity() + inventoryMovementQueryApi.getWarehouseInventory(run.id());`
 
 Meanwhile `getWarehouseInventory` is *named* and *documented* as an absolute figure ("Calculates the
@@ -397,7 +398,7 @@ Indexing is reasonable: composite indexes on the movement location columns (`V25
 | | Migration | Phase |
 |---|---|---|
 | V32 | `app_user.created_at` → `TIMESTAMPTZ`; drop `spring.flyway.baseline-on-migrate` | 0 |
-| V33 | Insert one `PRODUCTION` movement (`EXTERNAL → WAREHOUSE`, `quantity = production_run.quantity`) per existing run, so stock becomes uniformly `Σ in − Σ out` | 4a |
+| V33 | Insert one `PRODUCTION` movement (`EXTERNAL → WAREHOUSE`, `quantity = production_run.quantity`) per existing run, so stock becomes uniformly `Σ in − Σ out`; add a partial unique index making "at most one manufacture per run" a schema rule | 4a |
 | V34 | Create `stock_reservation`; **convert** existing `WAREHOUSE → BANDCAMP` movements into reservation rows (net of cancellations) and delete both movement legs; drop `LocationType.BANDCAMP` usage | 4b |
 | V35 | Make `sale.distributor_id` nullable, add the counterparty discriminator, repoint direct sales at `WAREHOUSE → EXTERNAL`, **delete the matching `WAREHOUSE → DISTRIBUTOR(direct)` ALLOCATION legs**, delete the pseudo-distributors (Q9) | 4b |
 | V36 | Add `user_id` to `cost`; add `label_id` to `production_run`, `inventory_movement`, `pricing_agreement`, `stock_reservation`; backfill via joins; `NOT NULL` + FK + index | 5 |
@@ -603,14 +604,19 @@ computable in one aggregate SQL query, with one owner:
 
 ```java
 // inventory/domain/StockLedger.java — the rule, in one place, unit-testable without Spring
-int onHandAt(InventoryLocation location);            // Σ in − Σ out, never caller-corrected
-int availableAt(InventoryLocation location);         // onHand − reserved  (WAREHOUSE only; 4b —
-                                                     // there is nothing reserved until V34)
-List<RunDraw> drawFifo(Long releaseId, Format format, InventoryLocation from, int quantity);
+// A ledger is one location's holding of one release+format, built by
+// ProductionRunQueryApi.lockedLedgerAt; the location and the release are the question asked of the
+// builder, not state the ledger carries around.
+int onHand();                          // Σ in − Σ out, never caller-corrected
+int available();                       // onHand − reserved (a WAREHOUSE ledger only; 4b —
+                                       // nothing is reserved until V34)
+List<RunDraw> drawFifo(int quantity);  // oldest pressing first, split when one is short
+StockLedger minus(List<RunDraw> draws); // what the next line item of the same sale sees
 ```
 
 `drawFifo` returns the per-run split (Q1) instead of a single run id — this is the API change F4
 forces, and it is why `SaleLineItemProcessor` and `ReturnLineItemProcessor` both change in Phase 4.
+`minus` is what stops two line items for the same release each drawing against the opening balances.
 
 **(b) Reserved stock is a reservation, not a location (Q8).** Bandcamp units never leave the
 warehouse, so `LocationType` reduces to `WAREHOUSE | DISTRIBUTOR(id) | EXTERNAL`, and the ledger goes
@@ -1028,33 +1034,95 @@ fail the two ArchUnit rules; an extra `@GetMapping` fails `OpenApiConformanceTes
 `VARCHAR`. Taken as the risk table's named split point: **4a** is the ledger and FIFO rewrite with no
 `sale` schema change, **4b** is the counterparty remodelling that Q8 and Q9 share.
 
-#### Phase 4a — `V33`, `StockLedger`, FIFO 🚧 *in progress, branch `feature/backend-phase-4`*
+#### Phase 4a — `V33`, `StockLedger`, FIFO ✅ *done, branch `feature/backend-phase-4`*
 
-**Changes.** `MovementType` becomes `ALLOCATION, SALE, RETURN, PRODUCTION` — drop `TRANSFER_IN`,
+**Changes.** `MovementType` becomes `PRODUCTION, ALLOCATION, SALE, RETURN` — drop `TRANSFER_IN`,
 `TRANSFER_OUT`, `ADJUSTMENT` and delete `MovementTypeTest` (Q6). `V33` inserts one `PRODUCTION`
-movement per existing run. Introduce `inventory/domain/StockLedger` owning `onHandAt` and `drawFifo`
-— **not `availableAt`, which subtracts reservations that do not exist until `V34`** — and rewrite
+movement per existing run and adds a partial unique index enforcing at most one per run — **it
+cannot enforce *at least* one, so V33 must not run while a pre-V33 instance still serves writes.**
+A run created by an old instance after V33 commits has no manufacture movement and reads as zero
+stock forever, silently; re-running the backfill repairs it. Introduce `inventory/domain/StockLedger`
+owning `onHand` and `drawFifo`
+— **not `available`, which subtracts reservations that do not exist until `V34`** — and rewrite
 `SaleLineItemProcessor` and `ReturnLineItemProcessor` to consume the FIFO split (Q1). Delete the
 `+ run.quantity()` correction from `AllocateUseCase:45` and the `web` read model. Replace in-memory
-summation with aggregate SQL (`SUM(...) FILTER (WHERE ...)`), fixing the N+1. Add `SELECT ... FOR
-UPDATE` on the balance read in the sale path to close the oversell race. Collapse the duplicate
-`findByProductionRunId`/`getMovementsForProductionRun`.
+summation with aggregate SQL, fixing the N+1. Take a pessimistic lock before drawing stock, to close
+the oversell race. Collapse the duplicate `findByProductionRunId`/`getMovementsForProductionRun`.
+
+**What the plan did not anticipate.**
+- **`findMostRecent` is gone, not just bypassed.** Once both processors draw from the ledger it had
+  no callers, and leaving it would have left the F4 API in place for the next caller to reach for.
+- **A ledger needs `minus`.** A sale validates every line item before recording any movement, so two
+  line items for the same release both drew against the opening balances and could jointly sell more
+  than exists. Each draw is now subtracted from the ledger the next line item sees. The same reason
+  the processors take the whole line item list rather than one at a time.
+- **The aggregate is a `UNION ALL` of both movement legs, not `SUM(...) FILTER`.** One query then
+  returns *every* location's balance for a set of runs rather than one aggregate per location type,
+  which is what makes the release page two queries instead of four per pressing.
+- **Manufacture needed its own ledger entry point.** `recordManufacture` stamps `occurred_at` from
+  the manufacturing date in both the migration and the application; a wall-clock stamp would have
+  put a backfilled run's first event after the allocations that followed it.
+- **The sale list endpoint double-counted.** A sale spanning two pressings is attributed to both, so
+  `GET /releases/{id}/sales` returned it twice and doubled its units in `totalUnitsSold`. §3's "no
+  API change" was wrong on this point; the endpoint now dedupes by sale.
+- **`deleteMovementsByReference` flushes explicitly.** The edit path reverses a sale's movements and
+  immediately re-reads balances that are now computed by a native query. JPA does not promise to
+  flush pending deletes first — it worked by Hibernate's choice, not by contract.
+- **The lock is not "on the balance read", and it is wider than the sale path.** There is no row to
+  lock for a balance — it is a sum — so the mutex is a `PESSIMISTIC_WRITE` on the `production_run`
+  rows, which Hibernate maps to PostgreSQL's `FOR NO KEY UPDATE` (deliberately: `FOR UPDATE` would
+  block on the `FOR KEY SHARE` locks `inventory_movement`'s foreign key takes). Sales, returns,
+  allocation and Bandcamp reservation cancellation all have the same read-then-write shape, so all
+  four take it; locking only the sale path would have left the same oversell one location over.
+- **Lock *order* is the harder half.** Locking lazily per line item takes the locks in request-body
+  order, so two sales listing the same releases in opposite orders deadlock — a 500, not the 409 an
+  out-of-stock sale gets. Every ledger a sale draws from is locked up front, sorted.
+- **The mutex is coarser than the balance it protects.** A balance is per (release, format,
+  location), the lock is per (release, format), so two distributors selling the same pressing
+  serialise needlessly. Locking per location would need a row per location — the thing the ledger
+  exists not to have. Accepted, and recorded on the repository method.
+- **There is no unlocked ledger to reach for.** `lockedLedgerAt` is the only way to get a
+  `StockLedger`, and it is `Propagation.MANDATORY`: called outside a transaction it would otherwise
+  open one, take the lock and release it on return — no error, no lock, oversell back. An unlocked
+  `ledgerAt` was written first and then deleted for the same reason `findMostRecent` was: it had no
+  production caller and existed only for the next caller to get wrong. Display paths use
+  `balancesFor`, which does not pretend to be drawable-from.
+- **A negative balance is clamped, not propagated.** More recorded leaving a location than ever
+  arrived is a data error; a ledger cannot hold a negative quantity, and throwing would block every
+  sale of the release. The ledger builder clamps to zero and logs a warning, since a clamped balance is
+  otherwise indistinguishable from empty stock. §5.1 lists "no location balance is ever negative" as
+  an invariant — it is not enforced anywhere, and this is the code that notices when it is violated.
 
 **Expected churn in 4b.** 4a makes no `sale` schema change, so its FIFO draw and its lock land on
 `DISTRIBUTOR(id)` — the location the sale path reads today. 4b re-points direct and Bandcamp sales at
-`WAREHOUSE`. This is bounded by design: `drawFifo` takes the location as a parameter (§5.1), so 4b
-changes call sites and test fixtures, not the algorithm or the lock.
+`WAREHOUSE`. This is bounded by design: `lockedLedgerAt` takes the location as a parameter, so 4b changes
+call sites and test fixtures, not the algorithm or the lock.
 
-**Done when.** `V33` is idempotent and a verification query shows every run's post-migration on-hand
-equals its pre-migration `quantity + delta`; `onHandAt` returns an absolute figure with no
-caller-side arithmetic; a multi-pressing test asserts FIFO attribution across two runs; a test
-asserts two concurrent sales cannot oversell.
+**Carried into 4b.**
+- The two line item processors are now near-identical; a fix to one will not reach the other. Both
+  are tested, but they want merging once 4b has settled what a counterparty is.
+- `lockedLedgerAt` is one query pair per (release, format). A sale spanning many releases is as chatty as
+  before — not a regression, but `balancesFor` already takes a collection, so a batched `ledgersAt`
+  is available whenever it matters.
+
+**Done when — status.** `V33` is idempotent and `V33MigrationTest` seeds a database at V32 and
+asserts every run's post-migration on-hand equals its pre-migration `quantity + delta` ✅, including
+the mixed shape where one run already has a `PRODUCTION` movement and the Bandcamp movement pair.
+Warehouse stock is absolute with no caller-side arithmetic ✅. FIFO attribution across two pressings
+is asserted at unit level in both processors and end to end in `SaleQueryIntegrationTest` ✅.
+`ConcurrentSaleIntegrationTest` races two sales for the last units and asserts one is rejected with
+`InsufficientInventoryException` specifically ✅ — checked against the unlocked read, which fails it
+on every run. 435 tests pass (391 before Phase 4).
+
+**Not done here.** No `CannotAcquireLockException` handler and no retry: a deadlock is now
+structurally prevented rather than handled, and lock waits are unbounded (no `lock_timeout`). If
+contention ever shows up in practice, that is the next thing to add, not more locking.
 
 #### Phase 4b — `V34`/`V35`, reservations, counterparty remodelling
 
 **Changes.** `V34` creates `stock_reservation`, converts existing Bandcamp movements to reservation
 rows net of cancellations, and removes the `BANDCAMP` location (Q8); `StockLedger` gains
-`availableAt`. `V35` makes `sale.distributor_id` nullable, adds the counterparty discriminator,
+`available`. `V35` makes `sale.distributor_id` nullable, adds the counterparty discriminator,
 repoints existing direct sales at `WAREHOUSE → EXTERNAL`, deletes their matching
 `WAREHOUSE → DISTRIBUTOR(direct)` ALLOCATION legs, and deletes the per-label "Direct Sales"
 distributor (Q9). The code that creates them goes too: `DirectSalesProvisioner`, the `LabelCreated`
@@ -1110,7 +1178,7 @@ runtime; no test `@Autowired`s a repository outside its own module.
 
 | | Question | Decision |
 |---|---|---|
-| Q1 | Which production run does a sale draw from? | **FIFO across runs**, splitting when one is short. No API change; `StockLedger.drawFifo` returns the per-run split. Fixes F4. |
+| Q1 | Which production run does a sale draw from? | **FIFO across runs**, splitting when one is short; `StockLedger.drawFifo` returns the per-run split. Fixes F4. *(No request change, but one response did change: a sale spanning two pressings was listed once per pressing by `GET /releases/{id}/sales`, and its units counted twice. Corrected in 4a.)* |
 | Q2 | Any API consumer beyond `auth.js`? | **No.** Phase 2 is a straight reshape, no deprecation window. |
 | Q3 | What should pricing agreements do? | **Settlement terms, kept decoupled.** Sale price = what was charged; agreement = what the label invoices the distributor. Both correct and separate; document, change no behaviour. Sidesteps the FIFO multi-price problem. |
 | Q4 | PDR-007 (per-channel-type modules)? | **Stands.** `platform` and `directsales` remain planned; `ChannelType` is a documented shim, and Phase 2 routes `sales`' 8 imports through `distribution`'s `api/`. |

@@ -14,6 +14,7 @@ import org.omt.labelmanager.inventory.productionrun.api.ProductionRunCommandApi;
 import org.omt.labelmanager.inventory.productionrun.api.ProductionRunQueryApi;
 import org.omt.labelmanager.shared.Format;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 class QueryProductionRunIntegrationTest extends AbstractIntegrationTest {
 
@@ -68,7 +69,8 @@ class QueryProductionRunIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    void ledgerAt_reportsEachPressingsWarehouseStockOldestFirst() {
+    @Transactional
+    void lockedLedgerAt_reportsEachPressingsWarehouseStockOldestFirst() {
         var label = labelTestHelper.createLabel("Test Label");
         Long releaseId = releaseTestHelper.createReleaseEntity("Test Release", label.id());
 
@@ -89,7 +91,8 @@ class QueryProductionRunIntegrationTest extends AbstractIntegrationTest {
                         LocalDate.of(2025, 1, 1),
                         500);
 
-        var ledger = queryApi.ledgerAt(releaseId, Format.VINYL, InventoryLocation.warehouse());
+        var ledger =
+                queryApi.lockedLedgerAt(releaseId, Format.VINYL, InventoryLocation.warehouse());
 
         assertThat(ledger.onHand()).isEqualTo(700);
         assertThat(ledger.drawFifo(600))
@@ -98,7 +101,8 @@ class QueryProductionRunIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    void ledgerAt_countsOnlyTheRequestedFormat() {
+    @Transactional
+    void lockedLedgerAt_countsOnlyTheRequestedFormat() {
         var label = labelTestHelper.createLabel("Test Label");
         Long releaseId = releaseTestHelper.createReleaseEntity("Test Release", label.id());
 
@@ -107,16 +111,20 @@ class QueryProductionRunIntegrationTest extends AbstractIntegrationTest {
         commandApi.createProductionRun(
                 releaseId, Format.CD, "CD", "Manufacturer B", LocalDate.of(2025, 2, 1), 300);
 
-        assertThat(queryApi.ledgerAt(releaseId, Format.CD, InventoryLocation.warehouse()).onHand())
+        assertThat(
+                        queryApi.lockedLedgerAt(releaseId, Format.CD, InventoryLocation.warehouse())
+                                .onHand())
                 .isEqualTo(300);
     }
 
     @Test
-    void ledgerAt_isEmptyWhenTheReleaseHasNoPressingInThatFormat() {
+    @Transactional
+    void lockedLedgerAt_isEmptyWhenTheReleaseHasNoPressingInThatFormat() {
         var label = labelTestHelper.createLabel("Test Label");
         Long releaseId = releaseTestHelper.createReleaseEntity("Test Release", label.id());
 
-        var ledger = queryApi.ledgerAt(releaseId, Format.VINYL, InventoryLocation.warehouse());
+        var ledger =
+                queryApi.lockedLedgerAt(releaseId, Format.VINYL, InventoryLocation.warehouse());
 
         assertThat(ledger.runs()).isEmpty();
         assertThat(ledger.onHand()).isZero();
@@ -124,7 +132,8 @@ class QueryProductionRunIntegrationTest extends AbstractIntegrationTest {
 
     /** A pressing that has never reached a location is still in the ledger, holding nothing. */
     @Test
-    void ledgerAt_includesPressingsWithNoStockAtThatLocation() {
+    @Transactional
+    void lockedLedgerAt_includesPressingsWithNoStockAtThatLocation() {
         var label = labelTestHelper.createLabel("Test Label");
         Long releaseId = releaseTestHelper.createReleaseEntity("Test Release", label.id());
 
@@ -137,7 +146,8 @@ class QueryProductionRunIntegrationTest extends AbstractIntegrationTest {
                         LocalDate.of(2025, 1, 1),
                         500);
 
-        var ledger = queryApi.ledgerAt(releaseId, Format.VINYL, InventoryLocation.distributor(7L));
+        var ledger =
+                queryApi.lockedLedgerAt(releaseId, Format.VINYL, InventoryLocation.distributor(7L));
 
         assertThat(ledger.runs()).extracting(RunStock::productionRunId).containsExactly(run.id());
         assertThat(ledger.onHand()).isZero();
