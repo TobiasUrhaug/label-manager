@@ -47,11 +47,13 @@ for (const [path, item] of Object.entries(doc.paths ?? {})) {
     // operationId, which is still valid YAML — operationId just becomes a map. That is the
     // exact slip this script exists to catch, and a truthiness check waves it through.
     if (typeof operation.operationId !== 'string') {
-      problems.push(
-        operation.operationId === undefined
-          ? `${where}: no operationId`
-          : `${where}: operationId is ${typeof operation.operationId}, not a string — something is indented under it`,
-      );
+      if (operation.operationId === undefined) problems.push(`${where}: no operationId`);
+      else if (operation.operationId === null) problems.push(`${where}: operationId is empty`);
+      else {
+        problems.push(
+          `${where}: operationId is ${typeof operation.operationId}, not a string — something is indented under it`,
+        );
+      }
     } else if (operationIds.has(operation.operationId)) {
       problems.push(
         `${where}: operationId "${operation.operationId}" also used by ${operationIds.get(operation.operationId)}`,
@@ -77,7 +79,14 @@ for (const [path, item] of Object.entries(doc.paths ?? {})) {
       for (const segment of value.slice(2).split('/')) {
         // RFC 6901: ~1 is an escaped "/", ~0 an escaped "~". Path keys contain slashes, so a
         // ref to a path item is all escapes; resolving without decoding fails on a valid spec.
-        target = target?.[segment.replace(/~1/g, '/').replace(/~0/g, '~')];
+        const key = segment.replace(/~1/g, '/').replace(/~0/g, '~');
+        // Own properties only. Plain member access walks the prototype chain, so a typo'd
+        // ref to "constructor" or "toString" resolves to a Function and passes.
+        if (target === null || typeof target !== 'object' || !Object.hasOwn(target, key)) {
+          target = undefined;
+          break;
+        }
+        target = target[key];
       }
       if (target === undefined) problems.push(`${trail}: unresolved $ref "${value}"`);
     } else walk(value, `${trail}/${key}`);
