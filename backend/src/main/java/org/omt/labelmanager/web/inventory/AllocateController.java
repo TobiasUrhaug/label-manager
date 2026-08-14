@@ -1,11 +1,10 @@
-package org.omt.labelmanager.inventory.productionrun.api;
+package org.omt.labelmanager.web.inventory;
 
-import org.omt.labelmanager.inventory.InsufficientInventoryException;
 import org.omt.labelmanager.inventory.InventoryLocation;
 import org.omt.labelmanager.inventory.LocationType;
+import org.omt.labelmanager.inventory.productionrun.api.ProductionRunCommandApi;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -55,11 +54,6 @@ public class AllocateController {
         }
         productionRunCommandApi.cancelBandcampReservation(runId, request.quantity());
         return ResponseEntity.noContent().build();
-    }
-
-    @ExceptionHandler(InsufficientInventoryException.class)
-    public ResponseEntity<Void> handleInsufficientInventory() {
-        return ResponseEntity.badRequest().build();
     }
 
     private InventoryLocation resolveToLocation(AllocateRequest request) {
