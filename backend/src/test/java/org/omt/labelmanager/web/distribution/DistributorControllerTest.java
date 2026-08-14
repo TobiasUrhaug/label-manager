@@ -1,4 +1,4 @@
-package org.omt.labelmanager.distribution.distributor.api;
+package org.omt.labelmanager.web.distribution;
 
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
@@ -20,6 +20,9 @@ import org.omt.labelmanager.catalog.label.LabelFactory;
 import org.omt.labelmanager.catalog.label.api.LabelQueryApi;
 import org.omt.labelmanager.distribution.agreement.api.AgreementQueryApi;
 import org.omt.labelmanager.distribution.distributor.DistributorFactory;
+import org.omt.labelmanager.distribution.distributor.api.ChannelType;
+import org.omt.labelmanager.distribution.distributor.api.DistributorCommandApi;
+import org.omt.labelmanager.distribution.distributor.api.DistributorQueryApi;
 import org.omt.labelmanager.identity.api.user.AppUserDetails;
 import org.omt.labelmanager.inventory.productionrun.api.ProductionRunQueryApi;
 import org.omt.labelmanager.sales.distributorreturn.api.DistributorReturnQueryApi;

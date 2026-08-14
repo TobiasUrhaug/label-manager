@@ -1,4 +1,4 @@
-package org.omt.labelmanager.distribution.distributor.api;
+package org.omt.labelmanager.web.distribution;
 
 import java.math.RoundingMode;
 import org.omt.labelmanager.distribution.agreement.api.PricingAgreement;
