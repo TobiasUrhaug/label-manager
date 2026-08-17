@@ -2,15 +2,14 @@ package org.omt.labelmanager.sales.sale.application;
 
 import jakarta.persistence.EntityNotFoundException;
 import java.time.LocalDate;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import org.omt.labelmanager.catalog.label.api.LabelQueryApi;
 import org.omt.labelmanager.distribution.distributor.api.ChannelType;
 import org.omt.labelmanager.distribution.distributor.api.Distributor;
 import org.omt.labelmanager.distribution.distributor.api.DistributorQueryApi;
 import org.omt.labelmanager.inventory.InventoryLocation;
 import org.omt.labelmanager.inventory.MovementType;
+import org.omt.labelmanager.inventory.domain.RunDraw;
 import org.omt.labelmanager.inventory.inventorymovement.api.InventoryMovementCommandApi;
 import org.omt.labelmanager.sales.sale.domain.Sale;
 import org.omt.labelmanager.sales.sale.domain.SaleLineItemInput;
@@ -80,25 +79,22 @@ class RegisterSaleUseCase {
                         notes,
                         lineItems.getFirst().unitPrice().currency());
 
-        // 4. Validate each line item and cache its production run ID for step 6
-        Map<SaleLineItemInput, Long> productionRunIds = new LinkedHashMap<>();
-        for (var lineItemInput : lineItems) {
-            Long productionRunId =
-                    lineItemProcessor.validateAndAdd(
-                            lineItemInput, labelId, distributor.id(), saleEntity);
-            productionRunIds.put(lineItemInput, productionRunId);
-        }
+        // 4. Validate the line items and work out which pressings each draws from
+        InventoryLocation from = InventoryLocation.distributor(distributor.id());
+        List<RunDraw> draws =
+                lineItemProcessor.validateAndAdd(lineItems, labelId, from, saleEntity);
 
         // 5. Save sale
         var savedSale = saleRepository.save(saleEntity);
 
-        // 6. Record SALE movements (after save so saleId is available as referenceId)
-        for (var entry : productionRunIds.entrySet()) {
+        // 6. Record SALE movements (after save so saleId is available as referenceId). One per
+        // pressing drawn from — a line item that spans two pressings records two.
+        for (RunDraw draw : draws) {
             inventoryMovementCommandApi.recordMovement(
-                    entry.getValue(),
-                    InventoryLocation.distributor(distributor.id()),
+                    draw.productionRunId(),
+                    from,
                     InventoryLocation.external(),
-                    entry.getKey().quantity(),
+                    draw.quantity(),
                     MovementType.SALE,
                     savedSale.getId());
         }

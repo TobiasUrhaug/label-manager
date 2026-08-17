@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.omt.labelmanager.AbstractIntegrationTest;
@@ -12,9 +13,11 @@ import org.omt.labelmanager.catalog.release.ReleaseTestHelper;
 import org.omt.labelmanager.distribution.distributor.api.ChannelType;
 import org.omt.labelmanager.distribution.distributor.persistence.DistributorEntity;
 import org.omt.labelmanager.distribution.distributor.persistence.DistributorRepository;
+import org.omt.labelmanager.inventory.InventoryLocation;
 import org.omt.labelmanager.inventory.LocationType;
 import org.omt.labelmanager.inventory.MovementType;
 import org.omt.labelmanager.inventory.inventorymovement.api.InventoryMovementQueryApi;
+import org.omt.labelmanager.inventory.inventorymovement.api.LocationBalance;
 import org.omt.labelmanager.inventory.inventorymovement.persistence.InventoryMovementEntity;
 import org.omt.labelmanager.inventory.inventorymovement.persistence.InventoryMovementRepository;
 import org.omt.labelmanager.inventory.productionrun.persistence.ProductionRunEntity;
@@ -125,7 +128,9 @@ public class InventoryMovementQueryServiceTest extends AbstractIntegrationTest {
     void
             getProductionRunIdsAllocatedToDistributor_returnsBothRunIds_whenEachHasAllocationToDistributor() {
         var label = labelTestHelper.createLabel("Label 2");
-        Long releaseId2 = releaseTestHelper.createReleaseEntity("Release 2", label.id());
+        // Named for this test specifically: nothing here cleans up, and TrackRemixerIntegrationTest
+        // looks a release up by name expecting exactly one. Whichever ran second used to fail.
+        Long releaseId2 = releaseTestHelper.createReleaseEntity("Allocated Release", label.id());
         Long runId2 =
                 productionRunRepository
                         .save(
@@ -178,6 +183,134 @@ public class InventoryMovementQueryServiceTest extends AbstractIntegrationTest {
         assertThat(result).isEmpty();
     }
 
+    // --- balancesFor: the aggregate every other balance question is answered from ---
+
+    @Test
+    void balancesFor_reportsEveryLocationOfEveryRunInOneCall() {
+        Long secondRun = anotherProductionRun();
+        saveMovement(
+                productionRunId,
+                LocationType.EXTERNAL,
+                null,
+                LocationType.WAREHOUSE,
+                null,
+                500,
+                MovementType.PRODUCTION);
+        saveMovement(
+                productionRunId,
+                LocationType.WAREHOUSE,
+                null,
+                LocationType.DISTRIBUTOR,
+                distributorId,
+                120,
+                MovementType.ALLOCATION);
+        saveMovement(
+                secondRun,
+                LocationType.EXTERNAL,
+                null,
+                LocationType.WAREHOUSE,
+                null,
+                300,
+                MovementType.PRODUCTION);
+
+        var balances = inventoryMovementQueryApi.balancesFor(List.of(productionRunId, secondRun));
+
+        assertThat(balances)
+                .containsExactlyInAnyOrder(
+                        new LocationBalance(productionRunId, InventoryLocation.warehouse(), 380),
+                        new LocationBalance(
+                                productionRunId, InventoryLocation.distributor(distributorId), 120),
+                        new LocationBalance(productionRunId, InventoryLocation.external(), -500),
+                        new LocationBalance(secondRun, InventoryLocation.warehouse(), 300),
+                        new LocationBalance(secondRun, InventoryLocation.external(), -300));
+    }
+
+    @Test
+    void balancesFor_omitsLocationsThatNetToZero() {
+        saveMovement(
+                productionRunId,
+                LocationType.WAREHOUSE,
+                null,
+                LocationType.DISTRIBUTOR,
+                distributorId,
+                50,
+                MovementType.ALLOCATION);
+        saveMovement(
+                productionRunId,
+                LocationType.DISTRIBUTOR,
+                distributorId,
+                LocationType.WAREHOUSE,
+                null,
+                50,
+                MovementType.RETURN);
+
+        var balances = inventoryMovementQueryApi.balancesFor(List.of(productionRunId));
+
+        assertThat(balances).isEmpty();
+    }
+
+    @Test
+    void balancesFor_returnsNothingForNoRuns() {
+        assertThat(inventoryMovementQueryApi.balancesFor(List.of())).isEmpty();
+    }
+
+    @Test
+    void findByProductionRunIds_groupsMovementsByRunNewestFirst() {
+        Long secondRun = anotherProductionRun();
+        saveMovementAt(
+                productionRunId,
+                LocationType.EXTERNAL,
+                null,
+                LocationType.WAREHOUSE,
+                null,
+                500,
+                MovementType.PRODUCTION,
+                Instant.parse("2025-01-01T00:00:00Z"));
+        saveMovementAt(
+                productionRunId,
+                LocationType.WAREHOUSE,
+                null,
+                LocationType.DISTRIBUTOR,
+                distributorId,
+                120,
+                MovementType.ALLOCATION,
+                Instant.parse("2025-03-01T00:00:00Z"));
+        saveMovementAt(
+                secondRun,
+                LocationType.EXTERNAL,
+                null,
+                LocationType.WAREHOUSE,
+                null,
+                300,
+                MovementType.PRODUCTION,
+                Instant.parse("2025-02-01T00:00:00Z"));
+
+        var byRun =
+                inventoryMovementQueryApi.findByProductionRunIds(
+                        List.of(productionRunId, secondRun));
+
+        assertThat(byRun).hasSize(2);
+        assertThat(byRun.get(productionRunId))
+                .extracting(InventoryMovement::movementType)
+                .containsExactly(MovementType.ALLOCATION, MovementType.PRODUCTION);
+        assertThat(byRun.get(secondRun)).singleElement().returns(300, InventoryMovement::quantity);
+    }
+
+    private Long anotherProductionRun() {
+        var label = labelTestHelper.createLabel("Other Label");
+        Long releaseId = releaseTestHelper.createReleaseEntity("Other Release", label.id());
+        return productionRunRepository
+                .save(
+                        new ProductionRunEntity(
+                                releaseId,
+                                Format.VINYL,
+                                "Second pressing",
+                                "Plant B",
+                                LocalDate.of(2026, 1, 1),
+                                300))
+                .getId();
+    }
+
     private void saveMovement(
             Long runId,
             LocationType fromType,
@@ -186,6 +319,19 @@ public class InventoryMovementQueryServiceTest extends AbstractIntegrationTest {
             Long toId,
             int quantity,
             MovementType movementType) {
+        saveMovementAt(
+                runId, fromType, fromId, toType, toId, quantity, movementType, Instant.now());
+    }
+
+    private void saveMovementAt(
+            Long runId,
+            LocationType fromType,
+            Long fromId,
+            LocationType toType,
+            Long toId,
+            int quantity,
+            MovementType movementType,
+            Instant occurredAt) {
         movementRepository.save(
                 new InventoryMovementEntity(
                         runId,
@@ -195,7 +341,7 @@ public class InventoryMovementQueryServiceTest extends AbstractIntegrationTest {
                         toId,
                         quantity,
                         movementType,
-                        Instant.now(),
+                        occurredAt,
                         null));
     }
 }

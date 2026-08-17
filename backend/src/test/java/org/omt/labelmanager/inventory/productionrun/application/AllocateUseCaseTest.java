@@ -5,7 +5,6 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.time.LocalDate;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -19,12 +18,13 @@ import org.omt.labelmanager.inventory.inventorymovement.api.InventoryMovementCom
 import org.omt.labelmanager.inventory.inventorymovement.api.InventoryMovementQueryApi;
 import org.omt.labelmanager.inventory.productionrun.persistence.ProductionRunEntity;
 import org.omt.labelmanager.inventory.productionrun.persistence.ProductionRunRepository;
-import org.omt.labelmanager.shared.Format;
 
 @ExtendWith(MockitoExtension.class)
 class AllocateUseCaseTest {
 
     @Mock private ProductionRunRepository repository;
+
+    @Mock private ProductionRunEntity productionRun;
 
     @Mock private InventoryMovementQueryApi inventoryMovementQueryApi;
 
@@ -43,8 +43,8 @@ class AllocateUseCaseTest {
 
     @Test
     void execute_recordsAllocationMovement_whenQuantityIsAvailable() {
-        when(repository.findById(RUN_ID)).thenReturn(Optional.of(runWithQuantity(500)));
-        when(inventoryMovementQueryApi.getWarehouseInventory(RUN_ID)).thenReturn(-200);
+        when(repository.lockById(RUN_ID)).thenReturn(Optional.of(productionRun));
+        when(inventoryMovementQueryApi.getWarehouseInventory(RUN_ID)).thenReturn(300);
 
         assertThatNoException()
                 .isThrownBy(() -> subject.execute(RUN_ID, InventoryLocation.distributor(5L), 300));
@@ -61,17 +61,30 @@ class AllocateUseCaseTest {
 
     @Test
     void execute_throwsInsufficientInventoryException_whenQuantityExceedsAvailable() {
-        when(repository.findById(RUN_ID)).thenReturn(Optional.of(runWithQuantity(500)));
-        when(inventoryMovementQueryApi.getWarehouseInventory(RUN_ID)).thenReturn(-200);
+        when(repository.lockById(RUN_ID)).thenReturn(Optional.of(productionRun));
+        when(inventoryMovementQueryApi.getWarehouseInventory(RUN_ID)).thenReturn(300);
 
         assertThatThrownBy(() -> subject.execute(RUN_ID, InventoryLocation.distributor(5L), 301))
                 .isInstanceOf(InsufficientInventoryException.class);
     }
 
+    /**
+     * The warehouse figure is now the whole answer. Before V33 this test had to say "manufactured
+     * 500, delta −200"; the ledger carries the manufactured quantity itself.
+     */
+    @Test
+    void execute_readsWarehouseStockWithoutCorrectingIt() {
+        when(repository.lockById(RUN_ID)).thenReturn(Optional.of(productionRun));
+        when(inventoryMovementQueryApi.getWarehouseInventory(RUN_ID)).thenReturn(0);
+
+        assertThatThrownBy(() -> subject.execute(RUN_ID, InventoryLocation.distributor(5L), 1))
+                .isInstanceOf(InsufficientInventoryException.class);
+    }
+
     @Test
     void execute_recordsBandcampAllocation_whenLocationIsBandcamp() {
-        when(repository.findById(RUN_ID)).thenReturn(Optional.of(runWithQuantity(100)));
-        when(inventoryMovementQueryApi.getWarehouseInventory(RUN_ID)).thenReturn(0);
+        when(repository.lockById(RUN_ID)).thenReturn(Optional.of(productionRun));
+        when(inventoryMovementQueryApi.getWarehouseInventory(RUN_ID)).thenReturn(100);
 
         subject.execute(RUN_ID, InventoryLocation.bandcamp(), 50);
 
@@ -85,8 +98,12 @@ class AllocateUseCaseTest {
                         null);
     }
 
-    private ProductionRunEntity runWithQuantity(int quantity) {
-        return new ProductionRunEntity(
-                1L, Format.VINYL, null, "Manufacturer", LocalDate.now(), quantity);
+    @Test
+    void execute_throws_whenProductionRunDoesNotExist() {
+        when(repository.lockById(RUN_ID)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> subject.execute(RUN_ID, InventoryLocation.distributor(5L), 1))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Production run not found");
     }
 }

@@ -2,11 +2,10 @@ package org.omt.labelmanager.sales.distributorreturn.application;
 
 import jakarta.persistence.EntityNotFoundException;
 import java.time.LocalDate;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import org.omt.labelmanager.inventory.InventoryLocation;
 import org.omt.labelmanager.inventory.MovementType;
+import org.omt.labelmanager.inventory.domain.RunDraw;
 import org.omt.labelmanager.inventory.inventorymovement.api.InventoryMovementCommandApi;
 import org.omt.labelmanager.sales.distributorreturn.domain.ReturnLineItemInput;
 import org.omt.labelmanager.sales.distributorreturn.infrastructure.DistributorReturnRepository;
@@ -63,26 +62,23 @@ class UpdateReturnUseCase {
         returnEntity.setReturnDate(returnDate);
         returnEntity.setNotes(notes);
 
-        // 3. Validate each new line item and add to entity, caching production run IDs
-        Long distributorId = returnEntity.getDistributorId();
-        Map<ReturnLineItemInput, Long> productionRunIds = new LinkedHashMap<>();
-        for (var lineItemInput : lineItems) {
-            Long productionRunId =
-                    lineItemProcessor.validateAndAdd(
-                            lineItemInput, returnEntity.getLabelId(), distributorId, returnEntity);
-            productionRunIds.put(lineItemInput, productionRunId);
-        }
+        // 3. Validate the new line items and work out which pressings each comes back from
+        InventoryLocation from = InventoryLocation.distributor(returnEntity.getDistributorId());
+        List<RunDraw> draws =
+                lineItemProcessor.validateAndAdd(
+                        lineItems, returnEntity.getLabelId(), from, returnEntity);
 
         // 4. Save updated entity
         returnRepository.save(returnEntity);
 
-        // 5. Record new RETURN movements (after save ensures referenceId is available)
-        for (var entry : productionRunIds.entrySet()) {
+        // 5. Record new RETURN movements (after save ensures referenceId is available), one per
+        // pressing coming back
+        for (RunDraw draw : draws) {
             inventoryMovementCommandApi.recordMovement(
-                    entry.getValue(),
-                    InventoryLocation.distributor(distributorId),
+                    draw.productionRunId(),
+                    from,
                     InventoryLocation.warehouse(),
-                    entry.getKey().quantity(),
+                    draw.quantity(),
                     MovementType.RETURN,
                     returnId);
         }

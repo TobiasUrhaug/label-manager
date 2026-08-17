@@ -1,36 +1,32 @@
 package org.omt.labelmanager.inventory.productionrun;
 
 import java.time.LocalDate;
+import org.omt.labelmanager.inventory.productionrun.api.ProductionRunCommandApi;
 import org.omt.labelmanager.inventory.productionrun.domain.ProductionRun;
-import org.omt.labelmanager.inventory.productionrun.persistence.ProductionRunEntity;
-import org.omt.labelmanager.inventory.productionrun.persistence.ProductionRunRepository;
 import org.omt.labelmanager.shared.Format;
 import org.springframework.stereotype.Component;
 
 /**
  * Public helper for creating test production run data. Used by integration tests in other modules
  * that need production run fixtures.
+ *
+ * <p>Goes through {@link ProductionRunCommandApi} rather than saving an entity directly, so
+ * fixtures carry the PRODUCTION movement a real run has. Saving the row alone produces a run the
+ * application can no longer create: warehouse stock reads straight off the ledger now, so such a
+ * run has zero stock and every allocation against it fails.
  */
 @Component
 public class ProductionRunTestHelper {
 
-    private final ProductionRunRepository repository;
+    private final ProductionRunCommandApi commandApi;
 
-    public ProductionRunTestHelper(ProductionRunRepository repository) {
-        this.repository = repository;
+    public ProductionRunTestHelper(ProductionRunCommandApi commandApi) {
+        this.commandApi = commandApi;
     }
 
     public ProductionRun createProductionRun(Long releaseId, Format format, int quantity) {
-        var entity =
-                new ProductionRunEntity(
-                        releaseId,
-                        format,
-                        "Test pressing",
-                        "Test Manufacturer",
-                        LocalDate.now(),
-                        quantity);
-        entity = repository.save(entity);
-        return ProductionRun.fromEntity(entity);
+        return createProductionRun(
+                releaseId, format, "Test pressing", "Test Manufacturer", LocalDate.now(), quantity);
     }
 
     public ProductionRun createProductionRun(
@@ -40,10 +36,7 @@ public class ProductionRunTestHelper {
             String manufacturer,
             LocalDate manufacturingDate,
             int quantity) {
-        var entity =
-                new ProductionRunEntity(
-                        releaseId, format, description, manufacturer, manufacturingDate, quantity);
-        entity = repository.save(entity);
-        return ProductionRun.fromEntity(entity);
+        return commandApi.createProductionRun(
+                releaseId, format, description, manufacturer, manufacturingDate, quantity);
     }
 }

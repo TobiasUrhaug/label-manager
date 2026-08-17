@@ -12,13 +12,14 @@ package org.omt.labelmanager.inventory;
  *       is needed.
  *   <li>{@link #DISTRIBUTOR} — an external distributor holding inventory on behalf of the label.
  *       Must be paired with the distributor's {@code Long} ID.
- *   <li>{@link #EXTERNAL} — outside the label's system entirely (i.e. sold to end customers). No
- *       additional ID is needed.
+ *   <li>{@link #EXTERNAL} — outside the label's system entirely: both where manufactured units come
+ *       from and where sold units go. No additional ID is needed.
  * </ul>
  *
  * <p>Standard movement patterns:
  *
  * <pre>
+ *   Production          : EXTERNAL        → WAREHOUSE
  *   Allocation          : WAREHOUSE       → DISTRIBUTOR(distributorId)
  *   Sale                : DISTRIBUTOR(id) → EXTERNAL
  *   Return              : DISTRIBUTOR(id) → WAREHOUSE
@@ -38,8 +39,8 @@ public enum LocationType {
     DISTRIBUTOR,
 
     /**
-     * Inventory that has left the label's system entirely — i.e. sold to end customers. No
-     * accompanying ID is required.
+     * Outside the label's system entirely — units sold to end customers, and the pressing plant
+     * manufactured units arrive from. No accompanying ID is required.
      */
     EXTERNAL,
 

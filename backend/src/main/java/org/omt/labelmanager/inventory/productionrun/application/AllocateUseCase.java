@@ -5,7 +5,6 @@ import org.omt.labelmanager.inventory.InventoryLocation;
 import org.omt.labelmanager.inventory.MovementType;
 import org.omt.labelmanager.inventory.inventorymovement.api.InventoryMovementCommandApi;
 import org.omt.labelmanager.inventory.inventorymovement.api.InventoryMovementQueryApi;
-import org.omt.labelmanager.inventory.productionrun.domain.ProductionRun;
 import org.omt.labelmanager.inventory.productionrun.persistence.ProductionRunRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,17 +31,16 @@ class AllocateUseCase {
 
     @Transactional
     public void execute(Long productionRunId, InventoryLocation toLocation, int quantity) {
-        ProductionRun run =
-                repository
-                        .findById(productionRunId)
-                        .map(ProductionRun::fromEntity)
-                        .orElseThrow(
-                                () ->
-                                        new IllegalArgumentException(
-                                                "Production run not found: " + productionRunId));
+        // Locked, not merely fetched: reading the warehouse balance and inserting the movement that
+        // consumes it are two statements, so two concurrent allocations of the last units would
+        // both see them free. Same mutex the sale path takes.
+        if (repository.lockById(productionRunId).isEmpty()) {
+            throw new IllegalArgumentException("Production run not found: " + productionRunId);
+        }
 
-        int warehouseDelta = inventoryMovementQueryApi.getWarehouseInventory(productionRunId);
-        int available = run.quantity() + warehouseDelta;
+        // Absolute, not a delta: manufacture is a PRODUCTION movement, so the ledger already
+        // includes the run's quantity (V33).
+        int available = inventoryMovementQueryApi.getWarehouseInventory(productionRunId);
 
         if (quantity > available) {
             log.warn(

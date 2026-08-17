@@ -7,7 +7,9 @@ import jakarta.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.stream.Collectors;
 import org.omt.labelmanager.catalog.label.api.LabelQueryApi;
 import org.omt.labelmanager.catalog.release.api.ReleaseQueryApi;
 import org.omt.labelmanager.distribution.distributor.api.ChannelType;
@@ -142,9 +144,20 @@ public class SaleController {
         requireReleaseOfLabel(releaseId, labelId);
 
         List<Distributor> distributors = distributorQueryApi.findByLabelId(labelId);
+        // Distinct by sale: one sale is attributed to every pressing it drew from, and a sale
+        // large enough to span two pressings is returned by both. Listing it twice would also
+        // count its units twice in totalUnitsSold.
         List<ReleaseSaleView> sales =
                 productionRunQueryApi.findByReleaseId(releaseId).stream()
                         .flatMap(run -> saleQueryApi.getSalesForProductionRun(run.id()).stream())
+                        .collect(
+                                Collectors.toMap(
+                                        Sale::id,
+                                        sale -> sale,
+                                        (first, duplicate) -> first,
+                                        LinkedHashMap::new))
+                        .values()
+                        .stream()
                         .map(sale -> toReleaseSaleView(sale, distributors))
                         .sorted(Comparator.comparing(ReleaseSaleView::saleDate).reversed())
                         .toList();

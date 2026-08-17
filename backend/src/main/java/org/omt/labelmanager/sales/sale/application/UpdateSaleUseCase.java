@@ -2,11 +2,10 @@ package org.omt.labelmanager.sales.sale.application;
 
 import jakarta.persistence.EntityNotFoundException;
 import java.time.LocalDate;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import org.omt.labelmanager.inventory.InventoryLocation;
 import org.omt.labelmanager.inventory.MovementType;
+import org.omt.labelmanager.inventory.domain.RunDraw;
 import org.omt.labelmanager.inventory.inventorymovement.api.InventoryMovementCommandApi;
 import org.omt.labelmanager.sales.sale.domain.Sale;
 import org.omt.labelmanager.sales.sale.domain.SaleLineItemInput;
@@ -65,26 +64,23 @@ class UpdateSaleUseCase {
         saleEntity.setSaleDate(saleDate);
         saleEntity.setNotes(notes);
 
-        // 3. Validate each new line item and add to entity, caching production run IDs
-        Long distributorId = saleEntity.getDistributorId();
-        Map<SaleLineItemInput, Long> productionRunIds = new LinkedHashMap<>();
-        for (var lineItemInput : lineItems) {
-            Long productionRunId =
-                    lineItemProcessor.validateAndAdd(
-                            lineItemInput, saleEntity.getLabelId(), distributorId, saleEntity);
-            productionRunIds.put(lineItemInput, productionRunId);
-        }
+        // 3. Validate the new line items and work out which pressings each draws from
+        InventoryLocation from = InventoryLocation.distributor(saleEntity.getDistributorId());
+        List<RunDraw> draws =
+                lineItemProcessor.validateAndAdd(
+                        lineItems, saleEntity.getLabelId(), from, saleEntity);
 
         // 4. Save updated entity
         var savedSale = saleRepository.save(saleEntity);
 
-        // 5. Record new SALE movements (after save ensures referenceId is available)
-        for (var entry : productionRunIds.entrySet()) {
+        // 5. Record new SALE movements (after save ensures referenceId is available), one per
+        // pressing drawn from
+        for (RunDraw draw : draws) {
             inventoryMovementCommandApi.recordMovement(
-                    entry.getValue(),
-                    InventoryLocation.distributor(distributorId),
+                    draw.productionRunId(),
+                    from,
                     InventoryLocation.external(),
-                    entry.getKey().quantity(),
+                    draw.quantity(),
                     MovementType.SALE,
                     savedSale.getId());
         }
